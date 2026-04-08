@@ -1,0 +1,1 @@
+SELECT id, name, email, is_admin FROM profiles;

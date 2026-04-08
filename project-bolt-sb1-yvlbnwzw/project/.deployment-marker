@@ -1,0 +1,4 @@
+Deployment trigger: 2026-02-20 (Build 3 - Offer Auth Fix)
+Fixed: Added comprehensive logging to send-offer-modal.tsx to debug authorization issues
+Added console.log at module load time to verify new code is being served
+This deployment should include all auth token debugging code

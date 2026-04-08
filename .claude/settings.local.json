@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls D:/Projekti/projekat/project-bolt-sb1-yvlbnwzw/project/.env*)"
+    ]
+  }
+}

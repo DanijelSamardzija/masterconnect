@@ -1,0 +1,183 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: auto;
+  overscroll-behavior-x: none;
+}
+
+#__next {
+  min-height: 100%;
+}
+
+@layer base {
+  :root {
+    /* LIGHT MODE */
+    --background: 0 0% 96%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 25 95% 53%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 16% 93%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 16% 93%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 210 16% 93%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 214 20% 85%;
+    --input: 214 20% 85%;
+    --ring: 25 95% 53%;
+
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* DARK MODE */
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+
+    --card: 217 33% 17%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 217 33% 17%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 25 95% 53%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 217 19% 27%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 19% 27%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 217 19% 27%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 217 19% 27%;
+    --input: 217 33% 23%;
+    --ring: 25 95% 53%;
+
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+img.emoji {
+  height: 1.2em;
+  width: 1.2em;
+  margin: 0 0.05em 0 0.1em;
+  vertical-align: -0.1em;
+  display: inline-block;
+}
+
+.emoji-picker-button img.emoji {
+  height: 1.5em;
+  width: 1.5em;
+  margin: 0;
+  vertical-align: middle;
+}
+
+.feedImageForceContain {
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+[data-debug="stage-wrapper"]::before,
+[data-debug="stage-wrapper"]::after,
+[data-debug="stage-wrapper"] *::before,
+[data-debug="stage-wrapper"] *::after {
+  display: none !important;
+  content: none !important;
+}
+
+[data-debug="stage-wrapper"] img {
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+@supports not (height: 100dvh) {
+  .dvh-fallback {
+    height: 100vh !important;
+  }
+}
+
+@supports (height: 100dvh) {
+  .dvh-fallback {
+    height: 100dvh !important;
+  }
+}
+
+@supports (height: 100dvh) {
+  html,
+  body {
+    min-height: 100dvh;
+  }
+}
+
+html,
+body {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  height: auto !important;
+  min-height: 100dvh !important;
+}

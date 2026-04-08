@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clear Cache - MasterConnect</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #0f172a;
+      color: white;
+    }
+    .box {
+      background: #1e293b;
+      padding: 30px;
+      border-radius: 12px;
+      border: 2px solid #3b82f6;
+    }
+    h1 {
+      color: #3b82f6;
+      margin-top: 0;
+    }
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 5px;
+      font-weight: 600;
+    }
+    button:hover {
+      background: #2563eb;
+    }
+    .danger {
+      background: #dc2626;
+    }
+    .danger:hover {
+      background: #b91c1c;
+    }
+    #status {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      background: #334155;
+    }
+    .success {
+      background: #166534 !important;
+      color: #bbf7d0;
+    }
+    code {
+      background: #334155;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    ol {
+      line-height: 1.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>🧹 Clear MasterConnect Cache</h1>
+    <p>Ova stranica će obrisati sve keširane podatke i service worker za MasterConnect aplikaciju.</p>
+
+    <h3>Koraci za potpuno brisanje:</h3>
+    <ol>
+      <li>Klikni "<strong>Clear All Cache</strong>"</li>
+      <li>Klikni "<strong>Unregister Service Worker</strong>"</li>
+      <li>U browseru: <strong>Hard Refresh</strong> (Ctrl+Shift+R ili Cmd+Shift+R)</li>
+      <li>Zatvori i ponovo otvori aplikaciju</li>
+    </ol>
+
+    <div style="margin: 20px 0;">
+      <button onclick="clearCache()">Clear All Cache</button>
+      <button onclick="unregisterSW()" class="danger">Unregister Service Worker</button>
+    </div>
+
+    <div id="status"></div>
+
+    <hr style="margin: 30px 0; border-color: #475569;">
+
+    <h3>Dodatno:</h3>
+    <ul>
+      <li>Očisti browser history za <code>localhost:3000</code></li>
+      <li>Očisti cookies i local storage</li>
+      <li>Probaj u Incognito/Private režimu</li>
+    </ul>
+  </div>
+
+  <script>
+    const status = document.getElementById('status');
+
+    async function clearCache() {
+      try {
+        status.innerHTML = '⏳ Brisanje cache-a...';
+
+        const cacheNames = await caches.keys();
+        status.innerHTML += `<br>📦 Pronađeno ${cacheNames.length} cache-ova`;
+
+        for (const cacheName of cacheNames) {
+          await caches.delete(cacheName);
+          status.innerHTML += `<br>✅ Obrisan: ${cacheName}`;
+        }
+
+        localStorage.clear();
+        sessionStorage.clear();
+
+        status.className = 'success';
+        status.innerHTML += '<br><br><strong>✅ SVE OBRISANO!</strong><br>Sada klikni "Unregister Service Worker"';
+      } catch (err) {
+        status.innerHTML = '❌ Greška: ' + err.message;
+      }
+    }
+
+    async function unregisterSW() {
+      try {
+        status.innerHTML = '⏳ Uklanjanje service worker-a...';
+
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        status.innerHTML += `<br>🔧 Pronađeno ${registrations.length} service worker-a`;
+
+        for (const registration of registrations) {
+          await registration.unregister();
+          status.innerHTML += `<br>✅ Uklonjen service worker`;
+        }
+
+        status.className = 'success';
+        status.innerHTML += '<br><br><strong>✅ SERVICE WORKER UKLONJEN!</strong><br>Sada uradi hard refresh (Ctrl+Shift+R)';
+      } catch (err) {
+        status.innerHTML = '❌ Greška: ' + err.message;
+      }
+    }
+
+    window.onload = async () => {
+      const cacheNames = await caches.keys();
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      status.innerHTML = `
+        <strong>Trenutni status:</strong><br>
+        📦 Cache-ova: ${cacheNames.length}<br>
+        🔧 Service Worker-a: ${registrations.length}<br>
+        ${cacheNames.map(c => `<br>- ${c}`).join('')}
+      `;
+    };
+  </script>
+</body>
+</html>

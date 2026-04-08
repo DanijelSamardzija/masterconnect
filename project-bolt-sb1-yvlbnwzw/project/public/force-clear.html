@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FORCE CLEAR - MasterConnect</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 700px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #7f1d1d;
+      color: white;
+    }
+    .box {
+      background: #991b1b;
+      padding: 40px;
+      border-radius: 16px;
+      border: 3px solid #fca5a5;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    h1 {
+      color: #fca5a5;
+      margin-top: 0;
+      font-size: 32px;
+    }
+    button {
+      background: #dc2626;
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 18px;
+      margin: 10px 5px;
+      font-weight: 700;
+      width: 100%;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    button:hover {
+      background: #b91c1c;
+      transform: scale(1.02);
+    }
+    #status {
+      margin-top: 25px;
+      padding: 20px;
+      border-radius: 12px;
+      background: #7c2d12;
+      border: 2px solid #fed7aa;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    .success {
+      background: #14532d !important;
+      border-color: #86efac !important;
+      color: #bbf7d0;
+    }
+    code {
+      background: #451a03;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 15px;
+      border: 1px solid #fed7aa;
+    }
+    .warning {
+      background: #78350f;
+      padding: 20px;
+      border-radius: 12px;
+      margin: 20px 0;
+      border: 2px solid #fbbf24;
+    }
+    .step {
+      background: #7c2d12;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border-left: 4px solid #fb923c;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>🔥 NUCLEAR CACHE CLEAR</h1>
+
+    <div class="warning">
+      <strong>⚠️ OVO ĆE OBRISATI SVE!</strong>
+      <ul>
+        <li>Sve cache-ove</li>
+        <li>Service Worker-e</li>
+        <li>Local Storage</li>
+        <li>Session Storage</li>
+        <li>IndexedDB</li>
+      </ul>
+    </div>
+
+    <button onclick="nukeEverything()">🔥 OBRIŠI SVE I RESTARTUJ</button>
+
+    <div id="status">Klikni dugme iznad da očistiš sve cache-ove...</div>
+
+    <div style="margin-top: 30px;">
+      <h3 style="color: #fca5a5;">Nakon klika:</h3>
+      <div class="step">1️⃣ Zatvori POTPUNO browser (svi tabovi)</div>
+      <div class="step">2️⃣ Otvori ponovo browser</div>
+      <div class="step">3️⃣ Idi na <code>localhost:3000</code></div>
+      <div class="step">4️⃣ Login + probaj profil link</div>
+    </div>
+  </div>
+
+  <script>
+    const status = document.getElementById('status');
+
+    async function nukeEverything() {
+      try {
+        status.innerHTML = '🔥 BRISANJE U TOKU...<br><br>';
+        let log = '';
+
+        // 1. Clear all caches
+        const cacheNames = await caches.keys();
+        log += `📦 Pronađeno ${cacheNames.length} cache-ova<br>`;
+        for (const cacheName of cacheNames) {
+          await caches.delete(cacheName);
+          log += `✅ Obrisan cache: ${cacheName}<br>`;
+        }
+
+        // 2. Unregister all service workers
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        log += `<br>🔧 Pronađeno ${registrations.length} service worker-a<br>`;
+        for (const registration of registrations) {
+          await registration.unregister();
+          log += `✅ Uklonjen service worker: ${registration.scope}<br>`;
+        }
+
+        // 3. Clear all storage
+        localStorage.clear();
+        sessionStorage.clear();
+        log += '<br>✅ Local Storage obrisan<br>';
+        log += '✅ Session Storage obrisan<br>';
+
+        // 4. Clear IndexedDB
+        if (window.indexedDB && window.indexedDB.databases) {
+          const databases = await window.indexedDB.databases();
+          for (const db of databases) {
+            if (db.name) {
+              window.indexedDB.deleteDatabase(db.name);
+              log += `✅ IndexedDB obrisan: ${db.name}<br>`;
+            }
+          }
+        }
+
+        status.className = 'success';
+        status.innerHTML = log + `
+          <br>
+          <h2 style="color: #86efac; margin-top: 20px;">🎉 SVE OBRISANO!</h2>
+          <p style="font-size: 18px; font-weight: bold;">
+            SADA:<br>
+            1. Zatvori browser POTPUNO<br>
+            2. Otvori ponovo<br>
+            3. Idi na localhost:3000
+          </p>
+        `;
+
+        // Auto close tab after 3 seconds
+        setTimeout(() => {
+          window.close();
+        }, 3000);
+
+      } catch (err) {
+        status.innerHTML = '❌ GREŠKA: ' + err.message + '<br><br>Zatvori browser ručno i ponovo ga otvori.';
+      }
+    }
+
+    // Show current state on load
+    window.onload = async () => {
+      const cacheNames = await caches.keys();
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      const dbList = window.indexedDB && window.indexedDB.databases ? await window.indexedDB.databases() : [];
+
+      status.innerHTML = `
+        <strong>📊 TRENUTNO STANJE:</strong><br><br>
+        📦 Cache-ova: <strong>${cacheNames.length}</strong><br>
+        🔧 Service Worker-a: <strong>${registrations.length}</strong><br>
+        💾 IndexedDB: <strong>${dbList.length}</strong><br>
+        💿 LocalStorage keys: <strong>${Object.keys(localStorage).length}</strong><br><br>
+        ${cacheNames.length > 0 ? '<span style="color: #fca5a5;">⚠️ Postoje cache-ovi - potrebno čišćenje!</span>' : '<span style="color: #86efac;">✅ Nema cache-ova</span>'}
+      `;
+    };
+  </script>
+</body>
+</html>

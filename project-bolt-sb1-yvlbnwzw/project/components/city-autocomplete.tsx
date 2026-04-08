@@ -1,0 +1,276 @@
+'use client';
+
+import { useState, useRef, useEffect } from 'react';
+import { Input } from '@/components/ui/input';
+import { Check, MapPin, Loader2 } from 'lucide-react';
+
+interface CityAutocompleteProps {
+  value: string;
+  onChange: (value: string, placeData?: { city: string; country: string; place_id: string }) => void;
+  placeholder?: string;
+  disabled?: boolean;
+  required?: boolean;
+  showAllOption?: boolean;
+  className?: string;
+  error?: string;
+}
+
+interface NominatimPlace {
+  place_id: number;
+  display_name: string;
+  type: string;
+  address?: {
+    city?: string;
+    town?: string;
+    country?: string;
+  };
+}
+
+const SERBIAN_CITIES = [
+  'Beograd', 'Novi Sad', 'Niš', 'Kragujevac', 'Subotica', 'Zrenjanin', 'Pančevo',
+  'Čačak', 'Kruševac', 'Kraljevo', 'Smederevo', 'Novi Pazar', 'Leskovac', 'Vranje',
+  'Užice', 'Valjevo', 'Šabac', 'Sombor', 'Požarevac', 'Pirot', 'Zaječar', 'Kikinda',
+  'Sremska Mitrovica', 'Jagodina', 'Vršac', 'Bor', 'Prokuplje', 'Loznica', 'Negotin',
+  'Lazarevac', 'Bečej', 'Paraćin', 'Vrnjačka Banja', 'Inđija', 'Ruma', 'Ćuprija',
+  'Ćurug', 'Čoka', 'Žabalj', 'Žitište', 'Šid', 'Đakovica', 'Kosovska Mitrovica',
+  'Mladenovac', 'Aranđelovac', 'Sopot', 'Obrenovac', 'Stara Pazova', 'Bačka Palanka',
+  'Bački Petrovac', 'Temerin', 'Beočin', 'Srbobran', 'Apatin', 'Odžaci', 'Kula',
+  'Mali Zvornik', 'Ljubovija', 'Bajina Bašta', 'Krupanj', 'Boljevac', 'Kladovo',
+  'Majdanpek', 'Despotovac', 'Rekovac', 'Svilajnac', 'Aleksinac', 'Ražanj', 'Doljevac',
+  'Gadžin Han', 'Merošina', 'Brus', 'Aleksandrovac', 'Ćićevac', 'Trstenik', 'Arilje',
+  'Ivanjica', 'Čajetina', 'Kosjerić', 'Požega', 'Priboj', 'Prijepolje', 'Nova Varoš',
+  'Sjenica', 'Tutin', 'Blace', 'Žitorađa', 'Kuršumlija', 'Lebane', 'Medveđa', 'Bojnik',
+  'Vlasotince', 'Surdulica', 'Crna Trava', 'Bosilegrad', 'Bujanovac', 'Preševo', 'Vladičin Han'
+];
+
+function normalizeSerbianText(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/č/g, 'c')
+    .replace(/ć/g, 'c')
+    .replace(/š/g, 's')
+    .replace(/ž/g, 'z')
+    .replace(/đ/g, 'd')
+    .trim();
+}
+
+export function CityAutocomplete({
+  value,
+  onChange,
+  placeholder = 'Enter city...',
+  disabled = false,
+  required = false,
+  showAllOption = false,
+  className = '',
+  error,
+}: CityAutocompleteProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [inputValue, setInputValue] = useState(value);
+  const [predictions, setPredictions] = useState<NominatimPlace[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    setInputValue(value);
+  }, [value]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const searchCities = async (input: string) => {
+    if (!input || input.length < 2) {
+      setPredictions([]);
+      return;
+    }
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    abortControllerRef.current = new AbortController();
+    setIsLoading(true);
+
+    try {
+      const normalizedInput = normalizeSerbianText(input);
+
+      const localMatches = SERBIAN_CITIES
+        .filter(city => normalizeSerbianText(city).includes(normalizedInput))
+        .slice(0, 5)
+        .map((city, index) => ({
+          place_id: -(index + 1),
+          display_name: `${city}, Serbia`,
+          type: 'city',
+          address: {
+            city: city,
+            country: 'Srbija'
+          }
+        }));
+
+      if (localMatches.length > 0) {
+        setPredictions(localMatches);
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(input)}&format=json&addressdetails=1&limit=10`,
+        {
+          signal: abortControllerRef.current.signal,
+          headers: {
+            'Accept': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch cities');
+      }
+
+      const data: NominatimPlace[] = await response.json();
+
+      const filteredCities = data.filter(place =>
+        place.type === 'city' ||
+        place.type === 'town' ||
+        place.type === 'administrative'
+      );
+
+      setPredictions(filteredCities.slice(0, 5));
+      setIsLoading(false);
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        console.error('Error fetching city predictions:', error);
+        setPredictions([]);
+      }
+      setIsLoading(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    setIsOpen(true);
+
+    if (newValue.length >= 2) {
+      searchCities(newValue);
+    } else {
+      setPredictions([]);
+    }
+
+    if (newValue === '') {
+      onChange('');
+    }
+  };
+
+  const handleCitySelect = (place: NominatimPlace) => {
+    const cityName = place.address?.city || place.address?.town || place.display_name.split(',')[0];
+    const country = place.address?.country || '';
+
+    setInputValue(cityName.trim());
+    setIsOpen(false);
+    setPredictions([]);
+
+    onChange(cityName.trim(), {
+      city: cityName.trim(),
+      country: country,
+      place_id: place.place_id.toString(),
+    });
+  };
+
+  const handleAllCitiesSelect = () => {
+    setInputValue('');
+    onChange('');
+    setIsOpen(false);
+    setPredictions([]);
+  };
+
+  const handleFocus = () => {
+    if (inputValue.length >= 2) {
+      setIsOpen(true);
+      searchCities(inputValue);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      setIsOpen(false);
+    }
+  };
+
+  return (
+    <div ref={wrapperRef} className={`relative ${className}`}>
+      <Input
+        type="text"
+        value={inputValue}
+        onChange={handleInputChange}
+        onFocus={handleFocus}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+        disabled={disabled}
+        required={required}
+        autoComplete="off"
+        className={error ? 'border-red-500' : ''}
+      />
+
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
+          {showAllOption && (
+            <button
+              type="button"
+              onClick={handleAllCitiesSelect}
+              className="w-full px-3 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center justify-between border-b border-gray-200 dark:border-slate-700"
+            >
+              <span className="font-medium text-gray-900 dark:text-white">All Cities</span>
+              {value === '' && <Check className="h-4 w-4 text-primary" />}
+            </button>
+          )}
+
+          {isLoading && (
+            <div className="flex items-center justify-center py-4">
+              <Loader2 className="h-5 w-5 animate-spin text-gray-400 dark:text-gray-500" />
+            </div>
+          )}
+
+          {!isLoading && predictions.length === 0 && inputValue.length >= 2 && (
+            <div className="px-3 py-4 text-sm text-gray-500 dark:text-gray-400 text-center">
+              No cities found
+            </div>
+          )}
+
+          {!isLoading && predictions.length > 0 && predictions.map((place) => {
+            const cityName = place.address?.city || place.address?.town || place.display_name.split(',')[0];
+            const displayName = cityName.trim();
+
+            return (
+              <button
+                key={place.place_id}
+                type="button"
+                onClick={() => handleCitySelect(place)}
+                className="w-full px-3 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-start gap-2"
+              >
+                <MapPin className="h-4 w-4 mt-1 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-gray-900 dark:text-white">{displayName}</div>
+                  {place.address?.country && (
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{place.address.country}</div>
+                  )}
+                </div>
+                {displayName === value && (
+                  <Check className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
