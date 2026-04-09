@@ -11,7 +11,8 @@ import { CityAutocomplete } from '@/components/city-autocomplete';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { EmptyState } from '@/components/empty-state';
-import { Loader2, Search, Filter, X, Bookmark } from 'lucide-react';
+import { SharePostModal } from '@/components/share-post-modal';
+import { Loader2, Search, Filter, X, Bookmark, Share2 } from 'lucide-react';
 
 export const revalidate = 0;
 
@@ -52,6 +53,7 @@ export default function ServicesPage() {
   const [cityFilter, setCityFilter] = useState('');
   const [hasFilters, setHasFilters] = useState(false);
   const [savedSet, setSavedSet] = useState<Set<string>>(new Set());
+  const [shareModalPostId, setShareModalPostId] = useState<string | null>(null);
 
   useEffect(() => {
     loadCategories();
@@ -330,25 +332,42 @@ export default function ServicesPage() {
               className="relative transition-all duration-200 hover:scale-[1.02] hover:-translate-y-1"
             >
               <ProfessionalCard listing={listing} />
-              {user && (
+              <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
                 <button
-                  onClick={(e) => handleSaveListing(e, listing.id)}
-                  className="absolute top-3 right-3 z-10 p-1.5 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors"
-                  title={savedSet.has(listing.id) ? t('profile.savedRemove') : t('profile.savedSaveService')}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShareModalPostId(listing.id); }}
+                  className="p-1.5 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors"
+                  title={t('share.title')}
                 >
-                  <Bookmark
-                    className={`h-5 w-5 transition-all drop-shadow ${
-                      savedSet.has(listing.id) ? 'fill-white text-white scale-110' : 'text-white'
-                    }`}
-                  />
+                  <Share2 className="h-5 w-5 text-white drop-shadow" />
                 </button>
-              )}
+                {user && (
+                  <button
+                    onClick={(e) => handleSaveListing(e, listing.id)}
+                    className="p-1.5 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors"
+                    title={savedSet.has(listing.id) ? t('profile.savedRemove') : t('profile.savedSaveService')}
+                  >
+                    <Bookmark
+                      className={`h-5 w-5 transition-all drop-shadow ${
+                        savedSet.has(listing.id) ? 'fill-white text-white scale-110' : 'text-white'
+                      }`}
+                    />
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
       )}
 
     </div>
+
+    {shareModalPostId && (
+      <SharePostModal
+        postId={shareModalPostId}
+        open={!!shareModalPostId}
+        onOpenChange={(open) => { if (!open) setShareModalPostId(null); }}
+      />
+    )}
   </div>
 );
 }
