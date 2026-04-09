@@ -76,6 +76,14 @@ export default function Home() {
     }
     setLoading(false);
   };
+  if (authLoading || user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-orange-600">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white" />
+      </div>
+    );
+  }
+
   return (
     <div className="pb-24 !bg-white">
       <section className="relative bg-gradient-to-br from-orange-600 via-orange-700 to-amber-900 py-24 md:py-32">
