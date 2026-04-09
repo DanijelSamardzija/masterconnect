@@ -500,9 +500,6 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium">{t('createPost.mediaPreviewLabel')}</p>
-                <p className="text-xs text-muted-foreground">
-                  {t('createPost.mediaOverlayHint')}
-                </p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {mediaFiles.map((mediaFile, index) => {
