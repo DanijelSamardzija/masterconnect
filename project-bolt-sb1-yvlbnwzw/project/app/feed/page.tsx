@@ -1240,7 +1240,7 @@ function FeedContent() {
                   >
                     {/* User row */}
                     <div className="flex items-center gap-2">
-                      {/* Avatar + name — clickable, takes remaining space */}
+                      {/* Avatar + name + follow */}
                       <div
                         className="flex min-w-0 flex-1 cursor-pointer items-center gap-2"
                         onClick={(e) => {
@@ -1261,28 +1261,26 @@ function FeedContent() {
                           {post.user.account_type === 'professional' && (
                             <ProfessionalBadge size="sm" />
                           )}
+                          {user && post.user_id !== user.id && (
+                            <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                              <FollowButton
+                                targetUserId={post.user_id}
+                                currentUserId={user.id}
+                                size="sm"
+                                isFollowing={followedUserIds.has(post.user_id)}
+                                onFollowChange={(following) => {
+                                  setFollowedUserIds(prev => {
+                                    const next = new Set(prev);
+                                    if (following) next.add(post.user_id);
+                                    else next.delete(post.user_id);
+                                    return next;
+                                  });
+                                }}
+                              />
+                            </div>
+                          )}
                         </div>
                       </div>
-
-                      {/* Follow — flex-shrink-0 so it never wraps */}
-                      {user && post.user_id !== user.id && (
-                        <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                          <FollowButton
-                            targetUserId={post.user_id}
-                            currentUserId={user.id}
-                            size="sm"
-                            isFollowing={followedUserIds.has(post.user_id)}
-                            onFollowChange={(following) => {
-                              setFollowedUserIds(prev => {
-                                const next = new Set(prev);
-                                if (following) next.add(post.user_id);
-                                else next.delete(post.user_id);
-                                return next;
-                              });
-                            }}
-                          />
-                        </div>
-                      )}
                     </div>
 
                     {/* Rating */}
