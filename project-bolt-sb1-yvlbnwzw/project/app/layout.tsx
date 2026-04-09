@@ -56,6 +56,19 @@ export default function RootLayout({
 }) {
   return (
     <html lang="sr" suppressHydrationWarning>
+      <head>
+        {/* Apply dark class BEFORE first render to prevent flash of light mode on refresh */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function() {
+            try {
+              var theme = localStorage.getItem('theme');
+              if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+              }
+            } catch (e) {}
+          })();
+        ` }} />
+      </head>
       <body className={`${inter.className} flex flex-col min-h-screen bg-background text-foreground`}>
         <LanguageProvider>
           <AuthProvider>
