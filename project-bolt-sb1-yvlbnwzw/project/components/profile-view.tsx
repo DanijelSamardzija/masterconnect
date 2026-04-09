@@ -37,6 +37,16 @@ import {
 } from 'lucide-react';
 import { CommentsSheet } from '@/components/comments-sheet';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { FollowButton } from '@/components/follow-button';
 import { FollowListSheet } from '@/components/follow-list-sheet';
 import { formatDistanceToNow } from 'date-fns';
@@ -160,6 +170,7 @@ export function ProfileView({
   const [likedByUsers, setLikedByUsers] = useState<{ id: string; name: string; avatar_url?: string }[]>([]);
   const [likedByLoading, setLikedByLoading] = useState(false);
   const [commentsSheetPostId, setCommentsSheetPostId] = useState<string | null>(null);
+  const [postToDelete, setPostToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     if (tabsScrollRef.current) {
@@ -652,10 +663,13 @@ export function ProfileView({
 
   const handleDeletePost = async (postId: string) => {
     if (!currentUserId || !isOwnProfile) return;
+    setPostToDelete(postId);
+  };
 
-    if (!confirm('Are you sure you want to delete this post?')) {
-      return;
-    }
+  const confirmDeletePost = async () => {
+    const postId = postToDelete;
+    if (!postId) return;
+    setPostToDelete(null);
 
     try {
       const { data: mediaItems } = await supabase.from('post_media').select('url').eq('post_id', postId);
@@ -1852,6 +1866,24 @@ export function ProfileView({
           }}
         />
       )}
+
+      {/* Delete Post Confirmation */}
+      <AlertDialog open={postToDelete !== null} onOpenChange={(open) => { if (!open) setPostToDelete(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Obriši post / Delete post</AlertDialogTitle>
+            <AlertDialogDescription>
+              Da li ste sigurni da želite da obrišete ovaj post? Ova akcija se ne može poništiti. / Are you sure you want to delete this post? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Otkaži / Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeletePost} className="bg-red-600 hover:bg-red-700">
+              Obriši / Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

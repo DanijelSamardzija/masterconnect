@@ -214,7 +214,7 @@ function DashboardContent() {
     const { error } = await supabase.from('jobs').delete().eq('id', jobId);
     if (error) { toast.error('Greška pri brisanju'); return; }
     toast.success('Posao obrisan');
-    fetchDashboardData();
+    setJobs((prev) => prev.filter((j) => j.id !== jobId));
   };
 
   if (!profile) return null;
