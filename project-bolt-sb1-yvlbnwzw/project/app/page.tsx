@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Wrench, Shield, Star, Search, Calendar, MessageSquare, ArrowRight, MapPin, CheckCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { useAuth } from '@/lib/contexts/auth-context';
+import { useRouter } from 'next/navigation';
 
 type FeaturedPro = {
   user_id: string;
@@ -25,8 +27,16 @@ type FeaturedPro = {
 
 export default function Home() {
   const { t } = useLanguage();
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
   const [featuredPros, setFeaturedPros] = useState<FeaturedPro[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace('/feed');
+    }
+  }, [user, authLoading]);
 
   useEffect(() => {
     fetchFeaturedPros();
