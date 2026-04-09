@@ -1093,7 +1093,11 @@ function MessagesContent() {
 
                       if (message.message_type === 'application') {
                         try {
-                          const appData = JSON.parse(message.text);
+                          const appData = {
+                            ...JSON.parse(message.text),
+                            applicantId: message.sender_id,
+                            threadId: threadId,
+                          };
                           return (
                             <div
                               key={message.id}

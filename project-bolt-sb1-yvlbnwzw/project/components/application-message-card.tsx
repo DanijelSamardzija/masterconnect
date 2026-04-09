@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Phone, Mail, MapPin, FileText, Download, CheckCircle2, XCircle, Clock, Loader2, User } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
@@ -10,6 +10,8 @@ import { useLanguage } from '@/lib/contexts/language-context';
 export type ApplicationData = {
   applicationId?: string | null;
   postOwnerId?: string | null;
+  applicantId?: string | null;
+  threadId?: string | null;
   applicantName: string;
   phone?: string | null;
   email?: string | null;
@@ -47,6 +49,15 @@ export function ApplicationMessageCard({
   const [status, setStatus] = useState<'pending' | 'accepted' | 'declined'>('pending');
   const [responding, setResponding] = useState(false);
 
+  // Load real status from DB on mount
+  useEffect(() => {
+    if (!data.applicationId) return;
+    supabase.from('job_applications').select('status').eq('id', data.applicationId).maybeSingle()
+      .then(({ data: row }) => {
+        if (row?.status === 'accepted' || row?.status === 'declined') setStatus(row.status);
+      });
+  }, [data.applicationId]);
+
   const isOwner = currentUserId === data.postOwnerId;
 
   const formattedDate = (() => {
@@ -66,10 +77,46 @@ export function ApplicationMessageCard({
 
     if (error) {
       toast.error('Greška / Error');
-    } else {
-      setStatus(newStatus);
-      toast.success(newStatus === 'accepted' ? t('offer.card.applicationAccepted') : t('offer.card.applicationDeclined'));
+      setResponding(false);
+      return;
     }
+
+    setStatus(newStatus);
+    toast.success(newStatus === 'accepted' ? t('offer.card.applicationAccepted') : t('offer.card.applicationDeclined'));
+
+    // Send notification to applicant
+    if (data.applicantId && data.postOwnerId) {
+      const ownerName = (await supabase.from('profiles').select('name').eq('id', data.postOwnerId).maybeSingle()).data?.name || 'Neko';
+      const titleSr = newStatus === 'accepted'
+        ? `${ownerName} je prihvatio vašu prijavu`
+        : `${ownerName} je odbio vašu prijavu`;
+      const titleEn = newStatus === 'accepted'
+        ? `${ownerName} accepted your application`
+        : `${ownerName} declined your application`;
+      await supabase.from('notifications').insert({
+        user_id: data.applicantId,
+        type: newStatus === 'accepted' ? 'application_accepted' : 'application_declined',
+        action_type: newStatus === 'accepted' ? 'application_accepted' : 'application_declined',
+        title: titleSr,
+        body: data.postTitle || '',
+        meta: { actor_name: ownerName, post_title: data.postTitle, status: newStatus },
+      });
+    }
+
+    // Send system message in thread
+    if (data.threadId) {
+      const statusText = newStatus === 'accepted'
+        ? '✅ Prijava je prihvaćena / Application accepted'
+        : '❌ Prijava je odbijena / Application declined';
+      await supabase.from('messages').insert({
+        thread_id: data.threadId,
+        sender_id: data.postOwnerId,
+        receiver_id: data.applicantId,
+        content: statusText,
+        is_system: true,
+      });
+    }
+
     setResponding(false);
   };
 
