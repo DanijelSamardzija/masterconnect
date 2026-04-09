@@ -205,6 +205,25 @@ export function ReviewModal({ open, onClose, jobId, proId, proName, threadId, on
           console.error('Review creation error:', insertError);
           return;
         }
+
+        // Send notification to the professional
+        const { data: reviewerProfile } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', user.id)
+          .maybeSingle();
+        const reviewerName = reviewerProfile?.name || 'Neko';
+        const stars = '⭐'.repeat(rating);
+        await supabase.from('notifications').insert({
+          user_id: proId,
+          type: 'new_review',
+          action_type: 'new_review',
+          title: language === 'sr'
+            ? `${reviewerName} vam je ostavio/la recenziju ${stars}`
+            : `${reviewerName} left you a review ${stars}`,
+          body: comment.trim() || '',
+          meta: { actor_name: reviewerName, rating, reviewer_id: user.id },
+        });
       }
 
       if (threadId) {

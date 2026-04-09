@@ -48,6 +48,12 @@ export function translateNotification(
       return { title: `${actorName} saved your post`, body: n.body || 'Your post' };
     case 'new_job_application':
       return { title: `${actorName} applied to your job`, body: n.body || '' };
+    case 'new_review':
+      return { title: `${actorName} left you a review ${'⭐'.repeat(n.meta?.rating || 0)}`, body: n.body || '' };
+    case 'application_accepted':
+      return { title: `${actorName} accepted your application`, body: n.body || '' };
+    case 'application_declined':
+      return { title: `${actorName} declined your application`, body: n.body || '' };
     case 'announcement':
       return { title: n.title, body: n.body || '' };
     default:
