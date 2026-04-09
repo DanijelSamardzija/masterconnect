@@ -1333,7 +1333,7 @@ function FeedContent() {
 
                     {/* Hashtags */}
                     {post.hashtags && post.hashtags.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-2" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex flex-wrap gap-1.5 mt-1" onClick={(e) => e.stopPropagation()}>
                         {post.hashtags.map(tag => (
                           <button
                             key={tag}
