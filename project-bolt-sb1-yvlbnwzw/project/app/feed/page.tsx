@@ -106,7 +106,7 @@ type Post = {
 };
 
 const POSTS_LIMIT = 15;
-const TEXT_MAX_LENGTH = 100;
+const TEXT_MAX_LENGTH = 300;
 
 function FeedContent() {
   const router = useRouter();
@@ -1311,7 +1311,7 @@ function FeedContent() {
                                 e.stopPropagation();
                                 if (isLong) setExpandedText((prev) => ({ ...prev, [post.id]: !prev[post.id] }));
                               }}
-                              className={`whitespace-pre-line text-[14px] leading-snug text-white drop-shadow-md transition-all duration-200 ${isExpanded ? '' : 'line-clamp-2'}`}
+                              className={`whitespace-pre-line text-[14px] leading-snug text-white drop-shadow-md transition-all duration-200 ${isExpanded ? '' : 'line-clamp-4'}`}
                             >
                               {post.text}
                             </p>
