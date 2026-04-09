@@ -16,7 +16,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import {
   ArrowLeft, Settings, Trash2, Lock, Eye, EyeOff,
   Volume2, Mail, Moon, Sun, FileText, Download,
-  ExternalLink, Scale, Globe, ChevronRight, Smartphone
+  ExternalLink, Scale, Globe, ChevronRight, Smartphone, UserX, UserCheck, Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
@@ -72,6 +72,57 @@ function SettingsContent() {
         : 'Open browser menu (⋮) and select "Add to Home Screen"',
         { duration: 6000 }
       );
+    }
+  };
+
+  const [blockedUsers, setBlockedUsers] = useState<{ id: string; blocked_user_id: string; created_at: string; blocked_user: { id: string; name: string } | null }[]>([]);
+  const [loadingBlocked, setLoadingBlocked] = useState(true);
+  const [unblockingId, setUnblockingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchBlockedUsers();
+  }, []);
+
+  const fetchBlockedUsers = async () => {
+    setLoadingBlocked(true);
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.access_token) return;
+      const res = await fetch('/api/block/list', {
+        headers: { Authorization: `Bearer ${session.session.access_token}` }
+      });
+      const json = await res.json();
+      setBlockedUsers(json.data || []);
+    } catch (e) {
+      console.error('Error fetching blocked users:', e);
+    } finally {
+      setLoadingBlocked(false);
+    }
+  };
+
+  const handleUnblock = async (blockedUserId: string) => {
+    setUnblockingId(blockedUserId);
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.access_token) return;
+      const res = await fetch('/api/block', {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${session.session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ blockedUserId }),
+      });
+      if (res.ok) {
+        toast.success(t('block.unblocked'));
+        setBlockedUsers(prev => prev.filter(b => b.blocked_user_id !== blockedUserId));
+      } else {
+        toast.error(t('block.unblockFailed'));
+      }
+    } catch (e) {
+      toast.error(t('block.unblockFailed'));
+    } finally {
+      setUnblockingId(null);
     }
   };
 
@@ -441,6 +492,64 @@ function SettingsContent() {
                       <ExternalLink className="h-4 w-4 text-muted-foreground" />
                     </Link>
                   ))}
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+
+          {/* Blocked Users */}
+          <div className={sectionClass}>
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="blocked" className="border-0">
+                <AccordionTrigger className={triggerClass}>
+                  <div className="flex items-center gap-3">
+                    <UserX className="h-5 w-5 text-orange-600" />
+                    <div className="text-left">
+                      <div className="font-semibold text-foreground">{t('settings.blockedUsers')}</div>
+                      <div className="text-sm text-muted-foreground font-normal">{t('settings.blockedUsersDesc')}</div>
+                    </div>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-6 pt-2">
+                  {loadingBlocked ? (
+                    <div className="flex justify-center py-6">
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : blockedUsers.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">{t('settings.noBlockedUsers')}</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {blockedUsers.map((block) => (
+                        <div key={block.id} className={rowClass}>
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="h-9 w-9 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center shrink-0">
+                              <UserX className="h-4 w-4 text-slate-500" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-medium text-sm truncate">{block.blocked_user?.name || '—'}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {t('settings.blockedSince')}: {new Date(block.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleUnblock(block.blocked_user_id)}
+                            disabled={unblockingId === block.blocked_user_id}
+                            className="shrink-0 gap-1.5 rounded-xl"
+                          >
+                            {unblockingId === block.blocked_user_id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <UserCheck className="h-3.5 w-3.5" />
+                            )}
+                            {unblockingId === block.blocked_user_id ? t('block.unblocking') : t('block.unblock')}
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

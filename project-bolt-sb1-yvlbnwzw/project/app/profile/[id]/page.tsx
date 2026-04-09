@@ -103,14 +103,14 @@ function UserProfileContent() {
       });
 
       if (response.ok) {
-        toast.success('User unblocked');
+        toast.success(t('block.unblocked'));
         setIsBlocked(false);
       } else {
-        toast.error('Failed to unblock user');
+        toast.error(t('block.unblockFailed'));
       }
     } catch (error) {
       console.error('Error unblocking user:', error);
-      toast.error('Failed to unblock user');
+      toast.error(t('block.unblockFailed'));
     } finally {
       setUnblocking(false);
     }
@@ -272,14 +272,14 @@ function UserProfileContent() {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              You have blocked this user.
+              {t('block.youBlockedThis')}
               <Button
                 variant="link"
                 onClick={handleUnblock}
                 disabled={unblocking}
                 className="p-0 h-auto ml-1"
               >
-                {unblocking ? 'Unblocking...' : 'Unblock'}
+                {unblocking ? t('block.unblocking') : t('block.unblock')}
               </Button>
             </AlertDescription>
           </Alert>

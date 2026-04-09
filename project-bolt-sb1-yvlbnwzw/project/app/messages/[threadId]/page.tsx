@@ -975,7 +975,7 @@ function MessagesContent() {
                   )}
                   <DropdownMenuItem onClick={() => setBlockModalOpen(true)} className="text-red-600">
                     <UserX className="mr-2 h-4 w-4" />
-                    Block User
+                    {t('block.blockUser')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

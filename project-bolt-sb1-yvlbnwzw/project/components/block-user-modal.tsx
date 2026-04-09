@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import { useLanguage } from '@/lib/contexts/language-context';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +30,7 @@ export function BlockUserModal({
   userName,
   onBlockSuccess,
 }: BlockUserModalProps) {
+  const { t } = useLanguage();
   const [blocking, setBlocking] = useState(false);
 
   const handleBlock = async () => {
@@ -37,7 +39,7 @@ export function BlockUserModal({
     try {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session?.access_token) {
-        toast.error('Please sign in to block users');
+        toast.error(t('block.failed'));
         setBlocking(false);
         return;
       }
@@ -49,30 +51,26 @@ export function BlockUserModal({
           'Authorization': `Bearer ${session.session.access_token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          blockedUserId: userId
-        })
+        body: JSON.stringify({ blockedUserId: userId })
       });
 
       if (response.status === 409) {
-        toast.error('User already blocked');
+        toast.error(t('block.alreadyBlocked'));
         onOpenChange(false);
         return;
       }
 
       if (response.ok) {
-        toast.success('User blocked');
+        toast.success(t('block.blocked'));
         onOpenChange(false);
-        if (onBlockSuccess) {
-          onBlockSuccess();
-        }
+        if (onBlockSuccess) onBlockSuccess();
       } else {
         const { error } = await response.json();
-        toast.error(error || 'Failed to block user');
+        toast.error(error || t('block.failed'));
       }
     } catch (error) {
       console.error('Error blocking user:', error);
-      toast.error('Failed to block user');
+      toast.error(t('block.failed'));
     } finally {
       setBlocking(false);
     }
@@ -82,19 +80,17 @@ export function BlockUserModal({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Block {userName}?</AlertDialogTitle>
-          <AlertDialogDescription>
-            You won't see their posts or comments and they can't message you.
-          </AlertDialogDescription>
+          <AlertDialogTitle>{t('block.blockUserTitle').replace('{name}', userName)}</AlertDialogTitle>
+          <AlertDialogDescription>{t('block.blockUserDesc')}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={blocking}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={blocking}>{t('block.cancel')}</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleBlock}
             disabled={blocking}
             className="bg-red-600 hover:bg-red-700"
           >
-            {blocking ? 'Blocking...' : 'Block'}
+            {blocking ? t('block.blocking') : t('block.block')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
