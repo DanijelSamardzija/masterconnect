@@ -626,27 +626,26 @@ function JobsMarketplaceContent() {
                               >
                                 {post.job_title || post.category || post.text?.substring(0, 60) || 'Untitled Position'}
                               </h3>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                {post.post_type === 'hiring_post' && (
+                                  <span className="px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider bg-orange-50 text-orange-600 rounded">
+                                    {t('jobs.badgeHiring')}
+                                  </span>
+                                )}
+                                {isServiceRequest && (
+                                  <span className="px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider bg-blue-50 text-blue-600 rounded">
+                                    {t('jobs.badgeServiceRequest')}
+                                  </span>
+                                )}
+                                {post.post_type === 'job_seeker_post' && (
+                                  <span className="px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider bg-green-100 text-green-700 rounded">
+                                    {t('jobs.badgeJobSeeker')}
+                                  </span>
+                                )}
+                              </div>
                             </div>
 
                             <div className="flex items-center gap-2">
-                              {post.post_type === 'hiring_post' && (
-                                <span className="px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider bg-orange-50 text-orange-600 rounded">
-                                  {t('jobs.badgeHiring')}
-                                </span>
-                              )}
-
-                              {isServiceRequest && (
-                                <span className="px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider bg-blue-50 text-blue-600 rounded">
-                                  {t('jobs.badgeServiceRequest')}
-                                </span>
-                              )}
-
-                              {post.post_type === 'job_seeker_post' && (
-                                <span className="px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider bg-green-100 text-green-700 rounded">
-                                  {t('jobs.badgeJobSeeker')}
-                                </span>
-                              )}
-
                               <button
                                 onClick={(e) => { e.stopPropagation(); setShareModalPostId(post.id); }}
                                 className="h-7 w-7 flex items-center justify-center rounded-lg hover:bg-accent transition-colors"
