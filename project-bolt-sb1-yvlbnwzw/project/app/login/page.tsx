@@ -362,9 +362,6 @@ export default function LoginPage() {
                           </span>
                         )}
                       </div>
-                      <div className="text-xs bg-gray-100 p-2 rounded mt-2 font-mono break-all">
-                        <strong>DEBUG:</strong> Otvorite Console (F12) da vidite detalje errora
-                      </div>
                       {loginError.includes('Previše pokušaja') && (
                         <div className="space-y-2 pt-2 border-t border-red-200">
                           <p className="text-xs text-red-700">
