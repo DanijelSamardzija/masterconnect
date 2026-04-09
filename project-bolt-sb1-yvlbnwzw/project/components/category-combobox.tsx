@@ -117,8 +117,9 @@ export function CategoryCombobox({
       return result;
     }
 
+    const filteredWithoutOther = filtered.filter(o => normalizeText(o) !== normalizeText(otherOption));
     const shouldShowOther = !searchValue || normalizeText(otherOption).includes(normalizeText(searchValue));
-    const result = shouldShowOther ? [...filtered, otherOption] : filtered;
+    const result = shouldShowOther ? [...filteredWithoutOther, otherOption] : filteredWithoutOther;
     console.log('[CategoryCombobox] Final options:', result);
     return result;
   }, [suggestions, dbSuggestions, searchValue, otherOption, filterMode, allCategoriesLabel]);
