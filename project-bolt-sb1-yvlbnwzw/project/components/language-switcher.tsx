@@ -15,7 +15,7 @@ export function LanguageSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-9 px-2.5 bg-white/5 hover:bg-white/10 text-white font-semibold border border-white/20">
+        <Button variant="outline" size="sm" className="h-9 px-2.5 font-semibold">
           <span className="text-sm">
             {language === 'en' ? 'EN' : 'RS'}
           </span>
