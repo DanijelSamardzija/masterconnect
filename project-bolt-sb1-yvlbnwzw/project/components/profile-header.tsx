@@ -4,7 +4,7 @@ import { ReactNode } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ProfessionalBadge } from '@/components/professional-badge';
-import { MapPin, Star, Phone, Mail, Globe } from 'lucide-react';
+import { MapPin, Star, Phone, Mail, Globe, Briefcase } from 'lucide-react';
 import { useLanguage } from '@/lib/contexts/language-context';
 
 type ProfileHeaderProps = {
@@ -137,9 +137,10 @@ export function ProfileHeader({
             {category && (
               <Badge
                 variant="secondary"
-                className="text-xs rounded-full px-3 py-0.5 bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-300 border-0"
+                className="inline-flex items-center gap-1 text-xs rounded-full px-3 py-0.5 bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-300 border-0"
               >
-                {category}
+                <Briefcase className="h-3 w-3" />
+                {category === 'Other' ? t('category.Other') : category === 'Ostalo' ? t('category.Other') : category}
               </Badge>
             )}
           </div>

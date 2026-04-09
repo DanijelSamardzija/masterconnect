@@ -179,10 +179,23 @@ export default {
   'serviceDetail.priceType.fixed': 'Fixed price',
   'serviceDetail.priceType.negotiable': 'Price negotiable',
   'serviceDetail.sendOffer': 'Send offer',
-  'serviceDetail.sendMessage': 'Send message',
+  'serviceDetail.sendMessage': 'Message',
+  'serviceDetail.viewProfile': 'View profile',
   'serviceDetail.trustIndicator1': 'Direct contact',
   'serviceDetail.trustIndicator2': 'Fast quotes',
   'serviceDetail.trustIndicator3': 'Secure platform',
+  'serviceDetail.reviewsSection': 'Reviews',
+  'serviceDetail.seeAllReviews': 'See all reviews',
+  'serviceDetail.noReviews': 'No reviews yet',
+  'serviceDetail.beFirstReview': 'Be the first to leave a review',
+  'serviceDetail.postedOn': 'Posted',
+  'serviceDetail.similarServices': 'Similar listings',
+  'serviceDetail.ownerBanner': 'This is your listing',
+  'serviceDetail.ownerBannerDesc': 'Only you can see these options',
+  'serviceDetail.editListing': 'Edit listing',
+  'serviceDetail.deleteListing': 'Delete listing',
+  'serviceDetail.deleteConfirm': 'Are you sure you want to delete this listing?',
+  'serviceDetail.noImage': 'No image',
 
   // Reviews Modal
   'reviewsModal.title': 'Reviews for',
@@ -350,6 +363,7 @@ export default {
 
   // Dashboard
   'dashboard.welcome': 'Welcome back',
+  'dashboard.greeting': 'Welcome,',
   'dashboard.stats': 'Your Stats',
   'dashboard.recentActivity': 'Recent Activity',
   'dashboard.badgeProfessional': 'Professional',

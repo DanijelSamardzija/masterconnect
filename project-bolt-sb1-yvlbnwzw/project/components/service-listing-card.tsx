@@ -74,8 +74,8 @@ export function ServiceListingCard({
     <Card className="hover:shadow-md transition-shadow">
       <CardContent className="pt-4 pb-4">
         <div className="space-y-3">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <Badge variant="outline" className="text-xs bg-orange-50 dark:bg-orange-950 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800">
                   {t('marketplace.serviceListing')}
@@ -86,11 +86,11 @@ export function ServiceListingCard({
               </div>
 
               {post.job_title && (
-                <h3 className="font-semibold text-base mb-2">{post.job_title}</h3>
+                <h3 className="font-semibold text-base mb-2 break-words line-clamp-2">{post.job_title}</h3>
               )}
 
               {post.text && (
-                <p className="text-sm leading-relaxed text-muted-foreground mb-3">
+                <p className="text-sm leading-relaxed text-muted-foreground mb-3 break-words">
                   {post.text}
                 </p>
               )}
@@ -149,7 +149,7 @@ export function ServiceListingCard({
                   {onEdit && (
                     <DropdownMenuItem onClick={() => onEdit(post.id)}>
                       <Edit className="h-4 w-4 mr-2" />
-                      Edit
+                      {t('posts.edit')}
                     </DropdownMenuItem>
                   )}
                   {onEdit && onDelete && <DropdownMenuSeparator />}
@@ -159,7 +159,7 @@ export function ServiceListingCard({
                       className="text-red-600 focus:text-red-700"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
+                      {t('posts.delete')}
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuContent>

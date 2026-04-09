@@ -238,7 +238,7 @@ function DashboardContent() {
           </Avatar>
           <div className="flex-1 min-w-0">
             <h1 className="text-xl font-bold text-foreground truncate">
-              Dobrodošao, {profile.name.split(' ')[0]}
+              {t('dashboard.greeting')} {profile.name.split(' ')[0]}
             </h1>
             <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
               isPro

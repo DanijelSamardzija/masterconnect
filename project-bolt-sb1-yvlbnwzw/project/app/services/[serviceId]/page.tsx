@@ -12,8 +12,11 @@ import { ProfessionalBadge } from '@/components/professional-badge';
 import { ProfessionalCard } from '@/components/professional-card';
 import { SendOfferModal } from '@/components/send-offer-modal-v2';
 import { ReviewsModal } from '@/components/reviews-modal';
+import { SharePostModal } from '@/components/share-post-modal';
+import { format } from 'date-fns';
 import { toast } from 'sonner';
-import { Loader2, MapPin, MessageCircle, Star, ChevronLeft, ChevronRight, DollarSign } from 'lucide-react';
+import { Loader2, MapPin, MessageCircle, Star, ChevronLeft, ChevronRight, Phone, User, Share2, Edit, Trash2, ImageOff, Calendar } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 
 type ServiceDetail = {
@@ -33,6 +36,8 @@ type ServiceDetail = {
     account_type?: string;
     average_rating?: number;
     review_count?: number;
+    phone?: string;
+    show_phone?: boolean;
   };
   post_media: Array<{
     id: string;
@@ -54,6 +59,15 @@ export default function ServiceDetailPage({ params }: { params: { serviceId: str
   const [showReviewsModal, setShowReviewsModal] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [creatingThread, setCreatingThread] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [recentReviews, setRecentReviews] = useState<Array<{
+    id: string;
+    rating: number;
+    comment: string;
+    created_at: string;
+    customer: { name: string; avatar_url: string | null };
+  }>>([]);
 
   useEffect(() => {
     loadService();
@@ -82,7 +96,9 @@ export default function ServiceDetailPage({ params }: { params: { serviceId: str
             avatar_url,
             account_type,
             average_rating,
-            review_count
+            review_count,
+            phone,
+            show_phone
           ),
           post_media (
             id,
@@ -107,6 +123,10 @@ export default function ServiceDetailPage({ params }: { params: { serviceId: str
 
       if (data.category) {
         loadSimilarServices(data.category, data.id);
+      }
+
+      if ((data as any).profiles?.account_type === 'professional') {
+        loadRecentReviews(data.user_id);
       }
     } catch (error) {
       console.error('Error loading service:', error);
@@ -157,6 +177,44 @@ export default function ServiceDetailPage({ params }: { params: { serviceId: str
       setSimilarServices((data as any) || []);
     } catch (error) {
       console.error('Error loading similar services:', error);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm(t('serviceDetail.deleteConfirm'))) return;
+    setDeleting(true);
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const token = session?.session?.access_token;
+      const response = await fetch(`/api/posts?postId=${service?.id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (response.ok) {
+        toast.success(t('posts.deleteSuccess'));
+        router.push('/services');
+      } else {
+        toast.error(t('posts.deleteError'));
+      }
+    } catch {
+      toast.error(t('posts.deleteError'));
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const loadRecentReviews = async (proId: string) => {
+    try {
+      const { data } = await supabase
+        .from('reviews')
+        .select('id, rating, comment, created_at, customer:profiles!reviews_customer_id_fkey(name, avatar_url)')
+        .eq('pro_id', proId)
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      if (data) setRecentReviews(data as any);
+    } catch (err) {
+      console.error('Error loading reviews:', err);
     }
   };
 
@@ -268,17 +326,15 @@ export default function ServiceDetailPage({ params }: { params: { serviceId: str
   return (
     <>
       <div className="bg-gray-50 dark:bg-gray-950 pb-24">
-        {/* Back Button - Fixed Position */}
+        {/* Sticky header with Back + Share */}
         <div className="bg-white dark:bg-gray-900 border-b dark:border-gray-800 sticky top-0 z-10">
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-2"
-              onClick={() => router.back()}
-            >
+          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+            <Button variant="ghost" size="sm" className="gap-2" onClick={() => router.back()}>
               <ChevronLeft className="h-4 w-4" />
               {t('serviceDetail.back')}
+            </Button>
+            <Button variant="ghost" size="sm" className="gap-2" onClick={() => setShowShareModal(true)}>
+              <Share2 className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -298,8 +354,9 @@ export default function ServiceDetailPage({ params }: { params: { serviceId: str
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-700 dark:to-gray-800">
-                    <span className="text-6xl">🔧</span>
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100 dark:from-gray-800 dark:to-gray-700 gap-3">
+                    <ImageOff className="h-16 w-16 text-orange-300 dark:text-gray-500" />
+                    <span className="text-sm text-orange-400 dark:text-gray-500 font-medium">{t('serviceDetail.noImage')}</span>
                   </div>
                 )}
 
@@ -359,11 +416,15 @@ export default function ServiceDetailPage({ params }: { params: { serviceId: str
 
             {/* RIGHT COLUMN - Title → Location → Provider → Rating → Description → Price → CTA */}
             <div className="space-y-4">
-              {/* Title */}
+              {/* Title + date */}
               <div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-3 leading-tight">
+                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-2 leading-tight break-words">
                   {service.job_title}
                 </h1>
+                <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">
+                  <Calendar className="h-3.5 w-3.5" />
+                  <span>{t('serviceDetail.postedOn')} {format(new Date(service.created_at), 'dd.MM.yyyy.')}</span>
+                </div>
               </div>
 
               {/* Location & Category */}
@@ -448,7 +509,7 @@ export default function ServiceDetailPage({ params }: { params: { serviceId: str
                     )}
                   </div>
 
-                  {/* CTA Buttons - Compact */}
+                  {/* CTA Buttons */}
                   {!isOwner && (
                     <div className="space-y-2">
                       <Button
@@ -459,20 +520,42 @@ export default function ServiceDetailPage({ params }: { params: { serviceId: str
                         {t('serviceDetail.sendOffer')}
                       </Button>
 
-                      <Button
-                        size="lg"
-                        variant="outline"
-                        className="w-full gap-2 h-11 border-2 font-semibold"
-                        onClick={handleSendMessage}
-                        disabled={creatingThread}
-                      >
-                        {creatingThread ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          size="lg"
+                          variant="outline"
+                          className="w-full gap-2 h-11 border-2 font-semibold"
+                          onClick={handleSendMessage}
+                          disabled={creatingThread}
+                        >
+                          {creatingThread ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <MessageCircle className="h-4 w-4" />
+                          )}
+                          {t('serviceDetail.sendMessage')}
+                        </Button>
+
+                        {service.profiles?.show_phone && service.profiles?.phone ? (
+                          <a
+                            href={`tel:${service.profiles.phone}`}
+                            className="inline-flex items-center justify-center gap-2 h-11 w-full rounded-md border-2 border-green-500 bg-green-500 hover:bg-green-600 text-white font-semibold text-sm transition-colors"
+                          >
+                            <Phone className="h-4 w-4" />
+                            {t('profile.callUser')}
+                          </a>
                         ) : (
-                          <MessageCircle className="h-4 w-4" />
+                          <Button
+                            size="lg"
+                            variant="outline"
+                            className="w-full gap-2 h-11 border-2 font-semibold"
+                            onClick={() => router.push(`/profile/${service.user_id}`)}
+                          >
+                            <User className="h-4 w-4" />
+                            {t('serviceDetail.viewProfile')}
+                          </Button>
                         )}
-                        {t('serviceDetail.sendMessage')}
-                      </Button>
+                      </div>
                     </div>
                   )}
 
@@ -499,8 +582,129 @@ export default function ServiceDetailPage({ params }: { params: { serviceId: str
                   </div>
                 </CardContent>
               </Card>
+              {/* Reviews Section - only for PRO accounts */}
+              {service.profiles?.account_type === 'professional' && (
+                <div className="mt-2">
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                      {t('serviceDetail.reviewsSection')}
+                      {reviewCount > 0 && (
+                        <span className="text-sm font-normal text-gray-500 dark:text-gray-400">({reviewCount})</span>
+                      )}
+                    </h2>
+                    {reviewCount > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-orange-600 dark:text-orange-400 hover:text-orange-700 h-auto p-0 text-sm font-medium"
+                        onClick={() => setShowReviewsModal(true)}
+                      >
+                        {t('serviceDetail.seeAllReviews')}
+                        <ChevronRight className="h-4 w-4 ml-0.5" />
+                      </Button>
+                    )}
+                  </div>
+
+                  {recentReviews.length === 0 ? (
+                    <div className="text-sm text-gray-500 dark:text-gray-400 py-3 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
+                      {t('serviceDetail.noReviews')}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {recentReviews.map((review) => (
+                        <div key={review.id} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <Avatar className="h-7 w-7 flex-shrink-0">
+                              <AvatarImage src={review.customer?.avatar_url || undefined} />
+                              <AvatarFallback className="bg-orange-100 text-orange-700 text-xs">
+                                {review.customer?.name?.charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="font-medium text-sm text-gray-900 dark:text-white">{review.customer?.name}</span>
+                            <div className="flex ml-auto">
+                              {[1,2,3,4,5].map(s => (
+                                <Star key={s} className={`h-3.5 w-3.5 ${s <= review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
+                              ))}
+                            </div>
+                          </div>
+                          {review.comment && (
+                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{review.comment}</p>
+                          )}
+                          <p className="text-xs text-gray-400 mt-1">
+                            {formatDistanceToNow(new Date(review.created_at), { addSuffix: true })}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Owner banner */}
+              {isOwner && (
+                <div className="rounded-xl border-2 border-dashed border-orange-300 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/30 p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="h-8 w-8 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center">
+                      <User className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-orange-700 dark:text-orange-300">{t('serviceDetail.ownerBanner')}</p>
+                      <p className="text-xs text-orange-500 dark:text-orange-500">{t('serviceDetail.ownerBannerDesc')}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" className="flex-1 gap-2 border-orange-300 text-orange-700 hover:bg-orange-100 dark:border-orange-700 dark:text-orange-400" onClick={() => router.push('/profile')}>
+                      <Edit className="h-3.5 w-3.5" />
+                      {t('serviceDetail.editListing')}
+                    </Button>
+                    <Button size="sm" variant="outline" className="flex-1 gap-2 border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400" onClick={handleDelete} disabled={deleting}>
+                      {deleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                      {t('serviceDetail.deleteListing')}
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Similar services */}
+          {similarServices.length > 0 && (
+            <div className="mt-10">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">{t('serviceDetail.similarServices')}</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {similarServices.map((s: any) => (
+                  <button
+                    key={s.id}
+                    onClick={() => router.push(`/services/${s.id}`)}
+                    className="text-left bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow"
+                  >
+                    <div className="aspect-video bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                      {s.post_media?.[0] ? (
+                        <img src={s.post_media[0].url} alt={s.job_title} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <ImageOff className="h-8 w-8 text-gray-300" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <p className="font-semibold text-sm text-gray-900 dark:text-white line-clamp-2 mb-1">{s.job_title}</p>
+                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                        <MapPin className="h-3 w-3" />
+                        <span>{s.city}</span>
+                      </div>
+                      {s.profiles?.average_rating > 0 && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{s.profiles.average_rating.toFixed(1)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -522,6 +726,12 @@ export default function ServiceDetailPage({ params }: { params: { serviceId: str
             proName={service.profiles.name}
             averageRating={service.profiles.average_rating}
             reviewCount={service.profiles.review_count}
+          />
+
+          <SharePostModal
+            postId={service.id}
+            open={showShareModal}
+            onOpenChange={setShowShareModal}
           />
         </>
       )}

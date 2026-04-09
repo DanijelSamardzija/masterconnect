@@ -179,10 +179,23 @@ export default {
   'serviceDetail.priceType.fixed': 'Fiksna cena',
   'serviceDetail.priceType.negotiable': 'Cena po dogovoru',
   'serviceDetail.sendOffer': 'Pošalji ponudu',
-  'serviceDetail.sendMessage': 'Pošalji poruku',
+  'serviceDetail.sendMessage': 'Poruka',
+  'serviceDetail.viewProfile': 'Pogledaj profil',
   'serviceDetail.trustIndicator1': 'Direktan kontakt',
   'serviceDetail.trustIndicator2': 'Brze ponude',
   'serviceDetail.trustIndicator3': 'Sigurna platforma',
+  'serviceDetail.reviewsSection': 'Recenzije',
+  'serviceDetail.seeAllReviews': 'Vidi sve recenzije',
+  'serviceDetail.noReviews': 'Još nema recenzija',
+  'serviceDetail.beFirstReview': 'Budite prvi koji će ostaviti recenziju',
+  'serviceDetail.postedOn': 'Objavljeno',
+  'serviceDetail.similarServices': 'Slični oglasi',
+  'serviceDetail.ownerBanner': 'Ovo je vaš oglas',
+  'serviceDetail.ownerBannerDesc': 'Samo vi vidite ove opcije',
+  'serviceDetail.editListing': 'Izmeni oglas',
+  'serviceDetail.deleteListing': 'Obriši oglas',
+  'serviceDetail.deleteConfirm': 'Da li ste sigurni da želite da obrišete ovaj oglas?',
+  'serviceDetail.noImage': 'Bez slike',
 
   // Reviews Modal
   'reviewsModal.title': 'Recenzije za',
@@ -350,6 +363,7 @@ export default {
 
   // Dashboard
   'dashboard.welcome': 'Dobrodošli nazad',
+  'dashboard.greeting': 'Dobrodošao,',
   'dashboard.stats': 'Vaše Statistike',
   'dashboard.recentActivity': 'Nedavne Aktivnosti',
   'dashboard.badgeProfessional': 'Profesionalac',
