@@ -87,6 +87,7 @@ function JobsMarketplaceContent() {
   const [shareModalPostId, setShareModalPostId] = useState<string | null>(null);
   const [applicationModalOpen, setApplicationModalOpen] = useState(false);
   const [selectedHiringPost, setSelectedHiringPost] = useState<{ id: string; title: string; ownerId: string } | null>(null);
+  const [expandedPosts, setExpandedPosts] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (user) {
@@ -743,9 +744,19 @@ function JobsMarketplaceContent() {
                           )}
 
                           {post.text && (
-                            <p className={`text-slate-700 dark:text-gray-300 line-clamp-2 leading-relaxed ${isServiceRequest ? 'text-sm' : 'text-xs md:text-sm'}`}>
-                              {post.text}
-                            </p>
+                            <div>
+                              <p className={`text-slate-700 dark:text-gray-300 leading-relaxed ${isServiceRequest ? 'text-sm' : 'text-xs md:text-sm'} ${expandedPosts.has(post.id) ? '' : 'line-clamp-2'}`}>
+                                {post.text}
+                              </p>
+                              {post.text.length > 120 && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setExpandedPosts(prev => { const n = new Set(prev); n.has(post.id) ? n.delete(post.id) : n.add(post.id); return n; }); }}
+                                  className="text-xs text-orange-600 font-semibold mt-0.5 hover:text-orange-500"
+                                >
+                                  {expandedPosts.has(post.id) ? t('posts.showLess') : t('posts.readMore')}
+                                </button>
+                              )}
+                            </div>
                           )}
 
                           {isServiceRequest && <div className="border-t border-slate-200 pt-2 mt-2 -mx-4 px-4" />}
