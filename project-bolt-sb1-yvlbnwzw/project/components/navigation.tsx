@@ -236,7 +236,7 @@ export function Navigation() {
             }`}
           >
             <img src="/icon.svg" alt="M" className="h-7 w-7 rounded-lg" />
-            <span className="hidden sm:inline">{t('site.name')}</span>
+            <span>{t('site.name')}</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-1">
@@ -401,7 +401,7 @@ export function Navigation() {
           </div>
 
           <div className="flex items-center gap-2 md:hidden">
-            {user && profile && (
+            {user && profile ? (
               <Link href="/dashboard">
                 <Button variant="ghost" size="icon" className="relative text-slate-200 hover:text-white hover:bg-slate-800">
                   <Bell className="h-5 w-5" />
@@ -415,6 +415,8 @@ export function Navigation() {
                   )}
                 </Button>
               </Link>
+            ) : (
+              <LanguageSwitcher />
             )}
 
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
