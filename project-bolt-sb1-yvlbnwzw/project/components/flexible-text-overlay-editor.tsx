@@ -132,50 +132,6 @@ export function FlexibleTextOverlayEditor({
       className="fixed inset-0 z-[99999] flex flex-col bg-black"
       onClick={(e) => e.stopPropagation()}
     >
-      {/* ── Top bar: Cancel | Colors | Save ── */}
-      <div
-        className="flex items-center gap-2 px-3 py-2"
-        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8px)' }}
-      >
-        <button
-          onClick={onCancel}
-          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
-        >
-          <X className="h-5 w-5" />
-        </button>
-
-        {/* Scrollable color dots */}
-        <div className="flex flex-1 items-center gap-2 overflow-x-auto scrollbar-hide py-1 px-1">
-          {COLORS.map(color => (
-            <button
-              key={color}
-              type="button"
-              onClick={() => setOverlay(prev => ({ ...prev, color }))}
-              className={`h-7 w-7 flex-shrink-0 rounded-full border-2 transition-all ${
-                overlay.color === color ? 'scale-125 border-white' : 'border-white/30'
-              }`}
-              style={{ backgroundColor: color }}
-            />
-          ))}
-          {/* Custom color */}
-          <label className="relative flex h-7 w-7 flex-shrink-0 cursor-pointer items-center justify-center rounded-full border-2 border-dashed border-white/40 bg-gradient-to-br from-pink-500 via-yellow-400 to-blue-500">
-            <input
-              type="color"
-              value={overlay.color}
-              onChange={e => setOverlay(prev => ({ ...prev, color: e.target.value }))}
-              className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-            />
-          </label>
-        </div>
-
-        <button
-          onClick={handleSave}
-          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-orange-500 text-white hover:bg-orange-600"
-        >
-          <Check className="h-5 w-5" />
-        </button>
-      </div>
-
       {/* ── Media preview (tap to reposition) ── */}
       <div className="relative flex flex-1 items-center justify-center bg-zinc-950 overflow-hidden">
         <div className="relative h-full w-full max-w-[430px]">
@@ -243,8 +199,47 @@ export function FlexibleTextOverlayEditor({
         className="bg-zinc-900 border-t border-white/10"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)' }}
       >
-        {/* Text input row */}
+        {/* Cancel | Colors | Save row */}
         <div className="flex items-center gap-2 px-3 pt-3 pb-2">
+          <button
+            onClick={onCancel}
+            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+          >
+            <X className="h-5 w-5" />
+          </button>
+
+          <div className="flex flex-1 items-center gap-2 overflow-x-auto scrollbar-hide py-1 px-1">
+            {COLORS.map(color => (
+              <button
+                key={color}
+                type="button"
+                onClick={() => setOverlay(prev => ({ ...prev, color }))}
+                className={`h-7 w-7 flex-shrink-0 rounded-full border-2 transition-all ${
+                  overlay.color === color ? 'scale-125 border-white' : 'border-white/30'
+                }`}
+                style={{ backgroundColor: color }}
+              />
+            ))}
+            <label className="relative flex h-7 w-7 flex-shrink-0 cursor-pointer items-center justify-center rounded-full border-2 border-dashed border-white/40 bg-gradient-to-br from-pink-500 via-yellow-400 to-blue-500">
+              <input
+                type="color"
+                value={overlay.color}
+                onChange={e => setOverlay(prev => ({ ...prev, color: e.target.value }))}
+                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+              />
+            </label>
+          </div>
+
+          <button
+            onClick={handleSave}
+            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-orange-500 text-white hover:bg-orange-600"
+          >
+            <Check className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Text input row */}
+        <div className="flex items-center gap-2 px-3 pb-2">
           <input
             ref={inputRef}
             type="text"
