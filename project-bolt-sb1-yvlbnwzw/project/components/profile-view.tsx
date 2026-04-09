@@ -701,6 +701,9 @@ export function ProfileView({
       toast.success('Post deleted successfully');
       setPosts((prev) => prev.filter((p) => p.id !== postId));
       setMarketplacePosts((prev) => prev.filter((p) => p.id !== postId));
+      setHiringPosts((prev) => prev.filter((p) => p.id !== postId));
+      setPortfolioPosts((prev) => prev.filter((p) => p.id !== postId));
+      setServicePosts((prev) => prev.filter((p) => p.id !== postId));
       setPostsCount((prev) => prev - 1);
     } catch (error: any) {
       console.error('Error deleting post:', error);
@@ -1871,15 +1874,13 @@ export function ProfileView({
       <AlertDialog open={postToDelete !== null} onOpenChange={(open) => { if (!open) setPostToDelete(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Obriši post / Delete post</AlertDialogTitle>
-            <AlertDialogDescription>
-              Da li ste sigurni da želite da obrišete ovaj post? Ova akcija se ne može poništiti. / Are you sure you want to delete this post? This action cannot be undone.
-            </AlertDialogDescription>
+            <AlertDialogTitle>{t('posts.deleteConfirmTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('posts.deleteConfirmDescription')}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Otkaži / Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('posts.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDeletePost} className="bg-red-600 hover:bg-red-700">
-              Obriši / Delete
+              {t('posts.confirmDelete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -735,28 +735,25 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    let supabaseClient = await createClientFromAuthHeader(request);
-    let user = null;
-    let userError = null;
+    const authHeader = request.headers.get('authorization') ?? request.headers.get('Authorization') ?? '';
+    const match = authHeader.match(/^Bearer\s+(.+)$/i);
+    const token = match?.[1]?.trim();
 
-    if (supabaseClient) {
-      const result = await supabaseClient.auth.getUser();
-      user = result.data.user;
-      userError = result.error;
-    }
-
-    if (!user) {
-      supabaseClient = createClientFromRequest(request);
-      const result = await supabaseClient.auth.getUser();
-      user = result.data.user;
-      userError = result.error;
-    }
-
-    if (!user || userError || !supabaseClient) {
+    if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabase = supabaseClient;
+    const supabase = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { global: { headers: { Authorization: `Bearer ${token}` } } }
+    );
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (!user || userError) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const { searchParams } = new URL(request.url);
     const postId = searchParams.get('postId');
