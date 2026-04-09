@@ -26,17 +26,20 @@ export function ProtectedRoute({
 
   useEffect(() => {
     if (!loading) {
-      // Small delay to avoid flash on refresh when session is still restoring
-      const timer = setTimeout(() => {
+      if (user) {
+        // User is logged in — show immediately
         setAuthChecked(true);
-        if (requireAuth && !user) {
-          setShouldRedirect(true);
-        }
         if (allowedAccountTypes && profile && !allowedAccountTypes.includes(profile.account_type)) {
           setShouldRedirect(true);
         }
-      }, 300);
-      return () => clearTimeout(timer);
+      } else {
+        // No user yet — wait a bit longer before showing error (session may still be restoring)
+        const timer = setTimeout(() => {
+          setAuthChecked(true);
+          if (requireAuth) setShouldRedirect(true);
+        }, 800);
+        return () => clearTimeout(timer);
+      }
     }
   }, [user, profile, loading, requireAuth, allowedAccountTypes]);
 
