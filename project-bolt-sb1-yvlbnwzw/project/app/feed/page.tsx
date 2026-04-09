@@ -801,7 +801,7 @@ function FeedContent() {
       <div className="pointer-events-none fixed left-0 right-0 top-0 z-[100]">
         <div
           className="mx-auto w-full max-w-[430px] px-3"
-          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 56px)' }}
+          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 2px)' }}
         >
           {searchOpen ? (
             /* ── Search mode header ── */
