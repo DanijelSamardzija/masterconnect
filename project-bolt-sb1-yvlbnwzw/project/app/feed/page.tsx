@@ -345,6 +345,7 @@ function FeedContent() {
   useEffect(() => {
     const post = posts[activePostIndex];
     if (!post || viewedPostIds.current.has(post.id)) return;
+    if (user && post.user_id === user.id) return;
     viewedPostIds.current.add(post.id);
     supabase.rpc('increment_post_views', { post_id: post.id }).then(() => {
       setPosts(prev => prev.map(p => p.id === post.id ? { ...p, views_count: p.views_count + 1 } : p));
