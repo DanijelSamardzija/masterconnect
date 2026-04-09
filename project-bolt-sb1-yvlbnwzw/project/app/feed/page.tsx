@@ -106,7 +106,7 @@ type Post = {
 };
 
 const POSTS_LIMIT = 15;
-const TEXT_MAX_LENGTH = 300;
+const TEXT_MAX_LENGTH = 100;
 
 function FeedContent() {
   const router = useRouter();
@@ -1311,7 +1311,7 @@ function FeedContent() {
                                 e.stopPropagation();
                                 if (isLong) setExpandedText((prev) => ({ ...prev, [post.id]: !prev[post.id] }));
                               }}
-                              className={`whitespace-pre-line text-[14px] leading-snug text-white drop-shadow-md transition-all duration-200 ${isExpanded ? '' : 'line-clamp-4'}`}
+                              className={`whitespace-pre-line text-[14px] leading-snug text-white drop-shadow-md transition-all duration-200 ${isExpanded ? '' : 'line-clamp-2'}`}
                             >
                               {post.text}
                             </p>
@@ -1321,7 +1321,7 @@ function FeedContent() {
                                   e.stopPropagation();
                                   setExpandedText((prev) => ({ ...prev, [post.id]: !prev[post.id] }));
                                 }}
-                                className="mt-0.5 text-xs font-semibold text-gray-300 transition-colors hover:text-white"
+                                className="mt-1 text-xs font-bold text-orange-400 transition-colors hover:text-orange-300"
                               >
                                 {isExpanded ? t('posts.showLess') : t('posts.readMore')}
                               </button>
