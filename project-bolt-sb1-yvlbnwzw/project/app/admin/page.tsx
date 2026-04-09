@@ -1371,6 +1371,10 @@ function AdminContent() {
                     )}
                   </div>
 
+                </div>
+
+                {/* Cities and Countries side by side */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {/* Top cities */}
                   <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
                     <div className="flex items-center gap-2">
@@ -1393,6 +1397,38 @@ function AdminContent() {
                               <div className="h-2 bg-muted rounded-full overflow-hidden">
                                 <div
                                   className="h-full bg-blue-500 rounded-full transition-all"
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Top countries */}
+                  <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-purple-500" />
+                      <h3 className="font-semibold text-sm text-foreground">Korisnici po državama</h3>
+                    </div>
+                    {analytics.topCountries.length === 0 ? (
+                      <p className="text-sm text-muted-foreground py-4 text-center">Nema podataka — korisnici još nisu unijeli državu</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {analytics.topCountries.map(({ country, count }) => {
+                          const maxCount = analytics.topCountries[0]?.count || 1;
+                          const pct = Math.round((count / maxCount) * 100);
+                          return (
+                            <div key={country} className="space-y-1">
+                              <div className="flex justify-between text-xs">
+                                <span className="font-medium text-foreground">{country}</span>
+                                <span className="text-muted-foreground">{count}</span>
+                              </div>
+                              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-purple-500 rounded-full transition-all"
                                   style={{ width: `${pct}%` }}
                                 />
                               </div>
@@ -1457,38 +1493,6 @@ function AdminContent() {
                       })}
                     </div>
                   </div>
-                </div>
-
-                {/* Top countries */}
-                <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-purple-500" />
-                    <h3 className="font-semibold text-sm text-foreground">Korisnici po državama</h3>
-                  </div>
-                  {analytics.topCountries.length === 0 ? (
-                    <p className="text-sm text-muted-foreground py-4 text-center">Nema podataka — korisnici još nisu unijeli državu</p>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {analytics.topCountries.map(({ country, count }) => {
-                        const maxCount = analytics.topCountries[0]?.count || 1;
-                        const pct = Math.round((count / maxCount) * 100);
-                        return (
-                          <div key={country} className="space-y-1">
-                            <div className="flex justify-between text-xs">
-                              <span className="font-medium text-foreground">{country}</span>
-                              <span className="text-muted-foreground">{count}</span>
-                            </div>
-                            <div className="h-2 bg-muted rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-purple-500 rounded-full transition-all"
-                                style={{ width: `${pct}%` }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
                 </div>
 
                 {/* Daily active users chart (last 7 days) */}
