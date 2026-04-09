@@ -16,7 +16,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import {
   ArrowLeft, Settings, Trash2, Lock, Eye, EyeOff,
   Volume2, Mail, Moon, Sun, FileText, Download,
-  ExternalLink, Scale, Globe, ChevronRight
+  ExternalLink, Scale, Globe, ChevronRight, Smartphone
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
@@ -48,6 +48,32 @@ function SettingsContent() {
   const [loadingTickets, setLoadingTickets] = useState(true);
   const { notificationsSoundEnabled, messagesSoundEnabled, toggleNotificationsSound, toggleMessagesSound } = useSoundPreference();
   const { theme, toggleTheme, mounted } = useTheme();
+
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isAppInstalled, setIsAppInstalled] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setIsAppInstalled(window.matchMedia('(display-mode: standalone)').matches);
+    const handler = (e: any) => { e.preventDefault(); setDeferredPrompt(e); };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallApp = async () => {
+    try { localStorage.removeItem('pwa_install_dismissed_v2'); } catch {}
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      setDeferredPrompt(null);
+    } else {
+      toast.info(language === 'sr'
+        ? 'Otvorite meni browsera (⋮) i izaberite "Dodaj na početni ekran"'
+        : 'Open browser menu (⋮) and select "Add to Home Screen"',
+        { duration: 6000 }
+      );
+    }
+  };
 
   const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -360,6 +386,29 @@ function SettingsContent() {
               </AccordionItem>
             </Accordion>
           </div>
+
+          {/* Install App */}
+          {!isAppInstalled && (
+            <div className={sectionClass}>
+              <button
+                onClick={handleInstallApp}
+                className="w-full flex items-center justify-between p-4"
+              >
+                <div className="flex items-center gap-3">
+                  <Smartphone className="h-5 w-5 text-orange-600" />
+                  <div className="text-left">
+                    <div className="font-semibold text-foreground">
+                      {language === 'sr' ? 'Instaliraj aplikaciju' : 'Install App'}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {language === 'sr' ? 'Dodaj MasterConnect na početni ekran' : 'Add MasterConnect to home screen'}
+                    </div>
+                  </div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </div>
+          )}
 
           {/* Legal */}
           <div className={sectionClass}>
