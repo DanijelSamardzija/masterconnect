@@ -451,7 +451,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {postType === 'job_seeker_post' ? 'Create Job Seeker Profile' : t('marketplace.createPost')}
+            {postType === 'job_seeker_post' ? t('marketplace.jobSeekerPost') : t('marketplace.createPost')}
           </DialogTitle>
         </DialogHeader>
 
@@ -482,9 +482,9 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
 
           {postType === 'service_request' && (
             <div>
-              <Label>Title *</Label>
+              <Label>{t('marketplace.serviceRequestTitle')}</Label>
               <Input
-                placeholder="e.g., Need plumber to fix bathroom sink leak"
+                placeholder={t('marketplace.serviceRequestTitlePlaceholder')}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 onKeyDown={(e) => {
@@ -495,7 +495,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
                 maxLength={100}
               />
               <p className="text-xs text-slate-500 mt-1">
-                Describe the specific job or project you need (minimum 20 characters)
+                {t('marketplace.serviceRequestTitleHint')}
               </p>
             </div>
           )}
@@ -538,17 +538,17 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
           <div>
             <Label>
               {postType === 'service_request'
-                ? 'Description (Optional)'
+                ? t('marketplace.descriptionOptional')
                 : postType === 'job_seeker_post'
-                ? 'About You'
+                ? t('marketplace.aboutYou')
                 : t('marketplace.description')}
             </Label>
             <Textarea
               placeholder={
                 postType === 'service_request'
-                  ? 'Add more details about your project (optional but recommended)...'
+                  ? t('marketplace.descriptionOptionalPlaceholder')
                   : postType === 'job_seeker_post'
-                  ? 'Describe your skills, experience, and what kind of job you are looking for...'
+                  ? t('marketplace.aboutYouPlaceholder')
                   : postType === 'hiring_post'
                   ? t('marketplace.descPlaceholderHiring')
                   : postType === 'service_listing'
@@ -588,22 +588,22 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
             <CityAutocomplete
               value={city}
               onChange={(cityValue) => setCity(cityValue)}
-              placeholder={t('marketplace.cityRequired')}
+              placeholder={t('marketplace.city')}
             />
           </div>
 
           {postType === 'service_listing' && (
             <>
               <div>
-                <Label>Price Type *</Label>
+                <Label>{t('marketplace.priceTypeRequired')}</Label>
                 <Select value={priceType} onValueChange={setPriceType}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select price type" />
+                    <SelectValue placeholder={t('marketplace.priceTypeSelect')} />
                   </SelectTrigger>
                   <SelectContent side="bottom" align="start" sideOffset={4}>
-                    <SelectItem value="fixed">Fixed Price</SelectItem>
-                    <SelectItem value="hourly">Hourly Rate</SelectItem>
-                    <SelectItem value="negotiable">Negotiable</SelectItem>
+                    <SelectItem value="fixed">{t('marketplace.fixed')}</SelectItem>
+                    <SelectItem value="hourly">{t('marketplace.hourly')}</SelectItem>
+                    <SelectItem value="negotiable">{t('marketplace.negotiable')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -611,10 +611,10 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
               {(priceType === 'fixed' || priceType === 'hourly') && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>{priceType === 'fixed' ? 'Price *' : 'Hourly Rate *'}</Label>
+                    <Label>{priceType === 'fixed' ? t('marketplace.priceFixedLabel') : t('marketplace.priceHourlyLabel')}</Label>
                     <Input
                       type="number"
-                      placeholder="Enter amount"
+                      placeholder={t('marketplace.enterAmount')}
                       value={priceValue}
                       onChange={(e) => setPriceValue(e.target.value)}
                       onKeyDown={(e) => {
@@ -627,7 +627,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
                     />
                   </div>
                   <div>
-                    <Label>Currency *</Label>
+                    <Label>{t('marketplace.currencyRequired')}</Label>
                     <Select value={currency} onValueChange={setCurrency}>
                       <SelectTrigger>
                         <SelectValue />
@@ -653,26 +653,30 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
                     <SelectValue placeholder={t('marketplace.experiencePlaceholder')} />
                   </SelectTrigger>
                   <SelectContent side="bottom" align="start" sideOffset={4}>
-                    <SelectItem value="Entry">{t('marketplace.entryLevel')}</SelectItem>
-                    <SelectItem value="Mid">{t('marketplace.midLevel')}</SelectItem>
-                    <SelectItem value="Senior">{t('marketplace.seniorLevel')}</SelectItem>
-                    <SelectItem value="Expert">{t('marketplace.expertLevel')}</SelectItem>
+                    <SelectItem value="Entry">{t('marketplace.expEntry')}</SelectItem>
+                    <SelectItem value="Mid">{t('marketplace.expMid')}</SelectItem>
+                    <SelectItem value="Senior">{t('marketplace.expSenior')}</SelectItem>
+                    <SelectItem value="Expert">{t('marketplace.expExpert')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label>{t('marketplace.availabilityRequired')}</Label>
+                <Label>
+                  {postType === 'hiring_post' ? t('marketplace.hiringAvailability') : t('marketplace.availabilityRequired')}
+                </Label>
                 <Select value={availability} onValueChange={setAvailability}>
                   <SelectTrigger>
-                    <SelectValue placeholder={t('marketplace.availabilityPlaceholder')} />
+                    <SelectValue placeholder={
+                      postType === 'hiring_post' ? t('marketplace.hiringAvailabilityPlaceholder') : t('marketplace.availabilityPlaceholder')
+                    } />
                   </SelectTrigger>
                   <SelectContent side="bottom" align="start" sideOffset={4}>
-                    <SelectItem value="Immediately">{t('marketplace.availableImmediately')}</SelectItem>
-                    <SelectItem value="Within 1 week">{t('marketplace.within1Week')}</SelectItem>
-                    <SelectItem value="Within 2 weeks">{t('marketplace.within2Weeks')}</SelectItem>
-                    <SelectItem value="Within 1 month">{t('marketplace.within1Month')}</SelectItem>
-                    <SelectItem value="Flexible">{t('marketplace.flexible')}</SelectItem>
+                    <SelectItem value="Immediately">{postType === 'hiring_post' ? t('marketplace.hiringImmediately') : t('marketplace.availableImmediately')}</SelectItem>
+                    <SelectItem value="Within 1 week">{postType === 'hiring_post' ? t('marketplace.hiringWithin1Week') : t('marketplace.within1Week')}</SelectItem>
+                    <SelectItem value="Within 2 weeks">{postType === 'hiring_post' ? t('marketplace.hiringWithin2Weeks') : t('marketplace.within2Weeks')}</SelectItem>
+                    <SelectItem value="Within 1 month">{postType === 'hiring_post' ? t('marketplace.hiringWithin1Month') : t('marketplace.within1Month')}</SelectItem>
+                    <SelectItem value="Flexible">{postType === 'hiring_post' ? t('marketplace.hiringFlexible') : t('marketplace.flexible')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -682,15 +686,15 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
           {postType === 'job_seeker_post' && (
             <>
               <div>
-                <Label>Expected Salary (Optional)</Label>
+                <Label>{t('marketplace.expectedSalary')}</Label>
                 <Select value={expectedSalaryType} onValueChange={setExpectedSalaryType}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select salary type" />
+                    <SelectValue placeholder={t('marketplace.salaryTypePlaceholder')} />
                   </SelectTrigger>
                   <SelectContent side="bottom" align="start" sideOffset={4}>
-                    <SelectItem value="hourly">Hourly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                    <SelectItem value="fixed">Fixed Project</SelectItem>
+                    <SelectItem value="hourly">{t('marketplace.salaryHourly')}</SelectItem>
+                    <SelectItem value="monthly">{t('marketplace.salaryMonthly')}</SelectItem>
+                    <SelectItem value="fixed">{t('marketplace.salaryFixed')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -698,10 +702,10 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
               {expectedSalaryType && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Amount</Label>
+                    <Label>{t('marketplace.amount')}</Label>
                     <Input
                       type="number"
-                      placeholder="Enter amount"
+                      placeholder={t('marketplace.enterAmount')}
                       value={expectedSalaryAmount}
                       onChange={(e) => setExpectedSalaryAmount(e.target.value)}
                       onKeyDown={(e) => {
@@ -714,7 +718,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
                     />
                   </div>
                   <div>
-                    <Label>Currency</Label>
+                    <Label>{t('marketplace.currency')}</Label>
                     <Select value={expectedSalaryCurrency} onValueChange={setExpectedSalaryCurrency}>
                       <SelectTrigger>
                         <SelectValue />
@@ -734,7 +738,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
           {postType !== 'service_request' && postType !== 'job_seeker_post' && postType !== 'hiring_post' && (
             <div>
               <Label>
-                {postType === 'service_listing' ? 'Images (Required, min 1, max 10) *' : t('marketplace.media')}
+                {postType === 'service_listing' ? t('marketplace.imagesRequired') : t('marketplace.media')}
               </Label>
               {selectedFiles.length > 0 && (
                 <div className="grid grid-cols-3 gap-4 mb-4">

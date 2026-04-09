@@ -64,6 +64,21 @@ type Post = {
   };
 };
 
+const EXP_LEVEL_KEYS: Record<string, string> = {
+  'Entry': 'marketplace.expEntry',
+  'Mid': 'marketplace.expMid',
+  'Senior': 'marketplace.expSenior',
+  'Expert': 'marketplace.expExpert',
+};
+
+const AVAIL_KEYS: Record<string, string> = {
+  'Immediately': 'marketplace.availImmediately',
+  'Within 1 week': 'marketplace.avail1Week',
+  'Within 2 weeks': 'marketplace.avail2Weeks',
+  'Within 1 month': 'marketplace.avail1Month',
+  'Flexible': 'marketplace.availFlexible',
+};
+
 function JobsMarketplaceContent() {
   const { user, profile } = useAuth();
   const { t } = useLanguage();
@@ -708,21 +723,21 @@ function JobsMarketplaceContent() {
 
                             {isServiceRequest && post.availability && (
                               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-slate-50 text-slate-700 rounded text-xs font-medium border border-slate-200">
-                                {post.availability}
+                                {AVAIL_KEYS[post.availability] ? t(AVAIL_KEYS[post.availability] as any) : post.availability}
                               </span>
                             )}
 
                             {!isServiceRequest && post.experience_level && (
                               <span className="inline-flex items-center gap-1">
                                 <span className="text-slate-400">•</span>
-                                {post.experience_level}
+                                {EXP_LEVEL_KEYS[post.experience_level] ? t(EXP_LEVEL_KEYS[post.experience_level] as any) : post.experience_level}
                               </span>
                             )}
 
                             {!isServiceRequest && !post.price_value && post.availability && (
                               <span className="inline-flex items-center gap-1">
                                 <span className="text-slate-400">•</span>
-                                {post.availability}
+                                {AVAIL_KEYS[post.availability] ? t(AVAIL_KEYS[post.availability] as any) : post.availability}
                               </span>
                             )}
                           </div>
