@@ -640,7 +640,7 @@ function JobsMarketplaceContent() {
                                   isServiceRequest ? 'font-semibold text-lg mb-0.5' : 'font-semibold text-base md:text-lg mb-0.5'
                                 }`}
                               >
-                                {post.job_title || post.category || post.text?.substring(0, 60) || 'Untitled Position'}
+                                {post.job_title || post.category || post.text?.substring(0, 60) || t('jobs.untitledPost')}
                               </h3>
                               <div className="flex items-center gap-1.5 mt-0.5">
                                 {post.post_type === 'hiring_post' && (
@@ -745,7 +745,7 @@ function JobsMarketplaceContent() {
                           {isServiceRequest && post.price_value && (
                             <div className="text-base font-bold text-slate-900 dark:text-gray-200">
                               {`${post.currency || 'EUR'} ${post.price_value}${
-                                post.price_type === 'hourly' ? '/h' : post.price_type === 'fixed' ? ' (fixed)' : ''
+                                post.price_type === 'hourly' ? t('jobs.pricePerHour') : post.price_type === 'fixed' ? ` ${t('jobs.priceFixed')}` : ''
                               }`}
                             </div>
                           )}
@@ -753,7 +753,7 @@ function JobsMarketplaceContent() {
                           {!isServiceRequest && post.price_value && (
                             <div className="text-xs text-slate-600 dark:text-gray-300">
                               {`${post.currency || 'EUR'} ${post.price_value}${
-                                post.price_type === 'hourly' ? '/h' : post.price_type === 'fixed' ? ' (fixed)' : ''
+                                post.price_type === 'hourly' ? t('jobs.pricePerHour') : post.price_type === 'fixed' ? ` ${t('jobs.priceFixed')}` : ''
                               }`}
                             </div>
                           )}
@@ -820,7 +820,7 @@ function JobsMarketplaceContent() {
                                       className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 h-9 text-xs md:text-sm flex-1 rounded-xl"
                                     >
                                       <MessageCircle className="h-3.5 w-3.5 mr-1.5" />
-                                      {contactingPostId === post.user_id ? 'Slanje...' : t('jobs.sendMessageButton')}
+                                      {contactingPostId === post.user_id ? t('contact.sending') : t('jobs.sendMessageButton')}
                                     </Button>
                                   </div>
                                 )}
@@ -859,7 +859,7 @@ function JobsMarketplaceContent() {
                                       className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 h-9 text-sm flex-1 rounded-xl"
                                     >
                                       <MessageCircle className="h-4 w-4 mr-1.5" />
-                                      {contactingPostId === post.user_id ? 'Slanje...' : t('jobs.sendMessageButton')}
+                                      {contactingPostId === post.user_id ? t('contact.sending') : t('jobs.sendMessageButton')}
                                     </Button>
                                   </div>
                                 )}
@@ -882,7 +882,7 @@ function JobsMarketplaceContent() {
                                       className="bg-orange-600 hover:bg-orange-700 text-white h-9 text-xs md:text-sm w-auto rounded-xl"
                                     >
                                       <Send className="h-3.5 w-3.5 mr-1.5" />
-                                      Send Offer
+                                      {t('jobs.offerJobButton')}
                                     </Button>
 
                                     <Button
@@ -898,7 +898,7 @@ function JobsMarketplaceContent() {
                                       className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 h-9 text-xs md:text-sm w-auto rounded-xl"
                                     >
                                       <MessageCircle className="h-3.5 w-3.5 mr-1.5" />
-                                      {contactingPostId === post.user_id ? 'Slanje...' : t('jobs.sendMessageButton')}
+                                      {contactingPostId === post.user_id ? t('contact.sending') : t('jobs.sendMessageButton')}
                                     </Button>
                                   </div>
                                 )}
