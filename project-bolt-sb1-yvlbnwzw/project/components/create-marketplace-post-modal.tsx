@@ -265,7 +265,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
           .eq('post_type', 'service_listing')
           .eq('is_active', true);
 
-        if (count && count >= 2) {
+        if (count && count >= 10) {
           toast.error(t('marketplace.serviceListingLimitReached'));
           return;
         }

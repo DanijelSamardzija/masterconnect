@@ -11,7 +11,7 @@ import { ProfileView } from '@/components/profile-view';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowLeft, AlertCircle, MessageCircle, Star } from 'lucide-react';
+import { ArrowLeft, AlertCircle, MessageCircle, Star, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { ReviewModal } from '@/components/review-modal';
 
@@ -27,6 +27,7 @@ type UserProfile = {
   bio?: string;
   skills?: string[];
   phone?: string;
+  show_phone?: boolean;
   avatar_url?: string;
   cover_url?: string;
   average_rating?: number;
@@ -293,12 +294,22 @@ function UserProfileContent() {
       onClick={handleSendMessage}
       disabled={sendingMessage}
       size="sm"
-      className="w-full gap-1.5 rounded-full bg-orange-500 hover:bg-orange-600 text-white px-4 shadow-sm h-9"
+      className="w-full gap-1 rounded-full bg-orange-500 hover:bg-orange-600 text-white px-3 shadow-sm h-8 text-sm"
     >
-      <MessageCircle className="h-4 w-4" />
+      <MessageCircle className="h-4 w-4 shrink-0" />
       {sendingMessage ? '...' : t('profile.sendMessage')}
     </Button>
   );
+
+  const callAction = profile.show_phone && profile.phone ? (
+    <a
+      href={`tel:${profile.phone}`}
+      className="inline-flex items-center justify-center gap-1 rounded-full px-3 text-sm font-semibold h-8 w-full shadow-sm bg-green-500 hover:bg-green-600 text-white transition-colors"
+    >
+      <Phone className="h-4 w-4 shrink-0" />
+      {t('profile.callUser')}
+    </a>
+  ) : undefined;
 
   const reviewAction = profile.account_type === 'professional' ? (
     <Button
@@ -330,6 +341,7 @@ function UserProfileContent() {
         isOwnProfile={false}
         onSendMessage={handleSendMessage}
         headerActions={headerActions}
+        callAction={callAction}
         reviewAction={reviewAction}
       />
 

@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/button';
 import { UserPlus, UserCheck } from 'lucide-react';
+import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
 
 type Props = {
@@ -18,6 +18,7 @@ type Props = {
 
 export function FollowButton({ targetUserId, currentUserId, size = 'default', className, isFollowing: isFollowingProp, onFollowChange }: Props) {
   const isControlled = isFollowingProp !== undefined;
+  const { t } = useLanguage();
 
   const [localIsFollowing, setLocalIsFollowing] = useState(false);
   const [loading, setLoading] = useState(!isControlled);
@@ -64,14 +65,14 @@ export function FollowButton({ targetUserId, currentUserId, size = 'default', cl
           .eq('following_id', targetUserId);
 
         if (error) throw error;
-        toast.success('Unfollowed');
+        toast.success(t('profile.unfollowed'));
       } else {
         const { error } = await supabase
           .from('followers')
           .insert({ follower_id: currentUserId, following_id: targetUserId });
 
         if (error) throw error;
-        toast.success('Following');
+        toast.success(t('profile.followed'));
       }
     } catch (err) {
       console.error('FollowButton toggle error:', err);
@@ -88,16 +89,16 @@ export function FollowButton({ targetUserId, currentUserId, size = 'default', cl
     <button
       onClick={handleToggleFollow}
       disabled={loading}
-      className={`inline-flex items-center justify-center gap-1 rounded-full px-2.5 text-xs font-semibold transition-all active:scale-95 disabled:opacity-50 h-6 ${
+      className={`inline-flex items-center justify-center gap-1 rounded-full px-3 text-sm font-semibold transition-all active:scale-95 disabled:opacity-50 h-8 w-full shadow-sm ${
         isFollowing
           ? 'border border-orange-400 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-950'
-          : 'bg-orange-500 text-white hover:bg-orange-600 shadow-sm'
+          : 'bg-orange-500 text-white hover:bg-orange-600'
       } ${className ?? ''}`}
     >
       {isFollowing ? (
-        <><UserCheck className="h-3 w-3" />Following</>
+        <><UserCheck className="h-4 w-4" />{t('profile.followingAction')}</>
       ) : (
-        <><UserPlus className="h-3 w-3" />Follow</>
+        <><UserPlus className="h-4 w-4" />{t('profile.follow')}</>
       )}
     </button>
   );

@@ -127,6 +127,7 @@ type ProfileViewProps = {
   isOwnProfile: boolean;
   onSendMessage?: () => void;
   headerActions?: React.ReactNode;
+  callAction?: React.ReactNode;
   reviewAction?: React.ReactNode;
 };
 
@@ -136,6 +137,7 @@ export function ProfileView({
   isOwnProfile,
   onSendMessage,
   headerActions,
+  callAction,
   reviewAction,
 }: ProfileViewProps) {
   const router = useRouter();
@@ -816,6 +818,11 @@ export function ProfileView({
                 {headerActions && (
                   <div className="flex-1">
                     {headerActions}
+                  </div>
+                )}
+                {callAction && (
+                  <div className="flex-1">
+                    {callAction}
                   </div>
                 )}
               </div>

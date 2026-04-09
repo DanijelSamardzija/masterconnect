@@ -136,7 +136,7 @@ function MessagesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, profile } = useAuth();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   usePresence(user?.id);
 
   const [thread, setThread] = useState<ThreadDetails | null>(null);
