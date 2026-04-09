@@ -745,7 +745,7 @@ function JobsMarketplaceContent() {
 
                           {post.text && (
                             <div>
-                              <p className={`text-slate-700 dark:text-gray-300 leading-relaxed ${isServiceRequest ? 'text-sm' : 'text-xs md:text-sm'} ${expandedPosts.has(post.id) ? '' : 'line-clamp-2'}`}>
+                              <p className={`text-slate-700 dark:text-gray-300 leading-relaxed ${isServiceRequest ? 'text-sm' : 'text-xs md:text-sm'} ${post.text.length > 120 && !expandedPosts.has(post.id) ? 'line-clamp-2' : ''}`}>
                                 {post.text}
                               </p>
                               {post.text.length > 120 && (
