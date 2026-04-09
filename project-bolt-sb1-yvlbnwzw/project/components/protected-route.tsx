@@ -22,25 +22,29 @@ export function ProtectedRoute({
   const { user, profile, loading } = useAuth();
   const router = useRouter();
   const [shouldRedirect, setShouldRedirect] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     if (!loading) {
-      if (requireAuth && !user) {
-        setShouldRedirect(true);
-      }
-
-      if (allowedAccountTypes && profile && !allowedAccountTypes.includes(profile.account_type)) {
-        setShouldRedirect(true);
-      }
+      // Small delay to avoid flash on refresh when session is still restoring
+      const timer = setTimeout(() => {
+        setAuthChecked(true);
+        if (requireAuth && !user) {
+          setShouldRedirect(true);
+        }
+        if (allowedAccountTypes && profile && !allowedAccountTypes.includes(profile.account_type)) {
+          setShouldRedirect(true);
+        }
+      }, 300);
+      return () => clearTimeout(timer);
     }
   }, [user, profile, loading, requireAuth, allowedAccountTypes]);
 
-  if (loading) {
+  if (loading || !authChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
