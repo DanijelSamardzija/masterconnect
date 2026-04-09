@@ -20,7 +20,7 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog';
 import {
-  Briefcase, MessageSquare, Star, Plus, ArrowRight,
+  Briefcase, MessageSquare, Star, Plus,
   CheckCircle2, Clock, Bell, Trash2, Rss, UserCircle,
   ChevronRight
 } from 'lucide-react';
@@ -166,7 +166,7 @@ function DashboardContent() {
     setNotificationsOpen(true);
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     setNotificationsCount(0);
-    await supabase.from('notifications').update({ read_at: new Date().toISOString() })
+    await (supabase.from('notifications') as any).update({ read_at: new Date().toISOString() })
       .eq('user_id', profile?.id).is('read_at', null);
     window.dispatchEvent(new Event('unreadCountChanged'));
   };
@@ -175,7 +175,7 @@ function DashboardContent() {
     if (!profile) return;
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     setNotificationsCount(0);
-    await supabase.from('notifications').update({ read_at: new Date().toISOString() })
+    await (supabase.from('notifications') as any).update({ read_at: new Date().toISOString() })
       .eq('user_id', profile.id).is('read_at', null);
     window.dispatchEvent(new Event('unreadCountChanged'));
   };
@@ -271,18 +271,24 @@ function DashboardContent() {
         <div className="grid grid-cols-3 gap-3">
           {isPro ? (
             <>
-              <div className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-1">
+              <button
+                onClick={() => router.push('/messages')}
+                className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-1 text-left hover:border-orange-400/50 hover:bg-accent transition-colors"
+              >
                 <MessageSquare className="h-5 w-5 text-green-500 mb-1" />
                 <p className="text-2xl font-bold text-foreground">{threads.length}</p>
                 <p className="text-xs text-muted-foreground">{t('dashboard.activeLeads')}</p>
-              </div>
-              <div className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-1">
+              </button>
+              <button
+                onClick={() => router.push(`/profile/${profile.id}`)}
+                className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-1 text-left hover:border-orange-400/50 hover:bg-accent transition-colors"
+              >
                 <Star className="h-5 w-5 text-yellow-500 mb-1" />
                 <p className="text-2xl font-bold text-foreground">{reviews.length}</p>
                 <p className="text-xs text-muted-foreground">
                   {avgRating ? `⭐ ${avgRating}` : t('dashboard.reviews')}
                 </p>
-              </div>
+              </button>
               <button
                 onClick={() => router.push('/messages')}
                 className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-1 text-left hover:border-orange-400/50 hover:bg-accent transition-colors"
