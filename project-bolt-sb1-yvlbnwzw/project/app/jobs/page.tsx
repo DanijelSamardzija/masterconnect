@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Briefcase, Users, UserCircle, MessageCircle, Plus, MoreVertical, Trash2, Send, X, Bookmark, Share2 } from 'lucide-react';
+import { Briefcase, Users, UserCircle, MessageCircle, Plus, MoreVertical, Trash2, Send, X, Bookmark, Share2, MapPin, Star, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -706,52 +706,113 @@ function JobsMarketplaceContent() {
                             </div>
                           </div>
 
-                          <div className={`flex flex-wrap items-center gap-1.5 text-slate-600 dark:text-gray-300 ${isServiceRequest ? 'text-sm' : 'text-xs'}`}>
-                            {post.category && (
-                              <span className="inline-flex items-center gap-1">
-                                {!isServiceRequest && <Briefcase className="h-3 w-3" />}
-                                {post.category}
-                              </span>
-                            )}
-
-                            {post.city && (
-                              <span className="inline-flex items-center gap-1">
-                                {post.category && <span className="text-slate-400">•</span>}
-                                {post.city}
-                              </span>
-                            )}
-
-                            {isServiceRequest && post.availability && (
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-slate-50 text-slate-700 rounded text-xs font-medium border border-slate-200">
-                                {AVAIL_KEYS[post.availability] ? t(AVAIL_KEYS[post.availability] as any) : post.availability}
-                              </span>
-                            )}
-
-                            {!isServiceRequest && post.experience_level && (
-                              <span className="inline-flex items-center gap-1">
-                                <span className="text-slate-400">•</span>
-                                {EXP_LEVEL_KEYS[post.experience_level] ? t(EXP_LEVEL_KEYS[post.experience_level] as any) : post.experience_level}
-                              </span>
-                            )}
-
-                            {!isServiceRequest && !post.price_value && post.availability && (
-                              <span className="inline-flex items-center gap-1">
-                                <span className="text-slate-400">•</span>
-                                {AVAIL_KEYS[post.availability] ? t(AVAIL_KEYS[post.availability] as any) : post.availability}
-                              </span>
-                            )}
-                          </div>
-
-                          {isServiceRequest && post.price_value && (
-                            <div className="text-base font-bold text-slate-900 dark:text-gray-200">
-                              {`${post.currency || 'EUR'} ${post.price_value}${
-                                post.price_type === 'hourly' ? t('jobs.pricePerHour') : post.price_type === 'fixed' ? ` ${t('jobs.priceFixed')}` : ''
-                              }`}
+                          {/* Hiring post — Option C: icon + label grid */}
+                          {post.post_type === 'hiring_post' && (
+                            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 mt-1">
+                              {post.category && (
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <Briefcase className="h-3.5 w-3.5 text-orange-500 shrink-0" />
+                                  <span className="text-[11px] text-slate-500 dark:text-slate-400 shrink-0">{t('jobs.labelNeeded')}:</span>
+                                  <span className="text-[11px] font-semibold text-slate-800 dark:text-gray-100 truncate">{post.category}</span>
+                                </div>
+                              )}
+                              {post.city && (
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <MapPin className="h-3.5 w-3.5 text-orange-500 shrink-0" />
+                                  <span className="text-[11px] text-slate-500 dark:text-slate-400 shrink-0">{t('jobs.labelCity')}:</span>
+                                  <span className="text-[11px] font-semibold text-slate-800 dark:text-gray-100 truncate">{post.city}</span>
+                                </div>
+                              )}
+                              {post.experience_level && (
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <Star className="h-3.5 w-3.5 text-orange-500 shrink-0" />
+                                  <span className="text-[11px] text-slate-500 dark:text-slate-400 shrink-0">{t('jobs.labelLevel')}:</span>
+                                  <span className="text-[11px] font-semibold text-slate-800 dark:text-gray-100 truncate">
+                                    {EXP_LEVEL_KEYS[post.experience_level] ? t(EXP_LEVEL_KEYS[post.experience_level] as any) : post.experience_level}
+                                  </span>
+                                </div>
+                              )}
+                              {post.availability && (
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <Clock className="h-3.5 w-3.5 text-orange-500 shrink-0" />
+                                  <span className="text-[11px] text-slate-500 dark:text-slate-400 shrink-0">{t('jobs.labelStart')}:</span>
+                                  <span className="text-[11px] font-semibold text-slate-800 dark:text-gray-100 truncate">
+                                    {AVAIL_KEYS[post.availability] ? t(AVAIL_KEYS[post.availability] as any) : post.availability}
+                                  </span>
+                                </div>
+                              )}
                             </div>
                           )}
 
-                          {!isServiceRequest && post.price_value && (
-                            <div className="text-xs text-slate-600 dark:text-gray-300">
+                          {/* Job seeker post — Option C */}
+                          {post.post_type === 'job_seeker_post' && (
+                            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 mt-1">
+                              {post.category && (
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <Briefcase className="h-3.5 w-3.5 text-green-600 shrink-0" />
+                                  <span className="text-[11px] text-slate-500 dark:text-slate-400 shrink-0">{t('jobs.labelNeeded')}:</span>
+                                  <span className="text-[11px] font-semibold text-slate-800 dark:text-gray-100 truncate">{post.category}</span>
+                                </div>
+                              )}
+                              {post.city && (
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <MapPin className="h-3.5 w-3.5 text-green-600 shrink-0" />
+                                  <span className="text-[11px] text-slate-500 dark:text-slate-400 shrink-0">{t('jobs.labelCity')}:</span>
+                                  <span className="text-[11px] font-semibold text-slate-800 dark:text-gray-100 truncate">{post.city}</span>
+                                </div>
+                              )}
+                              {post.experience_level && (
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <Star className="h-3.5 w-3.5 text-green-600 shrink-0" />
+                                  <span className="text-[11px] text-slate-500 dark:text-slate-400 shrink-0">{t('jobs.labelLevel')}:</span>
+                                  <span className="text-[11px] font-semibold text-slate-800 dark:text-gray-100 truncate">
+                                    {EXP_LEVEL_KEYS[post.experience_level] ? t(EXP_LEVEL_KEYS[post.experience_level] as any) : post.experience_level}
+                                  </span>
+                                </div>
+                              )}
+                              {post.availability && (
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <Clock className="h-3.5 w-3.5 text-green-600 shrink-0" />
+                                  <span className="text-[11px] text-slate-500 dark:text-slate-400 shrink-0">{t('jobs.labelAvail')}:</span>
+                                  <span className="text-[11px] font-semibold text-slate-800 dark:text-gray-100 truncate">
+                                    {AVAIL_KEYS[post.availability] ? t(AVAIL_KEYS[post.availability] as any) : post.availability}
+                                  </span>
+                                </div>
+                              )}
+                              {post.price_value && (
+                                <div className="flex items-center gap-1.5 min-w-0 col-span-2">
+                                  <Star className="h-3.5 w-3.5 text-green-600 shrink-0" />
+                                  <span className="text-[11px] text-slate-500 dark:text-slate-400 shrink-0">{t('jobs.labelSalary')}:</span>
+                                  <span className="text-[11px] font-semibold text-slate-800 dark:text-gray-100">
+                                    {`${post.currency || 'RSD'} ${post.price_value}${post.price_type === 'hourly' ? t('jobs.pricePerHour') : post.price_type === 'fixed' ? ` ${t('jobs.priceFixed')}` : ''}`}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Service request — keep simple inline style */}
+                          {isServiceRequest && (
+                            <div className="flex flex-wrap items-center gap-1.5 text-sm text-slate-600 dark:text-gray-300">
+                              {post.category && (
+                                <span className="inline-flex items-center gap-1">{post.category}</span>
+                              )}
+                              {post.city && (
+                                <span className="inline-flex items-center gap-1">
+                                  {post.category && <span className="text-slate-400">•</span>}
+                                  <MapPin className="h-3 w-3" />{post.city}
+                                </span>
+                              )}
+                              {post.availability && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded text-xs font-medium border border-slate-200 dark:border-slate-700">
+                                  {AVAIL_KEYS[post.availability] ? t(AVAIL_KEYS[post.availability] as any) : post.availability}
+                                </span>
+                              )}
+                            </div>
+                          )}
+
+                          {isServiceRequest && post.price_value && (
+                            <div className="text-base font-bold text-slate-900 dark:text-gray-200">
                               {`${post.currency || 'EUR'} ${post.price_value}${
                                 post.price_type === 'hourly' ? t('jobs.pricePerHour') : post.price_type === 'fixed' ? ` ${t('jobs.priceFixed')}` : ''
                               }`}
