@@ -948,4 +948,6 @@ export default {
   'share.sending': 'Slanje...',
   'share.sentToast': 'Poruka poslata!',
   'share.sendError': 'Greška pri slanju poruke',
+  'posts.readMore': 'Prikaži više',
+  'posts.showLess': 'Prikaži manje',
 } as const;
