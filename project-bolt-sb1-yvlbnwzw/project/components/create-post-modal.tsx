@@ -512,8 +512,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
                   return (
                     <div key={index} className="space-y-2">
                       <div
-                        className={`relative border rounded-lg overflow-hidden bg-slate-50 aspect-square group cursor-pointer transition-all ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
-                        onClick={() => setSelectedMediaIndex(isSelected ? null : index)}
+                        className="relative border rounded-lg overflow-hidden bg-slate-50 aspect-square group transition-all"
                       >
                         {isVideo ? (
                           <video
@@ -582,22 +581,20 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
                         </div>
                       </div>
 
-                      {isSelected && (
-                        <div className="mt-2">
-                          <Button
-                            type="button"
-                            variant={mediaFile.overlay ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => {
-                              setEditingMediaIndex(index);
-                              setOverlayEditorOpen(true);
-                            }}
-                            className="w-full"
-                          >
-                            {mediaFile.overlay ? t('createPost.editTextOverlay') : t('createPost.addTextOverlay')}
-                          </Button>
-                        </div>
-                      )}
+                      <div className="mt-2">
+                        <Button
+                          type="button"
+                          variant={mediaFile.overlay ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => {
+                            setEditingMediaIndex(index);
+                            setOverlayEditorOpen(true);
+                          }}
+                          className="w-full"
+                        >
+                          {mediaFile.overlay ? t('createPost.editTextOverlay') : t('createPost.addTextOverlay')}
+                        </Button>
+                      </div>
                     </div>
                   );
                 })}

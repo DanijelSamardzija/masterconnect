@@ -129,7 +129,7 @@ export function FlexibleTextOverlayEditor({
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex flex-col bg-black"
+      className="fixed inset-0 z-[99999] flex flex-col bg-black"
       onClick={(e) => e.stopPropagation()}
     >
       {/* ── Top bar: Cancel | Colors | Save ── */}
