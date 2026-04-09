@@ -126,8 +126,8 @@ export function JobApplicationModal({ open, onOpenChange, postId, postTitle, pos
 
   // ── Submit ────────────────────────────────────────────────────
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!user || !profile) return;
 
     if (!fullName.trim()) { toast.error(t('apply.required') + ': ' + t('apply.fullName')); return; }
@@ -278,7 +278,7 @@ export function JobApplicationModal({ open, onOpenChange, postId, postTitle, pos
           )}
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="px-5 pb-6 space-y-5">
+        <div className="px-5 pb-6 space-y-5">
 
           {/* ── Personal Info ── */}
           <section className="space-y-3">
@@ -538,7 +538,8 @@ export function JobApplicationModal({ open, onOpenChange, postId, postTitle, pos
               {t('apply.cancel')}
             </Button>
             <Button
-              type="submit"
+              type="button"
+              onClick={() => handleSubmit()}
               className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
               disabled={submitting || isUploading || !fullName.trim() || !bio.trim() || !experience.trim()}
             >
@@ -546,7 +547,7 @@ export function JobApplicationModal({ open, onOpenChange, postId, postTitle, pos
               {submitting || isUploading ? t('apply.submitting') : t('apply.submit')}
             </Button>
           </div>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
