@@ -1133,8 +1133,11 @@ function FeedContent() {
                   )}
 
                   {postIndex === 0 && showSwipeHint && (
-                    <div className="pointer-events-none absolute bottom-24 left-1/2 z-40 flex -translate-x-1/2 flex-col items-center animate-bounce">
-                      <ChevronRight className="h-10 w-10 rotate-[-90deg] text-white/80 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]" />
+                    <div className="pointer-events-none absolute bottom-28 left-1/2 z-40 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
+                      <div className="flex flex-col items-center gap-1.5 rounded-2xl bg-black/60 backdrop-blur-sm border border-white/20 px-5 py-3">
+                        <ChevronRight className="h-7 w-7 rotate-[-90deg] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]" />
+                        <span className="text-white text-xs font-semibold tracking-wide">Skroluj gore-dole</span>
+                      </div>
                     </div>
                   )}
 
