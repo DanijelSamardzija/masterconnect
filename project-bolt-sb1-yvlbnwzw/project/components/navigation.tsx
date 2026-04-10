@@ -414,19 +414,30 @@ export function Navigation() {
 
           <div className="flex items-center gap-2 md:hidden">
             {user && profile ? (
-              <Link href="/dashboard">
-                <Button variant="ghost" size="icon" className="relative text-slate-200 hover:text-white hover:bg-slate-800">
-                  <Bell className="h-5 w-5" />
-                  {notificationUnreadCount > 0 && (
-                    <Badge
-                      variant="destructive"
-                      className="absolute -top-1 -right-1 px-1 py-0 h-4 min-w-4 flex items-center justify-center text-[10px] bg-orange-600 border-2 border-slate-900"
-                    >
-                      {notificationUnreadCount > 9 ? '9+' : notificationUnreadCount}
-                    </Badge>
-                  )}
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSearchOpen(true)}
+                  className="text-slate-200 hover:text-white hover:bg-slate-800"
+                  aria-label="Search"
+                >
+                  <Search className="h-5 w-5" />
                 </Button>
-              </Link>
+                <Link href="/dashboard">
+                  <Button variant="ghost" size="icon" className="relative text-slate-200 hover:text-white hover:bg-slate-800">
+                    <Bell className="h-5 w-5" />
+                    {notificationUnreadCount > 0 && (
+                      <Badge
+                        variant="destructive"
+                        className="absolute -top-1 -right-1 px-1 py-0 h-4 min-w-4 flex items-center justify-center text-[10px] bg-orange-600 border-2 border-slate-900"
+                      >
+                        {notificationUnreadCount > 9 ? '9+' : notificationUnreadCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </Link>
+              </>
             ) : (
               <LanguageSwitcher />
             )}
