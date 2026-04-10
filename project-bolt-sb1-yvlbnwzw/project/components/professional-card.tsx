@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ProfessionalBadge } from '@/components/professional-badge';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { isOnline } from '@/lib/online-status';
 
 type ProfessionalCardProps = {
   listing: {
@@ -26,6 +27,7 @@ type ProfessionalCardProps = {
       account_type?: string;
       average_rating?: number;
       review_count?: number;
+      last_seen?: string;
     };
     post_media: Array<{
       id: string;
@@ -109,18 +111,23 @@ export function ProfessionalCard({ listing }: ProfessionalCardProps) {
         <div className="mb-1.5 md:mb-2">
           {/* User Info at Top */}
           <div className="flex items-center gap-2 mb-2">
-            <Avatar
-              className="h-9 w-9 cursor-pointer ring-2 ring-gray-100"
-              onClick={(e) => {
-                e.stopPropagation();
-                router.push(`/profile/${listing.user_id}`);
-              }}
-            >
-              <AvatarImage src={listing.profiles.avatar_url} alt={listing.profiles.name} />
-              <AvatarFallback className="bg-orange-500 text-white text-sm">
-                {listing.profiles.name.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative shrink-0">
+              <Avatar
+                className="h-9 w-9 cursor-pointer ring-2 ring-gray-100"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(`/profile/${listing.user_id}`);
+                }}
+              >
+                <AvatarImage src={listing.profiles.avatar_url} alt={listing.profiles.name} />
+                <AvatarFallback className="bg-orange-500 text-white text-sm">
+                  {listing.profiles.name.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              {isOnline(listing.profiles.last_seen) && (
+                <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white dark:ring-card" />
+              )}
+            </div>
             <div className="flex-1 min-w-0">
               <button
                 className="text-sm font-semibold text-gray-900 dark:text-white hover:text-orange-600 dark:hover:text-orange-400 transition-colors truncate block"

@@ -1074,6 +1074,20 @@ export default {
   'search.service': 'Usluga',
   'search.job': 'Posao',
 
+  // Dashboard empty state for professionals
+  'dashboard.getStarted': 'Počni',
+  'dashboard.completeProfileTitle': 'Popuni profil',
+  'dashboard.completeProfileDesc': 'Dodaj fotografiju, bio i usluge kako bi te klijenti mogli pronaći',
+  'dashboard.browseJobsTitle': 'Pregledaj oglase za posao',
+  'dashboard.browseJobsDesc': 'Pronađi zahtjeve za uslugama i prilike za posao u svom gradu',
+
+  // Services sort
+  'discover.sortBy': 'Sortiraj',
+  'discover.sortRating': 'Najbolje ocijenjeni',
+  'discover.sortNewest': 'Najnoviji',
+  'discover.sortPriceAsc': 'Cijena ↑',
+  'discover.sortPriceDesc': 'Cijena ↓',
+
   // Pending Review (dashboard)
   'dashboard.pendingReview': 'Kako je bilo?',
   'dashboard.pendingReviewDesc': 'Radio si sa {name}. Ostavi recenziju i pomozi drugima.',

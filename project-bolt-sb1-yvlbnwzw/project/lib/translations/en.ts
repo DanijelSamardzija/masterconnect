@@ -1074,6 +1074,20 @@ export default {
   'search.service': 'Service',
   'search.job': 'Job',
 
+  // Dashboard empty state for professionals
+  'dashboard.getStarted': 'Get Started',
+  'dashboard.completeProfileTitle': 'Complete your profile',
+  'dashboard.completeProfileDesc': 'Add a photo, bio and services so clients can find you',
+  'dashboard.browseJobsTitle': 'Browse job listings',
+  'dashboard.browseJobsDesc': 'Find service requests and job opportunities near you',
+
+  // Services sort
+  'discover.sortBy': 'Sort',
+  'discover.sortRating': 'Top Rated',
+  'discover.sortNewest': 'Newest',
+  'discover.sortPriceAsc': 'Price ↑',
+  'discover.sortPriceDesc': 'Price ↓',
+
   // Pending Review (dashboard)
   'dashboard.pendingReview': 'How was your experience?',
   'dashboard.pendingReviewDesc': 'You worked with {name}. Leave a review to help others.',

@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { EmptyState } from '@/components/empty-state';
 import { SharePostModal } from '@/components/share-post-modal';
-import { Loader2, Search, Filter, X, Bookmark, Share2 } from 'lucide-react';
+import { Loader2, Search, Filter, X, Bookmark, Share2, ArrowUpDown, Star, Clock, TrendingUp } from 'lucide-react';
 
 export const revalidate = 0;
 
@@ -33,6 +33,7 @@ type ServiceListing = {
     account_type?: string;
     average_rating?: number;
     review_count?: number;
+    last_seen?: string;
   };
   post_media: Array<{
     id: string;
@@ -54,6 +55,7 @@ export default function ServicesPage() {
   const [hasFilters, setHasFilters] = useState(false);
   const [savedSet, setSavedSet] = useState<Set<string>>(new Set());
   const [shareModalPostId, setShareModalPostId] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<'rating' | 'newest' | 'price_asc' | 'price_desc'>('rating');
 
   useEffect(() => {
     loadCategories();
@@ -68,7 +70,7 @@ export default function ServicesPage() {
   useEffect(() => {
     loadListings();
     setHasFilters(!!selectedCategory || !!cityFilter);
-  }, [selectedCategory, cityFilter]);
+  }, [selectedCategory, cityFilter, sortBy]);
 
   const loadCategories = async () => {
     try {
@@ -109,7 +111,8 @@ export default function ServicesPage() {
             avatar_url,
             account_type,
             average_rating,
-            review_count
+            review_count,
+            last_seen
           ),
           post_media (
             id,
@@ -172,7 +175,7 @@ export default function ServicesPage() {
         } : null
       }));
 
-      const sortedListings = sortByWeightedRating(listingsWithReviews);
+      const sortedListings = applySorting(listingsWithReviews, sortBy);
       setListings(sortedListings);
     } catch (error) {
       console.error('Error loading listings:', error);
@@ -191,6 +194,27 @@ export default function ServicesPage() {
       .replace(/[čČ]/g, 'c')
       .replace(/[ćĆ]/g, 'c')
       .replace(/[žŽ]/g, 'z');
+  };
+
+  const applySorting = (listings: ServiceListing[], sort: typeof sortBy): ServiceListing[] => {
+    if (sort === 'newest') {
+      return [...listings].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
+    if (sort === 'price_asc') {
+      return [...listings].sort((a, b) => {
+        const aPrice = a.price_value || Infinity;
+        const bPrice = b.price_value || Infinity;
+        return aPrice - bPrice;
+      });
+    }
+    if (sort === 'price_desc') {
+      return [...listings].sort((a, b) => {
+        const aPrice = a.price_value || 0;
+        const bPrice = b.price_value || 0;
+        return bPrice - aPrice;
+      });
+    }
+    return sortByWeightedRating(listings);
   };
 
   const sortByWeightedRating = (listings: ServiceListing[]): ServiceListing[] => {
@@ -298,19 +322,38 @@ export default function ServicesPage() {
           </div>
         </div>
 
-        {hasFilters && (
-          <div className="mt-4 flex justify-end">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearFilters}
-              className="gap-2 rounded-xl"
+        {/* Sort buttons */}
+        <div className="mt-4 flex flex-wrap gap-2 items-center">
+          <span className="text-xs text-muted-foreground flex items-center gap-1 mr-1">
+            <ArrowUpDown className="h-3.5 w-3.5" /> {t('discover.sortBy')}:
+          </span>
+          {[
+            { key: 'rating', icon: <Star className="h-3 w-3" />, label: t('discover.sortRating') },
+            { key: 'newest', icon: <Clock className="h-3 w-3" />, label: t('discover.sortNewest') },
+            { key: 'price_asc', icon: <TrendingUp className="h-3 w-3" />, label: t('discover.sortPriceAsc') },
+            { key: 'price_desc', icon: <TrendingUp className="h-3 w-3 rotate-180" />, label: t('discover.sortPriceDesc') },
+          ].map(opt => (
+            <button
+              key={opt.key}
+              onClick={() => setSortBy(opt.key as typeof sortBy)}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${
+                sortBy === opt.key
+                  ? 'bg-orange-500 text-white'
+                  : 'bg-muted text-muted-foreground hover:bg-accent'
+              }`}
             >
-              <X className="h-4 w-4" />
-              {t('discover.clearFilters')}
-            </Button>
-          </div>
-        )}
+              {opt.icon} {opt.label}
+            </button>
+          ))}
+          {hasFilters && (
+            <button
+              onClick={clearFilters}
+              className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-muted text-muted-foreground hover:bg-accent transition-colors"
+            >
+              <X className="h-3 w-3" /> {t('discover.clearFilters')}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* CONTENT */}
