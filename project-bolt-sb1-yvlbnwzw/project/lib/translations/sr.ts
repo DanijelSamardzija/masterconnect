@@ -1092,4 +1092,11 @@ export default {
   'dashboard.pendingReview': 'Kako je bilo?',
   'dashboard.pendingReviewDesc': 'Radio si sa {name}. Ostavi recenziju i pomozi drugima.',
   'dashboard.leaveReview': 'Ostavi recenziju',
+
+  // Analytics
+  'analytics.title': 'Analitika profila',
+  'analytics.profileViews': 'Pregledi profila',
+  'analytics.today': 'Danas',
+  'analytics.thisWeek': 'Ova sedmica',
+  'analytics.total': 'Ukupno',
 } as const;

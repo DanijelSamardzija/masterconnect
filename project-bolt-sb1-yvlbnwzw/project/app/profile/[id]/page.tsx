@@ -65,8 +65,17 @@ function UserProfileContent() {
     if (userId && user) {
       checkBlockStatus();
       fetchProfile();
+      if (!isOwnProfile) trackProfileView();
     }
   }, [userId, user]);
+
+  const trackProfileView = async () => {
+    if (!user || isOwnProfile) return;
+    await supabase.from('profile_views').insert({
+      profile_id: userId,
+      viewer_id: user.id,
+    });
+  };
 
   const checkBlockStatus = async () => {
     if (isOwnProfile || !user) return;

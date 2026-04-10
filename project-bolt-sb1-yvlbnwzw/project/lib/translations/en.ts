@@ -1092,4 +1092,11 @@ export default {
   'dashboard.pendingReview': 'How was your experience?',
   'dashboard.pendingReviewDesc': 'You worked with {name}. Leave a review to help others.',
   'dashboard.leaveReview': 'Leave a Review',
+
+  // Analytics
+  'analytics.title': 'Profile Analytics',
+  'analytics.profileViews': 'Profile views',
+  'analytics.today': 'Today',
+  'analytics.thisWeek': 'This week',
+  'analytics.total': 'All time',
 } as const;

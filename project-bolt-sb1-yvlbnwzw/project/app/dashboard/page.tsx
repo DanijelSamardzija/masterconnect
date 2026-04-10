@@ -22,7 +22,7 @@ import {
 import {
   Briefcase, MessageSquare, Star, Plus,
   CheckCircle2, Clock, Bell, Trash2, Rss, UserCircle,
-  ChevronRight, AlertCircle
+  ChevronRight, AlertCircle, Eye, TrendingUp, Calendar
 } from 'lucide-react';
 import { NotificationsModal, Notification } from '@/components/notifications-modal';
 import { ReviewModal } from '@/components/review-modal';
@@ -78,12 +78,14 @@ function DashboardContent() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [pendingReviewPro, setPendingReviewPro] = useState<{ id: string; name: string } | null>(null);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [profileViews, setProfileViews] = useState<{ total: number; week: number; today: number } | null>(null);
 
   useEffect(() => {
     fetchDashboardData();
     fetchUnreadCount();
     fetchNotifications();
     if (profile?.account_type === 'customer') fetchPendingReview();
+    if (profile?.account_type === 'professional') fetchProfileViews();
 
     const handleUnreadCountChanged = () => {
       fetchUnreadCount();
@@ -171,6 +173,21 @@ function DashboardContent() {
     const reviewedIds = new Set((existingReviews || []).map((r: any) => r.pro_id));
     const unreviewed = pros.find((p: any) => !reviewedIds.has(p.id));
     if (unreviewed) setPendingReviewPro({ id: unreviewed.id, name: unreviewed.name });
+  };
+
+  const fetchProfileViews = async () => {
+    if (!profile) return;
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+    const startOfWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    const [{ count: total }, { count: week }, { count: today }] = await Promise.all([
+      supabase.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', profile.id),
+      supabase.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', profile.id).gte('viewed_at', startOfWeek),
+      supabase.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', profile.id).gte('viewed_at', startOfToday),
+    ]);
+
+    setProfileViews({ total: total || 0, week: week || 0, today: today || 0 });
   };
 
   const fetchNotifications = async () => {
@@ -422,6 +439,31 @@ function DashboardContent() {
             </>
           )}
         </div>
+
+        {/* Analytics card — professionals only */}
+        {isPro && profileViews !== null && (
+          <div className="bg-card border border-border rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <TrendingUp className="h-4 w-4 text-orange-500" />
+              <p className="text-sm font-semibold text-foreground">{t('analytics.title')}</p>
+              <span className="ml-auto text-xs text-muted-foreground">{t('analytics.profileViews')}</span>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-muted/50 rounded-xl p-3 text-center">
+                <p className="text-2xl font-bold text-foreground">{profileViews.today}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t('analytics.today')}</p>
+              </div>
+              <div className="bg-muted/50 rounded-xl p-3 text-center">
+                <p className="text-2xl font-bold text-foreground">{profileViews.week}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t('analytics.thisWeek')}</p>
+              </div>
+              <div className="bg-orange-50 dark:bg-orange-950/30 rounded-xl p-3 text-center">
+                <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{profileViews.total}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t('analytics.total')}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Quick actions */}
         <div className="space-y-2">
