@@ -16,7 +16,7 @@ export default {
 
   // Footer
   'footer.disclaimer': 'Disclaimer: The Platform acts solely as an intermediary marketplace connecting users. The Platform does not guarantee the quality of services, accuracy of listings, employment outcomes, or user conduct. All agreements are made directly between users.',
-  'footer.copyright': 'Platform. All rights reserved.',
+  'footer.copyright': 'GigZone. All rights reserved.',
   'footer.privacy': 'Privacy Policy',
   'footer.terms': 'Terms of Service',
   'footer.contact': 'Contact',

@@ -16,7 +16,7 @@ export default {
 
   // Footer
   'footer.disclaimer': 'Odricanje odgovornosti: Platforma deluje isključivo kao posrednička tržnica koja povezuje korisnike. Platforma ne garantuje kvalitet usluga, tačnost oglasa, ishode zapošljavanja ili ponašanje korisnika. Svi dogovori se zaključuju direktno između korisnika.',
-  'footer.copyright': 'Platforma. Sva prava zadržana.',
+  'footer.copyright': 'GigZone. Sva prava zadržana.',
   'footer.privacy': 'Politika privatnosti',
   'footer.terms': 'Uslovi korišćenja',
   'footer.contact': 'Kontakt',
