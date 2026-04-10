@@ -1072,6 +1072,8 @@ export default {
   'onboarding.next': 'Next',
   'onboarding.done': 'Get Started',
 
+  'feed.scrollHint': 'Scroll up & down',
+
   // Profile Completeness
   'profileComplete.title': 'Complete your profile',
   'profileComplete.subtitle': 'A complete profile gets more visibility',

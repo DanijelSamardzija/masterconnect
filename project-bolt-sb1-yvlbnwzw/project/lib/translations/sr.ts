@@ -1072,6 +1072,8 @@ export default {
   'onboarding.next': 'Dalje',
   'onboarding.done': 'Počni',
 
+  'feed.scrollHint': 'Skroluj gore-dole',
+
   // Profile Completeness
   'profileComplete.title': 'Popuni profil',
   'profileComplete.subtitle': 'Potpun profil dobija više vidljivosti',
