@@ -1069,12 +1069,14 @@ function FeedContent() {
                       )}
 
                       {!swipedPosts.has(post.id) && currentIndex < post.media.length - 1 && (
-  <div className="pointer-events-none absolute right-3 top-1/2 z-50 -translate-y-1/2 animate-pulse">
-    <div className="rounded-full bg-black/75 p-2.5 shadow-xl backdrop-blur-sm border border-white/10">
-      <ChevronRight className="h-7 w-7 text-white drop-shadow-[0_0_6px_rgba(255,255,255,0.6)]" />
-    </div>
-  </div>
-)}
+                        <div className="pointer-events-none absolute right-4 top-1/2 z-50 -translate-y-1/2">
+                          <div className="flex flex-col items-center gap-1 animate-[fadeSlideLeft_1.2s_ease-in-out_infinite]">
+                            <div className="rounded-full bg-black/50 backdrop-blur-sm px-3 py-1.5 flex items-center gap-1.5 border border-white/20">
+                              <span className="text-white text-xs font-medium">{currentIndex + 1}/{post.media.length}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </>
                   )}
 
@@ -1092,14 +1094,16 @@ function FeedContent() {
                   )}
 
                   {hasMultipleMedia && (
-                    <div className="pointer-events-none absolute left-0 right-0 top-4 z-40 flex justify-center gap-1.5">
+                    <div className="pointer-events-none absolute left-0 right-0 top-3 z-40 flex justify-center gap-1">
                       {post.media.map((_, index) => (
                         <div
                           key={index}
-                          className={`h-1.5 rounded-full shadow-lg transition-all ${
+                          className={`h-[3px] rounded-full shadow-md transition-all duration-300 ${
                             index === currentIndex
-                              ? 'w-7 bg-white'
-                              : 'w-2 bg-white/55'
+                              ? 'w-6 bg-white'
+                              : index < currentIndex
+                              ? 'w-3 bg-white/80'
+                              : 'w-3 bg-white/35'
                           }`}
                         />
                       ))}
