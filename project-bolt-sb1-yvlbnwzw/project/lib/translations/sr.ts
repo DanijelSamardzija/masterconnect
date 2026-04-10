@@ -1073,6 +1073,7 @@ export default {
   'onboarding.done': 'Počni',
 
   'feed.scrollHint': 'Skroluj gore-dole',
+  'feed.contact': 'Kontaktiraj',
 
   // Profile Completeness
   'profileComplete.title': 'Popuni profil',

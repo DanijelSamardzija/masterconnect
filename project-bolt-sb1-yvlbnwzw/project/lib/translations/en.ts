@@ -1073,6 +1073,7 @@ export default {
   'onboarding.done': 'Get Started',
 
   'feed.scrollHint': 'Scroll up & down',
+  'feed.contact': 'Contact',
 
   // Profile Completeness
   'profileComplete.title': 'Complete your profile',

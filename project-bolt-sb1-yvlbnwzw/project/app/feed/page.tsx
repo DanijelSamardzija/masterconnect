@@ -1338,7 +1338,7 @@ function FeedContent() {
                               ? <Loader2 className="h-3 w-3 animate-spin" />
                               : <MessageCircle className="h-3 w-3" />
                             }
-                            Kontaktiraj
+                            {t('feed.contact')}
                           </button>
                         )}
                       </div>
