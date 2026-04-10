@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import {
-  UserCircle, Briefcase, MessageSquare, Search,
-  Rss, Star, ChevronRight, X
+  UserCircle, Briefcase, Search,
+  Star, ChevronRight, X, Wrench
 } from 'lucide-react';
 
 export function OnboardingModal() {
@@ -54,10 +54,16 @@ export function OnboardingModal() {
       action: { label: t('onboarding.proStep2Action'), path: `/profile/${profile.id}` },
     },
     {
-      icon: <Search className="h-12 w-12 text-purple-500" />,
+      icon: <Wrench className="h-12 w-12 text-orange-500" />,
       title: t('onboarding.proStep3Title'),
       desc: t('onboarding.proStep3Desc'),
-      action: { label: t('onboarding.proStep3Action'), path: '/jobs' },
+      action: { label: t('onboarding.proStep3Action'), path: '/services/new' },
+    },
+    {
+      icon: <Search className="h-12 w-12 text-purple-500" />,
+      title: t('onboarding.proStep4Title'),
+      desc: t('onboarding.proStep4Desc'),
+      action: { label: t('onboarding.proStep4Action'), path: '/jobs' },
     },
   ];
 
