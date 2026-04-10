@@ -491,15 +491,13 @@ export function Navigation() {
                   )}
 
                   <div className="flex justify-center gap-2">
-                    <Button variant="outline" size="sm" onClick={toggleTheme} disabled={!mounted} className="gap-2">
+                    <Button variant="outline" size="icon" onClick={toggleTheme} disabled={!mounted} className="h-9 w-9">
                       {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                      {theme === 'dark' ? 'Light' : 'Dark'}
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => { setMobileMenuOpen(false); setSearchOpen(true); }} className="gap-2">
+                    <Button variant="outline" size="icon" onClick={() => { setMobileMenuOpen(false); setSearchOpen(true); }} className="h-9 w-9">
                       <Search className="h-4 w-4" />
-                      {t('search.placeholder').split(' ').slice(0, 1).join('')}
                     </Button>
-                    <LanguageSwitcher />
+                    <LanguageSwitcher className="h-9 w-9" />
                   </div>
 
                   <Separator />
