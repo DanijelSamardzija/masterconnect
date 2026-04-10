@@ -387,7 +387,11 @@ export function Navigation() {
                   {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                 </Button>
 
-                <LanguageSwitcher />
+                <LanguageSwitcher className={
+                  isPublicPage && !isLandingPage
+                    ? 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
+                    : 'text-white/80 hover:text-white hover:bg-white/10'
+                } />
 
                 <Link href="/login">
                   <Button
