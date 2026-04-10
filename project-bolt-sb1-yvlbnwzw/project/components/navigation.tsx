@@ -233,12 +233,12 @@ export function Navigation() {
         <div className="flex items-center justify-between h-16">
           <Link
             href="/"
-            className={`flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity ${
+            className={`flex items-center gap-2.5 font-bold text-xl hover:opacity-80 transition-opacity ${
               isPublicPage && !isLandingPage ? 'text-slate-900' : 'text-white'
             }`}
           >
-            <img src="/icon.svg" alt="M" className="h-7 w-7 rounded-lg" />
-            <span>{t('site.name')}</span>
+            <img src="/icon.svg" alt="G" className="h-9 w-9 rounded-xl shadow-md" />
+            <span className="tracking-tight">{t('site.name')}</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-1">
@@ -463,8 +463,8 @@ export function Navigation() {
 
               <SheetContent side="right" className="w-[300px] sm:w-[400px] overflow-y-auto bg-background">
                 <SheetHeader>
-                  <SheetTitle className="flex items-center gap-2">
-                    <img src="/icon.svg" alt="M" className="h-6 w-6 rounded-md" />
+                  <SheetTitle className="flex items-center gap-2.5">
+                    <img src="/icon.svg" alt="G" className="h-8 w-8 rounded-xl shadow-sm" />
                     {t('site.name')}
                   </SheetTitle>
                 </SheetHeader>
