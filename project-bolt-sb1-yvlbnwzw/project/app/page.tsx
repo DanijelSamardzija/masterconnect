@@ -1,36 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Wrench, Shield, Star, Search, Calendar, MessageSquare, ArrowRight, MapPin, CheckCircle } from 'lucide-react';
-import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useRouter } from 'next/navigation';
-
-type FeaturedPro = {
-  user_id: string;
-  bio: string;
-  city: string;
-  categories: string[];
-  verified: boolean;
-  starting_price: string | null;
-  profiles: {
-    name: string;
-  };
-  avg_rating?: number;
-  review_count?: number;
-};
+import {
+  Search, Wrench, ArrowRight, Star, Shield, MessageSquare,
+  Zap, CheckCircle2, Users, Briefcase, ChevronRight
+} from 'lucide-react';
 
 export default function Home() {
   const { t } = useLanguage();
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-  const [featuredPros, setFeaturedPros] = useState<FeaturedPro[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -38,45 +22,7 @@ export default function Home() {
     }
   }, [user, authLoading]);
 
-  useEffect(() => {
-    fetchFeaturedPros();
-  }, []);
-
-  const fetchFeaturedPros = async () => {
-    const { data, error } = await supabase
-      .from('pro_profiles')
-      .select(`
-        *,
-        profiles!inner(name)
-      `)
-      .eq('verified', true)
-      .limit(3);
-
-    if (!error && data) {
-      const prosWithReviews = await Promise.all(
-        data.map(async (pro: any) => {
-          const { data: reviews } = await supabase
-            .from('reviews')
-            .select('rating')
-            .eq('pro_id', pro.user_id);
-
-          const avg_rating = reviews && reviews.length > 0
-            ? reviews.reduce((sum: any, r: any) => sum + r.rating, 0) / reviews.length
-            : 0;
-
-          return {
-            ...pro,
-            avg_rating,
-            review_count: reviews?.length || 0,
-          } as FeaturedPro;
-        })
-      );
-
-      setFeaturedPros(prosWithReviews);
-    }
-    setLoading(false);
-  };
-  if (authLoading || user) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-orange-600">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white" />
@@ -85,235 +31,199 @@ export default function Home() {
   }
 
   return (
-    <div className="pb-24 !bg-white">
-      <section className="relative bg-gradient-to-br from-orange-600 via-orange-700 to-amber-900 py-24 md:py-32">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjA4KSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-30"></div>
-        <div className="container mx-auto px-4 relative z-10">
+    <div className="overflow-x-hidden">
+
+      {/* ── HERO ─────────────────────────────────────────────── */}
+      <section className="relative min-h-[92vh] flex items-center bg-[#0f0f0f]">
+        {/* Subtle grid overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px]" />
+        {/* Orange glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-600/20 rounded-full blur-[120px] pointer-events-none" />
+
+        <div className="container mx-auto px-4 relative z-10 py-24">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight text-white drop-shadow-lg">
-              {t('home.hero.title')}
+
+            {/* Pill badge */}
+            <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 text-orange-400 text-sm font-medium px-4 py-1.5 rounded-full mb-8">
+              <Zap className="h-3.5 w-3.5" />
+              {t('home.hero.badge')}
+            </div>
+
+            <h1 className="text-5xl md:text-7xl font-black text-white leading-[1.05] tracking-tight mb-6">
+              {t('home.hero.title1')}
+              <span className="text-orange-500"> {t('home.hero.title2')}</span>
             </h1>
-            <p className="text-lg md:text-xl text-orange-50 mb-10 max-w-2xl mx-auto font-medium drop-shadow">
+
+            <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
               {t('home.hero.subtitle')}
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/services">
-                <Button size="lg" className="text-lg px-8 w-full sm:w-auto shadow-lg hover:shadow-xl transition-shadow bg-white text-orange-700 hover:bg-orange-50">
-                  <Search className="mr-2 h-5 w-5" />
+                <Button size="lg" className="bg-orange-600 hover:bg-orange-500 text-white text-base px-8 h-12 shadow-lg shadow-orange-600/25 w-full sm:w-auto">
+                  <Search className="mr-2 h-4 w-4" />
                   {t('home.hero.findPro')}
                 </Button>
               </Link>
-              <Link href="/jobs/new">
-                <Button size="lg" className="text-lg px-8 border-2 border-white bg-white/10 text-white hover:bg-white hover:text-orange-700 w-full sm:w-auto transition-all font-semibold shadow-lg hover:shadow-xl backdrop-blur-sm">
-                  <Wrench className="mr-2 h-5 w-5" />
-                  {t('home.hero.postJob')}
+              <Link href="/login">
+                <Button size="lg" variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white text-base px-8 h-12 w-full sm:w-auto">
+                  {t('home.hero.offerServices')}
+                  <ChevronRight className="ml-1 h-4 w-4" />
                 </Button>
               </Link>
             </div>
+
+            {/* Trust bar */}
+            <div className="mt-16 flex flex-wrap items-center justify-center gap-6 md:gap-10 text-slate-500 text-sm">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <span>{t('home.hero.trust1')}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <span>{t('home.hero.trust2')}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <span>{t('home.hero.trust3')}</span>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
 
-      <section className="py-20 bg-slate-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-slate-800">{t('home.howItWorks.title')}</h2>
-          <div className="w-24 h-1 bg-orange-600 mx-auto mb-16"></div>
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            <Card className="text-center border-2 hover:border-orange-500 transition-all hover:shadow-lg !bg-white !text-slate-900">
-              <CardHeader>
-                <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md">
-                  <Search className="w-10 h-10 text-white" />
-                </div>
-                <CardTitle className="text-xl !text-slate-800">{t('home.howItWorks.step1.title')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-base !text-slate-600">
-                  {t('home.howItWorks.step1.desc')}
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center border-2 hover:border-amber-500 transition-all hover:shadow-lg !bg-white !text-slate-900">
-              <CardHeader>
-                <div className="w-20 h-20 bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md">
-                  <MessageSquare className="w-10 h-10 text-white" />
-                </div>
-                <CardTitle className="text-xl !text-slate-800">{t('home.howItWorks.step2.title')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-base !text-slate-600">
-                  {t('home.howItWorks.step2.desc')}
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center border-2 hover:border-orange-600 transition-all hover:shadow-lg !bg-white !text-slate-900">
-              <CardHeader>
-                <div className="w-20 h-20 bg-gradient-to-br from-orange-600 to-orange-700 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md">
-                  <Calendar className="w-10 h-10 text-white" />
-                </div>
-                <CardTitle className="text-xl !text-slate-800">{t('home.howItWorks.step3.title')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-base !text-slate-600">
-                  {t('home.howItWorks.step3.desc')}
-                </CardDescription>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
+      {/* ── FOR WHO ──────────────────────────────────────────── */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-slate-800">{t('home.whyChoose.title')}</h2>
-          <div className="w-24 h-1 bg-orange-600 mx-auto mb-16"></div>
-          <div className="grid md:grid-cols-3 gap-12 max-w-6xl mx-auto">
-            <div className="flex flex-col items-center text-center group">
-              <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-md">
-                <Shield className="w-10 h-10 text-orange-600" />
+          <div className="text-center mb-14">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">{t('home.forWho.title')}</h2>
+            <p className="text-slate-500 text-lg max-w-xl mx-auto">{t('home.forWho.subtitle')}</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {/* Card 1 */}
+            <div className="group relative bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 rounded-2xl p-7 transition-all duration-300 cursor-pointer"
+              onClick={() => router.push('/services')}>
+              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-5 group-hover:bg-orange-200 transition-colors">
+                <Search className="h-6 w-6 text-orange-600" />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-slate-800">{t('home.whyChoose.verified.title')}</h3>
-              <p className="text-slate-600 leading-relaxed">
-                {t('home.whyChoose.verified.desc')}
-              </p>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">{t('home.forWho.client.title')}</h3>
+              <p className="text-slate-500 text-sm leading-relaxed mb-4">{t('home.forWho.client.desc')}</p>
+              <span className="text-orange-600 text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
+                {t('home.forWho.client.cta')} <ArrowRight className="h-3.5 w-3.5" />
+              </span>
             </div>
 
-            <div className="flex flex-col items-center text-center group">
-              <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-md">
-                <Star className="w-10 h-10 text-amber-600" />
+            {/* Card 2 */}
+            <div className="group relative bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 rounded-2xl p-7 transition-all duration-300 cursor-pointer"
+              onClick={() => router.push('/login')}>
+              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-5 group-hover:bg-orange-200 transition-colors">
+                <Wrench className="h-6 w-6 text-orange-600" />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-slate-800">{t('home.whyChoose.rated.title')}</h3>
-              <p className="text-slate-600 leading-relaxed">
-                {t('home.whyChoose.rated.desc')}
-              </p>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">{t('home.forWho.pro.title')}</h3>
+              <p className="text-slate-500 text-sm leading-relaxed mb-4">{t('home.forWho.pro.desc')}</p>
+              <span className="text-orange-600 text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
+                {t('home.forWho.pro.cta')} <ArrowRight className="h-3.5 w-3.5" />
+              </span>
             </div>
 
-            <div className="flex flex-col items-center text-center group">
-              <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-md">
-                <Wrench className="w-10 h-10 text-orange-700" />
+            {/* Card 3 */}
+            <div className="group relative bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 rounded-2xl p-7 transition-all duration-300 cursor-pointer"
+              onClick={() => router.push('/jobs')}>
+              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-5 group-hover:bg-orange-200 transition-colors">
+                <Briefcase className="h-6 w-6 text-orange-600" />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-slate-800">{t('home.whyChoose.quality.title')}</h3>
-              <p className="text-slate-600 leading-relaxed">
-                {t('home.whyChoose.quality.desc')}
-              </p>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">{t('home.forWho.employer.title')}</h3>
+              <p className="text-slate-500 text-sm leading-relaxed mb-4">{t('home.forWho.employer.desc')}</p>
+              <span className="text-orange-600 text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
+                {t('home.forWho.employer.cta')} <ArrowRight className="h-3.5 w-3.5" />
+              </span>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="py-20 bg-slate-50">
+      {/* ── HOW IT WORKS ─────────────────────────────────────── */}
+      <section className="py-20 bg-slate-950">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-4">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-800">{t('home.featured.title')}</h2>
-              <p className="text-slate-600 mt-2 text-lg">{t('home.featured.subtitle')}</p>
-            </div>
-            <Link href="/services">
-              <Button variant="outline" size="lg" className="border-2 border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white transition-colors">
-                {t('home.featured.viewAll')}
+          <div className="text-center mb-14">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">{t('home.howItWorks.title')}</h2>
+            <p className="text-slate-400 text-lg">{t('home.howItWorks.subtitle')}</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto relative">
+            {/* Connector line desktop */}
+            <div className="hidden md:block absolute top-8 left-[calc(16.67%+1rem)] right-[calc(16.67%+1rem)] h-px bg-gradient-to-r from-orange-600/0 via-orange-600/40 to-orange-600/0" />
+
+            {[
+              { num: '01', icon: <Search className="h-5 w-5" />, title: t('home.howItWorks.step1.title'), desc: t('home.howItWorks.step1.desc') },
+              { num: '02', icon: <MessageSquare className="h-5 w-5" />, title: t('home.howItWorks.step2.title'), desc: t('home.howItWorks.step2.desc') },
+              { num: '03', icon: <CheckCircle2 className="h-5 w-5" />, title: t('home.howItWorks.step3.title'), desc: t('home.howItWorks.step3.desc') },
+            ].map((step) => (
+              <div key={step.num} className="relative bg-slate-900 border border-slate-800 rounded-2xl p-7 text-center">
+                <div className="w-14 h-14 bg-orange-600/10 border border-orange-600/20 rounded-2xl flex items-center justify-center mx-auto mb-5 text-orange-500">
+                  {step.icon}
+                </div>
+                <div className="text-xs font-bold text-orange-500/60 tracking-widest mb-2">{step.num}</div>
+                <h3 className="text-base font-bold text-white mb-3">{step.title}</h3>
+                <p className="text-slate-400 text-sm leading-relaxed">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FEATURES ─────────────────────────────────────────── */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">{t('home.whyChoose.title')}</h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {[
+              { icon: <Shield className="h-6 w-6 text-orange-600" />, title: t('home.whyChoose.verified.title'), desc: t('home.whyChoose.verified.desc') },
+              { icon: <Star className="h-6 w-6 text-orange-600" />, title: t('home.whyChoose.rated.title'), desc: t('home.whyChoose.rated.desc') },
+              { icon: <Users className="h-6 w-6 text-orange-600" />, title: t('home.whyChoose.quality.title'), desc: t('home.whyChoose.quality.desc') },
+            ].map((f, i) => (
+              <div key={i} className="bg-slate-50 border border-slate-200 rounded-2xl p-7">
+                <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-5">
+                  {f.icon}
+                </div>
+                <h3 className="text-base font-bold text-slate-900 mb-2">{f.title}</h3>
+                <p className="text-slate-500 text-sm leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ──────────────────────────────────────────────── */}
+      <section className="py-24 bg-orange-600">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl md:text-5xl font-black text-white mb-5 leading-tight">
+            {t('home.cta.title')}
+          </h2>
+          <p className="text-orange-100 text-lg mb-10 max-w-xl mx-auto">
+            {t('home.cta.subtitle')}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link href="/login">
+              <Button size="lg" className="bg-white text-orange-700 hover:bg-orange-50 text-base px-10 h-12 font-semibold shadow-xl w-full sm:w-auto">
+                {t('home.cta.button')}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
+            <Link href="/services">
+              <Button size="lg" variant="outline" className="border-white/40 text-white hover:bg-white/10 text-base px-8 h-12 w-full sm:w-auto">
+                {t('home.hero.findPro')}
+              </Button>
+            </Link>
           </div>
-
-          {loading ? (
-            <div className="grid md:grid-cols-3 gap-6">
-              {[1, 2, 3].map((i) => (
-                <Card key={i} className="animate-pulse !bg-white">
-                  <CardContent className="p-6">
-                    <div className="h-32 bg-slate-200 rounded mb-4"></div>
-                    <div className="h-4 bg-slate-200 rounded mb-2"></div>
-                    <div className="h-4 bg-slate-200 rounded w-2/3"></div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : featuredPros.length > 0 ? (
-            <div className="grid md:grid-cols-3 gap-6">
-              {featuredPros.map((pro) => (
-                <Card key={pro.user_id} className="hover:shadow-lg transition-shadow !bg-white">
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4 mb-4">
-                      <div className="h-16 w-16 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
-                        <span className="text-2xl font-bold text-slate-600">
-                          {pro.profiles.name.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-lg truncate !text-slate-900">
-                            {pro.profiles.name}
-                          </h3>
-                          {pro.verified && (
-                            <CheckCircle className="h-4 w-4 text-orange-600 flex-shrink-0" />
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1 text-sm !text-slate-600">
-                          <MapPin className="h-3 w-3" />
-                          <span>{pro.city}</span>
-                        </div>
-                        {pro.review_count && pro.review_count > 0 && (
-                          <div className="flex items-center gap-1 mt-1">
-                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm font-medium !text-slate-900">
-                              {pro.avg_rating?.toFixed(1)}
-                            </span>
-                            <span className="text-sm !text-slate-600">
-                              ({pro.review_count})
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {pro.categories.slice(0, 2).map((cat) => (
-                        <Badge key={cat} variant="secondary" className="!bg-slate-100 !text-slate-700">
-                          {cat}
-                        </Badge>
-                      ))}
-                      {pro.categories.length > 2 && (
-                        <Badge variant="outline" className="!border-slate-300 !text-slate-600">+{pro.categories.length - 2}</Badge>
-                      )}
-                    </div>
-
-                    <p className="text-sm !text-slate-600 mb-4 line-clamp-2">
-                      {pro.bio}
-                    </p>
-
-                    {pro.starting_price && (
-                      <p className="text-sm font-medium mb-4 text-green-600">
-                        {t('home.featured.from')} {pro.starting_price}
-                      </p>
-                    )}
-
-                    <Button asChild className="w-full">
-                      <Link href={`/profile/${pro.user_id}`}>{t('home.featured.viewProfile')}</Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : null}
         </div>
       </section>
 
-      <section className="relative py-24 bg-gradient-to-br from-orange-600 via-orange-700 to-amber-900 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjA4KSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-30"></div>
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white drop-shadow-lg">{t('home.cta.title')}</h2>
-          <p className="text-lg md:text-xl mb-10 max-w-2xl mx-auto text-orange-50 font-medium drop-shadow">
-            {t('home.cta.subtitle')}
-          </p>
-          <Link href="/login">
-            <Button size="lg" className="text-lg px-10 py-6 shadow-xl hover:shadow-2xl transition-shadow bg-white text-orange-700 hover:bg-orange-50">
-              {t('home.cta.button')}
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </Link>
-        </div>
-      </section>
     </div>
   );
 }
