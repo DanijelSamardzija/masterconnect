@@ -1035,4 +1035,47 @@ export default {
   'share.sendError': 'Error sending message',
   'posts.readMore': 'Read more',
   'posts.showLess': 'Show less',
+
+  // Onboarding
+  'onboarding.welcome': 'Welcome to GigZone!',
+  'onboarding.proDesc': 'You\'ve created a professional account. Show your skills, find clients, and grow your business.',
+  'onboarding.proStep2Title': 'Complete Your Profile',
+  'onboarding.proStep2Desc': 'Add a photo, bio, and your skills so clients can find and trust you.',
+  'onboarding.proStep2Action': 'Complete Profile',
+  'onboarding.proStep3Title': 'Browse Jobs',
+  'onboarding.proStep3Desc': 'Check job listings and service requests from customers looking for professionals like you.',
+  'onboarding.proStep3Action': 'Browse Jobs',
+  'onboarding.customerDesc': 'You\'ve created a customer account. Post jobs, find professionals, and get things done.',
+  'onboarding.customerStep2Title': 'Post a Job',
+  'onboarding.customerStep2Desc': 'Describe what you need and receive offers from qualified professionals in your area.',
+  'onboarding.customerStep2Action': 'Post a Job',
+  'onboarding.customerStep3Title': 'Browse Professionals',
+  'onboarding.customerStep3Desc': 'Explore professional profiles, read reviews, and contact them directly.',
+  'onboarding.customerStep3Action': 'Browse Professionals',
+  'onboarding.next': 'Next',
+  'onboarding.done': 'Get Started',
+
+  // Profile Completeness
+  'profileComplete.title': 'Complete your profile',
+  'profileComplete.subtitle': 'A complete profile gets more visibility',
+  'profileComplete.complete': 'complete',
+  'profileComplete.addAvatar': 'Add a profile photo',
+  'profileComplete.addBio': 'Write a bio',
+  'profileComplete.addCategory': 'Add your category',
+  'profileComplete.addCity': 'Add your city',
+  'profileComplete.addContact': 'Add phone or website',
+  'profileComplete.editProfile': 'Edit Profile',
+
+  // Global Search
+  'search.placeholder': 'Search professionals, services, jobs...',
+  'search.hint': 'Type at least 2 characters to search',
+  'search.noResults': 'No results found',
+  'search.professional': 'Professional',
+  'search.service': 'Service',
+  'search.job': 'Job',
+
+  // Pending Review (dashboard)
+  'dashboard.pendingReview': 'How was your experience?',
+  'dashboard.pendingReviewDesc': 'You worked with {name}. Leave a review to help others.',
+  'dashboard.leaveReview': 'Leave a Review',
 } as const;

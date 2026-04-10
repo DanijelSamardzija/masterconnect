@@ -36,6 +36,7 @@ import {
   Shield,
 } from 'lucide-react';
 import { LanguageSwitcher } from '@/components/language-switcher';
+import { SearchModal } from '@/components/search-modal';
 import { useTheme } from '@/hooks/use-theme';
 
 export function Navigation() {
@@ -47,6 +48,7 @@ export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notificationUnreadCount, setNotificationUnreadCount] = useState(0);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const isAuthPage = pathname === '/login' || pathname === '/register';
   const isFeedPage = pathname === '/feed';
@@ -293,6 +295,16 @@ export function Navigation() {
                   </Button>
                 </Link>
 
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSearchOpen(true)}
+                  className="h-8 w-8 text-slate-200 hover:text-white hover:bg-slate-800"
+                  aria-label="Search"
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+
                 <Separator orientation="vertical" className="h-6 mx-1 bg-slate-700" />
 
                 <Button
@@ -468,6 +480,10 @@ export function Navigation() {
                       {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                       {theme === 'dark' ? 'Light' : 'Dark'}
                     </Button>
+                    <Button variant="outline" size="sm" onClick={() => { setMobileMenuOpen(false); setSearchOpen(true); }} className="gap-2">
+                      <Search className="h-4 w-4" />
+                      {t('search.placeholder').split(' ').slice(0, 1).join('')}
+                    </Button>
                     <LanguageSwitcher />
                   </div>
 
@@ -580,6 +596,8 @@ export function Navigation() {
           </div>
         </div>
       </div>
+
+      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
     </nav>
   );
 }

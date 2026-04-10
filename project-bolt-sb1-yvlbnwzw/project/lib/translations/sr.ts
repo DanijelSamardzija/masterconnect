@@ -1035,4 +1035,47 @@ export default {
   'share.sendError': 'Greška pri slanju poruke',
   'posts.readMore': 'Prikaži više',
   'posts.showLess': 'Prikaži manje',
+
+  // Onboarding
+  'onboarding.welcome': 'Dobrodošao na GigZone!',
+  'onboarding.proDesc': 'Kreirao si profesionalni nalog. Pokaži svoje vještine, pronađi klijente i razvij biznis.',
+  'onboarding.proStep2Title': 'Popuni profil',
+  'onboarding.proStep2Desc': 'Dodaj fotografiju, bio i vještine kako bi te klijenti mogli pronaći i pouzdati se u tebe.',
+  'onboarding.proStep2Action': 'Popuni profil',
+  'onboarding.proStep3Title': 'Pregledaj poslove',
+  'onboarding.proStep3Desc': 'Pogledaj oglase i zahtjeve za uslugama od klijenata koji traže profesionalce poput tebe.',
+  'onboarding.proStep3Action': 'Pregledaj poslove',
+  'onboarding.customerDesc': 'Kreirao si korisnički nalog. Objavi oglase, pronađi profesionalce i obavi posao.',
+  'onboarding.customerStep2Title': 'Objavi oglas',
+  'onboarding.customerStep2Desc': 'Opiši šta trebaš i primi ponude od kvalifikovanih profesionalaca u tvom gradu.',
+  'onboarding.customerStep2Action': 'Objavi oglas',
+  'onboarding.customerStep3Title': 'Pregledaj profesionalce',
+  'onboarding.customerStep3Desc': 'Istražuj profile profesionalaca, čitaj recenzije i kontaktiraj ih direktno.',
+  'onboarding.customerStep3Action': 'Pregledaj profesionalce',
+  'onboarding.next': 'Dalje',
+  'onboarding.done': 'Počni',
+
+  // Profile Completeness
+  'profileComplete.title': 'Popuni profil',
+  'profileComplete.subtitle': 'Potpun profil dobija više vidljivosti',
+  'profileComplete.complete': 'popunjeno',
+  'profileComplete.addAvatar': 'Dodaj profilnu fotografiju',
+  'profileComplete.addBio': 'Napiši bio',
+  'profileComplete.addCategory': 'Dodaj kategoriju',
+  'profileComplete.addCity': 'Dodaj grad',
+  'profileComplete.addContact': 'Dodaj telefon ili web stranicu',
+  'profileComplete.editProfile': 'Uredi profil',
+
+  // Global Search
+  'search.placeholder': 'Pretraži profesionalce, usluge, poslove...',
+  'search.hint': 'Ukucaj najmanje 2 znaka za pretragu',
+  'search.noResults': 'Nema rezultata',
+  'search.professional': 'Profesionalac',
+  'search.service': 'Usluga',
+  'search.job': 'Posao',
+
+  // Pending Review (dashboard)
+  'dashboard.pendingReview': 'Kako je bilo?',
+  'dashboard.pendingReviewDesc': 'Radio si sa {name}. Ostavi recenziju i pomozi drugima.',
+  'dashboard.leaveReview': 'Ostavi recenziju',
 } as const;

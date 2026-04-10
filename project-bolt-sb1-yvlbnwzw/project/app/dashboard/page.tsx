@@ -22,9 +22,11 @@ import {
 import {
   Briefcase, MessageSquare, Star, Plus,
   CheckCircle2, Clock, Bell, Trash2, Rss, UserCircle,
-  ChevronRight
+  ChevronRight, AlertCircle
 } from 'lucide-react';
 import { NotificationsModal, Notification } from '@/components/notifications-modal';
+import { ReviewModal } from '@/components/review-modal';
+import { OnboardingModal } from '@/components/onboarding-modal';
 import { toast } from 'sonner';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { formatDistanceToNow } from 'date-fns';
@@ -74,11 +76,14 @@ function DashboardContent() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notificationsCount, setNotificationsCount] = useState(0);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [pendingReviewPro, setPendingReviewPro] = useState<{ id: string; name: string } | null>(null);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
     fetchUnreadCount();
     fetchNotifications();
+    if (profile?.account_type === 'customer') fetchPendingReview();
 
     const handleUnreadCountChanged = () => {
       fetchUnreadCount();
@@ -144,6 +149,28 @@ function DashboardContent() {
       total += count || 0;
     }
     setUnreadCount(total);
+  };
+
+  const fetchPendingReview = async () => {
+    if (!profile) return;
+    // Find professionals the customer has chatted with but not reviewed
+    const { data: participants } = await supabase
+      .from('thread_participants').select('thread_id').eq('user_id', profile.id).is('deleted_at', null);
+    if (!participants?.length) return;
+    const threadIds = participants.map((p: any) => p.thread_id);
+    const { data: otherParticipants } = await supabase
+      .from('thread_participants').select('user_id, thread_id')
+      .in('thread_id', threadIds).neq('user_id', profile.id);
+    if (!otherParticipants?.length) return;
+    const proIds = [...new Set(otherParticipants.map((p: any) => p.user_id))];
+    const { data: pros } = await supabase
+      .from('profiles').select('id, name, account_type').in('id', proIds).eq('account_type', 'professional');
+    if (!pros?.length) return;
+    const { data: existingReviews } = await supabase
+      .from('reviews').select('pro_id').eq('customer_id', profile.id);
+    const reviewedIds = new Set((existingReviews || []).map((r: any) => r.pro_id));
+    const unreviewed = pros.find((p: any) => !reviewedIds.has(p.id));
+    if (unreviewed) setPendingReviewPro({ id: unreviewed.id, name: unreviewed.name });
   };
 
   const fetchNotifications = async () => {
@@ -220,6 +247,16 @@ function DashboardContent() {
   if (!profile) return null;
 
   const isPro = profile.account_type === 'professional';
+
+  // Profile completeness
+  const completenessFields = [
+    { key: 'avatar', done: !!profile.avatar_url, label: t('profileComplete.addAvatar') },
+    { key: 'bio', done: !!(profile as any).bio?.trim(), label: t('profileComplete.addBio') },
+    { key: 'category', done: !!(profile as any).category?.trim(), label: t('profileComplete.addCategory') },
+    { key: 'city', done: !!(profile as any).city?.trim(), label: t('profileComplete.addCity') },
+  ];
+  const completePct = Math.round((completenessFields.filter(f => f.done).length / completenessFields.length) * 100);
+  const missingFields = completenessFields.filter(f => !f.done);
   const avgRating = reviews.length > 0
     ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
     : null;
@@ -265,6 +302,65 @@ function DashboardContent() {
           <Alert variant="destructive" className="rounded-2xl">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
+        )}
+
+        {/* Profile completeness card */}
+        {completePct < 100 && (
+          <div className="bg-card border border-orange-200 dark:border-orange-900 rounded-2xl p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 text-orange-500" />
+                <p className="text-sm font-semibold text-foreground">{t('profileComplete.title')}</p>
+              </div>
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                completePct >= 75 ? 'bg-green-100 text-green-700' :
+                completePct >= 50 ? 'bg-yellow-100 text-yellow-700' :
+                'bg-orange-100 text-orange-700'
+              }`}>
+                {completePct}% {t('profileComplete.complete')}
+              </span>
+            </div>
+            <div className="w-full bg-muted rounded-full h-1.5 mb-3">
+              <div
+                className="h-1.5 rounded-full bg-orange-500 transition-all"
+                style={{ width: `${completePct}%` }}
+              />
+            </div>
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {missingFields.map(f => (
+                <span key={f.key} className="text-xs bg-muted text-muted-foreground px-2.5 py-1 rounded-full">
+                  + {f.label}
+                </span>
+              ))}
+            </div>
+            <button
+              onClick={() => router.push('/profile/edit')}
+              className="text-xs font-semibold text-orange-600 hover:text-orange-500"
+            >
+              {t('profileComplete.editProfile')} →
+            </button>
+          </div>
+        )}
+
+        {/* Pending review card (customers only) */}
+        {pendingReviewPro && !isPro && (
+          <div className="bg-card border border-yellow-200 dark:border-yellow-900 rounded-2xl p-4 flex items-center gap-3">
+            <div className="p-2.5 bg-yellow-100 dark:bg-yellow-950 rounded-xl shrink-0">
+              <Star className="h-4 w-4 text-yellow-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">{t('dashboard.pendingReview')}</p>
+              <p className="text-xs text-muted-foreground truncate">
+                {t('dashboard.pendingReviewDesc').replace('{name}', pendingReviewPro.name)}
+              </p>
+            </div>
+            <button
+              onClick={() => setReviewModalOpen(true)}
+              className="text-xs font-semibold text-orange-600 hover:text-orange-500 shrink-0"
+            >
+              {t('dashboard.leaveReview')}
+            </button>
+          </div>
         )}
 
         {/* Stats row */}
@@ -593,6 +689,16 @@ function DashboardContent() {
         onMarkAllRead={handleMarkAllRead}
         onClearAll={handleClearAll}
       />
+
+      {pendingReviewPro && (
+        <ReviewModal
+          open={reviewModalOpen}
+          onClose={() => setReviewModalOpen(false)}
+          proId={pendingReviewPro.id}
+          proName={pendingReviewPro.name}
+          onSuccess={() => { setPendingReviewPro(null); setReviewModalOpen(false); }}
+        />
+      )}
     </div>
   );
 }
@@ -601,6 +707,7 @@ export default function DashboardPage() {
   return (
     <ProtectedRoute>
       <DashboardContent />
+      <OnboardingModal />
     </ProtectedRoute>
   );
 }
