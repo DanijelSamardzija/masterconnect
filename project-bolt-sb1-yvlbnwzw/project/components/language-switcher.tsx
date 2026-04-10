@@ -9,16 +9,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-export function LanguageSwitcher() {
+export function LanguageSwitcher({ className }: { className?: string }) {
   const { language, setLanguage } = useLanguage();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="h-9 px-2.5 font-semibold">
-          <span className="text-sm">
-            {language === 'en' ? 'EN' : 'RS'}
-          </span>
+        <Button variant="ghost" size="icon" className={`h-8 w-8 font-semibold text-xs ${className ?? ''}`}>
+          {language === 'en' ? 'EN' : 'RS'}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">

@@ -318,7 +318,7 @@ export function Navigation() {
                   {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                 </Button>
 
-                <LanguageSwitcher />
+                <LanguageSwitcher className="h-8 w-8 text-slate-200 hover:text-white hover:bg-slate-800" />
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
