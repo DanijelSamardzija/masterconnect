@@ -890,11 +890,6 @@ function FeedContent() {
                 >
                   <Search className="h-5 w-5" />
                 </Button>
-                {showHeaderCounter && (
-                  <span className="min-w-[34px] rounded-full bg-black/50 px-1.5 py-0.5 text-center text-[11px] font-semibold leading-none text-white/95 backdrop-blur-sm">
-                    {activeHeaderIndex + 1}/{activeHeaderPost.media.length}
-                  </span>
-                )}
               </div>
             </div>
           )}
@@ -1092,15 +1087,6 @@ function FeedContent() {
                         />
                       )}
 
-                      {!swipedPosts.has(post.id) && currentIndex < post.media.length - 1 && (
-                        <div className="pointer-events-none absolute right-4 top-1/2 z-50 -translate-y-1/2">
-                          <div className="flex flex-col items-center gap-1 animate-[fadeSlideLeft_1.2s_ease-in-out_infinite]">
-                            <div className="rounded-full bg-black/50 backdrop-blur-sm px-3 py-1.5 flex items-center gap-1.5 border border-white/20">
-                              <span className="text-white text-xs font-medium">{currentIndex + 1}/{post.media.length}</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                     </>
                   )}
 
@@ -1118,7 +1104,9 @@ function FeedContent() {
                   )}
 
                   {hasMultipleMedia && (
-                    <div className="pointer-events-none absolute left-0 right-0 top-3 z-40 flex justify-center gap-1">
+                    <div className="pointer-events-none absolute left-0 right-0 z-40 flex justify-center gap-1.5"
+                      style={{ top: 'calc(env(safe-area-inset-top, 0px) + 58px)' }}
+                    >
                       {post.media.map((_, index) => (
                         <div
                           key={index}
