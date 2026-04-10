@@ -1,6 +1,6 @@
 export default {
   // Site name
-  'site.name': 'MasterConnect',
+  'site.name': 'GigZone',
   'site.tagline': 'Povežite se sa stručnim profesionalcima širom sveta',
 
   // System messages
@@ -152,7 +152,7 @@ export default {
   'accountDeleted.title': 'Nalog je obrisan',
   'accountDeleted.subtitle': 'Vaš nalog je trajno obrisan.',
   'accountDeleted.body1': 'Vaš nalog i svi povezani podaci trajno su uklonjeni sa naših servera.',
-  'accountDeleted.body2': 'Hvala vam što ste koristili MasterConnect. Žao nam je što odlazite.',
+  'accountDeleted.body2': 'Hvala vam što ste koristili GigZone. Žao nam je što odlazite.',
   'accountDeleted.body3': 'Ako se predomislite, uvek možete ponovo napraviti nalog.',
   'accountDeleted.returnHome': 'Povratak na početnu',
   'accountDeleted.footer': 'Ako imate pitanja ili nedoumice u vezi sa brisanjem podataka, kontaktirajte podršku.',
@@ -219,13 +219,13 @@ export default {
 
   'home.howItWorks.title': 'Kako Funkcioniše',
   'home.howItWorks.step1.title': '1. Izaberite Šta Vam Treba',
-  'home.howItWorks.step1.desc': 'Tražite majstora? Doktora? Psihijatra? Ili možda nudite svoje usluge kao profesionalac? Ili tražite posao? MasterConnect je platforma za sve profesije i delatnosti.',
+  'home.howItWorks.step1.desc': 'Tražite majstora? Doktora? Psihijatra? Ili možda nudite svoje usluge kao profesionalac? Ili tražite posao? GigZone je platforma za sve profesije i delatnosti.',
   'home.howItWorks.step2.title': '2. Povežite se Direktno',
   'home.howItWorks.step2.desc': 'Pošaljite poruku profesionalcima, opišite potrebe i dobijte ponude. Radnici mogu kontaktirati poslodavce. Pregledajte ocene i recenzije.',
   'home.howItWorks.step3.title': '3. Realizujte Posao',
   'home.howItWorks.step3.desc': 'Dogovorite uslove, termin i lokaciju. Bilo da angažujete, pružate usluge ili tražite zaposlenje - sve je brzo i transparentno.',
 
-  'home.whyChoose.title': 'Zašto Izabrati MasterConnect?',
+  'home.whyChoose.title': 'Zašto Izabrati GigZone?',
   'home.whyChoose.verified.title': 'Za Sve Profesije',
   'home.whyChoose.verified.desc': 'Od zanatlija i majstora do doktora, psihologa, IT stručnjaka. Svi mogu da nude usluge ili traže posao na našoj platformi.',
   'home.whyChoose.rated.title': 'Recenzije i Ocene',
@@ -244,7 +244,7 @@ export default {
   'home.cta.button': 'Registrujte Se Besplatno',
 
   // Auth
-  'auth.welcome': 'Dobrodošli na MasterConnect',
+  'auth.welcome': 'Dobrodošli na GigZone',
   'auth.signIn': 'Prijavite se na vaš nalog',
   'auth.signUp': 'Kreirajte vaš nalog',
   'auth.email': 'Email',

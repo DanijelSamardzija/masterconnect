@@ -1,6 +1,6 @@
 export default {
   // Site name
-  'site.name': 'MasterConnect',
+  'site.name': 'GigZone',
   'site.tagline': 'Connect with skilled professionals worldwide',
 
   // System messages
@@ -152,7 +152,7 @@ export default {
   'accountDeleted.title': 'Account Deleted',
   'accountDeleted.subtitle': 'Your account has been permanently deleted.',
   'accountDeleted.body1': 'Your account and all associated data have been permanently removed from our servers.',
-  'accountDeleted.body2': 'Thank you for using MasterConnect. We\'re sorry to see you go.',
+  'accountDeleted.body2': 'Thank you for using GigZone. We\'re sorry to see you go.',
   'accountDeleted.body3': 'If you change your mind, you\'re always welcome to create a new account.',
   'accountDeleted.returnHome': 'Return to Home',
   'accountDeleted.footer': 'If you have any questions or concerns about data deletion, please contact support.',
@@ -219,13 +219,13 @@ export default {
 
   'home.howItWorks.title': 'How It Works',
   'home.howItWorks.step1.title': '1. Choose What You Need',
-  'home.howItWorks.step1.desc': 'Looking for a tradesman? Doctor? Psychiatrist? Or offering your services as a professional? Or searching for a job? MasterConnect is a platform for all professions and industries.',
+  'home.howItWorks.step1.desc': 'Looking for a tradesman? Doctor? Psychiatrist? Or offering your services as a professional? Or searching for a job? GigZone is a platform for all professions and industries.',
   'home.howItWorks.step2.title': '2. Connect Directly',
   'home.howItWorks.step2.desc': 'Send messages to professionals, describe your needs and get quotes. Workers can contact employers. Review ratings and feedback.',
   'home.howItWorks.step3.title': '3. Get It Done',
   'home.howItWorks.step3.desc': 'Agree on terms, timing and location. Whether hiring, providing services or seeking employment - everything is fast and transparent.',
 
-  'home.whyChoose.title': 'Why Choose MasterConnect?',
+  'home.whyChoose.title': 'Why Choose GigZone?',
   'home.whyChoose.verified.title': 'All Professions',
   'home.whyChoose.verified.desc': 'From tradesmen and craftsmen to doctors, psychologists, IT professionals. Everyone can offer services or look for jobs on our platform.',
   'home.whyChoose.rated.title': 'Reviews & Ratings',
@@ -244,7 +244,7 @@ export default {
   'home.cta.button': 'Sign Up Free',
 
   // Auth
-  'auth.welcome': 'Welcome to MasterConnect',
+  'auth.welcome': 'Welcome to GigZone',
   'auth.signIn': 'Sign in to your account',
   'auth.signUp': 'Create your account',
   'auth.email': 'Email',

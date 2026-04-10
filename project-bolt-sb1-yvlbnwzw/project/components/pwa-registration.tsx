@@ -97,10 +97,10 @@ export function PWARegistration() {
 
           <div className="flex flex-col items-center text-center py-6">
             <div className="w-20 h-20 rounded-3xl bg-white flex items-center justify-center shadow-2xl mb-4">
-              <span className="text-5xl font-bold text-orange-600">M</span>
+              <span className="text-5xl font-bold text-orange-600">G</span>
             </div>
 
-            <h2 className="text-3xl font-bold mb-2 text-white">MasterConnect</h2>
+            <h2 className="text-3xl font-bold mb-2 text-white">GigZone</h2>
             <p className="text-white/90 text-sm mb-6 px-4">
               {sr ? 'Dodajte aplikaciju na početni ekran' : 'Add app to your home screen'}
             </p>
@@ -156,15 +156,15 @@ export function PWARegistration() {
 
         <div className="flex flex-col items-center text-center py-6">
           <div className="w-24 h-24 rounded-3xl bg-white flex items-center justify-center shadow-2xl mb-6">
-            <span className="text-6xl font-bold text-orange-600">M</span>
+            <span className="text-6xl font-bold text-orange-600">G</span>
           </div>
 
-          <h2 className="text-4xl font-bold mb-3 text-white">MasterConnect</h2>
+          <h2 className="text-4xl font-bold mb-3 text-white">GigZone</h2>
 
           <p className="text-white/90 text-base mb-8 px-6 max-w-md mx-auto leading-relaxed">
             {sr
               ? 'Instalirajte aplikaciju za direktan pristup sa početnog ekrana. Brži pristup i rad bez interneta.'
-              : 'Install the app to access MasterConnect directly from your home screen. Get faster access and offline capabilities.'}
+              : 'Install the app to access GigZone directly from your home screen. Get faster access and offline capabilities.'}
           </p>
 
           <div className="flex gap-3 w-full px-6">

@@ -2,7 +2,7 @@
 -- saved_posts table
 -- ============================================================
 CREATE TABLE IF NOT EXISTS saved_posts (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   post_id uuid REFERENCES posts(id) ON DELETE CASCADE NOT NULL,
   created_at timestamptz DEFAULT now(),

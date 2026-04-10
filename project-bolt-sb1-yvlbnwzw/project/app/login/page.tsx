@@ -322,11 +322,11 @@ export default function LoginPage() {
         <CardHeader className="space-y-2 text-center pb-6">
           <div className="flex justify-center mb-2">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg">
-              <span className="text-3xl font-black text-white" style={{ fontFamily: 'Georgia, serif' }}>M</span>
+              <span className="text-3xl font-black text-white" style={{ fontFamily: 'Georgia, serif' }}>G</span>
             </div>
           </div>
           <CardTitle className="text-3xl font-bold text-slate-800">
-            MasterConnect
+            GigZone
           </CardTitle>
           <CardDescription className="text-base">
             Connect with professionals or offer your services

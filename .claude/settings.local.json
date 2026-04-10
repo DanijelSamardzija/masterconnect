@@ -1,7 +1,22 @@
 {
   "permissions": {
     "allow": [
-      "Bash(ls D:/Projekti/projekat/project-bolt-sb1-yvlbnwzw/project/.env*)"
+      "Bash(ls D:/Projekti/projekat/project-bolt-sb1-yvlbnwzw/project/.env*)",
+      "Bash(python3 -c ':*)",
+      "Bash(node -e ':*)",
+      "Bash(node -e \"const fs = require\\('fs'\\); console.log\\(fs.readdirSync\\('D:/Projekti/projekat/project-bolt-sb1-yvlbnwzw/project/node_modules'\\).filter\\(m => m.includes\\('sharp'\\) || m.includes\\('canvas'\\) || m.includes\\('jimp'\\)\\).join\\('\\\\n'\\)\\)\")",
+      "Bash(where python:*)",
+      "Bash(where python3:*)",
+      "Bash(where py:*)",
+      "Bash(xargs grep:*)",
+      "Bash(find \"D:/Projekti/projekat/project-bolt-sb1-yvlbnwzw/project\" -type f \\\\\\( -name \"*.tsx\" -o -name \"*.ts\" \\\\\\) ! -path \"*node_modules*\" ! -path \"*\\\\.next*\" -exec grep -l \"block\\\\|Block\" {} \\\\;)",
+      "Bash(git -C \"D:/Projekti/projekat/project-bolt-sb1-yvlbnwzw/project\" status)",
+      "Bash(git -C \"D:/Projekti/projekat/project-bolt-sb1-yvlbnwzw/project\" push)",
+      "Bash(git -C \"D:/Projekti/projekat/project-bolt-sb1-yvlbnwzw/project\" log --oneline -5)",
+      "Bash(git -C \"D:/Projekti/projekat/project-bolt-sb1-yvlbnwzw/project\" log --oneline -8)",
+      "Bash(git -C \"D:/Projekti/projekat/project-bolt-sb1-yvlbnwzw/project\" add app/dashboard/page.tsx)",
+      "Bash(git -C D:/Projekti/projekat/project-bolt-sb1-yvlbnwzw/project commit -m ':*)",
+      "Bash(git -C \"D:/Projekti/projekat/project-bolt-sb1-yvlbnwzw/project\" add app/feed/page.tsx)"
     ]
   }
 }

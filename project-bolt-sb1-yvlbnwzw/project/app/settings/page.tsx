@@ -452,7 +452,7 @@ function SettingsContent() {
                       {language === 'sr' ? 'Instaliraj aplikaciju' : 'Install App'}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {language === 'sr' ? 'Dodaj MasterConnect na početni ekran' : 'Add MasterConnect to home screen'}
+                      {language === 'sr' ? 'Dodaj GigZone na početni ekran' : 'Add GigZone to home screen'}
                     </div>
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 {
-  "name": "MasterConnect",
-  "short_name": "MasterConnect",
+  "name": "GigZone",
+  "short_name": "GigZone",
   "description": "Platforma za pronalaženje majstora i poslova",
   "start_url": "/?v=2025-02-25-landing-light",
   "display": "standalone",

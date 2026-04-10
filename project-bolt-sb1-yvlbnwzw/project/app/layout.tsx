@@ -12,12 +12,12 @@ import { LayoutShell } from '@/components/layout-shell';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'MasterConnect - Platforma za majstore i poslove',
+  title: 'GigZone - Platforma za majstore i poslove',
   description:
     'Pronađite majstore, objavite poslove ili ponudite svoje usluge. Marketplace koji povezuje korisnike, pružaoce usluga i tražioce poslova.',
-  keywords: ['majstori', 'poslovi', 'usluge', 'marketplace', 'zaposljavanje', 'masterconnect'],
-  authors: [{ name: 'MasterConnect' }],
-  metadataBase: new URL('https://handyman-service-pla-h96a.bolt.host'),
+  keywords: ['majstori', 'poslovi', 'usluge', 'marketplace', 'zaposljavanje', 'gigzone'],
+  authors: [{ name: 'GigZone' }],
+  metadataBase: new URL('https://www.gigzone.app'),
   manifest: '/manifest.json?v=landing-light',
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
@@ -32,19 +32,19 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'MasterConnect',
+    title: 'GigZone',
   },
   openGraph: {
-    title: 'MasterConnect - Platforma za majstore i poslove',
+    title: 'GigZone - Platforma za majstore i poslove',
     description: 'Pronađite majstore, objavite poslove ili ponudite svoje usluge.',
-    url: 'https://handyman-service-pla-h96a.bolt.host',
-    siteName: 'MasterConnect',
+    url: 'https://www.gigzone.app',
+    siteName: 'GigZone',
     locale: 'sr_RS',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'MasterConnect - Platforma za majstore i poslove',
+    title: 'GigZone - Platforma za majstore i poslove',
     description: 'Pronađite majstore, objavite poslove ili ponudite svoje usluge.',
   },
 };

@@ -404,7 +404,7 @@ CREATE POLICY "Users can create support messages" ON support_messages FOR INSERT
 
 -- followers
 CREATE TABLE IF NOT EXISTS followers (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   follower_id uuid REFERENCES profiles(id) ON DELETE CASCADE,
   following_id uuid REFERENCES profiles(id) ON DELETE CASCADE,
   created_at timestamptz DEFAULT now(),
