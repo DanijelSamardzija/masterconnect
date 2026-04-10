@@ -6,7 +6,10 @@ import { Button } from '@/components/ui/button';
 import { X, Share, Plus, Download } from 'lucide-react';
 import { useLanguage } from '@/lib/contexts/language-context';
 
-const PWA_DISMISSED_KEY = 'pwa_install_dismissed_v2';
+// Saved permanently only after user clicks Install
+const PWA_INSTALLED_KEY = 'pwa_installed_v1';
+// Saved for current session only when user clicks X
+const PWA_SESSION_KEY = 'pwa_dismissed_session';
 
 function isIOS() {
   if (typeof window === 'undefined') return false;
@@ -19,21 +22,10 @@ function isInStandaloneMode() {
     window.matchMedia('(display-mode: standalone)').matches;
 }
 
-function isFromGoogleSearch() {
-  if (typeof document === 'undefined') return false;
-  try {
-    const ref = document.referrer;
-    return ref.includes('google.') || ref.includes('google.com');
-  } catch {
-    return false;
-  }
-}
-
 export function PWARegistration() {
   const [showBanner, setShowBanner] = useState(false);
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [fromGoogle, setFromGoogle] = useState(false);
   const { language } = useLanguage();
 
   useEffect(() => {
@@ -58,42 +50,27 @@ export function PWARegistration() {
         });
     }
 
+    // Already installed as PWA — never show
     if (isInStandaloneMode()) return;
 
-    const comesFromGoogle = isFromGoogleSearch();
-    setFromGoogle(comesFromGoogle);
+    // User clicked Install — never show again
+    try { if (localStorage.getItem(PWA_INSTALLED_KEY)) return; } catch {}
 
-    // If from Google, always show (ignore dismissed state)
-    // If not from Google, respect dismissed state
-    if (!comesFromGoogle) {
-      try {
-        if (localStorage.getItem(PWA_DISMISSED_KEY)) return;
-      } catch {}
-    }
+    // User clicked X this session — don't show again until next visit
+    try { if (sessionStorage.getItem(PWA_SESSION_KEY)) return; } catch {}
 
     if (isIOS()) {
-      setShowIOSPrompt(true);
+      setTimeout(() => setShowIOSPrompt(true), 1000);
       return;
     }
 
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setShowBanner(true);
+      setTimeout(() => setShowBanner(true), 1000);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    // On iOS or if browser doesn't fire beforeinstallprompt but is mobile,
-    // still show the banner for Google visitors
-    if (comesFromGoogle) {
-      // Show after short delay so page loads first
-      setTimeout(() => {
-        // If beforeinstallprompt hasn't fired yet on Android, still show banner
-        setShowBanner(true);
-      }, 800);
-    }
-
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, []);
 
@@ -103,15 +80,14 @@ export function PWARegistration() {
       await deferredPrompt.userChoice;
       setDeferredPrompt(null);
     }
-    try { localStorage.setItem(PWA_DISMISSED_KEY, 'true'); } catch {}
+    // Mark as installed permanently
+    try { localStorage.setItem(PWA_INSTALLED_KEY, 'true'); } catch {}
     setShowBanner(false);
   };
 
   const handleDismiss = () => {
-    // Only save permanently if NOT from Google
-    if (!fromGoogle) {
-      try { localStorage.setItem(PWA_DISMISSED_KEY, 'true'); } catch {}
-    }
+    // Only hide for this session — next visit shows again
+    try { sessionStorage.setItem(PWA_SESSION_KEY, 'true'); } catch {}
     setShowBanner(false);
     setShowIOSPrompt(false);
   };
