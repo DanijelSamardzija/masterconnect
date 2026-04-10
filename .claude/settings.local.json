@@ -16,7 +16,11 @@
       "Bash(git -C \"D:/Projekti/projekat/project-bolt-sb1-yvlbnwzw/project\" log --oneline -8)",
       "Bash(git -C \"D:/Projekti/projekat/project-bolt-sb1-yvlbnwzw/project\" add app/dashboard/page.tsx)",
       "Bash(git -C D:/Projekti/projekat/project-bolt-sb1-yvlbnwzw/project commit -m ':*)",
-      "Bash(git -C \"D:/Projekti/projekat/project-bolt-sb1-yvlbnwzw/project\" add app/feed/page.tsx)"
+      "Bash(git -C \"D:/Projekti/projekat/project-bolt-sb1-yvlbnwzw/project\" add app/feed/page.tsx)",
+      "Bash(cp \"icon-192.png.png\" \"icon-192.png\")",
+      "Bash(cp \"icon-512.png.png\" \"icon-512.png\")",
+      "Bash(cp \"favicon-96x96.png\" \"favicon.ico\")",
+      "Bash(npm install:*)"
     ]
   }
 }

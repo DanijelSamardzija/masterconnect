@@ -166,6 +166,7 @@ function FeedContent() {
   const [activeHashtag, setActiveHashtag] = useState<string | null>(null);
   const [newPostsCount, setNewPostsCount] = useState(0);
   const [shareModalPostId, setShareModalPostId] = useState<string | null>(null);
+  const [contactingUserId, setContactingUserId] = useState<string | null>(null);
   const newestPostTimestamp = useRef<string | null>(null);
   const viewedPostIds = useRef<Set<string>>(new Set());
 
@@ -680,6 +681,29 @@ function FeedContent() {
 
   const handleShare = (post: Post) => {
     setShareModalPostId(post.id);
+  };
+
+  const handleContact = async (targetUserId: string) => {
+    if (!user) return;
+    setContactingUserId(targetUserId);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch('/api/messages/create-direct-thread', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
+        body: JSON.stringify({ targetUserId }),
+      });
+      const data = await response.json();
+      if (data.threadId) {
+        router.push(`/messages/${data.threadId}`);
+      } else {
+        toast.error('Greška pri otvaranju poruke.');
+      }
+    } catch {
+      toast.error('Greška pri otvaranju poruke.');
+    } finally {
+      setContactingUserId(null);
+    }
   };
 
   const openComments = (post: Post) => {
@@ -1288,17 +1312,34 @@ function FeedContent() {
                       </div>
                     </div>
 
-                    {/* Rating */}
-                    {post.user.account_type === 'professional' && post.user.average_rating && post.user.average_rating > 0 && (
-                      <div className="flex items-center gap-1.5 text-xs drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                        <Star className="h-3.5 w-3.5 flex-shrink-0 fill-yellow-400 text-yellow-400" />
-                        <span className="font-semibold">{post.user.average_rating.toFixed(1)}</span>
-                        <span className="text-white/80">·</span>
-                        <span className="text-white/90">
-                          {post.user.review_count && post.user.review_count > 0
-                            ? `${post.user.review_count} recenzija`
-                            : '0 recenzija'}
-                        </span>
+                    {/* Rating + Contact button for professionals */}
+                    {post.user.account_type === 'professional' && (
+                      <div className="flex items-center gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
+                        {post.user.average_rating && post.user.average_rating > 0 && (
+                          <div className="flex items-center gap-1.5 text-xs drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                            <Star className="h-3.5 w-3.5 flex-shrink-0 fill-yellow-400 text-yellow-400" />
+                            <span className="font-semibold">{post.user.average_rating.toFixed(1)}</span>
+                            <span className="text-white/80">·</span>
+                            <span className="text-white/90">
+                              {post.user.review_count && post.user.review_count > 0
+                                ? `${post.user.review_count} recenzija`
+                                : '0 recenzija'}
+                            </span>
+                          </div>
+                        )}
+                        {user && post.user_id !== user.id && (
+                          <button
+                            onClick={() => handleContact(post.user_id)}
+                            disabled={contactingUserId === post.user_id}
+                            className="flex items-center gap-1 rounded-full bg-orange-500/90 px-3 py-0.5 text-xs font-semibold text-white shadow-md backdrop-blur-sm hover:bg-orange-500 transition-colors disabled:opacity-60"
+                          >
+                            {contactingUserId === post.user_id
+                              ? <Loader2 className="h-3 w-3 animate-spin" />
+                              : <MessageCircle className="h-3 w-3" />
+                            }
+                            Kontaktiraj
+                          </button>
+                        )}
                       </div>
                     )}
 

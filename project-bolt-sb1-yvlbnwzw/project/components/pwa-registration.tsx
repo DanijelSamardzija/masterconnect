@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { X, Share, Plus } from 'lucide-react';
+import { X, Share, Plus, Download } from 'lucide-react';
 import { useLanguage } from '@/lib/contexts/language-context';
 
 const PWA_DISMISSED_KEY = 'pwa_install_dismissed_v2';
@@ -19,10 +19,21 @@ function isInStandaloneMode() {
     window.matchMedia('(display-mode: standalone)').matches;
 }
 
+function isFromGoogleSearch() {
+  if (typeof document === 'undefined') return false;
+  try {
+    const ref = document.referrer;
+    return ref.includes('google.') || ref.includes('google.com');
+  } catch {
+    return false;
+  }
+}
+
 export function PWARegistration() {
-  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [showBanner, setShowBanner] = useState(false);
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [fromGoogle, setFromGoogle] = useState(false);
   const { language } = useLanguage();
 
   useEffect(() => {
@@ -47,46 +58,67 @@ export function PWARegistration() {
         });
     }
 
-    try {
-      if (localStorage.getItem(PWA_DISMISSED_KEY)) return;
-    } catch {}
+    if (isInStandaloneMode()) return;
 
-    // iOS — pokaži ručna uputstva
-    if (isIOS() && !isInStandaloneMode()) {
+    const comesFromGoogle = isFromGoogleSearch();
+    setFromGoogle(comesFromGoogle);
+
+    // If from Google, always show (ignore dismissed state)
+    // If not from Google, respect dismissed state
+    if (!comesFromGoogle) {
+      try {
+        if (localStorage.getItem(PWA_DISMISSED_KEY)) return;
+      } catch {}
+    }
+
+    if (isIOS()) {
       setShowIOSPrompt(true);
       return;
     }
 
-    // Android/Desktop — standardni baner
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
-      try { if (localStorage.getItem(PWA_DISMISSED_KEY)) return; } catch {}
       setDeferredPrompt(e);
-      setShowInstallPrompt(true);
+      setShowBanner(true);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // On iOS or if browser doesn't fire beforeinstallprompt but is mobile,
+    // still show the banner for Google visitors
+    if (comesFromGoogle) {
+      // Show after short delay so page loads first
+      setTimeout(() => {
+        // If beforeinstallprompt hasn't fired yet on Android, still show banner
+        setShowBanner(true);
+      }, 800);
+    }
+
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, []);
 
   const handleInstall = async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      setDeferredPrompt(null);
+    }
     try { localStorage.setItem(PWA_DISMISSED_KEY, 'true'); } catch {}
-    setDeferredPrompt(null);
-    setShowInstallPrompt(false);
+    setShowBanner(false);
   };
 
   const handleDismiss = () => {
-    try { localStorage.setItem(PWA_DISMISSED_KEY, 'true'); } catch {}
-    setShowInstallPrompt(false);
+    // Only save permanently if NOT from Google
+    if (!fromGoogle) {
+      try { localStorage.setItem(PWA_DISMISSED_KEY, 'true'); } catch {}
+    }
+    setShowBanner(false);
     setShowIOSPrompt(false);
   };
 
   const sr = language === 'sr';
 
-  // ── iOS uputstva ──────────────────────────────────────────────────────────
+  // ── iOS uputstva (dialog ostaje isti) ─────────────────────────────────────
   if (showIOSPrompt) {
     return (
       <Dialog open={showIOSPrompt} onOpenChange={handleDismiss}>
@@ -146,37 +178,46 @@ export function PWARegistration() {
     );
   }
 
-  // ── Android / Desktop baner ───────────────────────────────────────────────
+  // ── Mali baner ispod headera ──────────────────────────────────────────────
+  if (!showBanner) return null;
+
   return (
-    <Dialog open={showInstallPrompt} onOpenChange={handleDismiss}>
-      <DialogContent className="max-w-md bg-gradient-to-br from-orange-600 via-orange-500 to-orange-600 border-orange-400/50">
-        <button onClick={handleDismiss} className="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100">
-          <X className="h-4 w-4 text-white" />
-        </button>
-
-        <div className="flex flex-col items-center text-center py-6">
-          <div className="w-24 h-24 rounded-3xl bg-white flex items-center justify-center shadow-2xl mb-6">
-            <span className="text-6xl font-bold text-orange-600">G</span>
+    <div className="fixed left-0 right-0 z-[90] flex justify-center px-3 pointer-events-none"
+      style={{ top: 'calc(env(safe-area-inset-top, 0px) + 60px)' }}
+    >
+      <div className="pointer-events-auto w-full max-w-[430px] animate-in slide-in-from-top-2 duration-300">
+        <div className="flex items-center gap-3 rounded-2xl bg-orange-600 px-3 py-2.5 shadow-lg shadow-orange-900/30">
+          {/* Logo */}
+          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
+            <span className="text-lg font-black text-orange-600">G</span>
           </div>
 
-          <h2 className="text-4xl font-bold mb-3 text-white">GigZone</h2>
-
-          <p className="text-white/90 text-base mb-8 px-6 max-w-md mx-auto leading-relaxed">
-            {sr
-              ? 'Instalirajte aplikaciju za direktan pristup sa početnog ekrana. Brži pristup i rad bez interneta.'
-              : 'Install the app to access GigZone directly from your home screen. Get faster access and offline capabilities.'}
-          </p>
-
-          <div className="flex gap-3 w-full px-6">
-            <Button onClick={handleDismiss} variant="outline" className="flex-1 bg-white/95 hover:bg-white text-orange-600 border-2 border-white font-semibold py-6 text-base">
-              {sr ? 'Preskoči' : 'Skip'}
-            </Button>
-            <Button onClick={handleInstall} className="flex-1 bg-white hover:bg-white/90 text-orange-600 font-bold text-base py-6 shadow-lg">
-              {sr ? 'Instaliraj' : 'Install'}
-            </Button>
+          {/* Text */}
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-bold text-white leading-tight">GigZone</p>
+            <p className="text-[11px] text-orange-100 leading-tight truncate">
+              {sr ? 'Instaliraj aplikaciju na telefon' : 'Install app on your phone'}
+            </p>
           </div>
+
+          {/* Install button */}
+          <button
+            onClick={handleInstall}
+            className="flex-shrink-0 flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-xs font-bold text-orange-600 shadow-sm hover:bg-orange-50 active:scale-95 transition-all"
+          >
+            <Download className="h-3 w-3" />
+            {sr ? 'Instaliraj' : 'Install'}
+          </button>
+
+          {/* Close */}
+          <button
+            onClick={handleDismiss}
+            className="flex-shrink-0 flex h-6 w-6 items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/15 transition-colors"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }

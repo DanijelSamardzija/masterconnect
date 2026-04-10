@@ -459,6 +459,28 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
             disabled={uploading}
           />
 
+          {/* Suggested quick tags */}
+          <div>
+            <p className="text-xs text-muted-foreground mb-2">{t('createPost.suggestedTags')}</p>
+            <div className="flex flex-wrap gap-2">
+              {(['završenposao', 'tražimradnika', 'pohvala', 'reklamacija', 'ponuda'] as const).map(tag => (
+                <button
+                  key={tag}
+                  type="button"
+                  disabled={uploading || hashtags.includes(tag)}
+                  onClick={() => addHashtag(tag)}
+                  className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                    hashtags.includes(tag)
+                      ? 'border-orange-400 bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400 opacity-50'
+                      : 'border-slate-300 bg-slate-50 text-slate-600 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400'
+                  }`}
+                >
+                  #{tag}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Hashtag input */}
           <div>
             <Label className="flex items-center gap-1.5 mb-1.5">
