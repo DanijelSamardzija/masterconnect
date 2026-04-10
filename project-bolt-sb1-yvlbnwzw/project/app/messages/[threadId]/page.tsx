@@ -34,7 +34,7 @@ import {
   UserX,
   MoreVertical,
 } from 'lucide-react';
-import { validateFile, uploadFile, formatFileSize, getFileType } from '@/lib/attachment-utils';
+import { validateFile, uploadFile, formatFileSize, getFileType, uploadVideoToCloudinary } from '@/lib/attachment-utils';
 import { usePresence } from '@/lib/hooks/use-presence';
 import { isOnline, formatLastSeen } from '@/lib/online-status';
 import { VideoMessage, ImageMessage } from '@/components/video-message';
@@ -778,12 +778,21 @@ function MessagesContent() {
           const file = selectedFiles[i];
           setUploadProgress(((i + 1) / totalFiles) * 100);
 
-          const uploadResult = await uploadFile(file, user.id);
+          const isVideo = file.type.startsWith('video/');
+          let fileUrl: string | null = null;
 
-          if (uploadResult) {
+          if (isVideo) {
+            const result = await uploadVideoToCloudinary(file, 'gigzone/messages');
+            fileUrl = result?.url ?? null;
+          } else {
+            const result = await uploadFile(file, user.id);
+            fileUrl = result?.url ?? null;
+          }
+
+          if (fileUrl) {
             uploadedAttachments.push({
               message_id: messageData.id,
-              file_url: uploadResult.url,
+              file_url: fileUrl,
               file_name: file.name,
               file_type: file.type,
               file_size: file.size,

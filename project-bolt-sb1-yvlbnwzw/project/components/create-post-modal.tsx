@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Image, Video, X, Loader2, Send, ChevronLeft, ChevronRight, Hash } from 'lucide-react';
 import { toast } from 'sonner';
-import { uploadFile, validateFile } from '@/lib/attachment-utils';
+import { uploadFile, validateFile, uploadVideoToCloudinary } from '@/lib/attachment-utils';
 import { normalizeImageForFeed } from '@/lib/image-utils';
 import { CityAutocomplete } from '@/components/city-autocomplete';
 import { CategoryCombobox } from '@/components/category-combobox';
@@ -286,10 +286,17 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
             }
           }
 
-          const uploadResult = await uploadFile(fileToUpload, user!.id, undefined, 'post-media');
+          const isVideo = file.type.startsWith('video/');
+          let uploadResult: { url: string; path?: string } | null = null;
+
+          if (isVideo) {
+            uploadResult = await uploadVideoToCloudinary(fileToUpload, 'gigzone/feed');
+          } else {
+            uploadResult = await uploadFile(fileToUpload, user!.id, undefined, 'post-media');
+          }
 
           if (uploadResult) {
-            const mediaType = file.type.startsWith('image/') ? 'image' : 'video';
+            const mediaType = isVideo ? 'video' : 'image';
             console.log(`[Client ${requestId}] Determined media type:`, {
               fileName: file.name,
               fileType: file.type,

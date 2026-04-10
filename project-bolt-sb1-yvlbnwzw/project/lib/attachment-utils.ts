@@ -7,7 +7,7 @@ export const ALLOWED_FILE_TYPES = {
 };
 
 export const MAX_FILE_SIZE = 10 * 1024 * 1024;
-export const MAX_VIDEO_SIZE = 50 * 1024 * 1024;
+export const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB, Cloudinary will compress
 
 export type AttachmentType = 'image' | 'video' | 'document';
 
@@ -128,6 +128,41 @@ export const deleteFile = async (
   }
 
   return true;
+};
+
+export const uploadVideoToCloudinary = async (
+  file: File,
+  folder: string = 'gigzone/videos',
+  onProgress?: (progress: number) => void
+): Promise<{ url: string; public_id: string } | null> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('folder', folder);
+
+  try {
+    // Simulate progress since fetch doesn't support upload progress easily
+    onProgress?.(10);
+
+    const response = await fetch('/api/cloudinary/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    onProgress?.(90);
+
+    if (!response.ok) {
+      const err = await response.json();
+      console.error('[Cloudinary Upload Error]', err);
+      return null;
+    }
+
+    const data = await response.json();
+    onProgress?.(100);
+    return { url: data.url, public_id: data.public_id };
+  } catch (error) {
+    console.error('[Cloudinary Upload Error]', error);
+    return null;
+  }
 };
 
 export const formatFileSize = (bytes: number): string => {

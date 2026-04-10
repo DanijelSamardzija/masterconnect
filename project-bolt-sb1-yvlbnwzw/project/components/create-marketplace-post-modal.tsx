@@ -16,6 +16,7 @@ import { ImageCropModal } from '@/components/image-crop-modal';
 import { Image as ImageIcon, Video, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { validateImageFile, processImageForUpload, getImageDimensions } from '@/lib/image-utils';
+import { uploadVideoToCloudinary } from '@/lib/attachment-utils';
 
 type MarketplacePostModalProps = {
   open: boolean;
@@ -384,10 +385,18 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
 
         for (let i = 0; i < selectedFiles.length; i++) {
           const file = selectedFiles[i];
-          const url = await uploadFile(file);
+          const isVideo = file.type.startsWith('video/');
+          let url: string | null = null;
+
+          if (isVideo) {
+            const result = await uploadVideoToCloudinary(file, 'gigzone/services');
+            url = result?.url ?? null;
+          } else {
+            url = await uploadFile(file);
+          }
 
           if (url) {
-            const mediaType = file.type.startsWith('image/') ? 'image' : 'video';
+            const mediaType = isVideo ? 'video' : 'image';
             mediaItems.push({
               post_id: postResult.id,
               type: mediaType,
