@@ -490,14 +490,14 @@ export function Navigation() {
                     </div>
                   )}
 
-                  <div className="flex justify-center gap-2">
-                    <Button variant="outline" size="icon" onClick={toggleTheme} disabled={!mounted} className="h-9 w-9">
-                      {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                  <div className="flex justify-center gap-3">
+                    <Button variant="outline" size="icon" onClick={toggleTheme} disabled={!mounted} className="h-11 w-11">
+                      {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                     </Button>
-                    <Button variant="outline" size="icon" onClick={() => { setMobileMenuOpen(false); setSearchOpen(true); }} className="h-9 w-9">
-                      <Search className="h-4 w-4" />
+                    <Button variant="outline" size="icon" onClick={() => { setMobileMenuOpen(false); setSearchOpen(true); }} className="h-11 w-11">
+                      <Search className="h-5 w-5" />
                     </Button>
-                    <LanguageSwitcher className="h-9 w-9" />
+                    <LanguageSwitcher className="h-11 w-11 text-sm" />
                   </div>
 
                   <Separator />
