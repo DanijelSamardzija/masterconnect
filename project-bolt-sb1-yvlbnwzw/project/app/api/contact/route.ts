@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,6 +17,7 @@ export async function POST(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
+    // Save to database
     const { error } = await supabase.from('support_messages').insert({
       category: 'contact',
       subject: `Kontakt forma — ${name}`,
@@ -25,6 +29,23 @@ export async function POST(request: NextRequest) {
       console.error('Contact insert error:', error);
       return NextResponse.json({ error: 'Failed to save message' }, { status: 500 });
     }
+
+    // Send email notification
+    await resend.emails.send({
+      from: 'GigZone Support <support@gigzone.app>',
+      to: 'support@gigzone.app',
+      replyTo: email,
+      subject: `Nova poruka od ${name}`,
+      html: `
+        <h2>Nova kontakt poruka</h2>
+        <p><strong>Ime:</strong> ${name}</p>
+        <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+        <hr />
+        <p>${message.replace(/\n/g, '<br/>')}</p>
+        <hr />
+        <p style="color:#888;font-size:12px">GigZone Support — support@gigzone.app</p>
+      `,
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {
