@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,22 +27,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to save message' }, { status: 500 });
     }
 
-    // Send email notification
-    await resend.emails.send({
-      from: 'GigZone Support <support@gigzone.app>',
-      to: 'support@gigzone.app',
-      replyTo: email,
-      subject: `Nova poruka od ${name}`,
-      html: `
-        <h2>Nova kontakt poruka</h2>
-        <p><strong>Ime:</strong> ${name}</p>
-        <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
-        <hr />
-        <p>${message.replace(/\n/g, '<br/>')}</p>
-        <hr />
-        <p style="color:#888;font-size:12px">GigZone Support — support@gigzone.app</p>
-      `,
-    });
+    // Send email notification via Resend API
+    if (process.env.RESEND_API_KEY) {
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'GigZone Support <support@gigzone.app>',
+          to: ['support@gigzone.app'],
+          reply_to: email,
+          subject: `Nova poruka od ${name}`,
+          html: `
+            <h2>Nova kontakt poruka</h2>
+            <p><strong>Ime:</strong> ${name}</p>
+            <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+            <hr />
+            <p>${message.replace(/\n/g, '<br/>')}</p>
+            <hr />
+            <p style="color:#888;font-size:12px">GigZone Support — support@gigzone.app</p>
+          `,
+        }),
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
