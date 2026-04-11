@@ -54,8 +54,7 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
     setLoading(true);
     try {
       const [prosRes, servicesRes, jobsRes] = await Promise.all([
-        supabase.from('profiles').select('id, name, category, avatar_url')
-          .eq('account_type', 'professional')
+        supabase.from('profiles').select('id, name, category, avatar_url, account_type')
           .ilike('name', `%${q}%`)
           .limit(4),
         supabase.from('posts').select('id, title, city, profiles(name)')
@@ -75,7 +74,7 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
           id: p.id,
           type: 'professional',
           title: p.name,
-          subtitle: p.category || t('search.professional'),
+          subtitle: p.category || (p.account_type === 'customer' ? t('search.customer') : t('search.professional')),
           avatar: p.avatar_url,
           path: `/profile/${p.id}`,
         });

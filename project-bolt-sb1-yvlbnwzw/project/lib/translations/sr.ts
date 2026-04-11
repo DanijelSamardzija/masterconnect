@@ -1095,6 +1095,7 @@ export default {
   'search.hint': 'Ukucaj najmanje 2 znaka za pretragu',
   'search.noResults': 'Nema rezultata',
   'search.professional': 'Profesionalac',
+  'search.customer': 'Korisnik',
   'search.service': 'Usluga',
   'search.job': 'Posao',
 

@@ -1095,6 +1095,7 @@ export default {
   'search.hint': 'Type at least 2 characters to search',
   'search.noResults': 'No results found',
   'search.professional': 'Professional',
+  'search.customer': 'Customer',
   'search.service': 'Service',
   'search.job': 'Job',
 

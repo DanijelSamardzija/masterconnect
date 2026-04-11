@@ -1091,6 +1091,7 @@ export default {
   'search.hint': 'Mindestens 2 Zeichen eingeben',
   'search.noResults': 'Keine Ergebnisse gefunden',
   'search.professional': 'Fachmann',
+  'search.customer': 'Kunde',
   'search.service': 'Dienstleistung',
   'search.job': 'Job',
 
