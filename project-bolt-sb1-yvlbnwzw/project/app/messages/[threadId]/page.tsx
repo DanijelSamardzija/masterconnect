@@ -993,8 +993,8 @@ function MessagesContent() {
         </div>
 
         <div className="flex min-h-0 flex-1 overflow-hidden">
-          <div className="grid h-full w-full min-h-0 grid-cols-1 xl:grid-cols-[240px_minmax(0,1fr)_280px]">
-            <aside className="hidden border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 xl:flex xl:flex-col">
+          <div className="flex h-full w-full min-h-0">
+            <aside className="hidden w-60 flex-shrink-0 border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 xl:flex xl:flex-col">
               <div className="p-5">
                 <h3 className="mb-5 text-lg font-semibold dark:text-white">Contact Info</h3>
 
@@ -1035,7 +1035,7 @@ function MessagesContent() {
               </div>
             </aside>
 
-            <main className="flex min-h-0 flex-col overflow-hidden bg-[linear-gradient(180deg,#f8fafc_0%,#f3f4f6_100%)] dark:bg-[linear-gradient(180deg,#0f172a_0%,#020617_100%)]">
+            <main className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[linear-gradient(180deg,#f8fafc_0%,#f3f4f6_100%)] dark:bg-[linear-gradient(180deg,#0f172a_0%,#020617_100%)]">
               {error && (
                 <Alert variant="destructive" className="m-4 flex-shrink-0 rounded-2xl">
                   <AlertDescription>{error}</AlertDescription>
@@ -1446,7 +1446,7 @@ function MessagesContent() {
               </div>
             </main>
 
-            <aside className="hidden border-l border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 xl:block">
+            <aside className="hidden w-[280px] flex-shrink-0 border-l border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 xl:block">
               <div className="h-full overflow-y-auto p-5">
                 {thread.thread_type === 'job' && (
                   <Card className="rounded-3xl border-0 shadow-md">
