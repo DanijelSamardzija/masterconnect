@@ -53,18 +53,33 @@ export function ApplicationMessageCard({
   useEffect(() => {
     if (!data.applicationId) return;
 
-    // Initial fetch
-    supabase.from('job_applications').select('status').eq('id', data.applicationId).maybeSingle()
-      .then(({ data: row }) => {
-        if (row?.status === 'accepted' || row?.status === 'declined') setStatus(row.status);
-      });
+    // Initial fetch — resolve applicationId if missing (legacy messages)
+    const resolveAndFetch = async () => {
+      let appId = data.applicationId;
+      if (!appId && data.applicantId && data.threadId) {
+        const { data: thread } = await supabase
+          .from('threads').select('post_id, job_id').eq('id', data.threadId).maybeSingle();
+        const postId = thread?.post_id || thread?.job_id;
+        if (postId) {
+          const { data: appRow } = await supabase
+            .from('job_applications').select('id').eq('applicant_id', data.applicantId).eq('post_id', postId).maybeSingle();
+          appId = appRow?.id ?? null;
+        }
+      }
+      if (!appId) return;
+      const { data: row } = await supabase
+        .from('job_applications').select('status').eq('id', appId).maybeSingle();
+      if (row?.status === 'accepted' || row?.status === 'declined') setStatus(row.status);
+    };
+    resolveAndFetch();
 
     // Real-time: update status for BOTH sides when owner responds
+    const channelId = data.applicationId || `${data.applicantId}-${data.threadId}`;
     const channel = supabase
-      .channel(`app-status-${data.applicationId}`)
+      .channel(`app-status-${channelId}`)
       .on(
         'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'job_applications', filter: `id=eq.${data.applicationId}` },
+        { event: 'UPDATE', schema: 'public', table: 'job_applications', filter: data.applicationId ? `id=eq.${data.applicationId}` : undefined },
         (payload: any) => {
           const s = payload.new?.status;
           if (s === 'accepted' || s === 'declined') setStatus(s);
@@ -85,12 +100,40 @@ export function ApplicationMessageCard({
   const initials = data.applicantName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
   const handleRespond = async (newStatus: 'accepted' | 'declined') => {
-    if (!data.applicationId) return;
     setResponding(true);
+
+    // Resolve applicationId — may be missing in older messages
+    let appId = data.applicationId;
+    if (!appId && data.applicantId) {
+      // Look up by applicant + thread (find the post linked to this thread)
+      const { data: thread } = await supabase
+        .from('threads')
+        .select('post_id, job_id')
+        .eq('id', data.threadId)
+        .maybeSingle();
+
+      const postId = thread?.post_id || thread?.job_id;
+      if (postId) {
+        const { data: appRow } = await supabase
+          .from('job_applications')
+          .select('id')
+          .eq('applicant_id', data.applicantId)
+          .eq('post_id', postId)
+          .maybeSingle();
+        appId = appRow?.id ?? null;
+      }
+    }
+
+    if (!appId) {
+      toast.error('Greška: ID prijave nije pronađen');
+      setResponding(false);
+      return;
+    }
+
     const { data: updated, error } = await supabase
       .from('job_applications')
       .update({ status: newStatus })
-      .eq('id', data.applicationId)
+      .eq('id', appId)
       .select('id');
 
     if (error || !updated || updated.length === 0) {
