@@ -285,46 +285,6 @@ function MessagesContent() {
     loadRecentEmojis();
   }, [user]);
 
-  useEffect(() => {
-    const checkCompletionReminders = async () => {
-      try {
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-        if (!supabaseUrl || !supabaseAnonKey) return;
-
-        const response = await fetch(`${supabaseUrl}/functions/v1/check-completion-reminders`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${supabaseAnonKey}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          if (result.remindersCreated > 0) {
-            fetchMessages();
-            fetchThread();
-          }
-        }
-      } catch (error) {
-        console.error('Error checking completion reminders:', error);
-      }
-    };
-
-    if (user) {
-      checkCompletionReminders();
-
-      const intervalId = setInterval(() => {
-        checkCompletionReminders();
-      }, 10 * 60 * 1000);
-
-      return () => {
-        clearInterval(intervalId);
-      };
-    }
-  }, [user]);
 
   const fetchThread = async () => {
     const { data, error } = await supabase
