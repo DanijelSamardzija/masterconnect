@@ -52,10 +52,35 @@ export async function POST(request: NextRequest) {
   else if (meta?.follower_id) url = `/profile/${meta.follower_id}`;
   else if (meta?.reviewer_id) url = '/dashboard';
 
+  // Resolve actor avatar (shown as notification icon like Instagram)
+  let actorAvatar: string | null = null;
+  if (meta?.follower_id) {
+    const { data: actor } = await supabase
+      .from('profiles').select('avatar_url').eq('id', meta.follower_id).maybeSingle();
+    actorAvatar = actor?.avatar_url || null;
+  } else if (meta?.reviewer_id) {
+    const { data: actor } = await supabase
+      .from('profiles').select('avatar_url').eq('id', meta.reviewer_id).maybeSingle();
+    actorAvatar = actor?.avatar_url || null;
+  } else if (meta?.thread_id) {
+    // Find the sender of the most recent message in this thread (not the recipient)
+    const { data: lastMsg } = await supabase
+      .from('messages')
+      .select('sender_id, profiles!messages_sender_id_fkey(avatar_url)')
+      .eq('thread_id', meta.thread_id)
+      .eq('is_deleted', false)
+      .neq('sender_id', user_id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    actorAvatar = (lastMsg as any)?.profiles?.avatar_url || null;
+  }
+
   const payload = JSON.stringify({
     title: title || 'GigZone',
     body: notifBody || '',
     url,
+    icon: actorAvatar || undefined,
   });
 
   const results = await Promise.allSettled(
