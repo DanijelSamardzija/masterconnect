@@ -1053,6 +1053,32 @@ function MessagesContent() {
                   </div>
                 ) : (
                   <div className="mx-auto w-full max-w-5xl space-y-1">
+                    {/* Conversation info card at the top */}
+                    <div className="mb-6 flex flex-col items-center gap-2 py-4">
+                      <div
+                        className="cursor-pointer rounded-full transition-opacity hover:opacity-80"
+                        onClick={handleViewProfile}
+                      >
+                        <Avatar className="h-16 w-16 shadow-md ring-2 ring-white dark:ring-gray-900">
+                          <AvatarImage src={(otherPerson as any)?.avatar_url || undefined} alt={otherPerson?.name} />
+                          <AvatarFallback className="bg-orange-500 text-xl text-white font-bold">
+                            {otherPerson?.name?.charAt(0).toUpperCase() || '?'}
+                          </AvatarFallback>
+                        </Avatar>
+                      </div>
+                      <p
+                        className="cursor-pointer text-sm font-semibold text-gray-800 dark:text-white hover:underline"
+                        onClick={handleViewProfile}
+                      >
+                        {otherPerson?.name || 'Unknown User'}
+                      </p>
+                      {(otherPerson as any)?.account_type === 'professional' && (
+                        <span className="rounded-full bg-gradient-to-r from-orange-400 to-orange-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                          PRO
+                        </span>
+                      )}
+                    </div>
+
                     {(() => {
                       // ID of the last message sent by current user (for seen/delivered label)
                       const ownMessages = messages.filter(m => m.sender_id === user?.id && !m.is_deleted && !m.is_system);
@@ -1174,8 +1200,8 @@ function MessagesContent() {
                         >
                           <div className="flex max-w-[95%] items-end gap-2 sm:max-w-[82%] lg:max-w-[72%] xl:max-w-[68%]">
                             {!isOwn && (
-                              <Avatar className="h-8 w-8 flex-shrink-0 shadow-sm">
-                                <AvatarImage src={undefined} alt={message.sender?.name} />
+                              <Avatar className="h-8 w-8 flex-shrink-0 shadow-sm cursor-pointer" onClick={handleViewProfile}>
+                                <AvatarImage src={(otherPerson as any)?.avatar_url || undefined} alt={message.sender?.name} />
                                 <AvatarFallback className="bg-gray-300 text-xs text-gray-700 dark:bg-gray-700 dark:text-gray-100">
                                   {message.sender?.name?.charAt(0).toUpperCase() || '?'}
                                 </AvatarFallback>
