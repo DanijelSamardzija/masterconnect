@@ -17,7 +17,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
     <>
       {!hideNavigation && <Navigation />}
 
-      <main className={isMessageThread ? 'flex-1 h-full overflow-hidden' : 'flex-1 min-h-0 overflow-hidden'}>
+      <main className="flex-1 min-h-0 overflow-hidden">
         {children}
       </main>
 
