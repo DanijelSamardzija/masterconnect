@@ -161,6 +161,7 @@ function MessagesContent() {
   const [blockModalOpen, setBlockModalOpen] = useState(false);
   const [hasMarkedAsRead, setHasMarkedAsRead] = useState(false);
   const [hiddenAt, setHiddenAt] = useState<string | null>(null);
+  const hiddenAtRef = useRef<string | null>(null);
   const [otherUserTyping, setOtherUserTyping] = useState(false);
   const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -233,8 +234,6 @@ function MessagesContent() {
 
   useEffect(() => {
     if (threadId && user) {
-      fetchMessages();
-
       const messagesChannel = supabase
         .channel(`thread:${threadId}`)
         .on(
@@ -340,20 +339,25 @@ function MessagesContent() {
         .maybeSingle();
 
       // Only hide messages if participant record genuinely doesn't exist (not a DB error)
+      const updateHiddenAt = (val: string | null) => {
+        hiddenAtRef.current = val;
+        setHiddenAt(val);
+      };
       if (!partError && !participantData) {
-        setHiddenAt(new Date().toISOString());
+        updateHiddenAt(new Date().toISOString());
       } else if (participantData) {
         const hiddenBefore = (participantData as any).hidden_before;
         if (hiddenBefore) {
-          setHiddenAt(hiddenBefore);
+          updateHiddenAt(hiddenBefore);
         } else if (participantData.deleted_at) {
-          setHiddenAt(participantData.deleted_at);
+          updateHiddenAt(participantData.deleted_at);
         }
       }
     }
 
     setThread(threadWithLegacyStructure as any);
     setLoading(false);
+    fetchMessages();
   };
 
   const markMessagesAsRead = async () => {
@@ -450,8 +454,8 @@ function MessagesContent() {
       .eq('thread_id', threadId)
       .eq('is_deleted', false);
 
-    if (hiddenAt) {
-      query = query.gt('created_at', hiddenAt);
+    if (hiddenAtRef.current) {
+      query = query.gt('created_at', hiddenAtRef.current);
     }
 
     const { data: messagesData, error: messagesError } = await query.order('created_at', {
