@@ -68,10 +68,10 @@ export default function ContactPage() {
           <div className="flex items-center gap-2 mb-8 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg border">
             <Mail className="h-5 w-5 text-orange-600" />
             <a
-              href="mailto:support@platform.com"
+              href="mailto:support@gigzone.app"
               className="text-orange-600 hover:text-orange-700 font-medium"
             >
-              support@platform.com
+              support@gigzone.app
             </a>
           </div>
 

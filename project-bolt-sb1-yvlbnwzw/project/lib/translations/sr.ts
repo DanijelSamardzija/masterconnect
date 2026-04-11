@@ -891,7 +891,7 @@ export default {
   'privacy.section10.title': '10. Deca',
   'privacy.section10.content': 'Platforma nije namenjena deci mlađoj od 16 godina. Ako saznamo da smo prikupili podatke od deteta, obrisaćemo ih.',
   'privacy.section11.title': '11. Kontakt',
-  'privacy.section11.content': 'Za zahteve o privatnosti, kontaktirajte: support@platform.com',
+  'privacy.section11.content': 'Za zahteve o privatnosti, kontaktirajte: support@gigzone.app',
   'privacy.section12.title': '12. Izmene ove Politike privatnosti',
   'privacy.section12.content': 'Možemo s vremena na vreme ažurirati ovu Politiku privatnosti. Korisnici će biti obavešteni o značajnim izmenama putem platforme ili emaila.',
 
@@ -946,7 +946,7 @@ export default {
   'terms.section12.content1': 'Ovi Uslovi se regulišu primenljivim zakonima.',
   'terms.section12.content2': 'Sporovi će biti rešavani pred nadležnim sudovima zemlje registracije Platforme.',
   'terms.section13.title': '13. Kontakt',
-  'terms.section13.content': 'Za pravne upite kontaktirajte: support@platform.com',
+  'terms.section13.content': 'Za pravne upite kontaktirajte: support@gigzone.app',
   'terms.section14.title': '14. Ograničenje odgovornosti i odricanje',
   'terms.section14.content1': 'Platforma deluje isključivo kao digitalna tržnica i posrednik koji povezuje korisnike koji nude usluge, poslovne mogućnosti ili zahteve za uslugama.',
   'terms.section14.content2': 'Platforma nije poslodavac, izvođač radova, agencija za zapošljavanje, posrednik ili pružalac usluga.',

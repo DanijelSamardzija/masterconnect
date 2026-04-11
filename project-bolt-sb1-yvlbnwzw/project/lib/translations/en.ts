@@ -891,7 +891,7 @@ export default {
   'privacy.section10.title': '10. Children',
   'privacy.section10.content': 'The Platform is not intended for children under 16. If we learn we collected data from a child, we will delete it.',
   'privacy.section11.title': '11. Contact',
-  'privacy.section11.content': 'For privacy requests, contact: support@platform.com',
+  'privacy.section11.content': 'For privacy requests, contact: support@gigzone.app',
   'privacy.section12.title': '12. Changes to this Privacy Policy',
   'privacy.section12.content': 'We may update this Privacy Policy from time to time. Users will be notified of significant changes via the platform or email.',
 
@@ -946,7 +946,7 @@ export default {
   'terms.section12.content1': 'These Terms are governed by applicable laws.',
   'terms.section12.content2': 'Disputes shall be resolved in the competent courts of the Platform\'s country of registration.',
   'terms.section13.title': '13. Contact',
-  'terms.section13.content': 'For legal inquiries contact: support@platform.com',
+  'terms.section13.content': 'For legal inquiries contact: support@gigzone.app',
   'terms.section14.title': '14. Limitation of Liability and Disclaimer',
   'terms.section14.content1': 'The Platform operates solely as a digital marketplace and intermediary connecting users who offer services, job opportunities, or service requests.',
   'terms.section14.content2': 'The Platform is not an employer, contractor, recruitment agency, broker, or service provider.',
