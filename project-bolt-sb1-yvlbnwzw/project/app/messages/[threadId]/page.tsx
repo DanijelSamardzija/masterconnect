@@ -332,19 +332,23 @@ function MessagesContent() {
     };
 
     if (user) {
-      const { data: participantData } = await supabase
+      const { data: participantData, error: partError } = await supabase
         .from('thread_participants')
         .select('deleted_at, hidden_before')
         .eq('thread_id', threadId)
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (!participantData) {
+      // Only hide messages if participant record genuinely doesn't exist (not a DB error)
+      if (!partError && !participantData) {
         setHiddenAt(new Date().toISOString());
-      } else if ((participantData as any).hidden_before) {
-        setHiddenAt((participantData as any).hidden_before);
-      } else if (participantData.deleted_at) {
-        setHiddenAt(participantData.deleted_at);
+      } else if (participantData) {
+        const hiddenBefore = (participantData as any).hidden_before;
+        if (hiddenBefore) {
+          setHiddenAt(hiddenBefore);
+        } else if (participantData.deleted_at) {
+          setHiddenAt(participantData.deleted_at);
+        }
       }
     }
 
@@ -1272,7 +1276,7 @@ function MessagesContent() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 flex-shrink-0 rounded-full opacity-0 transition-all group-hover:opacity-100 hover:bg-red-50 dark:hover:bg-red-950/30"
+                                className="h-8 w-8 flex-shrink-0 rounded-full opacity-30 transition-all sm:opacity-0 sm:group-hover:opacity-100 hover:opacity-100 hover:bg-red-50 dark:hover:bg-red-950/30"
                                 onClick={() => handleDeleteMessage(message.id)}
                               >
                                 <Trash2 className="h-3.5 w-3.5 text-gray-400 hover:text-red-600" />
