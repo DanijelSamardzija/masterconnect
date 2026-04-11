@@ -663,30 +663,32 @@ function AdminContent() {
         )}
 
         {/* Tabs */}
-        <div className="flex gap-2 border-b border-border">
-          {([
-            { key: 'reports', label: `Reportovi (${stats?.openReports ?? 0} otvorenih)` },
-            { key: 'users', label: `Korisnici (${stats?.users ?? 0})` },
-            { key: 'posts', label: `Postovi (${stats?.posts ?? 0})` },
-            { key: 'announcements', label: `Obavještenja (${announcements.length})` },
-            { key: 'support', label: `Support (${tickets.filter(t => t.status === 'open').length} otvorenih)` },
-            { key: 'analytics', label: 'Analitika' },
-          ] as const).map(({ key, label }) => (
-            <button
-              key={key}
-              onClick={() => {
-                setActiveTab(key);
-                if (key === 'analytics' && !analytics) fetchAnalytics(selectedYear);
-              }}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
-                activeTab === key
-                  ? 'border-orange-500 text-orange-600'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="overflow-x-auto -mx-4 px-4">
+          <div className="flex gap-1 border-b border-border min-w-max">
+            {([
+              { key: 'reports', label: `Reportovi (${stats?.openReports ?? 0})` },
+              { key: 'users', label: `Korisnici (${stats?.users ?? 0})` },
+              { key: 'posts', label: `Postovi (${stats?.posts ?? 0})` },
+              { key: 'announcements', label: `Obavještenja` },
+              { key: 'support', label: `Support (${tickets.filter(t => t.status === 'open').length})` },
+              { key: 'analytics', label: 'Analitika' },
+            ] as const).map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => {
+                  setActiveTab(key);
+                  if (key === 'analytics' && !analytics) fetchAnalytics(selectedYear);
+                }}
+                className={`px-3 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px whitespace-nowrap ${
+                  activeTab === key
+                    ? 'border-orange-500 text-orange-600'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* ── REPORTS TAB ── */}
