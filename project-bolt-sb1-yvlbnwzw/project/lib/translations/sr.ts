@@ -382,6 +382,11 @@ export default {
   'messages.send': 'Pošalji',
   'messages.noConversations': 'Još nema razgovora',
   'messages.startConversation': 'Započnite razgovor kontaktiranjem profesionalca ili klijenta',
+  'messages.deleteTitle': 'Obrisati razgovor?',
+  'messages.deleteDesc': 'Ovo uklanja razgovor samo za vas.',
+  'messages.deleteConfirm': 'Obriši',
+  'messages.deleteCancel': 'Otkaži',
+  'messages.yourConversations': 'Vaši razgovori',
 
   // Dashboard
   'dashboard.welcome': 'Dobrodošli nazad',

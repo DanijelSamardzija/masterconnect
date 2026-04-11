@@ -383,6 +383,11 @@ export default {
   'messages.send': 'Senden',
   'messages.noConversations': 'Noch keine Unterhaltungen',
   'messages.startConversation': 'Starte eine Unterhaltung, indem du einen Fachmann oder Kunden kontaktierst',
+  'messages.deleteTitle': 'Unterhaltung löschen?',
+  'messages.deleteDesc': 'Dies entfernt sie nur für dich.',
+  'messages.deleteConfirm': 'Löschen',
+  'messages.deleteCancel': 'Abbrechen',
+  'messages.yourConversations': 'Ihre Unterhaltungen',
 
   // Dashboard
   'dashboard.welcome': 'Willkommen zurück',

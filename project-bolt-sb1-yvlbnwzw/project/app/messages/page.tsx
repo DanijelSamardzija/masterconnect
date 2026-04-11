@@ -28,6 +28,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/lib/contexts/language-context';
 
 type Thread = {
   id: string;
@@ -48,6 +49,7 @@ function MessagesListContent() {
   const { user, profile } = useAuth();
   usePageTracking('messages');
   const { toast } = useToast();
+  const { t } = useLanguage();
   usePresence(user?.id);
   const [threads, setThreads] = useState<Thread[]>([]);
   const [loading, setLoading] = useState(true);
@@ -165,9 +167,10 @@ function MessagesListContent() {
   const handleDeleteConfirm = async () => {
     if (!threadToDelete || !user) return;
 
+    const now = new Date().toISOString();
     await supabase
       .from('thread_participants')
-      .update({ deleted_at: new Date().toISOString() })
+      .update({ deleted_at: now, hidden_before: now })
       .eq('thread_id', threadToDelete)
       .eq('user_id', user.id);
 
@@ -188,9 +191,9 @@ function MessagesListContent() {
           </Button>
 
           <div>
-            <h1 className="text-2xl font-bold">Messages</h1>
+            <h1 className="text-2xl font-bold">{t('messages.title')}</h1>
             <p className="text-sm text-muted-foreground">
-              Your conversations
+              {t('messages.yourConversations')}
             </p>
           </div>
         </div>
@@ -217,7 +220,7 @@ function MessagesListContent() {
                 key={thread.id}
                 onClick={() => router.push(`/messages/${thread.id}`)}
                 className={`cursor-pointer rounded-2xl transition-all
-                ${hasUnread ? 'bg-white shadow-md border-orange-200' : 'bg-white dark:bg-gray-900'}
+                ${hasUnread ? 'bg-white dark:bg-gray-900 shadow-md border-orange-200 dark:border-orange-900' : 'bg-white dark:bg-gray-900'}
                 hover:scale-[1.01] hover:shadow-lg`}
               >
                 <CardContent className="p-4 flex items-center gap-4">
@@ -273,16 +276,16 @@ function MessagesListContent() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete conversation?</AlertDialogTitle>
+            <AlertDialogTitle>{t('messages.deleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This removes it only for you.
+              {t('messages.deleteDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('messages.deleteCancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteConfirm}>
-              Delete
+              {t('messages.deleteConfirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

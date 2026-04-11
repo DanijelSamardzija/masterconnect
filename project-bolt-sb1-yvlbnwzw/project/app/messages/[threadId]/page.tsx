@@ -334,13 +334,15 @@ function MessagesContent() {
     if (user) {
       const { data: participantData } = await supabase
         .from('thread_participants')
-        .select('deleted_at')
+        .select('deleted_at, hidden_before')
         .eq('thread_id', threadId)
         .eq('user_id', user.id)
         .maybeSingle();
 
       if (!participantData) {
         setHiddenAt(new Date().toISOString());
+      } else if ((participantData as any).hidden_before) {
+        setHiddenAt((participantData as any).hidden_before);
       } else if (participantData.deleted_at) {
         setHiddenAt(participantData.deleted_at);
       }
@@ -1055,6 +1057,16 @@ function MessagesContent() {
                                   fetchMessages();
                                 }}
                               />
+                              {isOwn && (
+                                <div className="mt-1 flex justify-end">
+                                  <button
+                                    onClick={() => handleDeleteMessage(message.id)}
+                                    className="flex items-center gap-1 text-[11px] text-gray-400 hover:text-red-500 transition-colors"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           </div>
                         );
@@ -1070,13 +1082,21 @@ function MessagesContent() {
                           return (
                             <div
                               key={message.id}
-                              className={`my-3 flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+                              className={`my-3 flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}
                             >
                               <ApplicationMessageCard
                                 data={appData}
                                 createdAt={message.created_at}
                                 currentUserId={user?.id}
                               />
+                              {isOwn && (
+                                <button
+                                  onClick={() => handleDeleteMessage(message.id)}
+                                  className="mt-1 flex items-center gap-1 text-[11px] text-gray-400 hover:text-red-500 transition-colors"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              )}
                             </div>
                           );
                         } catch {

@@ -382,6 +382,11 @@ export default {
   'messages.send': 'Send',
   'messages.noConversations': 'No conversations yet',
   'messages.startConversation': 'Start a conversation by contacting a professional or customer',
+  'messages.deleteTitle': 'Delete conversation?',
+  'messages.deleteDesc': 'This removes it only for you.',
+  'messages.deleteConfirm': 'Delete',
+  'messages.deleteCancel': 'Cancel',
+  'messages.yourConversations': 'Your conversations',
 
   // Dashboard
   'dashboard.welcome': 'Welcome back',
