@@ -36,17 +36,17 @@ export const metadata: Metadata = {
     title: 'GigZone',
   },
   openGraph: {
-    title: 'GigZone - Platforma za majstore i poslove',
-    description: 'Pronađite majstore, objavite poslove ili ponudite svoje usluge.',
+    title: 'GigZone - Platform for Professionals & Jobs',
+    description: 'Find skilled professionals, post jobs, or offer your services.',
     url: 'https://www.gigzone.app',
     siteName: 'GigZone',
-    locale: 'sr_RS',
+    locale: 'en_US',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'GigZone - Platforma za majstore i poslove',
-    description: 'Pronađite majstore, objavite poslove ili ponudite svoje usluge.',
+    title: 'GigZone - Platform for Professionals & Jobs',
+    description: 'Find skilled professionals, post jobs, or offer your services.',
   },
 };
 
