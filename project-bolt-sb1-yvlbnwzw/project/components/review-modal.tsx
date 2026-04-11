@@ -81,14 +81,8 @@ export function ReviewModal({ open, onClose, jobId, proId, proName, threadId, on
         return;
       }
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('account_type')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (!profile || profile.account_type !== 'customer') {
-        setError('Only customers can leave reviews');
+      if (user.id === proId) {
+        setError('You cannot review yourself');
         return;
       }
 

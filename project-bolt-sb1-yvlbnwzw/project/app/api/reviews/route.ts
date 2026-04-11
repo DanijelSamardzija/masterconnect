@@ -8,10 +8,17 @@ async function processReview(supabase: any, user: any, pro_id: string, rating: n
     .eq('id', user.id)
     .maybeSingle();
 
-  if (!profile || profile.account_type !== 'customer') {
+  if (!profile) {
     return NextResponse.json(
-      { error: 'Only customers can leave reviews' },
+      { error: 'Profile not found' },
       { status: 403 }
+    );
+  }
+
+  if (user.id === pro_id) {
+    return NextResponse.json(
+      { error: 'You cannot review yourself' },
+      { status: 400 }
     );
   }
 

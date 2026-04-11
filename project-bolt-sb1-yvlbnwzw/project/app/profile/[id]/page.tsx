@@ -320,7 +320,7 @@ function UserProfileContent() {
     </a>
   ) : undefined;
 
-  const reviewAction = profile.account_type === 'professional' ? (
+  const reviewAction = profile.account_type === 'professional' && !isOwnProfile ? (
     <Button
       onClick={handleLeaveReview}
       variant="outline"
