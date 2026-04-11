@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import {
   ArrowLeft, Settings, Trash2, Lock, Eye, EyeOff,
-  Volume2, Mail, Moon, Sun, FileText, Download,
+  Volume2, Bell, BellOff, Mail, Moon, Sun, FileText, Download,
   ExternalLink, Scale, Globe, ChevronRight, Smartphone, UserX, UserCheck, Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -23,6 +23,7 @@ import { supabase } from '@/lib/supabase/client';
 import { Switch } from '@/components/ui/switch';
 import { useSoundPreference } from '@/hooks/use-sound-preference';
 import { useTheme } from '@/hooks/use-theme';
+import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 
@@ -48,6 +49,7 @@ function SettingsContent() {
   const [loadingTickets, setLoadingTickets] = useState(true);
   const { notificationsSoundEnabled, messagesSoundEnabled, toggleNotificationsSound, toggleMessagesSound } = useSoundPreference();
   const { theme, toggleTheme, mounted } = useTheme();
+  const { isSupported: pushSupported, permission: pushPermission, isSubscribed: pushSubscribed, isLoading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isAppInstalled, setIsAppInstalled] = useState(false);
@@ -336,6 +338,57 @@ function SettingsContent() {
                       )}
                     </button>
                   ))}
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+
+          {/* Push Notifications */}
+          <div className={sectionClass}>
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="push" className="border-0">
+                <AccordionTrigger className={triggerClass}>
+                  <div className="flex items-center gap-3">
+                    <Bell className="h-5 w-5 text-orange-600" />
+                    <div className="text-left">
+                      <div className="font-semibold text-foreground">{t('settings.pushNotifications')}</div>
+                      <div className="text-sm text-muted-foreground font-normal">{t('settings.pushNotificationsDesc')}</div>
+                    </div>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-6 pt-2 space-y-3">
+                  <div className={rowClass}>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-foreground">{t('settings.pushToggleLabel')}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {!pushSupported
+                          ? t('settings.pushNotSupported')
+                          : pushPermission === 'denied'
+                          ? t('settings.pushPermissionDenied')
+                          : pushSubscribed
+                          ? t('settings.pushActive')
+                          : t('settings.pushInactive')}
+                      </p>
+                    </div>
+                    {pushLoading ? (
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    ) : (
+                      <Switch
+                        checked={pushSubscribed}
+                        disabled={!pushSupported || pushPermission === 'denied' || pushLoading}
+                        onCheckedChange={async (checked) => {
+                          if (checked) {
+                            const ok = await pushSubscribe();
+                            if (ok) toast.success(t('settings.pushEnabled'));
+                            else if (pushPermission === 'denied') toast.error(t('settings.pushPermissionDenied'));
+                          } else {
+                            await pushUnsubscribe();
+                            toast.success(t('settings.pushDisabled'));
+                          }
+                        }}
+                      />
+                    )}
+                  </div>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

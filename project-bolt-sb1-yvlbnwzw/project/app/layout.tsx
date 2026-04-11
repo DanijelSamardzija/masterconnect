@@ -5,6 +5,7 @@ import { AuthProvider } from '@/lib/contexts/auth-context';
 import { LanguageProvider } from '@/lib/contexts/language-context';
 import { NotificationProvider } from '@/components/notification-provider';
 import { PWARegistration } from '@/components/pwa-registration';
+import { PushNotificationManager } from '@/components/push-notification-manager';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { LayoutShell } from '@/components/layout-shell';
@@ -79,6 +80,7 @@ export default function RootLayout({
 
             <LayoutShell>{children}</LayoutShell>
 
+            <PushNotificationManager />
             <PWARegistration />
           </AuthProvider>
         </LanguageProvider>

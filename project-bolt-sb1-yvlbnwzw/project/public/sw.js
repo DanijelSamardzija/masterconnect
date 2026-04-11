@@ -1,4 +1,4 @@
-const CACHE_VERSION = '2025-02-28-v8-build-marker-001';
+const CACHE_VERSION = '2026-04-11-v9-push';
 const CACHE_NAME = `majstor-servis-v${CACHE_VERSION}`;
 const urlsToCache = [
   '/',
@@ -103,5 +103,40 @@ self.addEventListener('fetch', (event) => {
           });
         });
       })
+  );
+});
+
+// ── Web Push ──────────────────────────────────────────────────────────────────
+
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+
+  let data = {};
+  try { data = event.data.json(); } catch { data = { title: 'GigZone', body: event.data.text() }; }
+
+  const { title = 'GigZone', body = '', url = '/' } = data;
+
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
+      data: { url },
+      vibrate: [200, 100, 200],
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url || '/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ('focus' in client) return client.focus();
+      }
+      if (clients.openWindow) return clients.openWindow(url);
+    })
   );
 });
