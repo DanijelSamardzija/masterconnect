@@ -3,8 +3,9 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import en from '../translations/en';
 import sr from '../translations/sr';
+import de from '../translations/de';
 
-type Language = 'en' | 'sr';
+type Language = 'en' | 'sr' | 'de';
 
 type LanguageContextType = {
   language: Language;
@@ -27,7 +28,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const savedLang = localStorage.getItem('language') as Language;
-      if (savedLang && (savedLang === 'en' || savedLang === 'sr')) {
+      if (savedLang && (savedLang === 'en' || savedLang === 'sr' || savedLang === 'de')) {
         setLanguageState(savedLang);
       }
     } catch (error) {
@@ -40,7 +41,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }, [language]);
 
   const loadTranslations = (lang: Language) => {
-    setTranslations(lang === 'en' ? en : sr);
+    setTranslations(lang === 'en' ? en : lang === 'de' ? de : sr);
   };
 
   const setLanguage = (lang: Language) => {

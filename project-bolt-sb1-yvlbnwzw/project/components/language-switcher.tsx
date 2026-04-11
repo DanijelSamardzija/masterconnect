@@ -16,7 +16,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className={`h-8 w-8 font-semibold text-xs ${className ?? ''}`}>
-          {language === 'en' ? 'EN' : 'RS'}
+          {language === 'en' ? 'EN' : language === 'de' ? 'DE' : 'RS'}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
@@ -33,6 +33,13 @@ export function LanguageSwitcher({ className }: { className?: string }) {
         >
           <span className="mr-2 text-lg">🇷🇸</span>
           Српски
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => setLanguage('de')}
+          className={language === 'de' ? 'bg-accent font-semibold' : ''}
+        >
+          <span className="mr-2 text-lg">🇩🇪</span>
+          Deutsch
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
