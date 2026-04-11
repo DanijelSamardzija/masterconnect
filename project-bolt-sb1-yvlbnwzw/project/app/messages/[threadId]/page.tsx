@@ -911,7 +911,7 @@ function MessagesContent() {
 
   return (
     <>
-      <div className="flex h-full flex-col overflow-hidden bg-gray-100 dark:bg-gray-950">
+      <div className="fixed inset-0 flex flex-col overflow-hidden bg-gray-100 dark:bg-gray-950">
         <div className="flex-shrink-0 border-b border-gray-200/80 bg-white/95 shadow-sm backdrop-blur dark:border-gray-800 dark:bg-gray-900/95">
           <div className="w-full px-3 py-2.5 sm:px-4">
             <div className="flex items-center gap-2">
