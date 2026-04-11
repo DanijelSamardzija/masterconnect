@@ -130,13 +130,14 @@ export function ApplicationMessageCard({
       return;
     }
 
-    const { data: updated, error } = await supabase
-      .from('job_applications')
-      .update({ status: newStatus })
-      .eq('id', appId)
-      .select('id');
+    // Use server API (service role) to bypass RLS
+    const res = await fetch('/api/job-applications/respond', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ applicationId: appId, status: newStatus, callerId: currentUserId }),
+    });
 
-    if (error || !updated || updated.length === 0) {
+    if (!res.ok) {
       toast.error('Greška / Error');
       setResponding(false);
       return;
