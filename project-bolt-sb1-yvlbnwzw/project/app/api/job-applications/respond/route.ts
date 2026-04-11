@@ -18,14 +18,17 @@ export async function POST(request: NextRequest) {
     );
 
     // Verify caller is the post owner
-    const { data: app } = await supabase
+    const { data: app, error: appError } = await supabase
       .from('job_applications')
       .select('id, post_id')
       .eq('id', applicationId)
       .maybeSingle();
 
+    if (appError) {
+      return NextResponse.json({ error: 'DB error: ' + appError.message }, { status: 500 });
+    }
     if (!app) {
-      return NextResponse.json({ error: 'Application not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Application not found', applicationId }, { status: 404 });
     }
 
     const { data: post } = await supabase
