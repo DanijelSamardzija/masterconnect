@@ -113,7 +113,7 @@ export function CategoryCombobox({
               autoFocus
             />
           </div>
-          <ScrollArea className="max-h-[300px]">
+          <ScrollArea className="max-h-[min(400px,60vh)]">
             {options.length === 0 && !showAllOption ? (
               <div className="py-6 px-4 text-center text-sm text-muted-foreground">
                 No categories found
