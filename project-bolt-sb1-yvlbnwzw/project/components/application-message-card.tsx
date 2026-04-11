@@ -49,13 +49,30 @@ export function ApplicationMessageCard({
   const [status, setStatus] = useState<'pending' | 'accepted' | 'declined'>('pending');
   const [responding, setResponding] = useState(false);
 
-  // Load real status from DB on mount
+  // Load real status from DB on mount + live subscription
   useEffect(() => {
     if (!data.applicationId) return;
+
+    // Initial fetch
     supabase.from('job_applications').select('status').eq('id', data.applicationId).maybeSingle()
       .then(({ data: row }) => {
         if (row?.status === 'accepted' || row?.status === 'declined') setStatus(row.status);
       });
+
+    // Real-time: update status for BOTH sides when owner responds
+    const channel = supabase
+      .channel(`app-status-${data.applicationId}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'job_applications', filter: `id=eq.${data.applicationId}` },
+        (payload: any) => {
+          const s = payload.new?.status;
+          if (s === 'accepted' || s === 'declined') setStatus(s);
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [data.applicationId]);
 
   const isOwner = currentUserId === data.postOwnerId;
