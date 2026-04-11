@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
@@ -55,6 +55,12 @@ function MessagesListContent() {
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [threadToDelete, setThreadToDelete] = useState<string | null>(null);
+  const fetchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const debouncedFetchThreads = () => {
+    if (fetchDebounceRef.current) clearTimeout(fetchDebounceRef.current);
+    fetchDebounceRef.current = setTimeout(() => fetchThreads(), 400);
+  };
 
   useEffect(() => {
     if (user) {
@@ -62,13 +68,14 @@ function MessagesListContent() {
 
       const messagesChannel = supabase
         .channel('messages-list-updates')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, fetchThreads)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'thread_participants' }, fetchThreads)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'threads' }, fetchThreads)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, debouncedFetchThreads)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'thread_participants' }, debouncedFetchThreads)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'threads' }, debouncedFetchThreads)
         .subscribe();
 
       return () => {
         supabase.removeChannel(messagesChannel);
+        if (fetchDebounceRef.current) clearTimeout(fetchDebounceRef.current);
       };
     }
   }, [user]);
