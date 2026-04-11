@@ -407,6 +407,7 @@ export default function ServicesPage() {
     {shareModalPostId && (
       <SharePostModal
         postId={shareModalPostId}
+        urlPath={`/services/${shareModalPostId}`}
         open={!!shareModalPostId}
         onOpenChange={(open) => { if (!open) setShareModalPostId(null); }}
       />

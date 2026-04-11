@@ -730,6 +730,7 @@ export default function ServiceDetailPage({ params }: { params: { serviceId: str
 
           <SharePostModal
             postId={service.id}
+            urlPath={`/services/${service.id}`}
             open={showShareModal}
             onOpenChange={setShowShareModal}
           />

@@ -13,6 +13,8 @@ type SharePostModalProps = {
   postId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Override the URL path, e.g. '/services/123'. Defaults to '/posts/postId' */
+  urlPath?: string;
 };
 
 type UserResult = {
@@ -28,7 +30,7 @@ const WhatsAppIcon = () => (
   </svg>
 );
 
-export function SharePostModal({ postId, open, onOpenChange }: SharePostModalProps) {
+export function SharePostModal({ postId, open, onOpenChange, urlPath }: SharePostModalProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
   const [copied, setCopied] = useState(false);
@@ -38,7 +40,7 @@ export function SharePostModal({ postId, open, onOpenChange }: SharePostModalPro
   const [searching, setSearching] = useState(false);
   const [sendingTo, setSendingTo] = useState<string | null>(null);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const postUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/posts/${postId}`;
+  const postUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}${urlPath ?? `/posts/${postId}`}`;
 
   useEffect(() => {
     if (typeof navigator !== 'undefined' && 'share' in navigator) setCanShare(true);
