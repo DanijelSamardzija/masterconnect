@@ -13,7 +13,8 @@ import { ProfessionalBadge } from '@/components/professional-badge';
 import { PostReactions } from '@/components/post-reactions';
 import { PostCommentsButton } from '@/components/post-comments-button';
 import { ReviewsModal } from '@/components/reviews-modal';
-import { SERBIAN_CATEGORIES } from '@/lib/constants';
+import { APP_CATEGORIES } from '@/lib/constants';
+import { useLanguage } from '@/lib/contexts/language-context';
 import { findOrCreateThread } from '@/lib/thread-utils';
 import { toast } from 'sonner';
 
@@ -84,6 +85,7 @@ export function LegacyPostCard({
   showPinOption = false
 }: LegacyPostCardProps) {
   const router = useRouter();
+  const { t } = useLanguage();
   const [sendingMessage, setSendingMessage] = useState(false);
   const [showReviewsModal, setShowReviewsModal] = useState(false);
   const isOwnPost = currentUserId === post.user_id;
@@ -413,14 +415,9 @@ export function LegacyPostCard({
         {(post.category || post.city) && (
           <div className="flex items-center gap-1 text-sm text-slate-600 dark:text-gray-300">
             {post.category && (() => {
-              const categoryData = SERBIAN_CATEGORIES.find(
-                c => c.value === post.category || c.normalized === post.category_normalized
-              );
-              return categoryData ? (
-                <span className="font-medium capitalize">{categoryData.label}</span>
-              ) : (
-                <span className="font-medium capitalize">{post.category}</span>
-              );
+              const catData = APP_CATEGORIES.find(c => c.slug === post.category);
+              const label = catData ? t(`category.${catData.slug}`) : post.category;
+              return <span className="font-medium capitalize">{label}</span>;
             })()}
             {post.category && post.city && <span>•</span>}
             {post.city && (

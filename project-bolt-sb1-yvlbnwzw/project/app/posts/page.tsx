@@ -15,7 +15,7 @@ import { Image as ImageIcon, Video, X, Send, Loader2, Search, SlidersHorizontal 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { uploadFile as uploadFileUtil, validateFile } from '@/lib/attachment-utils';
-import { SERBIAN_CATEGORIES, SERBIAN_CITIES } from '@/lib/constants';
+import { SERBIAN_CITIES } from '@/lib/constants';
 import { CategoryCombobox } from '@/components/category-combobox';
 import { CityAutocomplete } from '@/components/city-autocomplete';
 

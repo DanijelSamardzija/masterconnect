@@ -14,7 +14,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CityAutocomplete } from '@/components/city-autocomplete';
 import { CategoryCombobox } from '@/components/category-combobox';
-import { SERBIAN_CATEGORIES } from '@/lib/constants';
 import { Switch } from '@/components/ui/switch';
 import { Loader2, Upload, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
