@@ -87,12 +87,13 @@ export function ApplicationMessageCard({
   const handleRespond = async (newStatus: 'accepted' | 'declined') => {
     if (!data.applicationId) return;
     setResponding(true);
-    const { error } = await supabase
+    const { data: updated, error } = await supabase
       .from('job_applications')
       .update({ status: newStatus })
-      .eq('id', data.applicationId);
+      .eq('id', data.applicationId)
+      .select('id');
 
-    if (error) {
+    if (error || !updated || updated.length === 0) {
       toast.error('Greška / Error');
       setResponding(false);
       return;
