@@ -21,17 +21,21 @@ export async function findOrCreateThread(params: {
   try {
     const { customerId, proId, jobId } = params;
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
       return { threadId: null, error: 'Not authenticated' };
     }
 
     const threadType = jobId ? 'job' : 'direct';
 
+    // Filter directly by both users — avoids fetching all threads and hitting row limits
     let query = supabase
       .from('threads')
-      .select('id, user1_id, user2_id')
-      .eq('thread_type', threadType);
+      .select('id')
+      .eq('thread_type', threadType)
+      .or(
+        `and(user1_id.eq.${customerId},user2_id.eq.${proId}),and(user1_id.eq.${proId},user2_id.eq.${customerId})`
+      );
 
     if (jobId) {
       query = query.eq('job_id', jobId);
@@ -39,20 +43,14 @@ export async function findOrCreateThread(params: {
       query = query.is('job_id', null);
     }
 
-    const { data: allThreads, error: searchError } = await query;
+    const { data: existingThreads, error: searchError } = await query.limit(1);
 
     if (searchError) {
       return { threadId: null, error: searchError.message };
     }
 
-    for (const thread of allThreads || []) {
-      const isMatch =
-        (thread.user1_id === customerId && thread.user2_id === proId) ||
-        (thread.user1_id === proId && thread.user2_id === customerId);
-
-      if (isMatch) {
-        return { threadId: thread.id, error: null, isNewThread: false };
-      }
+    if (existingThreads && existingThreads.length > 0) {
+      return { threadId: existingThreads[0].id, error: null, isNewThread: false };
     }
 
     const { data: newThread, error: createError } = await supabase
@@ -67,6 +65,13 @@ export async function findOrCreateThread(params: {
       .single();
 
     if (createError) {
+      // If unique constraint violation, the thread was created concurrently — fetch it
+      if (createError.code === '23505') {
+        const { data: retryThreads } = await query;
+        if (retryThreads && retryThreads.length > 0) {
+          return { threadId: retryThreads[0].id, error: null, isNewThread: false };
+        }
+      }
       return { threadId: null, error: createError.message };
     }
 
