@@ -56,6 +56,14 @@ export function Navigation() {
     pathname === '/login' || pathname === '/forgot-password' || pathname === '/reset-password';
   const isLandingPage = pathname === '/';
 
+  // Close mobile menu on route change to prevent Radix body pointer-events lock
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    // Remove any leftover body styles from Radix UI
+    document.body.style.pointerEvents = '';
+    document.body.style.overflow = '';
+  }, [pathname]);
+
   useEffect(() => {
     if (profile) {
       fetchUnreadCount();
