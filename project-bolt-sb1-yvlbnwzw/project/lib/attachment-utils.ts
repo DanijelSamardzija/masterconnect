@@ -156,7 +156,6 @@ export const uploadVideoToCloudinary = async (
     formData.append('timestamp', String(timestamp));
     formData.append('signature', signature);
     formData.append('folder', folder);
-    formData.append('transformation', 'q_auto:good,vc_mp4');
 
     onProgress?.(10);
 
