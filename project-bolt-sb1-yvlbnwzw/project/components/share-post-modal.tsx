@@ -98,7 +98,7 @@ export function SharePostModal({ postId, open, onOpenChange, urlPath }: SharePos
     try {
       const { threadId, error } = await findOrCreateThread({ customerId: user.id, proId: recipient.id });
       if (error || !threadId) throw new Error(error || 'No thread');
-      const { error: msgError } = await supabase.from('messages').insert({ thread_id: threadId, sender_id: user.id, text: postUrl });
+      const { error: msgError } = await supabase.from('messages').insert({ thread_id: threadId, sender_id: user.id, receiver_id: recipient.id, text: postUrl });
       if (msgError) throw msgError;
       toast.success(t('share.sentToast'));
       onOpenChange(false);
