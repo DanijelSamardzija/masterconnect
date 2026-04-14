@@ -1101,6 +1101,7 @@ export default {
   'search.noResults': 'Nema rezultata',
   'search.professional': 'Profesionalac',
   'search.customer': 'Korisnik',
+  'search.users': 'Korisnici',
   'search.service': 'Usluga',
   'search.job': 'Posao',
 

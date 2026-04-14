@@ -1101,6 +1101,7 @@ export default {
   'search.noResults': 'No results found',
   'search.professional': 'Professional',
   'search.customer': 'Customer',
+  'search.users': 'Users',
   'search.service': 'Service',
   'search.job': 'Job',
 

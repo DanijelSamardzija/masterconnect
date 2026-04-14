@@ -1097,6 +1097,7 @@ export default {
   'search.noResults': 'Keine Ergebnisse gefunden',
   'search.professional': 'Fachmann',
   'search.customer': 'Kunde',
+  'search.users': 'Benutzer',
   'search.service': 'Dienstleistung',
   'search.job': 'Job',
 

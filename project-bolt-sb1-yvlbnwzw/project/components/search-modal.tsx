@@ -11,6 +11,7 @@ import { Search, User, Briefcase, Wrench, Loader2 } from 'lucide-react';
 type SearchResult = {
   id: string;
   type: 'professional' | 'service' | 'job';
+  account_type?: string;
   title: string;
   subtitle: string;
   avatar?: string;
@@ -73,8 +74,9 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
         all.push({
           id: p.id,
           type: 'professional',
+          account_type: p.account_type,
           title: p.name,
-          subtitle: p.category || (p.account_type === 'customer' ? t('search.customer') : t('search.professional')),
+          subtitle: p.category || '',
           avatar: p.avatar_url,
           path: `/profile/${p.id}`,
         });
@@ -119,8 +121,8 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
     return <Briefcase className="h-4 w-4 text-green-500" />;
   };
 
-  const labelFor = (type: SearchResult['type']) => {
-    if (type === 'professional') return t('search.professional');
+  const labelFor = (type: SearchResult['type'], account_type?: string) => {
+    if (type === 'professional') return account_type === 'customer' ? t('search.customer') : t('search.professional');
     if (type === 'service') return t('search.service');
     return t('search.job');
   };
@@ -164,7 +166,7 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
                 return (
                   <div key={type}>
                     <p className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      {labelFor(type)}
+                      {type === 'professional' ? t('search.users') : labelFor(type)}
                     </p>
                     {group.map(result => (
                       <button
@@ -189,7 +191,7 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
                           <p className="text-xs text-muted-foreground truncate">{result.subtitle}</p>
                         </div>
                         <span className="text-xs text-muted-foreground shrink-0 bg-muted px-2 py-0.5 rounded-full">
-                          {labelFor(result.type)}
+                          {labelFor(result.type, result.account_type)}
                         </span>
                       </button>
                     ))}
