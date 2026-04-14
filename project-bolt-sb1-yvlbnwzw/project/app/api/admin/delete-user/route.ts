@@ -51,17 +51,17 @@ export async function POST(request: NextRequest) {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // Delete from auth.users — this cascades to profiles via DB trigger/FK
-    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
-    if (deleteError) {
-      // If auth user not found, still try to clean up profile
-      if (!deleteError.message.includes('not found')) {
-        return NextResponse.json({ error: deleteError.message }, { status: 500 });
-      }
+    // Step 1: clean up all user data (posts, messages, reactions, etc.)
+    const { error: rpcError } = await supabaseAdmin.rpc('admin_delete_user_account', { target_user_id: userId });
+    if (rpcError) {
+      return NextResponse.json({ error: 'Cleanup failed: ' + rpcError.message }, { status: 500 });
     }
 
-    // Also delete profile row explicitly (in case no cascade)
-    await supabaseAdmin.from('profiles').delete().eq('id', userId);
+    // Step 2: delete from auth.users
+    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    if (deleteError && !deleteError.message.toLowerCase().includes('not found')) {
+      return NextResponse.json({ error: deleteError.message }, { status: 500 });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
