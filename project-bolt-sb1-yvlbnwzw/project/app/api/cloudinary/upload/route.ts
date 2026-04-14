@@ -30,10 +30,10 @@ export async function POST(req: NextRequest) {
         {
           resource_type: 'video',
           folder,
+          format: 'mp4',
           transformation: [
-            { duration: '60' },       // max 60 seconds
-            { quality: 'auto:good' }, // auto compress
-            { fetch_format: 'mp4' },  // convert to mp4
+            { duration: '60' },
+            { quality: 'auto:good' },
           ],
         },
         (error, result) => {

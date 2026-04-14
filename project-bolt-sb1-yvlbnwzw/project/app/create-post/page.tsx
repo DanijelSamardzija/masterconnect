@@ -13,7 +13,7 @@ import { CityAutocomplete } from '@/components/city-autocomplete';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { ArrowLeft, Image as ImageIcon, Video, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { uploadFile as uploadFileUtil, validateFile } from '@/lib/attachment-utils';
+import { uploadFile as uploadFileUtil, uploadVideoToCloudinary, validateFile } from '@/lib/attachment-utils';
 
 function CreatePostContent() {
   const router = useRouter();
@@ -115,15 +115,25 @@ function CreatePostContent() {
 
         for (let i = 0; i < selectedFiles.length; i++) {
           const file = selectedFiles[i];
-          const uploadResult = await uploadFileUtil(file, session.user.id, undefined, 'post-media');
+          const isVideo = !file.type.startsWith('image/');
 
-          if (uploadResult) {
-            const mediaType = file.type.startsWith('image/') ? 'image' : 'video';
+          let uploadedUrl: string | null = null;
+
+          if (isVideo) {
+            // Videos go through Cloudinary for proper streaming support
+            const cloudResult = await uploadVideoToCloudinary(file, 'gigzone/posts');
+            uploadedUrl = cloudResult?.url ?? null;
+          } else {
+            const storageResult = await uploadFileUtil(file, session.user.id, undefined, 'post-media');
+            uploadedUrl = storageResult?.url ?? null;
+          }
+
+          if (uploadedUrl) {
             mediaItems.push({
               post_id: postData.id,
-              type: mediaType,
-              url: uploadResult.url,
-              order: i
+              type: isVideo ? 'video' : 'image',
+              url: uploadedUrl,
+              order: i,
             });
           } else {
             toast.error(`Failed to upload ${file.name}`);
