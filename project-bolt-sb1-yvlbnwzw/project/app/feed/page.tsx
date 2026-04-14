@@ -1087,11 +1087,9 @@ function FeedContent() {
                         />
                       )}
 
-                      {/* Swipe hint arrow — visible until user swipes */}
+                      {/* Swipe hint arrow — visible until user swipes, above action buttons */}
                       {!swipedPosts.has(post.id) && currentIndex === 0 && (
-                        <div className="pointer-events-none absolute right-3 z-50"
-                          style={{ bottom: 'calc(6rem + 48px)' }}
-                        >
+                        <div className="pointer-events-none absolute right-3 z-50 bottom-[calc(6rem+320px)]">
                           <div className="flex items-center justify-center w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 animate-[swipeHint_1.5s_ease-in-out_infinite]">
                             <ChevronRight className="h-5 w-5 text-white" />
                           </div>
@@ -1141,7 +1139,7 @@ function FeedContent() {
                     </div>
                   )}
 
-                  <div className="absolute bottom-24 right-3 flex flex-col items-center gap-4">
+                  <div className="absolute bottom-24 right-3 z-40 flex flex-col items-center gap-4">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
