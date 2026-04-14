@@ -10,7 +10,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { APP_CATEGORIES } from '@/lib/constants';
 
@@ -113,7 +112,7 @@ export function CategoryCombobox({
               autoFocus
             />
           </div>
-          <ScrollArea className="max-h-[min(400px,60vh)]">
+          <div className="overflow-y-auto" style={{ maxHeight: 'min(360px, 55vh)' }}>
             {options.length === 0 && !showAllOption ? (
               <div className="py-6 px-4 text-center text-sm text-muted-foreground">
                 No categories found
@@ -150,7 +149,7 @@ export function CategoryCombobox({
                 ))}
               </div>
             )}
-          </ScrollArea>
+          </div>
         </div>
       </PopoverContent>
     </Popover>
