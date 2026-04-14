@@ -467,11 +467,24 @@ function AdminContent() {
 
   const handleDeleteUser = async (userId: string, name: string) => {
     if (!confirm(`Obrisati korisnika "${name}"? Ova akcija je nepovratna.`)) return;
-    const { error } = await supabase.from('profiles').delete().eq('id', userId);
-    if (error) { toast.error('Greška pri brisanju'); return; }
-    toast.success(`Korisnik "${name}" obrisan`);
-    setUsers(prev => prev.filter(u => u.id !== userId));
-    fetchStats();
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch('/api/admin/delete-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token ?? ''}`,
+        },
+        body: JSON.stringify({ userId }),
+      });
+      const json = await res.json();
+      if (!res.ok) { toast.error('Greška pri brisanju: ' + (json.error ?? res.status)); return; }
+      toast.success(`Korisnik "${name}" obrisan`);
+      setUsers(prev => prev.filter(u => u.id !== userId));
+      fetchStats();
+    } catch (e: any) {
+      toast.error('Greška pri brisanju: ' + e.message);
+    }
   };
 
   const handleToggleBan = async (userId: string, name: string, currentlyBanned: boolean) => {
