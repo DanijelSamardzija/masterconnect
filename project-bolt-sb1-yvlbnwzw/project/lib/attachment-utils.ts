@@ -132,33 +132,63 @@ export const deleteFile = async (
 
 export const uploadVideoToCloudinary = async (
   file: File,
-  folder: string = 'gigzone/videos',
+  folder: string = 'gigzone/posts',
   onProgress?: (progress: number) => void
 ): Promise<{ url: string; public_id: string } | null> => {
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('folder', folder);
-
   try {
-    // Simulate progress since fetch doesn't support upload progress easily
-    onProgress?.(10);
-
-    const response = await fetch('/api/cloudinary/upload', {
+    // Step 1: get upload signature from server (tiny request, no file data)
+    onProgress?.(5);
+    const signRes = await fetch('/api/cloudinary/sign', {
       method: 'POST',
-      body: formData,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ folder }),
     });
-
-    onProgress?.(90);
-
-    if (!response.ok) {
-      const err = await response.json();
-      console.error('[Cloudinary Upload Error]', err);
+    if (!signRes.ok) {
+      console.error('[Cloudinary] Failed to get signature');
       return null;
     }
+    const { signature, timestamp, api_key, cloud_name } = await signRes.json();
 
-    const data = await response.json();
-    onProgress?.(100);
-    return { url: data.url, public_id: data.public_id };
+    // Step 2: upload directly from browser to Cloudinary (bypasses Vercel 4.5MB limit)
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('api_key', api_key);
+    formData.append('timestamp', String(timestamp));
+    formData.append('signature', signature);
+    formData.append('folder', folder);
+    formData.append('transformation', 'q_auto:good,vc_mp4');
+
+    onProgress?.(10);
+
+    return await new Promise((resolve) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloud_name}/video/upload`);
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const pct = Math.round((e.loaded / e.total) * 90) + 10;
+          onProgress?.(pct);
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status === 200) {
+          const data = JSON.parse(xhr.responseText);
+          onProgress?.(100);
+          resolve({ url: data.secure_url, public_id: data.public_id });
+        } else {
+          console.error('[Cloudinary] Upload failed:', xhr.responseText);
+          resolve(null);
+        }
+      };
+
+      xhr.onerror = () => {
+        console.error('[Cloudinary] XHR error');
+        resolve(null);
+      };
+
+      xhr.send(formData);
+    });
   } catch (error) {
     console.error('[Cloudinary Upload Error]', error);
     return null;
