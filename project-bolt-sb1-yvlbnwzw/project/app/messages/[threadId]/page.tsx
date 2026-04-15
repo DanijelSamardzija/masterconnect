@@ -1362,7 +1362,7 @@ function MessagesContent() {
 
                     {/* Typing indicator */}
                     {otherUserTyping && (
-                      <div className="flex items-end gap-2 mb-4 animate-in fade-in duration-200">
+                      <div className="flex items-end gap-2 mb-16 animate-in fade-in duration-200">
                         <Avatar className="h-8 w-8 flex-shrink-0">
                           <AvatarImage src={(otherPerson as any)?.avatar_url || undefined} />
                           <AvatarFallback className="bg-gray-300 text-xs text-gray-700 dark:bg-gray-700 dark:text-gray-100">
