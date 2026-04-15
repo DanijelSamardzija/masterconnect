@@ -167,6 +167,7 @@ function MessagesContent() {
   const [otherUserTyping, setOtherUserTyping] = useState(false);
   const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingThrottleRef = useRef<NodeJS.Timeout | null>(null);
 
   const threadId = params.threadId as string;
 
@@ -733,8 +734,9 @@ function MessagesContent() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMessage(e.target.value);
-    if (typingChannelRef.current && user) {
+    if (typingChannelRef.current && user && !typingThrottleRef.current) {
       typingChannelRef.current.send({ type: 'broadcast', event: 'typing', payload: { user_id: user.id } });
+      typingThrottleRef.current = setTimeout(() => { typingThrottleRef.current = null; }, 1000);
     }
   };
 
