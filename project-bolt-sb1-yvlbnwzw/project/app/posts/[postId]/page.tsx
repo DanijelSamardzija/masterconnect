@@ -292,7 +292,7 @@ function SinglePostContent() {
 
   const handleBack = () => {
     if (window.history.length > 1) {
-      handleBack();
+      router.back();
     } else {
       router.push('/feed');
     }
