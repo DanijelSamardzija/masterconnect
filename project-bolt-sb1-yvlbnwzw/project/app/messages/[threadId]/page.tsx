@@ -745,8 +745,11 @@ function MessagesContent() {
   };
 
   const sendTypingEvent = () => {
-    if (typingChannelRef.current && user) {
-      typingChannelRef.current.send({ type: 'broadcast', event: 'typing', payload: { user_id: user.id } });
+    if (!user) return;
+    // Find channel by name - works even if ref is stale
+    const ch = supabase.getChannels().find(c => c.topic === `realtime:typing:${threadId}`);
+    if (ch) {
+      ch.send({ type: 'broadcast', event: 'typing', payload: { user_id: user.id } });
     }
   };
 
