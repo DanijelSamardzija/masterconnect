@@ -34,6 +34,24 @@ export async function POST(request: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
+  // If this is a message notification, skip if the user already read the message
+  // (means they are actively in the conversation)
+  if (meta?.thread_id) {
+    const since = new Date(Date.now() - 10000).toISOString(); // 10 seconds ago
+    const { data: unread } = await supabase
+      .from('messages')
+      .select('id')
+      .eq('thread_id', meta.thread_id)
+      .neq('sender_id', user_id)
+      .is('read_at', null)
+      .gt('created_at', since)
+      .limit(1);
+
+    if (!unread || unread.length === 0) {
+      return NextResponse.json({ skipped: 'user is active in conversation' });
+    }
+  }
+
   // Get all push subscriptions for this user
   const { data: subscriptions } = await supabase
     .from('push_subscriptions')
