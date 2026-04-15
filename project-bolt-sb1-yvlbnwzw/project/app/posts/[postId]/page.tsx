@@ -324,13 +324,66 @@ function SinglePostContent() {
             Back
           </Button>
 
-          <div className="w-full max-w-lg mx-auto h-[calc(100vh-14rem)] relative bg-black rounded-lg overflow-hidden">
+          <div className="w-full max-w-lg mx-auto h-[calc(100vh-14rem)] relative bg-black rounded-lg overflow-hidden"
+            onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+            onTouchMove={(e) => { touchEndX.current = e.touches[0].clientX; }}
+            onTouchEnd={() => {
+              if (touchStartX.current === null || touchEndX.current === null) return;
+              const diff = touchStartX.current - touchEndX.current;
+              if (Math.abs(diff) > 50) {
+                if (diff > 0 && currentMediaIndex < post.media.length - 1) setCurrentMediaIndex(p => p + 1);
+                else if (diff < 0 && currentMediaIndex > 0) setCurrentMediaIndex(p => p - 1);
+              }
+              touchStartX.current = null;
+              touchEndX.current = null;
+            }}
+          >
             {post.media && post.media.length > 0 ? (
-              <FeedMedia
-                type={post.media[0].type}
-                src={post.media[0].url}
-                alt="Post media"
-              />
+              <>
+                <FeedMedia
+                  type={post.media[currentMediaIndex].type}
+                  src={post.media[currentMediaIndex].url}
+                  alt="Post media"
+                />
+
+                {/* Prev/Next arrows */}
+                {currentMediaIndex > 0 && (
+                  <button
+                    onClick={() => setCurrentMediaIndex(p => p - 1)}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1.5 z-10"
+                  >
+                    <ChevronLeft className="h-6 w-6" />
+                  </button>
+                )}
+                {currentMediaIndex < post.media.length - 1 && (
+                  <button
+                    onClick={() => setCurrentMediaIndex(p => p + 1)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1.5 z-10"
+                  >
+                    <ChevronRight className="h-6 w-6" />
+                  </button>
+                )}
+
+                {/* Indicator dots */}
+                {post.media.length > 1 && (
+                  <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 z-10">
+                    {post.media.map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setCurrentMediaIndex(i)}
+                        className={`h-2 rounded-full transition-all ${i === currentMediaIndex ? 'w-6 bg-white' : 'w-2 bg-white/50'}`}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* Counter */}
+                {post.media.length > 1 && (
+                  <div className="absolute top-4 right-4 bg-black/50 text-white text-sm px-3 py-1 rounded-full z-10">
+                    {currentMediaIndex + 1} / {post.media.length}
+                  </div>
+                )}
+              </>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center p-8 bg-black">
                 <p className="text-white text-xl text-center">{post.text || 'No content'}</p>
