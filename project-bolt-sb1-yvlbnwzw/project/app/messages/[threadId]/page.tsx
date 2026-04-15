@@ -141,6 +141,7 @@ function MessagesContent() {
 
   const [thread, setThread] = useState<ThreadDetails | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const messagesRef = useRef<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -489,7 +490,19 @@ function MessagesContent() {
         attachments: attachmentsData?.filter((att: any) => att.message_id === msg.id) || [],
       }));
 
-      setMessages(messagesWithAttachments as any);
+      // Only update state if messages actually changed - avoids re-renders that break typing indicator
+      const prev = messagesRef.current;
+      const changed =
+        prev.length !== messagesWithAttachments.length ||
+        messagesWithAttachments.some((m: any, i: number) => {
+          const p = prev[i] as any;
+          return !p || p.id !== m.id || p.is_deleted !== m.is_deleted || (p.offer?.status !== m.offer?.status);
+        });
+
+      if (changed) {
+        messagesRef.current = messagesWithAttachments as any;
+        setMessages(messagesWithAttachments as any);
+      }
     }
   };
 
