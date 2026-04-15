@@ -219,27 +219,8 @@ function SinglePostContent() {
   };
 
   if (loading) {
-    console.log('[PostDetail] Rendering loading state');
     return (
-      <div className="min-h-screen bg-slate-50 py-8">
-        <div className="container mx-auto px-4 max-w-3xl">
-          <Skeleton className="h-8 w-32 mb-6" />
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <Skeleton className="h-10 w-10 rounded-full" />
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-3 w-24" />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-24 w-full" />
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <div className="min-h-screen bg-background" />
     );
   }
 

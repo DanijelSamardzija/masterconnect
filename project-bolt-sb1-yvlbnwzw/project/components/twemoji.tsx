@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import twemoji from 'twemoji';
 
 interface TwemojiProps {
@@ -69,7 +70,19 @@ interface MessageTextProps {
   linkClassName?: string;
 }
 
+const INTERNAL_HOSTS = ['gigzone.app', 'www.gigzone.app'];
+
+function isInternalUrl(url: string): boolean {
+  try {
+    const host = new URL(url).hostname;
+    return INTERNAL_HOSTS.includes(host);
+  } catch {
+    return false;
+  }
+}
+
 export function MessageText({ text, className, linkClassName }: MessageTextProps) {
+  const router = useRouter();
   const parts: Array<{ type: 'text' | 'url'; value: string }> = [];
   let lastIndex = 0;
   const regex = new RegExp(URL_REGEX.source, URL_REGEX.flags);
@@ -93,22 +106,30 @@ export function MessageText({ text, className, linkClassName }: MessageTextProps
 
   return (
     <span className={className}>
-      {parts.map((part, i) =>
-        part.type === 'url' ? (
+      {parts.map((part, i) => {
+        if (part.type !== 'url') return <TwemojiText key={i} text={part.value} />;
+
+        const internal = isInternalUrl(part.value);
+        return (
           <a
             key={i}
             href={part.value}
-            target="_blank"
-            rel="noopener noreferrer"
+            target={internal ? '_self' : '_blank'}
+            rel={internal ? undefined : 'noopener noreferrer'}
             className={linkClassName ?? 'underline break-all'}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (internal) {
+                e.preventDefault();
+                const path = new URL(part.value).pathname + new URL(part.value).search;
+                router.push(path);
+              }
+            }}
           >
             {part.value}
           </a>
-        ) : (
-          <TwemojiText key={i} text={part.value} />
-        )
-      )}
+        );
+      })}
     </span>
   );
 }
