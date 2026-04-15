@@ -41,7 +41,7 @@ import { VideoMessage, ImageMessage } from '@/components/video-message';
 import { toast } from 'sonner';
 import { EmojiPicker } from '@/components/emoji-picker';
 import { addRecentEmoji, loadRecentEmojisFromDatabase, syncRecentEmojisToDatabase } from '@/lib/emoji-tracking';
-import { TwemojiText } from '@/components/twemoji';
+import { TwemojiText, MessageText } from '@/components/twemoji';
 import { ReviewModal } from '@/components/review-modal';
 import { BlockUserModal } from '@/components/block-user-modal';
 import { OfferCard } from '@/components/offer-card';
@@ -1244,7 +1244,13 @@ function MessagesContent() {
                                         : 'border border-gray-200/80 bg-white text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100'
                                     }`}>
                                       <p className="break-words whitespace-pre-wrap text-[15px] leading-relaxed">
-                                        <TwemojiText text={realText} />
+                                        <MessageText
+                                          text={realText}
+                                          linkClassName={isOwn
+                                            ? 'underline text-white/90 break-all'
+                                            : 'underline text-blue-500 dark:text-blue-400 break-all'
+                                          }
+                                        />
                                       </p>
                                     </div>
                                   )}

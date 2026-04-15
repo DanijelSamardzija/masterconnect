@@ -60,3 +60,55 @@ export function TwemojiText({ text, className }: TwemojiTextProps) {
     />
   );
 }
+
+const URL_REGEX = /https?:\/\/[^\s<>"{}|\\^`[\]]+/gi;
+
+interface MessageTextProps {
+  text: string;
+  className?: string;
+  linkClassName?: string;
+}
+
+export function MessageText({ text, className, linkClassName }: MessageTextProps) {
+  const parts: Array<{ type: 'text' | 'url'; value: string }> = [];
+  let lastIndex = 0;
+  const regex = new RegExp(URL_REGEX.source, URL_REGEX.flags);
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push({ type: 'text', value: text.slice(lastIndex, match.index) });
+    }
+    parts.push({ type: 'url', value: match[0] });
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push({ type: 'text', value: text.slice(lastIndex) });
+  }
+
+  if (parts.length === 0) {
+    return <TwemojiText text={text} className={className} />;
+  }
+
+  return (
+    <span className={className}>
+      {parts.map((part, i) =>
+        part.type === 'url' ? (
+          <a
+            key={i}
+            href={part.value}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClassName ?? 'underline break-all'}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {part.value}
+          </a>
+        ) : (
+          <TwemojiText key={i} text={part.value} />
+        )
+      )}
+    </span>
+  );
+}
