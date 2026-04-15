@@ -162,6 +162,7 @@ function MessagesContent() {
   const [hasMarkedAsRead, setHasMarkedAsRead] = useState(false);
   const [hiddenAt, setHiddenAt] = useState<string | null>(null);
   const hiddenAtRef = useRef<string | null>(null);
+  const fetchMessagesRef = useRef<() => Promise<void>>(async () => {});
   const [otherUserTyping, setOtherUserTyping] = useState(false);
   const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -250,7 +251,7 @@ function MessagesContent() {
               setOtherUserTyping(false);
               if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
             }
-            fetchMessages();
+            fetchMessagesRef.current();
           }
         )
         .on(
@@ -262,7 +263,7 @@ function MessagesContent() {
             filter: `conversation_id=eq.${threadId}`,
           },
           () => {
-            fetchMessages();
+            fetchMessagesRef.current();
           }
         )
         .subscribe();
@@ -271,7 +272,7 @@ function MessagesContent() {
         supabase.removeChannel(messagesChannel);
       };
     }
-  }, [threadId, user, hiddenAt]);
+  }, [threadId, user]);
 
   useEffect(() => {
     const loadRecentEmojis = async () => {
@@ -483,6 +484,9 @@ function MessagesContent() {
       setMessages(messagesWithAttachments as any);
     }
   };
+
+  // Keep ref always pointing to latest fetchMessages so subscription never goes stale
+  fetchMessagesRef.current = fetchMessages;
 
   const handleDeleteMessage = async (messageId: string) => {
     setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
