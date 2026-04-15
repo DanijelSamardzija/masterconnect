@@ -230,16 +230,18 @@ function MessagesContent() {
           typingTimeoutRef.current = setTimeout(() => setOtherUserTyping(false), 3000);
         }
       })
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          typingChannelRef.current = ch;
-        }
-      });
+      .subscribe();
+
+    // Set ref immediately - send() will be ignored silently if not yet subscribed,
+    // but interval will retry every 2s so it will eventually go through
+    typingChannelRef.current = ch;
 
     return () => {
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       if (typingThrottleRef.current) clearTimeout(typingThrottleRef.current);
       if (typingIntervalRef.current) clearInterval(typingIntervalRef.current);
+      typingIntervalRef.current = null;
+      typingThrottleRef.current = null;
       typingChannelRef.current = null;
       supabase.removeChannel(ch);
     };
