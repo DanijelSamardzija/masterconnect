@@ -34,21 +34,23 @@ export async function POST(request: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  // If this is a message notification, skip if the user already read the message
-  // (means they are actively in the conversation)
+  // If this is a message notification, check if user is actively in the conversation
+  // by looking at thread_participants.last_read_at (updated every time user is in the thread)
   if (meta?.thread_id) {
-    const since = new Date(Date.now() - 10000).toISOString(); // 10 seconds ago
-    const { data: unread } = await supabase
-      .from('messages')
-      .select('id')
+    const { data: participant } = await supabase
+      .from('thread_participants')
+      .select('last_read_at')
       .eq('thread_id', meta.thread_id)
-      .neq('sender_id', user_id)
-      .is('read_at', null)
-      .gt('created_at', since)
-      .limit(1);
+      .eq('user_id', user_id)
+      .maybeSingle();
 
-    if (!unread || unread.length === 0) {
-      return NextResponse.json({ skipped: 'user is active in conversation' });
+    if (participant?.last_read_at) {
+      const lastRead = new Date(participant.last_read_at).getTime();
+      const now = Date.now();
+      // If user read something in this thread in the last 30 seconds, they're active
+      if (now - lastRead < 30000) {
+        return NextResponse.json({ skipped: 'user is active in conversation' });
+      }
     }
   }
 

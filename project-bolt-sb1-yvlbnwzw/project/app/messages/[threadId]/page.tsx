@@ -242,8 +242,8 @@ function MessagesContent() {
       if (typingIntervalRef.current) clearInterval(typingIntervalRef.current);
       typingIntervalRef.current = null;
       typingThrottleRef.current = null;
-      typingChannelRef.current = null;
       supabase.removeChannel(ch);
+      typingChannelRef.current = null;
     };
   }, [threadId, user]);
 
@@ -745,12 +745,8 @@ function MessagesContent() {
   };
 
   const sendTypingEvent = () => {
-    if (!user) return;
-    // Find channel by name - works even if ref is stale
-    const ch = supabase.getChannels().find(c => c.topic === `realtime:typing:${threadId}`);
-    if (ch) {
-      ch.send({ type: 'broadcast', event: 'typing', payload: { user_id: user.id } });
-    }
+    if (!user || !typingChannelRef.current) return;
+    typingChannelRef.current.send({ type: 'broadcast', event: 'typing', payload: { user_id: user.id } });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
