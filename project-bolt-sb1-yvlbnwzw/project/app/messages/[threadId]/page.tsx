@@ -234,44 +234,52 @@ function MessagesContent() {
   }, [threadId, user]);
 
   useEffect(() => {
-    if (threadId && user) {
-      const messagesChannel = supabase
-        .channel(`thread:${threadId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'messages',
-            filter: `thread_id=eq.${threadId}`,
-          },
-          (payload: any) => {
-            if (payload.eventType === 'INSERT') {
-              setHasMarkedAsRead(false);
-              setOtherUserTyping(false);
-              if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-            }
-            fetchMessagesRef.current();
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'offers',
-            filter: `conversation_id=eq.${threadId}`,
-          },
-          () => {
-            fetchMessagesRef.current();
-          }
-        )
-        .subscribe();
+    if (!threadId || !user) return;
 
-      return () => {
-        supabase.removeChannel(messagesChannel);
-      };
-    }
+    const messagesChannel = supabase
+      .channel(`thread:${threadId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'messages',
+          filter: `thread_id=eq.${threadId}`,
+        },
+        (payload: any) => {
+          if (payload.eventType === 'INSERT') {
+            setHasMarkedAsRead(false);
+            setOtherUserTyping(false);
+            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+          }
+          fetchMessagesRef.current();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'offers',
+          filter: `conversation_id=eq.${threadId}`,
+        },
+        () => {
+          fetchMessagesRef.current();
+        }
+      )
+      .subscribe((status) => {
+        console.log('[Realtime] channel status:', status);
+      });
+
+    // Fallback polling every 3s in case realtime is not working
+    const pollInterval = setInterval(() => {
+      fetchMessagesRef.current();
+    }, 3000);
+
+    return () => {
+      supabase.removeChannel(messagesChannel);
+      clearInterval(pollInterval);
+    };
   }, [threadId, user]);
 
   useEffect(() => {
