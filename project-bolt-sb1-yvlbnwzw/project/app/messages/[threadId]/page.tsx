@@ -168,6 +168,7 @@ function MessagesContent() {
   const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const typingThrottleRef = useRef<NodeJS.Timeout | null>(null);
+  const typingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const threadId = params.threadId as string;
 
@@ -225,12 +226,17 @@ function MessagesContent() {
           typingTimeoutRef.current = setTimeout(() => setOtherUserTyping(false), 3000);
         }
       })
-      .subscribe();
-
-    typingChannelRef.current = ch;
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          typingChannelRef.current = ch;
+        }
+      });
 
     return () => {
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      if (typingThrottleRef.current) clearTimeout(typingThrottleRef.current);
+      if (typingIntervalRef.current) clearInterval(typingIntervalRef.current);
+      typingChannelRef.current = null;
       supabase.removeChannel(ch);
     };
   }, [threadId, user]);
@@ -732,11 +738,40 @@ function MessagesContent() {
     }, 0);
   };
 
+  const sendTypingEvent = () => {
+    if (typingChannelRef.current && user) {
+      typingChannelRef.current.send({ type: 'broadcast', event: 'typing', payload: { user_id: user.id } });
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMessage(e.target.value);
-    if (typingChannelRef.current && user && !typingThrottleRef.current) {
-      typingChannelRef.current.send({ type: 'broadcast', event: 'typing', payload: { user_id: user.id } });
-      typingThrottleRef.current = setTimeout(() => { typingThrottleRef.current = null; }, 1000);
+
+    if (!typingThrottleRef.current) {
+      // First keystroke - send immediately and start interval
+      sendTypingEvent();
+      typingThrottleRef.current = setTimeout(() => {
+        typingThrottleRef.current = null;
+      }, 2000);
+
+      // Keep sending every 2s while typing (receiver timeout is 3s)
+      if (!typingIntervalRef.current) {
+        typingIntervalRef.current = setInterval(() => {
+          if (typingThrottleRef.current) {
+            sendTypingEvent();
+          } else {
+            // No keystrokes in last 2s - stop interval
+            clearInterval(typingIntervalRef.current!);
+            typingIntervalRef.current = null;
+          }
+        }, 2000);
+      }
+    } else {
+      // Reset throttle on each keystroke
+      clearTimeout(typingThrottleRef.current);
+      typingThrottleRef.current = setTimeout(() => {
+        typingThrottleRef.current = null;
+      }, 2000);
     }
   };
 
