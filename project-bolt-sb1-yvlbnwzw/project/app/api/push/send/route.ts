@@ -130,5 +130,41 @@ export async function POST(request: NextRequest) {
   }
 
   const sent = results.filter((r) => r.status === 'fulfilled').length;
+
+  // Send email notification for new messages
+  if (meta?.thread_id && process.env.RESEND_API_KEY && process.env.ADMIN_EMAIL) {
+    const { data: recipientProfile } = await supabase
+      .from('profiles')
+      .select('name, email')
+      .eq('id', user_id)
+      .maybeSingle();
+
+    if (recipientProfile?.email) {
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'GigZone <support@gigzone.app>',
+          to: [recipientProfile.email],
+          subject: title || 'Nova poruka na GigZone',
+          html: `
+            <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+              <h2 style="color:#ea580c">${title || 'Nova poruka'}</h2>
+              <p>${notifBody || ''}</p>
+              <a href="https://www.gigzone.app/messages/${meta.thread_id}"
+                 style="display:inline-block;background:#ea580c;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:12px">
+                Otvori poruku
+              </a>
+              <p style="color:#888;font-size:12px;margin-top:24px">GigZone — gigzone.app</p>
+            </div>
+          `,
+        }),
+      }).catch(() => {}); // non-blocking
+    }
+  }
+
   return NextResponse.json({ sent, total: subscriptions.length });
 }
