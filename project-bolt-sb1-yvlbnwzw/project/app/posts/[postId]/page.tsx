@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
-import { ProtectedRoute } from '@/components/protected-route';
 import { FeedMedia } from '@/components/FeedMedia';
 import { PostReactions } from '@/components/post-reactions';
 import { PostCommentsButton } from '@/components/post-comments-button';
@@ -251,7 +250,7 @@ function SinglePostContent() {
         <div className="container mx-auto px-4 max-w-3xl">
           <Button
             variant="ghost"
-            onClick={() => router.back()}
+            onClick={() => handleBack()}
             className="mb-6 gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -310,6 +309,14 @@ function SinglePostContent() {
     fetchPost();
   };
 
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      handleBack();
+    } else {
+      router.push('/feed');
+    }
+  };
+
   if (post?.post_type === 'social_post') {
     console.log('[PostDetail] Rendering social_post with FeedMedia');
     return (
@@ -317,7 +324,7 @@ function SinglePostContent() {
         <div className="max-w-5xl mx-auto px-4 pt-6">
           <Button
             variant="ghost"
-            onClick={() => router.back()}
+            onClick={() => handleBack()}
             className="mb-4 flex items-center gap-2 text-white hover:bg-white/10"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -445,7 +452,7 @@ function SinglePostContent() {
       <div className="container mx-auto px-4 max-w-3xl">
         <Button
           variant="ghost"
-          onClick={() => router.back()}
+          onClick={() => handleBack()}
           className="mb-6 gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -659,9 +666,5 @@ function SinglePostContent() {
 }
 
 export default function SinglePostPage() {
-  return (
-    <ProtectedRoute>
-      <SinglePostContent />
-    </ProtectedRoute>
-  );
+  return <SinglePostContent />;
 }
