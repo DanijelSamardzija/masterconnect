@@ -151,6 +151,14 @@ function SettingsContent() {
     }
   };
 
+  const handleDeleteTicket = async (ticketId: string) => {
+    if (!confirm('Obrisati ovaj tiket?')) return;
+    const { error } = await supabase.from('support_messages').delete().eq('id', ticketId);
+    if (error) { toast.error('Greška pri brisanju'); return; }
+    toast.success('Tiket obrisan');
+    setTickets(prev => prev.filter(t => t.id !== ticketId));
+  };
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
       open: 'destructive', in_progress: 'default', resolved: 'secondary',
@@ -472,7 +480,12 @@ function SettingsContent() {
                                 {getCategoryLabel(ticket.category)} · {formatDistanceToNow(new Date(ticket.created_at), { addSuffix: true })}
                               </p>
                             </div>
-                            {getStatusBadge(ticket.status)}
+                            <div className="flex items-center gap-2">
+                              {getStatusBadge(ticket.status)}
+                              <button onClick={() => handleDeleteTicket(ticket.id)} className="text-muted-foreground hover:text-red-500 transition-colors">
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
                           </div>
                           <p className="text-sm text-muted-foreground line-clamp-2">{ticket.message}</p>
                           {ticket.attachment_url && (
