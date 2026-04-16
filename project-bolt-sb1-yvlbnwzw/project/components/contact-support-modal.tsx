@@ -56,6 +56,7 @@ export function ContactSupportModal({ open, onOpenChange, onTicketCreated }: Con
     setIsSubmitting(true);
 
     try {
+      await supabase.auth.refreshSession();
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session) {
