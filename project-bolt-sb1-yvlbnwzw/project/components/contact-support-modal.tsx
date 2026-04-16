@@ -90,23 +90,19 @@ export function ContactSupportModal({ open, onOpenChange, onTicketCreated }: Con
         attachmentName = file.name;
       }
 
-      const response = await fetch('/api/support', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          category,
+      const { error: insertError } = await supabase
+        .from('support_messages')
+        .insert({
+          user_id: session.user.id,
+          category: category || 'other',
           subject,
           message,
           attachment_url: attachmentUrl,
           attachment_name: attachmentName,
-        }),
-      });
+          status: 'open',
+        });
 
-      if (!response.ok) {
+      if (insertError) {
         throw new Error('Failed to submit support ticket');
       }
 
