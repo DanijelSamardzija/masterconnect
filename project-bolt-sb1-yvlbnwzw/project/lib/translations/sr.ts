@@ -557,6 +557,7 @@ export default {
   'common.filter': 'Filter',
   'common.all': 'Sve',
   'common.cancel': 'Otkaži',
+  'services.viewService': 'Pogledaj uslugu',
   'common.save': 'Sačuvaj',
   'common.delete': 'Obriši',
   'common.edit': 'Uredi',

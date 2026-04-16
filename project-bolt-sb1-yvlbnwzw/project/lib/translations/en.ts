@@ -557,6 +557,7 @@ export default {
   'common.filter': 'Filter',
   'common.all': 'All',
   'common.cancel': 'Cancel',
+  'services.viewService': 'View service',
   'common.save': 'Save',
   'common.delete': 'Delete',
   'common.edit': 'Edit',

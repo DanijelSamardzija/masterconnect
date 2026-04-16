@@ -555,6 +555,7 @@ export default {
   'common.filter': 'Filter',
   'common.all': 'Alle',
   'common.cancel': 'Abbrechen',
+  'services.viewService': 'Dienst ansehen',
   'common.save': 'Speichern',
   'common.delete': 'Löschen',
   'common.edit': 'Bearbeiten',

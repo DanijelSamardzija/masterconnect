@@ -209,7 +209,7 @@ export function ProfessionalCard({ listing }: ProfessionalCardProps) {
             router.push(`/services/${listing.id}`);
           }}
         >
-          Pogledaj uslugu
+          {t('services.viewService')}
           <ArrowRight className="ml-1.5 md:ml-2 h-3.5 w-3.5 md:h-4 md:w-4 group-hover/btn:translate-x-1 transition-transform" />
         </Button>
         </div>
