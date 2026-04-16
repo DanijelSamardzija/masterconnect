@@ -31,22 +31,26 @@ interface Post {
 type Filter = 'all' | 'professional' | 'customer';
 
 export default function FeedPreviewPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [posts, setPosts] = useState<Post[]>([]);
   const [filter, setFilter] = useState<Filter>('all');
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) { router.push('/login'); return; }
     const checkAdmin = async () => {
-      if (!user) return router.push('/feed');
       const { data } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single();
-      if (!data?.is_admin) return router.push('/feed');
+      if (!data?.is_admin) { router.push('/feed'); return; }
+      setIsAdmin(true);
     };
     checkAdmin();
-  }, [user, router]);
+  }, [user, authLoading, router]);
 
   useEffect(() => {
+    if (!isAdmin) return;
     const fetchPosts = async () => {
       const res = await fetch('/api/posts?limit=20&offset=0');
       if (!res.ok) return;
@@ -55,7 +59,9 @@ export default function FeedPreviewPage() {
       setLoading(false);
     };
     fetchPosts();
-  }, []);
+  }, [isAdmin]);
+
+  if (authLoading || !isAdmin) return <div className="min-h-screen bg-background" />;
 
   const filtered = posts.filter(p =>
     filter === 'all' ? true : p.user.account_type === filter
