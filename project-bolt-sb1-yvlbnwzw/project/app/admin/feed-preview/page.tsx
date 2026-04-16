@@ -7,8 +7,8 @@ import { supabase } from '@/lib/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import {
-  ArrowLeft, Star, MapPin, Play, MessageSquare, Heart, Eye,
-  CheckCircle, Share2, Bookmark, MoreVertical, Flag, Trash2, Phone, UserPlus
+  Home, Star, MapPin, Play, MessageSquare, Heart, Eye,
+  CheckCircle, Share2, Bookmark, MoreVertical, Flag, Trash2, Phone, UserPlus, Search, Plus
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -71,31 +71,17 @@ export default function FeedPreviewPage() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-24">
+      {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border px-4 py-3 flex items-center gap-3">
-        <button onClick={() => router.push('/admin')} className="text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="h-5 w-5" />
+        <button onClick={() => router.push('/feed')} className="text-muted-foreground hover:text-foreground">
+          <Home className="h-5 w-5" />
         </button>
-        <h1 className="font-bold text-lg flex-1">Feed Preview — Novi dizajn</h1>
-        <Badge variant="outline" className="text-orange-500 border-orange-500 text-xs">Admin only</Badge>
-      </div>
-
-      <div className="flex gap-2 px-4 py-3 border-b border-border">
-        {([
-          { value: 'all', label: 'Sve' },
-          { value: 'professional', label: '🔧 Radovi' },
-          { value: 'customer', label: '⭐ Recenzije' },
-        ] as { value: Filter; label: string }[]).map(({ value, label }) => (
-          <button
-            key={value}
-            onClick={() => setFilter(value)}
-            className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
-              filter === value ? 'bg-orange-500 text-white' : 'bg-muted text-muted-foreground hover:bg-accent'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+        <h1 className="font-bold text-lg flex-1">Feed</h1>
+        <button className="text-muted-foreground hover:text-foreground p-1">
+          <Search className="h-5 w-5" />
+        </button>
+        <Badge variant="outline" className="text-orange-500 border-orange-500 text-xs">Preview</Badge>
       </div>
 
       {loading ? (
@@ -109,6 +95,11 @@ export default function FeedPreviewPage() {
           ))}
         </div>
       )}
+
+      {/* FAB - Create post */}
+      <button className="fixed bottom-6 right-6 z-20 bg-orange-500 hover:bg-orange-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg transition-colors">
+        <Plus className="h-7 w-7" />
+      </button>
     </div>
   );
 }
@@ -249,6 +240,9 @@ function ProCard({ post }: { post: Post }) {
         </button>
         <div className="flex-1" />
         <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
+          <Bookmark className="h-4 w-4" />
+        </button>
+        <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
           <Share2 className="h-4 w-4" />
         </button>
         <button className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors">
@@ -307,6 +301,9 @@ function CustomerCard({ post }: { post: Post }) {
           <Eye className="h-4 w-4" />{post.views_count}
         </button>
         <div className="flex-1" />
+        <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
+          <Bookmark className="h-4 w-4" />
+        </button>
         <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
           <Share2 className="h-4 w-4" />
         </button>
