@@ -20,7 +20,13 @@
       "Bash(cp \"icon-192.png.png\" \"icon-192.png\")",
       "Bash(cp \"icon-512.png.png\" \"icon-512.png\")",
       "Bash(cp \"favicon-96x96.png\" \"favicon.ico\")",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npm list:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(curl -s -X GET \"https://api.resend.com/domains\" -H \"Authorization: Bearer $\\(cd d:/Projekti/projekat/project-bolt-sb1-yvlbnwzw/project && grep RESEND .env.local)",
+      "Bash(ls -la \"d:\\\\Projekti\\\\projekat\\\\project-bolt-sb1-yvlbnwzw\\\\project/.env\"*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)"
     ]
   }
 }

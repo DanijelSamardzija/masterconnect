@@ -13,7 +13,7 @@ import {
   Users, FileText, AlertTriangle, Shield, Eye, Trash2,
   MessageSquare, TrendingUp, ExternalLink, Search, Ban,
   UserCheck, Loader2, ChevronDown, Filter, Megaphone, Plus,
-  ToggleLeft, ToggleRight, BarChart2, Activity, MapPin, CalendarDays
+  ToggleLeft, ToggleRight, BarChart2, Activity, MapPin, CalendarDays, RefreshCw
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
@@ -1115,6 +1115,12 @@ function AdminContent() {
                   {label}
                 </button>
               ))}
+              <button
+                onClick={fetchTickets}
+                className="ml-auto px-3 py-1.5 rounded-full text-xs font-semibold bg-muted text-muted-foreground hover:bg-accent hover:text-foreground transition-colors flex items-center gap-1"
+              >
+                <RefreshCw className="h-3 w-3" /> Osvježi
+              </button>
             </div>
 
             {tickets.filter(t => ticketFilter === 'all' || t.status === ticketFilter).length === 0 ? (
