@@ -551,14 +551,11 @@ function AdminContent() {
 
   // ── Support ───────────────────────────────────────────────────────────────
   const fetchTickets = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
-    const response = await fetch('/api/support', {
-      headers: { Authorization: `Bearer ${session.access_token}` },
-    });
-    if (!response.ok) return;
-    const data = await response.json();
-    setTickets(data || []);
+    const { data, error } = await supabase
+      .from('support_messages')
+      .select(`*, profiles:user_id (name, email)`)
+      .order('created_at', { ascending: false });
+    if (!error) setTickets(data || []);
   };
 
   const handleTicketStatus = async (ticketId: string, status: string) => {
