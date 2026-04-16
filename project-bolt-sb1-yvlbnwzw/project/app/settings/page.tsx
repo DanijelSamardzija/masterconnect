@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import {
   ArrowLeft, Settings, Trash2, Lock, Eye, EyeOff,
   Volume2, Bell, BellOff, Mail, Moon, Sun, FileText, Download,
@@ -46,6 +47,7 @@ function SettingsContent() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [contactSupportModalOpen, setContactSupportModalOpen] = useState(false);
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
+  const [ticketToDelete, setTicketToDelete] = useState<string | null>(null);
   const [loadingTickets, setLoadingTickets] = useState(true);
   const { notificationsSoundEnabled, messagesSoundEnabled, toggleNotificationsSound, toggleMessagesSound } = useSoundPreference();
   const { theme, toggleTheme, mounted } = useTheme();
@@ -151,12 +153,13 @@ function SettingsContent() {
     }
   };
 
-  const handleDeleteTicket = async (ticketId: string) => {
-    if (!confirm('Obrisati ovaj tiket?')) return;
-    const { error } = await supabase.from('support_messages').delete().eq('id', ticketId);
-    if (error) { toast.error('Greška pri brisanju'); return; }
-    toast.success('Tiket obrisan');
-    setTickets(prev => prev.filter(t => t.id !== ticketId));
+  const handleDeleteTicket = async () => {
+    if (!ticketToDelete) return;
+    const { error } = await supabase.from('support_messages').delete().eq('id', ticketToDelete);
+    if (error) { toast.error(t('settings.deleteTicketError')); return; }
+    toast.success(t('settings.deleteTicketSuccess'));
+    setTickets(prev => prev.filter(t => t.id !== ticketToDelete));
+    setTicketToDelete(null);
   };
 
   const getStatusBadge = (status: string) => {
@@ -482,7 +485,7 @@ function SettingsContent() {
                             </div>
                             <div className="flex items-center gap-2">
                               {getStatusBadge(ticket.status)}
-                              <button onClick={() => handleDeleteTicket(ticket.id)} className="text-muted-foreground hover:text-red-500 transition-colors">
+                              <button onClick={() => setTicketToDelete(ticket.id)} className="text-muted-foreground hover:text-red-500 transition-colors">
                                 <Trash2 className="h-4 w-4" />
                               </button>
                             </div>
@@ -653,6 +656,21 @@ function SettingsContent() {
 
       <DeleteAccountModal open={deleteModalOpen} onOpenChange={setDeleteModalOpen} />
       <ContactSupportModal open={contactSupportModalOpen} onOpenChange={setContactSupportModalOpen} onTicketCreated={fetchTickets} />
+
+      <AlertDialog open={!!ticketToDelete} onOpenChange={(open) => !open && setTicketToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('settings.deleteTicketTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('settings.deleteTicketDesc')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteTicket} className="bg-red-600 hover:bg-red-700 text-white">
+              {t('common.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -135,6 +135,10 @@ export default {
   'settings.categoryAccount': 'Kontoproblem',
   'settings.categoryOther': 'Sonstiges',
   'settings.ticketCount': 'Ticket(s)',
+  'settings.deleteTicketTitle': 'Ticket löschen',
+  'settings.deleteTicketDesc': 'Bist du sicher, dass du dieses Support-Ticket löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.',
+  'settings.deleteTicketSuccess': 'Ticket gelöscht',
+  'settings.deleteTicketError': 'Fehler beim Löschen des Tickets',
   'settings.language': 'Sprache',
 
   // Block/unblock

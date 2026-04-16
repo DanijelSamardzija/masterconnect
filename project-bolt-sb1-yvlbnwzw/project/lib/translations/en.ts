@@ -135,6 +135,10 @@ export default {
   'settings.categoryAccount': 'Account Problem',
   'settings.categoryOther': 'Other',
   'settings.ticketCount': 'ticket(s)',
+  'settings.deleteTicketTitle': 'Delete ticket',
+  'settings.deleteTicketDesc': 'Are you sure you want to delete this support ticket? This action cannot be undone.',
+  'settings.deleteTicketSuccess': 'Ticket deleted',
+  'settings.deleteTicketError': 'Error deleting ticket',
   'settings.language': 'Language',
   // Block/unblock
   'block.blockUser': 'Block user',

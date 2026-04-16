@@ -135,6 +135,10 @@ export default {
   'settings.categoryAccount': 'Problem s nalogom',
   'settings.categoryOther': 'Ostalo',
   'settings.ticketCount': 'tiket(a)',
+  'settings.deleteTicketTitle': 'Obriši tiket',
+  'settings.deleteTicketDesc': 'Da li si sigurn/a da želiš obrisati ovaj tiket? Ova akcija se ne može poništiti.',
+  'settings.deleteTicketSuccess': 'Tiket obrisan',
+  'settings.deleteTicketError': 'Greška pri brisanju tiketa',
   'settings.language': 'Jezik',
   // Block/unblock
   'block.blockUser': 'Blokiraj korisnika',
