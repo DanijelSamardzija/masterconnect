@@ -1124,6 +1124,15 @@ export default {
   'dashboard.pendingReview': 'Wie war deine Erfahrung?',
   'dashboard.pendingReviewDesc': 'Du hast mit {name} gearbeitet. Hinterlasse eine Bewertung, um anderen zu helfen.',
   'dashboard.leaveReview': 'Bewertung hinterlassen',
+  'dashboard.feedDesc': 'Inhalte posten',
+  'dashboard.feedBrowseDesc': 'Beiträge ansehen',
+  'dashboard.browseJobsShortDesc': 'Job finden',
+  'dashboard.updateProfileShort': 'Profil bearbeiten',
+  'dashboard.allConversations': 'Alle Gespräche',
+  'dashboard.conversation': 'Gespräch',
+  'dashboard.newListing': 'Neue Anzeige',
+  'dashboard.unreadCount': '{count} ungelesen',
+  'dashboard.postJobShortDesc': 'Stellenanzeige aufgeben',
 
   // Analytics
   'analytics.title': 'Profil-Analytik',

@@ -1128,6 +1128,15 @@ export default {
   'dashboard.pendingReview': 'How was your experience?',
   'dashboard.pendingReviewDesc': 'You worked with {name}. Leave a review to help others.',
   'dashboard.leaveReview': 'Leave a Review',
+  'dashboard.feedDesc': 'Post content',
+  'dashboard.feedBrowseDesc': 'Browse posts',
+  'dashboard.browseJobsShortDesc': 'Find a job',
+  'dashboard.updateProfileShort': 'Edit profile',
+  'dashboard.allConversations': 'All conversations',
+  'dashboard.conversation': 'Conversation',
+  'dashboard.newListing': 'New listing',
+  'dashboard.unreadCount': '{count} unread',
+  'dashboard.postJobShortDesc': 'Post a job listing',
 
   // Analytics
   'analytics.title': 'Profile Analytics',

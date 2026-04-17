@@ -1128,6 +1128,15 @@ export default {
   'dashboard.pendingReview': 'Kako je bilo?',
   'dashboard.pendingReviewDesc': 'Radio si sa {name}. Ostavi recenziju i pomozi drugima.',
   'dashboard.leaveReview': 'Ostavi recenziju',
+  'dashboard.feedDesc': 'Objavi sadržaj',
+  'dashboard.feedBrowseDesc': 'Pregledaj objave',
+  'dashboard.browseJobsShortDesc': 'Pronađi posao',
+  'dashboard.updateProfileShort': 'Uredi profil',
+  'dashboard.allConversations': 'Svi razgovori',
+  'dashboard.conversation': 'Razgovor',
+  'dashboard.newListing': 'Novi oglas',
+  'dashboard.unreadCount': '{count} nepročitanih',
+  'dashboard.postJobShortDesc': 'Objavi oglas za posao',
 
   // Analytics
   'analytics.title': 'Analitika profila',

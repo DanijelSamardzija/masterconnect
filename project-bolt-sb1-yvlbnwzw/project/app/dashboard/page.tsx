@@ -468,7 +468,7 @@ function DashboardContent() {
         {/* Quick actions */}
         <div className="space-y-2">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">
-            Brze akcije
+            {t('dashboard.quickActions')}
           </p>
           <div className="grid grid-cols-2 gap-3">
             {isPro ? (
@@ -482,7 +482,7 @@ function DashboardContent() {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-foreground">Feed</p>
-                    <p className="text-xs text-muted-foreground">Objavi sadržaj</p>
+                    <p className="text-xs text-muted-foreground">{t('dashboard.feedDesc')}</p>
                   </div>
                 </button>
                 <button
@@ -494,7 +494,7 @@ function DashboardContent() {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-foreground">{t('dashboard.browseJobs')}</p>
-                    <p className="text-xs text-muted-foreground">Pronađi posao</p>
+                    <p className="text-xs text-muted-foreground">{t('dashboard.browseJobsShortDesc')}</p>
                   </div>
                 </button>
                 <button
@@ -506,7 +506,7 @@ function DashboardContent() {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-foreground">{t('dashboard.updateProfile')}</p>
-                    <p className="text-xs text-muted-foreground">Uredi profil</p>
+                    <p className="text-xs text-muted-foreground">{t('dashboard.updateProfileShort')}</p>
                   </div>
                 </button>
                 <button
@@ -519,7 +519,7 @@ function DashboardContent() {
                   <div>
                     <p className="text-sm font-semibold text-foreground">{t('dashboard.messages')}</p>
                     <p className="text-xs text-muted-foreground">
-                      {unreadCount > 0 ? `${unreadCount} nepročitanih` : 'Svi razgovori'}
+                      {unreadCount > 0 ? t('dashboard.unreadCount').replace('{count}', String(unreadCount)) : t('dashboard.allConversations')}
                     </p>
                   </div>
                 </button>
@@ -535,7 +535,7 @@ function DashboardContent() {
                   </div>
                   <div>
                     <p className="text-sm font-semibold">{t('dashboard.postJob')}</p>
-                    <p className="text-xs text-white/80">Objavi oglas za posao</p>
+                    <p className="text-xs text-white/80">{t('dashboard.postJobShortDesc')}</p>
                   </div>
                 </button>
                 <button
@@ -547,7 +547,7 @@ function DashboardContent() {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-foreground">Feed</p>
-                    <p className="text-xs text-muted-foreground">Pregledaj objave</p>
+                    <p className="text-xs text-muted-foreground">{t('dashboard.feedBrowseDesc')}</p>
                   </div>
                 </button>
                 <button
@@ -560,7 +560,7 @@ function DashboardContent() {
                   <div>
                     <p className="text-sm font-semibold text-foreground">{t('dashboard.messages')}</p>
                     <p className="text-xs text-muted-foreground">
-                      {unreadCount > 0 ? `${unreadCount} nepročitanih` : 'Svi razgovori'}
+                      {unreadCount > 0 ? t('dashboard.unreadCount').replace('{count}', String(unreadCount)) : t('dashboard.allConversations')}
                     </p>
                   </div>
                 </button>
@@ -665,7 +665,7 @@ function DashboardContent() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-foreground truncate">
-                        {thread.job?.title || 'Razgovor'}
+                        {thread.job?.title || t('dashboard.conversation')}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {formatDistanceToNow(new Date(thread.created_at), { addSuffix: true })}
@@ -689,7 +689,7 @@ function DashboardContent() {
                 className="text-xs text-orange-600 hover:text-orange-500 font-medium flex items-center gap-1"
               >
                 <Plus className="h-3 w-3" />
-                Novi oglas
+                {t('dashboard.newListing')}
               </button>
             </div>
 
