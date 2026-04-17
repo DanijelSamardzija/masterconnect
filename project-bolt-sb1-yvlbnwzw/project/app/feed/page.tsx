@@ -617,10 +617,10 @@ function FeedContent() {
         key={post.id}
         data-post-id={post.id}
         ref={el => { postRefs.current[post.id] = el; }}
-        className="snap-start px-2 py-1"
+        className="snap-start flex justify-center px-2 py-1"
         style={{ height: `calc(100dvh - ${HEADER_H}px)` }}
       >
-        <div className={`h-full flex flex-col rounded-2xl overflow-hidden shadow-sm bg-card border border-border ${isPro ? 'border-l-4 border-l-orange-500' : 'border-l-4 border-l-blue-500'}`}>
+        <div className={`w-full max-w-md h-full flex flex-col rounded-2xl overflow-hidden shadow-sm bg-card border border-border ${isPro ? 'border-l-4 border-l-orange-500' : 'border-l-4 border-l-blue-500'}`}>
 
           {/* Card header */}
           <div className="flex items-center gap-2.5 p-3 shrink-0">
