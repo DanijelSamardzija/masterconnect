@@ -620,7 +620,7 @@ function FeedContent() {
         className="snap-start flex justify-center px-2 py-1"
         style={{ height: `calc(100dvh - ${HEADER_H}px)` }}
       >
-        <div className={`w-full max-w-md ${media ? 'h-full' : 'h-auto'} flex flex-col rounded-2xl overflow-hidden shadow-sm bg-card border border-border ${isPro ? 'border-l-4 border-l-orange-500' : 'border-l-4 border-l-blue-500'}`}>
+        <div className={`w-full max-w-md h-full flex flex-col rounded-2xl overflow-hidden shadow-sm bg-card border border-border ${isPro ? 'border-l-4 border-l-orange-500' : 'border-l-4 border-l-blue-500'}`}>
 
           {/* Card header */}
           <div className="flex items-center gap-2.5 p-3 shrink-0">
@@ -701,7 +701,13 @@ function FeedContent() {
             </div>
           </div>
 
-          {/* Media */}
+          {/* Media or text-only area */}
+          {!media && post.text && (
+            <div className="flex-1 min-h-0 flex items-center justify-center p-6 bg-gradient-to-br from-muted/30 to-muted/10">
+              <p className="text-foreground text-base leading-relaxed text-center whitespace-pre-line">{post.text}</p>
+            </div>
+          )}
+
           {media && (
             <div
               className="flex-1 min-h-0 relative overflow-hidden"
@@ -779,8 +785,8 @@ function FeedContent() {
             </div>
           )}
 
-          {/* Text (after media for both) */}
-          {post.text && (
+          {/* Text (after media — only if media exists) */}
+          {media && post.text && (
             <div className="px-3 pt-2 pb-1 shrink-0">
               {(() => {
                 const isLong = (post.text?.length || 0) > TEXT_MAX_LENGTH;
