@@ -73,14 +73,14 @@ export default function FeedPreviewPage() {
   return (
     <div className="h-dvh overflow-hidden bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border px-4 py-3 flex items-center justify-between">
-        <button onClick={() => router.push('/feed')} className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border px-3 py-2 flex items-center justify-between">
+        <button onClick={() => router.push('/feed')} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
           <Home className="h-5 w-5" />
         </button>
-        <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-orange-500 hover:bg-orange-600 transition-colors text-white shadow-md">
+        <button className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-500 hover:bg-orange-600 transition-colors text-white shadow-md">
           <Plus className="h-5 w-5" />
         </button>
-        <button className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+        <button className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
           <Search className="h-5 w-5" />
         </button>
       </div>
@@ -88,14 +88,12 @@ export default function FeedPreviewPage() {
       {loading ? (
         <div className="flex justify-center py-20 text-muted-foreground">Učitavanje...</div>
       ) : (
-        <div className="h-[calc(100dvh-64px)] overflow-y-scroll snap-y snap-mandatory">
+        <div className="h-[calc(100dvh-53px)] overflow-y-scroll snap-y snap-proximity px-2 py-2 space-y-2">
           {filtered.map(post => (
-            <div key={post.id} className="snap-start h-[calc(100dvh-64px)] flex items-center px-4 py-2">
-              <div className="w-full max-w-2xl mx-auto">
-                {post.user.account_type === 'professional'
-                  ? <ProCard post={post} />
-                  : <CustomerCard post={post} />}
-              </div>
+            <div key={post.id} className="snap-start">
+              {post.user.account_type === 'professional'
+                ? <ProCard post={post} />
+                : <CustomerCard post={post} />}
             </div>
           ))}
         </div>
@@ -120,7 +118,7 @@ function MediaBlock({ media, count }: { media: { url: string; media_type: string
     setPortrait(img.naturalHeight > img.naturalWidth);
   };
 
-  const aspectClass = portrait ? 'aspect-[9/16] max-h-[42vh]' : 'aspect-[4/3] max-h-[38vh]';
+  const aspectClass = portrait ? 'aspect-[9/16] max-h-[55vh]' : 'aspect-[4/3] max-h-[50vh]';
 
   return (
     <div className={`relative bg-black w-full ${aspectClass} overflow-hidden`}>
