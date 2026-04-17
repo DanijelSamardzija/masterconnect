@@ -64,6 +64,110 @@ type Post = {
   };
 };
 
+const DEMO_POSTS: Post[] = [
+  {
+    id: 'demo-1',
+    user_id: '00000000-0000-0000-0000-000000000001',
+    text: 'Tražimo iskusnog vodoinstalatera za opremanje novogradnje u Novom Beogradu. Posao uključuje montažu kupatila, kuhinja i instalacionih šahtova. Prednost imaju kandidati sa iskustvom na sličnim projektima.',
+    post_type: 'hiring_post',
+    job_title: 'Vodoinstalater za novogradnju',
+    category: 'Vodoinstalater',
+    city: 'Beograd',
+    experience_level: 'Mid',
+    availability: 'Within 1 week',
+    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    user: { name: 'Gradnja Plus d.o.o.', email: 'demo@example.com', account_type: 'customer' },
+  },
+  {
+    id: 'demo-2',
+    user_id: '00000000-0000-0000-0000-000000000002',
+    text: 'Potreban električar za završne radove u stambeno-poslovnom objektu. Ugradnja razvodnih tabli, utičnica, osvetljenja i spoljašnje rasvete. Rad po potrebi i vikendom.',
+    post_type: 'hiring_post',
+    job_title: 'Elektroinstalatere — stambeni objekat',
+    category: 'Elektricar',
+    city: 'Novi Sad',
+    experience_level: 'Senior',
+    availability: 'Immediately',
+    created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+    user: { name: 'InvestBuild NS', email: 'demo@example.com', account_type: 'customer' },
+  },
+  {
+    id: 'demo-3',
+    user_id: '00000000-0000-0000-0000-000000000003',
+    text: 'Tražimo majstora za renoviranje stana 65m² — farbanje, gletovanje, postavljanje pločica u kupatilu i kuhinji. Stan u Zemunu, slobodan odmah.',
+    post_type: 'hiring_post',
+    job_title: 'Majstor za renoviranje stana',
+    category: 'Soboslikar',
+    city: 'Beograd',
+    experience_level: 'Entry',
+    availability: 'Immediately',
+    created_at: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+    user: { name: 'Milena Jovanović', email: 'demo@example.com', account_type: 'customer' },
+  },
+  {
+    id: 'demo-4',
+    user_id: '00000000-0000-0000-0000-000000000004',
+    text: 'Potrebna kompletna rekonstrukcija krovišta na porodičnoj kući površine 120m². Uključuje zamenu letvi, pokrivanje crepom i ugradnju oluka.',
+    post_type: 'service_request',
+    job_title: 'Rekonstrukcija krovišta',
+    category: 'Krovopokrivač',
+    city: 'Kragujevac',
+    availability: 'Within 2 weeks',
+    price_type: 'fixed',
+    price_value: 3500,
+    currency: 'EUR',
+    created_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+    user: { name: 'Dragan Petrović', email: 'demo@example.com', account_type: 'customer' },
+  },
+  {
+    id: 'demo-5',
+    user_id: '00000000-0000-0000-0000-000000000005',
+    text: 'Tražim servisera za klimu — čišćenje i punjenje freonom za 3 klima uređaja u poslovnom prostoru. Hitno, za sledeću nedelju.',
+    post_type: 'service_request',
+    job_title: 'Servis klima uređaja',
+    category: 'Klima tehničar',
+    city: 'Niš',
+    availability: 'Within 1 week',
+    price_type: 'fixed',
+    price_value: 120,
+    currency: 'EUR',
+    created_at: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString(),
+    user: { name: 'Aleksa Stojanović', email: 'demo@example.com', account_type: 'customer' },
+  },
+  {
+    id: 'demo-6',
+    user_id: '00000000-0000-0000-0000-000000000006',
+    text: 'Iskusan vodoinstalater sa 8 godina iskustva traži posao. Radim brzo i kvalitetno, dostupan za hitne intervencije. Reference na uvid.',
+    post_type: 'job_seeker_post',
+    job_title: 'Vodoinstalater — tražim posao',
+    category: 'Vodoinstalater',
+    city: 'Beograd',
+    experience_level: 'Senior',
+    availability: 'Immediately',
+    price_type: 'hourly',
+    price_value: 1500,
+    currency: 'RSD',
+    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    user: { name: 'Nemanja Ilić', email: 'demo@example.com', account_type: 'professional' },
+  },
+  {
+    id: 'demo-7',
+    user_id: '00000000-0000-0000-0000-000000000007',
+    text: 'Majstor za gletovanje i farbanje sa 12 godina iskustva. Radim sva gletovanja — fino, grubo, dekorativna. Savestan i tačan. Dostupan u Beogradu i okolini.',
+    post_type: 'job_seeker_post',
+    job_title: 'Gletač/farbač — tražim angažman',
+    category: 'Soboslikar',
+    city: 'Beograd',
+    experience_level: 'Expert',
+    availability: 'Within 1 week',
+    price_type: 'hourly',
+    price_value: 1200,
+    currency: 'RSD',
+    created_at: new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString(),
+    user: { name: 'Zoran Marković', email: 'demo@example.com', account_type: 'professional' },
+  },
+];
+
 const EXP_LEVEL_KEYS: Record<string, string> = {
   'Entry': 'marketplace.expEntry',
   'Mid': 'marketplace.expMid',
@@ -231,7 +335,7 @@ function JobsMarketplaceContent() {
             user: Array.isArray(post.user) ? post.user[0] : post.user,
           })) || [];
 
-        setPosts(postsWithData);
+        setPosts([...postsWithData, ...DEMO_POSTS]);
 
         const postIdsToCheck = postsWithData.map((p: any) => p.id);
         if (postIdsToCheck.length > 0) {
@@ -262,7 +366,7 @@ function JobsMarketplaceContent() {
           user: post.user_data,
         })) || [];
 
-      setPosts(postsWithData);
+      setPosts([...postsWithData, ...DEMO_POSTS]);
 
       const postIdsToCheck = postsWithData.map((p: any) => p.id);
       if (postIdsToCheck.length > 0) {
