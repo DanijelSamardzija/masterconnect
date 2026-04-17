@@ -33,6 +33,8 @@ interface Post {
 
 type Filter = 'all' | 'professional' | 'customer';
 
+const HEADER_H = 52; // py-2 (16px) + h-9 (36px)
+
 export default function FeedPreviewPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -64,7 +66,7 @@ export default function FeedPreviewPage() {
     fetchPosts();
   }, [isAdmin]);
 
-  if (authLoading || !isAdmin) return <div className="min-h-screen bg-background" />;
+  if (authLoading || !isAdmin) return <div className="h-dvh bg-background" />;
 
   const filtered = posts.filter(p =>
     filter === 'all' ? true : p.user.account_type === filter
@@ -72,8 +74,8 @@ export default function FeedPreviewPage() {
 
   return (
     <div className="h-dvh overflow-hidden bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border px-3 py-2 flex items-center justify-between">
+      {/* Header — centriran, kompaktan */}
+      <div className="bg-background/95 backdrop-blur border-b border-border py-2 flex items-center justify-center gap-5">
         <button onClick={() => router.push('/feed')} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
           <Home className="h-5 w-5" />
         </button>
@@ -88,9 +90,16 @@ export default function FeedPreviewPage() {
       {loading ? (
         <div className="flex justify-center py-20 text-muted-foreground">Učitavanje...</div>
       ) : (
-        <div className="h-[calc(100dvh-53px)] overflow-y-scroll snap-y snap-proximity px-2 py-2 space-y-2">
+        <div
+          className="overflow-y-scroll snap-y snap-mandatory"
+          style={{ height: `calc(100dvh - ${HEADER_H}px)` }}
+        >
           {filtered.map(post => (
-            <div key={post.id} className="snap-start">
+            <div
+              key={post.id}
+              className="snap-start px-2 py-1"
+              style={{ height: `calc(100dvh - ${HEADER_H}px)` }}
+            >
               {post.user.account_type === 'professional'
                 ? <ProCard post={post} />
                 : <CustomerCard post={post} />}
@@ -98,7 +107,6 @@ export default function FeedPreviewPage() {
           ))}
         </div>
       )}
-
     </div>
   );
 }
@@ -106,22 +114,9 @@ export default function FeedPreviewPage() {
 function MediaBlock({ media, count }: { media: { url: string; media_type: string }; count: number }) {
   const isVid = media.url?.match(/\.(mp4|mov|webm)/i) || media.media_type === 'video';
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [portrait, setPortrait] = useState(false);
-
-  const handleMetadata = () => {
-    const v = videoRef.current;
-    if (v) setPortrait(v.videoHeight > v.videoWidth);
-  };
-
-  const handleImgLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget;
-    setPortrait(img.naturalHeight > img.naturalWidth);
-  };
-
-  const aspectClass = portrait ? 'aspect-[9/16] max-h-[55vh]' : 'aspect-[4/3] max-h-[50vh]';
 
   return (
-    <div className={`relative bg-black w-full ${aspectClass} overflow-hidden`}>
+    <div className="relative bg-black w-full h-full overflow-hidden">
       {isVid ? (
         <>
           <video
@@ -130,7 +125,6 @@ function MediaBlock({ media, count }: { media: { url: string; media_type: string
             className="w-full h-full object-contain"
             muted
             playsInline
-            onLoadedMetadata={handleMetadata}
           />
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="bg-black/50 rounded-full p-3">
@@ -139,7 +133,7 @@ function MediaBlock({ media, count }: { media: { url: string; media_type: string
           </div>
         </>
       ) : (
-        <img src={media.url} alt="" className="w-full h-full object-cover" onLoad={handleImgLoad} />
+        <img src={media.url} alt="" className="w-full h-full object-cover" />
       )}
       {count > 1 && (
         <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded-full">
@@ -180,10 +174,10 @@ function ProCard({ post }: { post: Post }) {
   const media = post.media[0];
 
   return (
-    <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm border-l-4 border-l-orange-500">
+    <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm border-l-4 border-l-orange-500 h-full flex flex-col">
       {/* Header */}
-      <div className="flex items-center gap-3 p-3">
-        <Avatar className="h-10 w-10">
+      <div className="flex items-center gap-3 p-3 shrink-0">
+        <Avatar className="h-9 w-9">
           <AvatarImage src={post.user.avatar_url} />
           <AvatarFallback>{post.user.name?.[0]}</AvatarFallback>
         </Avatar>
@@ -212,22 +206,26 @@ function ProCard({ post }: { post: Post }) {
         </div>
       </div>
 
-      {/* Media */}
-      {media && <MediaBlock media={media} count={post.media.length} />}
+      {/* Media — razvlači se */}
+      {media && (
+        <div className="flex-1 min-h-0">
+          <MediaBlock media={media} count={post.media.length} />
+        </div>
+      )}
 
       {/* Text */}
       {post.text && (
-        <div className="px-3 pt-2 pb-1 text-sm text-foreground line-clamp-3">{post.text}</div>
+        <div className="px-3 pt-2 pb-1 text-sm text-foreground line-clamp-2 shrink-0">{post.text}</div>
       )}
 
       {post.category && (
-        <div className="px-3 pb-2">
+        <div className="px-3 pb-1 shrink-0">
           <Badge variant="outline" className="text-xs">{post.category}</Badge>
         </div>
       )}
 
       {/* Actions */}
-      <div className="flex items-center px-3 py-2 border-t border-border gap-1">
+      <div className="flex items-center px-3 py-2 border-t border-border gap-1 shrink-0">
         <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
           <Heart className="h-4 w-4" />{post.reactions_count}
         </button>
@@ -256,10 +254,10 @@ function CustomerCard({ post }: { post: Post }) {
   const media = post.media[0];
 
   return (
-    <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm border-l-4 border-l-blue-500">
+    <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm border-l-4 border-l-blue-500 h-full flex flex-col">
       {/* Header */}
-      <div className="flex items-center gap-3 p-3">
-        <Avatar className="h-10 w-10">
+      <div className="flex items-center gap-3 p-3 shrink-0">
+        <Avatar className="h-9 w-9">
           <AvatarImage src={post.user.avatar_url} />
           <AvatarFallback>{post.user.name?.[0]}</AvatarFallback>
         </Avatar>
@@ -276,20 +274,20 @@ function CustomerCard({ post }: { post: Post }) {
         </div>
       </div>
 
-      {/* Text first */}
+      {/* Text */}
       {post.text && (
-        <div className="px-3 pb-2 text-sm text-foreground line-clamp-4">{post.text}</div>
+        <div className="px-3 pb-2 text-sm text-foreground line-clamp-3 shrink-0">{post.text}</div>
       )}
 
-      {/* Media */}
+      {/* Media — razvlači se */}
       {media && (
-        <div className="mx-3 mb-2 rounded-xl overflow-hidden">
+        <div className="flex-1 min-h-0 mx-3 mb-2 rounded-xl overflow-hidden">
           <MediaBlock media={media} count={post.media.length} />
         </div>
       )}
 
       {/* Actions */}
-      <div className="flex items-center px-3 py-2 border-t border-border gap-1">
+      <div className="flex items-center px-3 py-2 border-t border-border gap-1 shrink-0">
         <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
           <Heart className="h-4 w-4" />{post.reactions_count}
         </button>
