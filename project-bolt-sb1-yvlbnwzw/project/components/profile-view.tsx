@@ -898,11 +898,18 @@ export function ProfileView({
                             className="absolute inset-0 w-full h-full object-cover"
                           />
                         ) : (
-                          <video src={post.media[0].url} className="absolute inset-0 w-full h-full object-cover" muted />
+                          <>
+                            <video src={post.media[0].url} className="absolute inset-0 w-full h-full object-cover" muted preload="metadata" />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                              <div className="bg-black/60 rounded-full p-2.5">
+                                <svg className="h-6 w-6 text-white fill-white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                              </div>
+                            </div>
+                          </>
                         )
                       ) : (
-                        <div className="flex items-center justify-center h-full p-4">
-                          <p className="text-white text-sm text-center line-clamp-4">{post.text}</p>
+                        <div className="flex items-center justify-center h-full p-4 bg-gradient-to-br from-slate-800 to-slate-900">
+                          <p className="text-white text-sm text-center line-clamp-4">{post.text || ''}</p>
                         </div>
                       )}
 
