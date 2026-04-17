@@ -73,15 +73,16 @@ export default function FeedPreviewPage() {
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border px-4 py-3 flex items-center gap-3">
-        <button onClick={() => router.push('/feed')} className="text-muted-foreground hover:text-foreground">
-          <Home className="h-5 w-5" />
-        </button>
-        <h1 className="font-bold text-lg flex-1">Feed</h1>
-        <button className="text-muted-foreground hover:text-foreground p-1">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border px-4 py-3 flex items-center justify-between">
+        <button className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
           <Search className="h-5 w-5" />
         </button>
-        <Badge variant="outline" className="text-orange-500 border-orange-500 text-xs">Preview</Badge>
+        <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-orange-500 hover:bg-orange-600 transition-colors text-white shadow-md">
+          <Plus className="h-6 w-6" />
+        </button>
+        <button onClick={() => router.push('/feed')} className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+          <Home className="h-5 w-5" />
+        </button>
       </div>
 
       {loading ? (
@@ -96,10 +97,6 @@ export default function FeedPreviewPage() {
         </div>
       )}
 
-      {/* FAB - Create post */}
-      <button className="fixed bottom-6 right-6 z-20 bg-orange-500 hover:bg-orange-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg transition-colors">
-        <Plus className="h-7 w-7" />
-      </button>
     </div>
   );
 }
