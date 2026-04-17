@@ -710,13 +710,22 @@ function FeedContent() {
               onTouchEnd={handleTouchEnd}
               onClick={() => { if (isVideo) togglePlayPause(post.id); }}
             >
-              <FeedMedia
-                type={isVideo ? 'video' : 'image'}
-                src={media.url}
-                alt="Post"
-                isMuted={isGlobalMuted}
-                videoRef={el => { if (el && isVideo) videoRefs.current[`${post.id}-${currentIndex}`] = el; }}
-              />
+              {isVideo ? (
+                <FeedMedia
+                  type="video"
+                  src={media.url}
+                  alt="Post"
+                  isMuted={isGlobalMuted}
+                  videoRef={el => { if (el) videoRefs.current[`${post.id}-${currentIndex}`] = el; }}
+                />
+              ) : (
+                <img
+                  src={media.url}
+                  alt="Post"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  draggable={false}
+                />
+              )}
 
               {/* Overlay text */}
               {media.overlay_text && (
