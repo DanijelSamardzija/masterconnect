@@ -701,11 +701,6 @@ function FeedContent() {
             </div>
           </div>
 
-          {/* Text (customer: before media; pro: after media) */}
-          {!isPro && post.text && (
-            <div className="px-3 pb-2 text-sm text-foreground line-clamp-3 shrink-0">{post.text}</div>
-          )}
-
           {/* Media */}
           {media && (
             <div
@@ -775,8 +770,8 @@ function FeedContent() {
             </div>
           )}
 
-          {/* Text (pro: after media) */}
-          {isPro && post.text && (
+          {/* Text (after media for both) */}
+          {post.text && (
             <div className="px-3 pt-2 pb-1 shrink-0">
               {(() => {
                 const isLong = (post.text?.length || 0) > TEXT_MAX_LENGTH;
