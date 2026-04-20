@@ -377,7 +377,7 @@ function JobDetailsContent() {
               {job.customer && (
                 <div className="space-y-1">
                   <p className="font-medium">{job.customer.name}</p>
-                  <p className="text-sm text-muted-foreground">{job.customer.email}</p>
+                  {user && <p className="text-sm text-muted-foreground">{job.customer.email}</p>}
                 </div>
               )}
             </div>
