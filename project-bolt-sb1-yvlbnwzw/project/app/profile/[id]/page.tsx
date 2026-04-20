@@ -370,9 +370,5 @@ function UserProfileContent() {
 }
 
 export default function UserProfilePage() {
-  return (
-    <ProtectedRoute>
-      <UserProfileContent />
-    </ProtectedRoute>
-  );
+  return <UserProfileContent />;
 }
