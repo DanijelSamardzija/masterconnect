@@ -513,9 +513,5 @@ function JobDetailsContent() {
 }
 
 export default function JobDetailsPage() {
-  return (
-    <ProtectedRoute>
-      <JobDetailsContent />
-    </ProtectedRoute>
-  );
+  return <JobDetailsContent />;
 }
