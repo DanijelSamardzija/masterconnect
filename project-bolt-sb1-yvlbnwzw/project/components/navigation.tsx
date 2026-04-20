@@ -257,21 +257,22 @@ export function Navigation() {
               </Button>
             </Link>
 
+            <Link href="/feed">
+              <Button variant="ghost" size="sm" className={desktopNavClass('/feed')}>
+                <FileText className="h-4 w-4" />
+                <span className="hidden lg:inline">{t('nav.feed')}</span>
+              </Button>
+            </Link>
+
+            <Link href="/jobs">
+              <Button variant="ghost" size="sm" className={desktopNavClass('/jobs')}>
+                <Briefcase className="h-4 w-4" />
+                <span className="hidden lg:inline">{t('nav.jobs')}</span>
+              </Button>
+            </Link>
+
             {user && profile ? (
               <>
-                <Link href="/feed">
-                  <Button variant="ghost" size="sm" className={desktopNavClass('/feed')}>
-                    <FileText className="h-4 w-4" />
-                    <span className="hidden lg:inline">{t('nav.feed')}</span>
-                  </Button>
-                </Link>
-
-                <Link href="/jobs">
-                  <Button variant="ghost" size="sm" className={desktopNavClass('/jobs')}>
-                    <Briefcase className="h-4 w-4" />
-                    <span className="hidden lg:inline">{t('nav.jobs')}</span>
-                  </Button>
-                </Link>
 
                 <Link href="/messages">
                   <Button variant="ghost" size="sm" className={`${desktopNavClass('/messages')} relative`}>
@@ -517,21 +518,22 @@ export function Navigation() {
                     </Button>
                   </Link>
 
+                  <Link href="/feed" onClick={closeMobileMenu}>
+                    <Button variant="ghost" className={mobileNavClass('/feed')}>
+                      <FileText className="h-4 w-4" />
+                      {t('nav.feed')}
+                    </Button>
+                  </Link>
+
+                  <Link href="/jobs" onClick={closeMobileMenu}>
+                    <Button variant="ghost" className={mobileNavClass('/jobs')}>
+                      <Briefcase className="h-4 w-4" />
+                      {t('nav.jobs')}
+                    </Button>
+                  </Link>
+
                   {user && profile ? (
                     <>
-                      <Link href="/feed" onClick={closeMobileMenu}>
-                        <Button variant="ghost" className={mobileNavClass('/feed')}>
-                          <FileText className="h-4 w-4" />
-                          {t('nav.feed')}
-                        </Button>
-                      </Link>
-
-                      <Link href="/jobs" onClick={closeMobileMenu}>
-                        <Button variant="ghost" className={mobileNavClass('/jobs')}>
-                          <Briefcase className="h-4 w-4" />
-                          {t('nav.jobs')}
-                        </Button>
-                      </Link>
 
                       <Link href="/messages" onClick={closeMobileMenu}>
                         <Button variant="ghost" className={`${mobileNavClass('/messages')} relative`}>
