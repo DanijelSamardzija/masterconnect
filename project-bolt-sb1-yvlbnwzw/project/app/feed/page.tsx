@@ -583,14 +583,14 @@ function FeedContent() {
       {!user && (
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border px-4 py-3 flex items-center justify-between gap-3 shadow-lg">
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-foreground truncate">Svidi ti se? Prijavi se!</p>
-            <p className="text-xs text-muted-foreground">Kontaktiraj majstore i lajkuj objave</p>
+            <p className="text-sm font-semibold text-foreground truncate">{t('feed.ctaBannerTitle')}</p>
+            <p className="text-xs text-muted-foreground">{t('feed.ctaBannerDesc')}</p>
           </div>
           <button
             onClick={() => router.push('/login')}
             className="shrink-0 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
           >
-            Prijavi se
+            {t('feed.ctaButton')}
           </button>
         </div>
       )}

@@ -77,13 +77,13 @@ export default function Home() {
               <Link href="/feed">
                 <Button size="sm" variant="ghost" className="text-slate-400 hover:text-white hover:bg-slate-800 w-full sm:w-auto">
                   <Briefcase className="mr-1.5 h-3.5 w-3.5" />
-                  Pregledaj feed
+                  {t('home.browseFeed')}
                 </Button>
               </Link>
               <Link href="/jobs">
                 <Button size="sm" variant="ghost" className="text-slate-400 hover:text-white hover:bg-slate-800 w-full sm:w-auto">
                   <Users className="mr-1.5 h-3.5 w-3.5" />
-                  Oglasi za posao
+                  {t('home.browseJobs')}
                 </Button>
               </Link>
             </div>

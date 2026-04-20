@@ -949,7 +949,7 @@ function JobsMarketplaceContent() {
                                 className="bg-orange-600 hover:bg-orange-700 text-white h-9 text-xs md:text-sm flex-1 rounded-xl"
                               >
                                 <Send className="h-3.5 w-3.5 mr-1.5" />
-                                Prijavi se za kontakt
+                                {t('jobs.signInToContact')}
                               </Button>
                             )}
                             {user && user?.id !== post.user_id && (
@@ -1150,14 +1150,14 @@ function JobsMarketplaceContent() {
       {!user && (
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border px-4 py-3 flex items-center justify-between gap-3 shadow-lg">
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-foreground truncate">Pronađi svog majstora!</p>
-            <p className="text-xs text-muted-foreground">Prijavi se da kontaktiraš profesionalce</p>
+            <p className="text-sm font-semibold text-foreground truncate">{t('jobs.ctaBannerTitle')}</p>
+            <p className="text-xs text-muted-foreground">{t('jobs.ctaBannerDesc')}</p>
           </div>
           <button
             onClick={() => router.push('/login')}
             className="shrink-0 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
           >
-            Prijavi se
+            {t('feed.ctaButton')}
           </button>
         </div>
       )}

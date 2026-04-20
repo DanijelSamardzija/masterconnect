@@ -235,6 +235,8 @@ export default {
   'home.hero.trust1': 'Besplatna registracija',
   'home.hero.trust2': 'Verifikovani profili',
   'home.hero.trust3': 'Prave recenzije',
+  'home.browseFeed': 'Pregledaj feed',
+  'home.browseJobs': 'Oglasi za posao',
 
   'home.forWho.title': 'Za svakoga',
   'home.forWho.subtitle': 'Bilo da tražiš pomoć, nudiš uslugu ili zapošljavaš — GigZone te pokriva.',
@@ -1088,6 +1090,12 @@ export default {
 
   'feed.scrollHint': 'Skroluj gore-dole',
   'feed.contact': 'Kontaktiraj',
+  'feed.ctaBannerTitle': 'Sviđa ti se sadržaj?',
+  'feed.ctaBannerDesc': 'Prijavi se da lajkuješ i kontaktiraš majstore',
+  'feed.ctaButton': 'Prijavi se',
+  'jobs.ctaBannerTitle': 'Pronađi svog majstora!',
+  'jobs.ctaBannerDesc': 'Prijavi se da kontaktiraš profesionalce',
+  'jobs.signInToContact': 'Prijavi se za kontakt',
 
   // Profile Completeness
   'profileComplete.title': 'Popuni profil',

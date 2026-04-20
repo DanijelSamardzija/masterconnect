@@ -235,6 +235,8 @@ export default {
   'home.hero.trust1': 'Free to join',
   'home.hero.trust2': 'Verified profiles',
   'home.hero.trust3': 'Real reviews',
+  'home.browseFeed': 'Browse feed',
+  'home.browseJobs': 'Job listings',
 
   'home.forWho.title': 'Built for everyone',
   'home.forWho.subtitle': 'Whether you need help, offer a service, or want to hire — GigZone has you covered.',
@@ -1088,6 +1090,12 @@ export default {
 
   'feed.scrollHint': 'Scroll up & down',
   'feed.contact': 'Contact',
+  'feed.ctaBannerTitle': 'Enjoying the content?',
+  'feed.ctaBannerDesc': 'Log in to like posts and contact professionals',
+  'feed.ctaButton': 'Sign in',
+  'jobs.ctaBannerTitle': 'Find your professional!',
+  'jobs.ctaBannerDesc': 'Log in to contact professionals',
+  'jobs.signInToContact': 'Sign in to contact',
 
   // Profile Completeness
   'profileComplete.title': 'Complete your profile',
