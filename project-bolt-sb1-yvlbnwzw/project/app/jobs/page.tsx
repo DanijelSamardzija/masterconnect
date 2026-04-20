@@ -6,7 +6,6 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { findOrCreateThread } from '@/lib/thread-utils';
 import { usePageTracking } from '@/lib/hooks/use-page-tracking';
-import { ProtectedRoute } from '@/components/protected-route';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -209,9 +208,9 @@ function JobsMarketplaceContent() {
   const [expandedPosts, setExpandedPosts] = useState<Set<string>>(new Set());
 
   useEffect(() => {
+    loadPosts();
+    loadCategories();
     if (user) {
-      loadPosts();
-      loadCategories();
       fetchSavedJobs();
     } else {
       setSavedSet(new Set());
@@ -942,7 +941,18 @@ function JobsMarketplaceContent() {
                           {isServiceRequest && <div className="border-t border-slate-200 pt-2 mt-2 -mx-4 px-4" />}
 
                           <div className={`flex gap-2 ${isServiceRequest ? '' : 'pt-0.5'}`}>
-                            {user?.id !== post.user_id && (
+                            {!user && (
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={() => router.push('/login')}
+                                className="bg-orange-600 hover:bg-orange-700 text-white h-9 text-xs md:text-sm flex-1 rounded-xl"
+                              >
+                                <Send className="h-3.5 w-3.5 mr-1.5" />
+                                Prijavi se za kontakt
+                              </Button>
+                            )}
+                            {user && user?.id !== post.user_id && (
                               <>
                                 {post.post_type === 'hiring_post' && (
                                   <div className="flex gap-2 w-full">
@@ -1135,14 +1145,26 @@ function JobsMarketplaceContent() {
           onSuccess={handleApplicationSuccess}
         />
       )}
+
+      {/* CTA banner for unauthenticated users */}
+      {!user && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border px-4 py-3 flex items-center justify-between gap-3 shadow-lg">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-foreground truncate">Pronađi svog majstora!</p>
+            <p className="text-xs text-muted-foreground">Prijavi se da kontaktiraš profesionalce</p>
+          </div>
+          <button
+            onClick={() => router.push('/login')}
+            className="shrink-0 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
+          >
+            Prijavi se
+          </button>
+        </div>
+      )}
     </div>
   );
 }
 
 export default function JobsMarketplacePage() {
-  return (
-    <ProtectedRoute>
-      <JobsMarketplaceContent />
-    </ProtectedRoute>
-  );
+  return <JobsMarketplaceContent />;
 }

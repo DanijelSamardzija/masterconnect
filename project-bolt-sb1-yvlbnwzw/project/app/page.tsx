@@ -73,6 +73,21 @@ export default function Home() {
               </Link>
             </div>
 
+            <div className="flex flex-col sm:flex-row gap-2 justify-center mt-3">
+              <Link href="/feed">
+                <Button size="sm" variant="ghost" className="text-slate-400 hover:text-white hover:bg-slate-800 w-full sm:w-auto">
+                  <Briefcase className="mr-1.5 h-3.5 w-3.5" />
+                  Pregledaj feed
+                </Button>
+              </Link>
+              <Link href="/jobs">
+                <Button size="sm" variant="ghost" className="text-slate-400 hover:text-white hover:bg-slate-800 w-full sm:w-auto">
+                  <Users className="mr-1.5 h-3.5 w-3.5" />
+                  Oglasi za posao
+                </Button>
+              </Link>
+            </div>
+
             {/* Trust bar */}
             <div className="mt-16 flex flex-wrap items-center justify-center gap-6 md:gap-10 text-slate-500 text-sm">
               <div className="flex items-center gap-2">

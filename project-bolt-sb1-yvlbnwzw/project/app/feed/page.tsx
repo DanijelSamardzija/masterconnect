@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
-import { ProtectedRoute } from '@/components/protected-route';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -144,11 +143,12 @@ function FeedContent() {
   const PREFETCH_THRESHOLD = 5;
 
   useEffect(() => {
-    if (user) { loadPosts(true); fetchSavedPosts(); }
+    loadPosts(true);
+    if (user) fetchSavedPosts();
   }, [user]);
 
   useEffect(() => {
-    if (user) loadPosts(true);
+    loadPosts(true);
   }, [activeHashtag]);
 
   useEffect(() => {
@@ -295,7 +295,6 @@ function FeedContent() {
   }, [hasMore, loadingMore, loading, offset]);
 
   const loadPosts = async (reset = false) => {
-    if (!user) return;
     if (!hasMore && !reset) return;
     try {
       if (reset) { setLoading(true); setOffset(0); setHasMore(true); }
@@ -478,10 +477,10 @@ function FeedContent() {
 
       {/* Sticky header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border py-2 flex items-center justify-center gap-5">
-        <button onClick={() => router.push('/dashboard')} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+        <button onClick={() => router.push(user ? '/dashboard' : '/')} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
           <Home className="h-5 w-5" />
         </button>
-        <button onClick={() => setCreatePostOpen(true)} className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-500 hover:bg-orange-600 transition-colors text-white shadow-md">
+        <button onClick={() => user ? setCreatePostOpen(true) : router.push('/login')} className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-500 hover:bg-orange-600 transition-colors text-white shadow-md">
           <Plus className="h-5 w-5" />
         </button>
         <button onClick={() => { setSearchOpen(true); setTimeout(() => searchInputRef.current?.focus(), 50); }} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
@@ -522,9 +521,11 @@ function FeedContent() {
             <div className="text-center px-8">
               <p className="text-xl font-bold mb-2">Nema postova</p>
               <p className="text-muted-foreground mb-4 text-sm">Feed je trenutno prazan.</p>
-              <button onClick={() => setCreatePostOpen(true)} className="flex items-center gap-1.5 mx-auto rounded-full bg-orange-500 px-4 py-2 text-sm font-semibold text-white">
-                <Plus className="h-4 w-4" /> Kreiraj post
-              </button>
+              {user && (
+                <button onClick={() => setCreatePostOpen(true)} className="flex items-center gap-1.5 mx-auto rounded-full bg-orange-500 px-4 py-2 text-sm font-semibold text-white">
+                  <Plus className="h-4 w-4" /> Kreiraj post
+                </button>
+              )}
             </div>
           </div>
         ) : (
@@ -577,6 +578,22 @@ function FeedContent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* CTA banner for unauthenticated users */}
+      {!user && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border px-4 py-3 flex items-center justify-between gap-3 shadow-lg">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-foreground truncate">Svidi ti se? Prijavi se!</p>
+            <p className="text-xs text-muted-foreground">Kontaktiraj majstore i lajkuj objave</p>
+          </div>
+          <button
+            onClick={() => router.push('/login')}
+            className="shrink-0 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
+          >
+            Prijavi se
+          </button>
+        </div>
+      )}
     </>
   );
 
@@ -825,30 +842,39 @@ function FeedContent() {
 
           {/* Actions */}
           <div className="flex items-center px-3 py-2 border-t border-border gap-1 shrink-0">
-            <button onClick={() => handleLike(post)} className="flex items-center gap-1.5 text-xs px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
+            <button onClick={() => user ? handleLike(post) : router.push('/login')} className="flex items-center gap-1.5 text-xs px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
               <Heart className={`h-4 w-4 ${post.user_has_reacted ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
               <span className="text-muted-foreground">{post.reactions_count}</span>
             </button>
-            <button onClick={() => { setSelectedPost(post); setCommentsOpen(true); }} className="flex items-center gap-1.5 text-xs text-muted-foreground px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
+            <button onClick={() => user ? (setSelectedPost(post), setCommentsOpen(true)) : router.push('/login')} className="flex items-center gap-1.5 text-xs text-muted-foreground px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
               <MessageCircle className="h-4 w-4" />{post.comments_count}
             </button>
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground px-2 py-1.5 opacity-70">
               <Eye className="h-4 w-4" />{post.views_count}
             </div>
             <div className="flex-1" />
-            <button onClick={e => handleSave(e, post.id)} className="flex items-center gap-1.5 text-xs px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
+            <button onClick={e => user ? handleSave(e, post.id) : router.push('/login')} className="flex items-center gap-1.5 text-xs px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
               <Bookmark className={`h-4 w-4 ${isSaved ? 'fill-foreground text-foreground' : 'text-muted-foreground'}`} />
             </button>
             <button onClick={() => setShareModalPostId(post.id)} className="flex items-center gap-1.5 text-xs text-muted-foreground px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
               <Share2 className="h-4 w-4" />
             </button>
-            {isPro && !isOwn && (
+            {isPro && !isOwn && user && (
               <button
                 onClick={() => handleContact(post.user_id)}
                 disabled={contactingUserId === post.user_id}
                 className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors disabled:opacity-60"
               >
                 {contactingUserId === post.user_id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Phone className="h-3.5 w-3.5" />}
+                {t('feed.contact')}
+              </button>
+            )}
+            {isPro && !user && (
+              <button
+                onClick={() => router.push('/login')}
+                className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
+              >
+                <Phone className="h-3.5 w-3.5" />
                 {t('feed.contact')}
               </button>
             )}
@@ -860,9 +886,5 @@ function FeedContent() {
 }
 
 export default function FeedPage() {
-  return (
-    <ProtectedRoute>
-      <FeedContent />
-    </ProtectedRoute>
-  );
+  return <FeedContent />;
 }
