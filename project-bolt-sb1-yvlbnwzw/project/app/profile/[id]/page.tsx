@@ -62,10 +62,12 @@ function UserProfileContent() {
   };
 
   useEffect(() => {
-    if (userId && user) {
-      checkBlockStatus();
+    if (userId) {
       fetchProfile();
-      if (!isOwnProfile) trackProfileView();
+      if (user) {
+        checkBlockStatus();
+        if (!isOwnProfile) trackProfileView();
+      }
     }
   }, [userId, user]);
 
