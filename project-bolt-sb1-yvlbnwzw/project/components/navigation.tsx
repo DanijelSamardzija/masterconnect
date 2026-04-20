@@ -452,7 +452,11 @@ export function Navigation() {
                 </Link>
               </>
             ) : (
-              <LanguageSwitcher />
+              <LanguageSwitcher className={
+                isPublicPage && !isLandingPage
+                  ? 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
+              } />
             )}
 
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
