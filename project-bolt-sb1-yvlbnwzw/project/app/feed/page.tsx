@@ -311,18 +311,21 @@ function FeedContent() {
       const nextOffset = currentOffset + newPosts.length;
       setHasMore(nextOffset < (meta?.totalAvailablePosts || 0) && newPosts.length >= POSTS_LIMIT);
 
-      const userReactionsResult = await supabase.from('post_reactions').select('post_id').in('post_id', newPosts.map((p: any) => p.id)).eq('user_id', user.id);
-      const userReactedPosts = new Set((userReactionsResult.data || []).map((r: any) => r.post_id));
+      let userReactedPosts = new Set<string>();
+      if (user) {
+        const userReactionsResult = await supabase.from('post_reactions').select('post_id').in('post_id', newPosts.map((p: any) => p.id)).eq('user_id', user.id);
+        userReactedPosts = new Set((userReactionsResult.data || []).map((r: any) => r.post_id));
 
-      const uniqueAuthorIds = [...new Set(newPosts.map((p: any) => p.user_id).filter((id: string) => id !== user.id))];
-      if (uniqueAuthorIds.length > 0) {
-        const { data: followData } = await supabase.from('followers').select('following_id').eq('follower_id', user.id).in('following_id', uniqueAuthorIds);
-        const newlyFollowed = new Set((followData || []).map((r: any) => r.following_id));
-        setFollowedUserIds(prev => {
-          const next = new Set(prev);
-          uniqueAuthorIds.forEach((id: string) => { if (newlyFollowed.has(id)) next.add(id); });
-          return next;
-        });
+        const uniqueAuthorIds = [...new Set(newPosts.map((p: any) => p.user_id).filter((id: string) => id !== user.id))];
+        if (uniqueAuthorIds.length > 0) {
+          const { data: followData } = await supabase.from('followers').select('following_id').eq('follower_id', user.id).in('following_id', uniqueAuthorIds);
+          const newlyFollowed = new Set((followData || []).map((r: any) => r.following_id));
+          setFollowedUserIds(prev => {
+            const next = new Set(prev);
+            uniqueAuthorIds.forEach((id: string) => { if (newlyFollowed.has(id)) next.add(id); });
+            return next;
+          });
+        }
       }
 
       if (reset && newPosts.length > 0) newestPostTimestamp.current = newPosts[0].created_at;
