@@ -480,6 +480,7 @@ export default {
   'profile.noOpenPositions': 'Noch keine offenen Stellen',
   'profile.sendMessage': 'Nachricht',
   'profile.callUser': 'Anrufen',
+  'profile.signInToViewContact': 'Anmelden, um Kontaktdaten zu sehen',
   'profile.leaveReview': 'Bewertung hinterlassen',
   'profile.followers': 'Follower',
   'profile.following': 'Folge ich',

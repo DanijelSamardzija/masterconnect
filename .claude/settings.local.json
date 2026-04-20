@@ -26,7 +26,10 @@
       "Bash(curl -s -X GET \"https://api.resend.com/domains\" -H \"Authorization: Bearer $\\(cd d:/Projekti/projekat/project-bolt-sb1-yvlbnwzw/project && grep RESEND .env.local)",
       "Bash(ls -la \"d:\\\\Projekti\\\\projekat\\\\project-bolt-sb1-yvlbnwzw\\\\project/.env\"*)",
       "Bash(git add:*)",
-      "Bash(git commit -m ':*)"
+      "Bash(git commit -m ':*)",
+      "Bash(npx tsc *)",
+      "Bash(cat next.config.ts)",
+      "Bash(cat next.config.js)"
     ]
   }
 }

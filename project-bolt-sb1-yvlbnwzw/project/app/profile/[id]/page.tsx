@@ -313,13 +313,23 @@ function UserProfileContent() {
   );
 
   const callAction = profile.show_phone && profile.phone ? (
-    <a
-      href={`tel:${profile.phone}`}
-      className="inline-flex items-center justify-center gap-1 rounded-full px-3 text-sm font-semibold h-8 w-full shadow-sm bg-green-500 hover:bg-green-600 text-white transition-colors"
-    >
-      <Phone className="h-4 w-4 shrink-0" />
-      {t('profile.callUser')}
-    </a>
+    user ? (
+      <a
+        href={`tel:${profile.phone}`}
+        className="inline-flex items-center justify-center gap-1 rounded-full px-3 text-sm font-semibold h-8 w-full shadow-sm bg-green-500 hover:bg-green-600 text-white transition-colors"
+      >
+        <Phone className="h-4 w-4 shrink-0" />
+        {t('profile.callUser')}
+      </a>
+    ) : (
+      <button
+        onClick={() => router.push('/login')}
+        className="inline-flex items-center justify-center gap-1 rounded-full px-3 text-sm font-semibold h-8 w-full shadow-sm bg-green-500 hover:bg-green-600 text-white transition-colors"
+      >
+        <Phone className="h-4 w-4 shrink-0" />
+        {t('profile.callUser')}
+      </button>
+    )
   ) : undefined;
 
   const reviewAction = profile.account_type === 'professional' && !isOwnProfile ? (
@@ -350,6 +360,7 @@ function UserProfileContent() {
         profile={profile}
         currentUserId={user?.id}
         isOwnProfile={false}
+        isLoggedIn={!!user}
         onSendMessage={handleSendMessage}
         headerActions={headerActions}
         callAction={callAction}

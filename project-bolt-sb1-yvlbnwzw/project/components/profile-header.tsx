@@ -4,7 +4,7 @@ import { ReactNode } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ProfessionalBadge } from '@/components/professional-badge';
-import { MapPin, Star, Phone, Mail, Globe, Briefcase } from 'lucide-react';
+import { MapPin, Star, Phone, Mail, Globe, Briefcase, Lock } from 'lucide-react';
 import { useLanguage } from '@/lib/contexts/language-context';
 
 type ProfileHeaderProps = {
@@ -33,6 +33,7 @@ type ProfileHeaderProps = {
   followingCount?: number;
   onFollowersClick?: () => void;
   onFollowingClick?: () => void;
+  isLoggedIn?: boolean;
 };
 
 export function ProfileHeader({
@@ -58,6 +59,7 @@ export function ProfileHeader({
   followingCount,
   onFollowersClick,
   onFollowingClick,
+  isLoggedIn = true,
 }: ProfileHeaderProps) {
   const { t } = useLanguage();
   const isPro = accountType === 'professional';
@@ -193,52 +195,59 @@ export function ProfileHeader({
         )}
 
         {/* ── Contact info ── */}
-        {((phone && (isOwnProfile || showPhone)) ||
-          (email && (isOwnProfile || showEmail)) ||
-          websiteUrl) && (
-          <div className="flex flex-col gap-1.5 mb-3 p-3 rounded-xl bg-muted/40 border border-border/50">
-            {phone && (isOwnProfile || showPhone) && (
-              <div className="flex items-center gap-2 text-sm">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-950 flex-shrink-0">
-                  <Phone className="h-3.5 w-3.5 text-orange-600 dark:text-orange-400" />
-                </span>
-                <a href={`tel:${phone}`} className="hover:text-orange-500 transition-colors text-foreground">
-                  {phone}
-                </a>
-                {isOwnProfile && !showPhone && (
-                  <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground">privatno</span>
-                )}
-              </div>
-            )}
-            {email && (isOwnProfile || showEmail) && (
-              <div className="flex items-center gap-2 text-sm">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-950 flex-shrink-0">
-                  <Mail className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-                </span>
-                <a href={`mailto:${email}`} className="hover:text-orange-500 transition-colors truncate text-foreground">
-                  {email}
-                </a>
-                {isOwnProfile && !showEmail && (
-                  <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground">privatno</span>
-                )}
-              </div>
-            )}
-            {websiteUrl && (
-              <div className="flex items-center gap-2 text-sm">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-green-100 dark:bg-green-950 flex-shrink-0">
-                  <Globe className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
-                </span>
-                <a
-                  href={websiteUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-orange-500 transition-colors truncate text-foreground"
-                >
-                  {websiteUrl.replace(/^https?:\/\//, '')}
-                </a>
-              </div>
-            )}
+        {!isLoggedIn && !isOwnProfile && ((phone && showPhone) || (email && showEmail)) ? (
+          <div className="flex items-center gap-2 mb-3 p-3 rounded-xl bg-muted/40 border border-border/50 text-sm text-muted-foreground">
+            <Lock className="h-4 w-4 flex-shrink-0" />
+            <span>{t('profile.signInToViewContact')}</span>
           </div>
+        ) : (
+          ((phone && (isOwnProfile || showPhone)) ||
+            (email && (isOwnProfile || showEmail)) ||
+            websiteUrl) && (
+            <div className="flex flex-col gap-1.5 mb-3 p-3 rounded-xl bg-muted/40 border border-border/50">
+              {phone && (isOwnProfile || showPhone) && (
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-950 flex-shrink-0">
+                    <Phone className="h-3.5 w-3.5 text-orange-600 dark:text-orange-400" />
+                  </span>
+                  <a href={`tel:${phone}`} className="hover:text-orange-500 transition-colors text-foreground">
+                    {phone}
+                  </a>
+                  {isOwnProfile && !showPhone && (
+                    <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground">privatno</span>
+                  )}
+                </div>
+              )}
+              {email && (isOwnProfile || showEmail) && (
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-950 flex-shrink-0">
+                    <Mail className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                  </span>
+                  <a href={`mailto:${email}`} className="hover:text-orange-500 transition-colors truncate text-foreground">
+                    {email}
+                  </a>
+                  {isOwnProfile && !showEmail && (
+                    <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground">privatno</span>
+                  )}
+                </div>
+              )}
+              {websiteUrl && (
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-green-100 dark:bg-green-950 flex-shrink-0">
+                    <Globe className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                  </span>
+                  <a
+                    href={websiteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-orange-500 transition-colors truncate text-foreground"
+                  >
+                    {websiteUrl.replace(/^https?:\/\//, '')}
+                  </a>
+                </div>
+              )}
+            </div>
+          )
         )}
       </div>
     </div>

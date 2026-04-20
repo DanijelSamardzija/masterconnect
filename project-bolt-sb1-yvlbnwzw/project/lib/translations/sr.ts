@@ -482,6 +482,7 @@ export default {
   'profile.createFirstPortfolio': 'Dodajte Prvu Portfolio Stavku',
   'profile.sendMessage': 'Poruka',
   'profile.callUser': 'Pozovi',
+  'profile.signInToViewContact': 'Prijavi se da vidiš kontakt',
   'profile.leaveReview': 'Ostavi Recenziju',
   'profile.followers': 'Pratioci',
   'profile.following': 'Prate',

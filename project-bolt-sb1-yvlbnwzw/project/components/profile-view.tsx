@@ -125,6 +125,7 @@ type ProfileViewProps = {
   profile: UserProfile;
   currentUserId?: string;
   isOwnProfile: boolean;
+  isLoggedIn?: boolean;
   onSendMessage?: () => void;
   headerActions?: React.ReactNode;
   callAction?: React.ReactNode;
@@ -135,6 +136,7 @@ export function ProfileView({
   profile,
   currentUserId,
   isOwnProfile,
+  isLoggedIn = true,
   onSendMessage,
   headerActions,
   callAction,
@@ -786,6 +788,7 @@ export function ProfileView({
           showPhone={profile.show_phone}
           showEmail={profile.show_email}
           isOwnProfile={isOwnProfile}
+          isLoggedIn={isLoggedIn}
           category={profile.category}
           bio={profile.bio}
           accountType={profile.account_type}

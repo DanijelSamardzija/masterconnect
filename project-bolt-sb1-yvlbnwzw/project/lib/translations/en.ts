@@ -482,6 +482,7 @@ export default {
   'profile.noOpenPositions': 'No open positions yet',
   'profile.sendMessage': 'Message',
   'profile.callUser': 'Call',
+  'profile.signInToViewContact': 'Sign in to view contact info',
   'profile.leaveReview': 'Leave Review',
   'profile.followers': 'Followers',
   'profile.following': 'Following',
