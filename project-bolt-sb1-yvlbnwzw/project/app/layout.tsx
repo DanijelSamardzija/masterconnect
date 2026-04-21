@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
 import { AuthProvider } from '@/lib/contexts/auth-context';
 import { LanguageProvider } from '@/lib/contexts/language-context';
 import { NotificationProvider } from '@/components/notification-provider';
@@ -82,6 +83,7 @@ export default function RootLayout({
 
             <PushNotificationManager />
             <PWARegistration />
+            <Analytics />
           </AuthProvider>
         </LanguageProvider>
       </body>
