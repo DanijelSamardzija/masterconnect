@@ -30,6 +30,16 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       const savedLang = localStorage.getItem('language') as Language;
       if (savedLang && (savedLang === 'en' || savedLang === 'sr' || savedLang === 'de')) {
         setLanguageState(savedLang);
+        return;
+      }
+
+      // Auto-detect: check browser language
+      const browserLangs = navigator.languages || [navigator.language];
+      const isSerbian = browserLangs.some((l) =>
+        l.toLowerCase().startsWith('sr') || l.toLowerCase().startsWith('hr') || l.toLowerCase().startsWith('bs')
+      );
+      if (isSerbian) {
+        setLanguageState('sr');
       }
     } catch (error) {
       console.warn('[LanguageContext] localStorage access blocked:', error);
