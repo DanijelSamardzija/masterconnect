@@ -46,7 +46,7 @@ export default function JoinPage() {
         </p>
 
         {/* Benefits */}
-        <div className="space-y-3 mb-8 text-left">
+        <div className="space-y-3 mb-4 text-left">
           {[
             { icon: <Wrench className="h-4 w-4 text-orange-400 flex-shrink-0" />, text: 'Objavi usluge i pronađi klijente' },
             { icon: <Briefcase className="h-4 w-4 text-orange-400 flex-shrink-0" />, text: 'Nađi posao u svojoj oblasti' },
@@ -60,13 +60,18 @@ export default function JoinPage() {
           ))}
         </div>
 
+        {/* Trust text */}
+        <p className="text-slate-500 text-xs text-center mb-6">
+          Bez provizije. Bez posrednika. Direktan kontakt.
+        </p>
+
         {/* CTA */}
         <Button
           size="lg"
           onClick={() => router.push('/login?tab=register')}
           className="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold text-lg h-14 rounded-2xl shadow-lg shadow-orange-600/30 mb-3"
         >
-          Kreni odmah — besplatno
+          Registruj se besplatno
           <ArrowRight className="ml-2 h-5 w-5" />
         </Button>
 

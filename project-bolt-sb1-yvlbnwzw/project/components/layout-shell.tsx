@@ -9,11 +9,11 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
 
   const isMessageThread = pathname.startsWith('/messages/');
   const isMessagesPage = pathname === '/messages';
-
   const isFeedPage = pathname === '/feed';
+  const isJoinPage = pathname === '/join';
 
-  const hideNavigation = isMessageThread;
-  const hideFooter = isMessagesPage || isMessageThread || isFeedPage;
+  const hideNavigation = isMessageThread || isJoinPage;
+  const hideFooter = isMessagesPage || isMessageThread || isFeedPage || isJoinPage;
 
   return (
     <>

@@ -40,7 +40,8 @@ export default function LoginPage() {
   const { t, language } = useLanguage();
   const redirectTo = searchParams.get('redirect') || '/feed';
   const resetSuccess = searchParams.get('reset') === 'success';
-  const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
+  const initialTab = searchParams.get('tab') === 'register' ? 'register' : 'login';
+  const [activeTab, setActiveTab] = useState<'login' | 'register'>(initialTab);
 
   // Ako je korisnik već ulogovan, preusmjeri na feed
   useEffect(() => {
