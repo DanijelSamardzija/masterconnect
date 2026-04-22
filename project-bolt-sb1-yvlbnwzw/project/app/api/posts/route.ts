@@ -188,20 +188,15 @@ export async function GET(request: NextRequest) {
       }
     })) || [];
 
-    // Separate real vs demo posts
+    // Real posts (with media first) before demo posts
     const realPosts = postsWithMedia.filter(p => !p.user_id.startsWith('b1000000-'));
     const demoPosts = postsWithMedia.filter(p => p.user_id.startsWith('b1000000-'));
-
-    // Within real posts: media first
     realPosts.sort((a, b) => {
       if (a.media.length > 0 && b.media.length === 0) return -1;
       if (a.media.length === 0 && b.media.length > 0) return 1;
       return 0;
     });
-
-    // Max 3 demo posts per page, appended after all real posts
-    const MAX_DEMO_PER_PAGE = 3;
-    const postsWithMediaSorted = [...realPosts, ...demoPosts.slice(0, MAX_DEMO_PER_PAGE)];
+    const postsWithMediaSorted = [...realPosts, ...demoPosts];
 
     return NextResponse.json({
       data: postsWithMediaSorted,
