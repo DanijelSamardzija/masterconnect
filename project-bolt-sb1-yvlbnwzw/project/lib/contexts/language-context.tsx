@@ -40,7 +40,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
         // Priority 2: browser language (instant, no network)
         const bl = (navigator.languages?.[0] || navigator.language || '').toLowerCase();
-        if (bl.startsWith('sr') || bl.startsWith('hr') || bl.startsWith('bs')) {
+        if (bl.startsWith('sr') || bl.startsWith('hr') || bl.startsWith('bs') || bl.startsWith('me')) {
           setLanguageState('sr');
           return;
         }
