@@ -188,8 +188,12 @@ export async function GET(request: NextRequest) {
       }
     })) || [];
 
-    // Posts with media (real uploaded photos) appear before text-only posts
+    // Real users with media first, then real users text-only, demo posts last
     postsWithMedia.sort((a, b) => {
+      const aIsDemo = a.user_id.startsWith('b1000000-');
+      const bIsDemo = b.user_id.startsWith('b1000000-');
+      if (!aIsDemo && bIsDemo) return -1;
+      if (aIsDemo && !bIsDemo) return 1;
       if (a.media.length > 0 && b.media.length === 0) return -1;
       if (a.media.length === 0 && b.media.length > 0) return 1;
       return 0;
