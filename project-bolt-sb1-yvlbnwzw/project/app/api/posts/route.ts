@@ -188,6 +188,13 @@ export async function GET(request: NextRequest) {
       }
     })) || [];
 
+    // Posts with media (real uploaded photos) appear before text-only posts
+    postsWithMedia.sort((a, b) => {
+      if (a.media.length > 0 && b.media.length === 0) return -1;
+      if (a.media.length === 0 && b.media.length > 0) return 1;
+      return 0;
+    });
+
     return NextResponse.json({
       data: postsWithMedia,
       meta: {
