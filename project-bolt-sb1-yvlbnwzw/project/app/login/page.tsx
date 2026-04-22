@@ -330,15 +330,15 @@ export default function LoginPage() {
             GigZone
           </CardTitle>
           <CardDescription className="text-base">
-            Connect with professionals or offer your services
+            {t('login.tagline')}
           </CardDescription>
         </CardHeader>
 
         <CardContent className="pb-6">
           <Tabs value={activeTab} onValueChange={handleTabChange}>
             <TabsList className="grid w-full grid-cols-2 mb-6 h-11">
-              <TabsTrigger value="login" className="text-base">Sign In</TabsTrigger>
-              <TabsTrigger value="register" className="text-base">Sign Up</TabsTrigger>
+              <TabsTrigger value="login" className="text-base">{t('login.signIn')}</TabsTrigger>
+              <TabsTrigger value="register" className="text-base">{t('login.signUp')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="login" className="mt-0">
@@ -347,7 +347,7 @@ export default function LoginPage() {
                   <Alert className="border-green-200 bg-green-50">
                     <CheckCircle className="h-4 w-4 text-green-600" />
                     <AlertDescription className="text-green-800">
-                      Password reset successful! You can now sign in with your new password.
+                      {t('login.resetSuccess')}
                     </AlertDescription>
                   </Alert>
                 )}
@@ -430,14 +430,14 @@ export default function LoginPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="login-email" className="text-sm font-medium">
-                    Email Address
+                    {t('login.emailLabel')}
                   </Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                     <Input
                       id="login-email"
                       type="email"
-                      placeholder="Enter your email"
+                      placeholder={t('login.emailPlaceholder')}
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
                       className="pl-10 h-11"
@@ -449,13 +449,13 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="login-password" className="text-sm font-medium">
-                      Password
+                      {t('login.passwordLabel')}
                     </Label>
                     <Link
                       href="/forgot-password"
                       className="text-sm text-orange-600 hover:text-orange-700 font-medium transition-colors"
                     >
-                      Forgot password?
+                      {t('login.forgotPassword')}
                     </Link>
                   </div>
                   <div className="relative">
@@ -463,7 +463,7 @@ export default function LoginPage() {
                     <Input
                       id="login-password"
                       type="password"
-                      placeholder="Enter your password"
+                      placeholder={t('login.passwordPlaceholder')}
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       className="pl-10 h-11"
@@ -480,12 +480,12 @@ export default function LoginPage() {
                   {loginLoading ? (
                     <span className="flex items-center gap-2">
                       <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Prijavljivanje...
+                      {t('login.signingIn')}
                     </span>
                   ) : rateLimitSeconds > 0 ? (
-                    `Sačekajte ${rateLimitSeconds}s`
+                    t('login.waitSeconds').replace('{s}', String(rateLimitSeconds))
                   ) : (
-                    'Prijavi se'
+                    t('login.signInButton')
                   )}
                 </Button>
               </form>
@@ -502,14 +502,14 @@ export default function LoginPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="register-name" className="text-sm font-medium">
-                    Full Name
+                    {t('login.fullNameLabel')}
                   </Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                     <Input
                       id="register-name"
                       type="text"
-                      placeholder="Enter your full name"
+                      placeholder={t('login.fullNamePlaceholder')}
                       value={registerName}
                       onChange={(e) => setRegisterName(e.target.value)}
                       className="pl-10 h-11"
@@ -520,14 +520,14 @@ export default function LoginPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="register-email" className="text-sm font-medium">
-                    Email Address
+                    {t('login.emailLabel')}
                   </Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                     <Input
                       id="register-email"
                       type="email"
-                      placeholder="Enter your email"
+                      placeholder={t('login.emailPlaceholder')}
                       value={registerEmail}
                       onChange={(e) => setRegisterEmail(e.target.value)}
                       className="pl-10 h-11"
@@ -538,14 +538,14 @@ export default function LoginPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="register-password" className="text-sm font-medium">
-                    Password
+                    {t('login.passwordLabel')}
                   </Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                     <Input
                       id="register-password"
                       type="password"
-                      placeholder="Create a password"
+                      placeholder={t('login.newPasswordPlaceholder')}
                       value={registerPassword}
                       onChange={(e) => setRegisterPassword(e.target.value)}
                       className="pl-10 h-11"
@@ -553,23 +553,23 @@ export default function LoginPage() {
                       minLength={6}
                     />
                   </div>
-                  <p className="text-xs text-slate-500 pl-1">Minimum 6 characters</p>
+                  <p className="text-xs text-slate-500 pl-1">{t('login.minChars')}</p>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="register-city" className="text-sm font-medium">
-                    City
+                    {t('login.cityLabel')}
                   </Label>
                   <CityAutocomplete
                     value={registerCity}
                     onChange={setRegisterCity}
-                    placeholder="Select your city"
+                    placeholder={t('login.cityPlaceholder')}
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="register-country" className="text-sm font-medium">
-                    {language === 'en' ? 'Country' : 'Država'}
+                    {t('login.countryLabel')}
                   </Label>
                   <select
                     id="register-country"
@@ -578,7 +578,7 @@ export default function LoginPage() {
                     className="w-full h-11 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     required
                   >
-                    <option value="">{language === 'en' ? 'Select your country' : 'Odaberite državu'}</option>
+                    <option value="">{t('login.countryPlaceholder')}</option>
                     {countries.map((c) => (
                       <option key={c.value} value={c.value}>
                         {language === 'en' ? c.en : c.sr}
@@ -587,7 +587,7 @@ export default function LoginPage() {
                   </select>
                   {registerCountry === 'Ostalo' && (
                     <Input
-                      placeholder={language === 'en' ? 'Enter your country' : 'Unesite vašu državu'}
+                      placeholder={t('login.enterCountry')}
                       value={registerCustomCountry}
                       onChange={(e) => setRegisterCustomCountry(e.target.value)}
                       className="h-11"
@@ -598,18 +598,18 @@ export default function LoginPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="register-category" className="text-sm font-medium">
-                    Category
+                    {t('login.categoryLabel')}
                   </Label>
                   <CategoryCombobox
                     value={registerCategory}
                     onChange={setRegisterCategory}
                     suggestions={categories}
-                    placeholder="Select a category"
+                    placeholder={t('login.categoryPlaceholder')}
                   />
                 </div>
 
                 <div className="space-y-3">
-                  <Label className="text-sm font-medium">Account Type</Label>
+                  <Label className="text-sm font-medium">{t('login.accountTypeLabel')}</Label>
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
@@ -628,9 +628,9 @@ export default function LoginPage() {
                         }`} />
                       </div>
                       <div className="text-center">
-                        <span className="font-semibold text-sm block">Customer</span>
+                        <span className="font-semibold text-sm block">{t('login.customerLabel')}</span>
                         <span className="text-xs text-slate-500 mt-1 block">
-                          Find services
+                          {t('login.customerDesc')}
                         </span>
                       </div>
                     </button>
@@ -652,9 +652,9 @@ export default function LoginPage() {
                         }`} />
                       </div>
                       <div className="text-center">
-                        <span className="font-semibold text-sm block">Professional</span>
+                        <span className="font-semibold text-sm block">{t('login.professionalLabel')}</span>
                         <span className="text-xs text-slate-500 mt-1 block">
-                          Offer services
+                          {t('login.professionalDesc')}
                         </span>
                       </div>
                     </button>
@@ -701,10 +701,10 @@ export default function LoginPage() {
                   {registerLoading ? (
                     <span className="flex items-center gap-2">
                       <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Creating account...
+                      {t('login.creatingAccount')}
                     </span>
                   ) : (
-                    'Create Account'
+                    t('login.createAccount')
                   )}
                 </Button>
               </form>
@@ -719,7 +719,7 @@ export default function LoginPage() {
               className="flex items-center gap-1.5 text-slate-600 hover:text-orange-600 transition-colors font-medium"
             >
               <Home className="h-4 w-4" />
-              Home
+              {t('login.homeLink')}
             </Link>
             <div className="h-4 w-px bg-slate-300" />
             <button
@@ -727,7 +727,7 @@ export default function LoginPage() {
               className="flex items-center gap-1.5 text-slate-600 hover:text-orange-600 transition-colors font-medium"
             >
               <LogOut className="h-4 w-4" />
-              Clear Session
+              {t('login.clearSession')}
             </button>
           </div>
         </CardFooter>
