@@ -1,9 +1,11 @@
-import { track } from '@vercel/analytics';
+import posthog from 'posthog-js';
 
 export function trackEvent(name: string, properties?: Record<string, string | number | boolean>) {
   try {
-    track(name, properties);
+    if (typeof window !== 'undefined') {
+      posthog.capture(name, properties);
+    }
   } catch {
-    // Silently fail if analytics isn't available
+    // Silently fail
   }
 }

@@ -11,6 +11,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { LayoutShell } from '@/components/layout-shell';
 import { GuestGateProvider } from '@/lib/contexts/guest-gate-context';
+import { PostHogProvider } from '@/lib/posthog/provider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -75,6 +76,7 @@ export default function RootLayout({
       <body className={`${inter.className} flex flex-col h-dvh bg-background text-foreground`}>
         <LanguageProvider>
           <AuthProvider>
+            <PostHogProvider>
             <GuestGateProvider>
             <NotificationProvider key="notifications-v5">
               <Toaster />
@@ -87,6 +89,7 @@ export default function RootLayout({
             <PWARegistration />
             <Analytics />
             </GuestGateProvider>
+            </PostHogProvider>
           </AuthProvider>
         </LanguageProvider>
       </body>
