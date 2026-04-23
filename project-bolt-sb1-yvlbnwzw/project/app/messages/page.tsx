@@ -219,7 +219,7 @@ function MessagesListContent() {
           </div>
         ) : (
           threads.map(thread => {
-            const name = thread.other_person?.name || 'User';
+            const name = thread.other_person?.name || thread.other_person?.email || 'Nepoznato ime';
             const hasUnread = thread.unread_count > 0;
 
             return (

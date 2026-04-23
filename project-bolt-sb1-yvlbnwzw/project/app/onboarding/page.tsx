@@ -259,13 +259,15 @@ export default function OnboardingPage() {
           </Button>
         </div>
 
-        {/* Skip */}
-        <button
-          onClick={() => resumeAfterAuth(router)}
-          className="w-full text-center text-slate-400 text-sm mt-4 hover:text-slate-300 transition-colors"
-        >
-          {t('onboarding.skipButton')}
-        </button>
+        {/* Skip — dostupno samo ako je ime uneseno */}
+        {name.trim() && (
+          <button
+            onClick={() => resumeAfterAuth(router)}
+            className="w-full text-center text-slate-400 text-sm mt-4 hover:text-slate-300 transition-colors"
+          >
+            {t('onboarding.skipButton')}
+          </button>
+        )}
 
       </div>
     </div>

@@ -173,7 +173,7 @@ export function CommentsSheet({ open, onOpenChange, postId, commentsCount, onCom
           created_at: r.created_at,
           likes_count: likesMap[r.id] || 0,
           liked_by_me: !!likedByMe[r.id],
-          user: { name: r.profiles?.name || 'Unknown', avatar_url: r.profiles?.avatar_url },
+          user: { name: r.profiles?.name || 'Nepoznato ime', avatar_url: r.profiles?.avatar_url },
         });
       }
 
@@ -185,7 +185,7 @@ export function CommentsSheet({ open, onOpenChange, postId, commentsCount, onCom
           created_at: c.created_at,
           likes_count: likesMap[c.id] || 0,
           liked_by_me: !!likedByMe[c.id],
-          user: { name: c.profiles?.name || 'Unknown', avatar_url: c.profiles?.avatar_url },
+          user: { name: c.profiles?.name || 'Nepoznato ime', avatar_url: c.profiles?.avatar_url },
           replies: repliesMap[c.id] || [],
         }))
       );

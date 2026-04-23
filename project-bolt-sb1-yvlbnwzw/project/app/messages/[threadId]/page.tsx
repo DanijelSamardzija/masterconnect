@@ -984,7 +984,7 @@ function MessagesContent() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <h2 className="truncate text-sm font-semibold text-gray-900 dark:text-white">
-                      {otherPerson?.name || 'Unknown User'}
+                      {otherPerson?.name || otherPerson?.email || 'Nepoznato ime'}
                     </h2>
                     {(otherPerson as any)?.account_type === 'professional' && (
                       <Badge className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 px-1.5 py-0 text-[9px] font-bold text-white shadow-md">
