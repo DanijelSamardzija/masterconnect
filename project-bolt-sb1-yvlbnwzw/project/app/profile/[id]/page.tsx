@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { useGuestGate } from '@/lib/contexts/guest-gate-context';
 import { findOrCreateThread } from '@/lib/thread-utils';
 import { ProtectedRoute } from '@/components/protected-route';
 import { ProfileView } from '@/components/profile-view';
@@ -40,6 +41,7 @@ function UserProfileContent() {
   const searchParams = useSearchParams();
   const { user, profile: currentUserProfile } = useAuth();
   const { t } = useLanguage();
+  const { openGuestGate } = useGuestGate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -130,7 +132,7 @@ function UserProfileContent() {
 
   const handleSendMessage = async () => {
     if (!user) {
-      router.push('/login');
+      openGuestGate('message');
       return;
     }
 
@@ -161,7 +163,7 @@ function UserProfileContent() {
 
   const handleLeaveReview = async () => {
     if (!user) {
-      router.push('/login');
+      openGuestGate('contact');
       return;
     }
 
@@ -323,7 +325,7 @@ function UserProfileContent() {
       </a>
     ) : (
       <button
-        onClick={() => router.push('/login')}
+        onClick={() => openGuestGate('phone')}
         className="inline-flex items-center justify-center gap-1 rounded-full px-3 text-sm font-semibold h-8 w-full shadow-sm bg-green-500 hover:bg-green-600 text-white transition-colors"
       >
         <Phone className="h-4 w-4 shrink-0" />

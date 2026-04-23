@@ -33,6 +33,7 @@ import { FollowButton } from '@/components/follow-button';
 import { SharePostModal } from '@/components/share-post-modal';
 import { AnnouncementBanner } from '@/components/announcement-banner';
 import { usePageTracking } from '@/lib/hooks/use-page-tracking';
+import { useGuestGate } from '@/lib/contexts/guest-gate-context';
 import { formatDistanceToNow } from 'date-fns';
 
 export const revalidate = 0;
@@ -87,6 +88,7 @@ function FeedContent() {
   const router = useRouter();
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { openGuestGate } = useGuestGate();
   usePageTracking('feed');
 
   const [posts, setPosts] = useState<Post[]>([]);
@@ -353,7 +355,7 @@ function FeedContent() {
   };
 
   const handleLike = async (post: Post) => {
-    if (!user) { toast.error('Moraš biti ulogovan da bi lajkovao.'); return; }
+    if (!user) { openGuestGate('like', post.id); return; }
     const isCurrentlyLiked = post.user_has_reacted;
     setPosts(prev => prev.map(p => p.id === post.id ? { ...p, user_has_reacted: !isCurrentlyLiked, reactions_count: isCurrentlyLiked ? p.reactions_count - 1 : p.reactions_count + 1 } : p));
     try {
@@ -383,7 +385,7 @@ function FeedContent() {
   };
 
   const handleContact = async (targetUserId: string) => {
-    if (!user) return;
+    if (!user) { openGuestGate('message', targetUserId); return; }
     setContactingUserId(targetUserId);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -483,7 +485,7 @@ function FeedContent() {
         <button onClick={() => router.push(user ? '/dashboard' : '/')} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
           <Home className="h-5 w-5" />
         </button>
-        <button onClick={() => user ? setCreatePostOpen(true) : router.push('/login')} className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-500 hover:bg-orange-600 transition-colors text-white shadow-md">
+        <button onClick={() => user ? setCreatePostOpen(true) : openGuestGate('post')} className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-500 hover:bg-orange-600 transition-colors text-white shadow-md">
           <Plus className="h-5 w-5" />
         </button>
         <button onClick={() => { setSearchOpen(true); setTimeout(() => searchInputRef.current?.focus(), 50); }} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
@@ -845,18 +847,18 @@ function FeedContent() {
 
           {/* Actions */}
           <div className="flex items-center px-3 py-2 border-t border-border gap-1 shrink-0">
-            <button onClick={() => user ? handleLike(post) : router.push('/login')} className="flex items-center gap-1.5 text-xs px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
+            <button onClick={() => user ? handleLike(post) : openGuestGate('like', post.id)} className="flex items-center gap-1.5 text-xs px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
               <Heart className={`h-4 w-4 ${post.user_has_reacted ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
               <span className="text-muted-foreground">{post.reactions_count}</span>
             </button>
-            <button onClick={() => user ? (setSelectedPost(post), setCommentsOpen(true)) : router.push('/login')} className="flex items-center gap-1.5 text-xs text-muted-foreground px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
+            <button onClick={() => user ? (setSelectedPost(post), setCommentsOpen(true)) : openGuestGate('comment', post.id)} className="flex items-center gap-1.5 text-xs text-muted-foreground px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
               <MessageCircle className="h-4 w-4" />{post.comments_count}
             </button>
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground px-2 py-1.5 opacity-70">
               <Eye className="h-4 w-4" />{post.views_count}
             </div>
             <div className="flex-1" />
-            <button onClick={e => user ? handleSave(e, post.id) : router.push('/login')} className="flex items-center gap-1.5 text-xs px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
+            <button onClick={e => user ? handleSave(e, post.id) : openGuestGate('save', post.id)} className="flex items-center gap-1.5 text-xs px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
               <Bookmark className={`h-4 w-4 ${isSaved ? 'fill-foreground text-foreground' : 'text-muted-foreground'}`} />
             </button>
             <button onClick={() => setShareModalPostId(post.id)} className="flex items-center gap-1.5 text-xs text-muted-foreground px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
@@ -874,7 +876,7 @@ function FeedContent() {
             )}
             {isPro && !user && (
               <button
-                onClick={() => router.push('/login')}
+                onClick={() => openGuestGate('contact', post.user_id)}
                 className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
               >
                 <Phone className="h-3.5 w-3.5" />

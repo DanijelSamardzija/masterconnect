@@ -10,6 +10,7 @@ import { PushNotificationManager } from '@/components/push-notification-manager'
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { LayoutShell } from '@/components/layout-shell';
+import { GuestGateProvider } from '@/lib/contexts/guest-gate-context';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -74,6 +75,7 @@ export default function RootLayout({
       <body className={`${inter.className} flex flex-col h-dvh bg-background text-foreground`}>
         <LanguageProvider>
           <AuthProvider>
+            <GuestGateProvider>
             <NotificationProvider key="notifications-v5">
               <Toaster />
               <Sonner />
@@ -84,6 +86,7 @@ export default function RootLayout({
             <PushNotificationManager />
             <PWARegistration />
             <Analytics />
+            </GuestGateProvider>
           </AuthProvider>
         </LanguageProvider>
       </body>

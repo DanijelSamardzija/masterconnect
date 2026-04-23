@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { useGuestGate } from '@/lib/contexts/guest-gate-context';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -51,6 +52,7 @@ export default function ServiceDetailPage({ params }: { params: { serviceId: str
   const router = useRouter();
   const { user, profile } = useAuth();
   const { t } = useLanguage();
+  const { openGuestGate } = useGuestGate();
   const [service, setService] = useState<ServiceDetail | null>(null);
   const [similarServices, setSimilarServices] = useState<ServiceDetail[]>([]);
   const [loading, setLoading] = useState(true);
@@ -240,7 +242,7 @@ export default function ServiceDetailPage({ params }: { params: { serviceId: str
 
   const handleSendMessage = async () => {
     if (!user) {
-      router.push('/login');
+      openGuestGate('message');
       return;
     }
 
@@ -249,10 +251,7 @@ export default function ServiceDetailPage({ params }: { params: { serviceId: str
     setCreatingThread(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        router.push('/login');
-        return;
-      }
+      if (!session?.access_token) return;
 
       const response = await fetch('/api/messages/create-direct-thread', {
         method: 'POST',
@@ -282,7 +281,7 @@ export default function ServiceDetailPage({ params }: { params: { serviceId: str
 
   const handleSendOffer = () => {
     if (!user) {
-      router.push('/login');
+      openGuestGate('contact');
       return;
     }
     setShowOfferModal(true);

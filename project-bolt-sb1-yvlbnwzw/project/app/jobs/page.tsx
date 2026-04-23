@@ -31,6 +31,7 @@ import { formatDistanceToNow } from 'date-fns';
 export const revalidate = 0;
 
 import { useLanguage } from '@/lib/contexts/language-context';
+import { useGuestGate } from '@/lib/contexts/guest-gate-context';
 import { CreateMarketplacePostModal } from '@/components/create-marketplace-post-modal';
 import { SharePostModal } from '@/components/share-post-modal';
 import { CityAutocomplete } from '@/components/city-autocomplete';
@@ -938,6 +939,7 @@ function JobsMarketplaceContent() {
   const { user, profile } = useAuth();
   const { t } = useLanguage();
   const router = useRouter();
+  const { openGuestGate } = useGuestGate();
   usePageTracking('jobs');
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1150,8 +1152,7 @@ function JobsMarketplaceContent() {
 
   const handleApplyToPost = (postId: string, postTitle?: string, postOwnerId?: string) => {
     if (!user || !profile) {
-      toast.error('Morate biti prijavljeni');
-      router.push('/login');
+      openGuestGate('apply', postId);
       return;
     }
     setSelectedHiringPost({ id: postId, title: postTitle ?? '', ownerId: postOwnerId ?? '' });
@@ -1170,7 +1171,7 @@ function JobsMarketplaceContent() {
     postId?: string
   ) => {
     if (!user || !profile) {
-      router.push('/login');
+      openGuestGate('message', postUserId);
       return;
     }
 
@@ -1697,7 +1698,7 @@ function JobsMarketplaceContent() {
                               <Button
                                 type="button"
                                 size="sm"
-                                onClick={() => router.push('/login')}
+                                onClick={() => openGuestGate('contact', post.user_id)}
                                 className="bg-orange-600 hover:bg-orange-700 text-white h-9 text-xs md:text-sm flex-1 rounded-xl"
                               >
                                 <Send className="h-3.5 w-3.5 mr-1.5" />

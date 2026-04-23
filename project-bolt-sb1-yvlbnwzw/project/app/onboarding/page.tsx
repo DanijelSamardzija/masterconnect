@@ -14,6 +14,7 @@ import { CityAutocomplete } from '@/components/city-autocomplete';
 import { CategoryCombobox } from '@/components/category-combobox';
 import { countries } from '@/lib/countries';
 import { trackEvent } from '@/lib/analytics';
+import { resumeAfterAuth } from '@/lib/guest-intent';
 
 type UserRole = 'customer' | 'professional';
 
@@ -90,7 +91,7 @@ export default function OnboardingPage() {
       if (profileError) throw profileError;
 
       trackEvent('onboarding_complete', { role });
-      router.push('/feed');
+      resumeAfterAuth(router);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -260,7 +261,7 @@ export default function OnboardingPage() {
 
         {/* Skip */}
         <button
-          onClick={() => router.push('/feed')}
+          onClick={() => resumeAfterAuth(router)}
           className="w-full text-center text-slate-400 text-sm mt-4 hover:text-slate-300 transition-colors"
         >
           {t('onboarding.skipButton')}

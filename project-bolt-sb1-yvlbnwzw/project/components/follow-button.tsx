@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { UserPlus, UserCheck } from 'lucide-react';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { useGuestGate } from '@/lib/contexts/guest-gate-context';
 import { toast } from 'sonner';
 
 type Props = {
@@ -20,7 +20,7 @@ type Props = {
 export function FollowButton({ targetUserId, currentUserId, size = 'default', className, isFollowing: isFollowingProp, onFollowChange }: Props) {
   const isControlled = isFollowingProp !== undefined;
   const { t } = useLanguage();
-  const router = useRouter();
+  const { openGuestGate } = useGuestGate();
 
   const [localIsFollowing, setLocalIsFollowing] = useState(false);
   const [loading, setLoading] = useState(!isControlled);
@@ -52,7 +52,7 @@ export function FollowButton({ targetUserId, currentUserId, size = 'default', cl
 
   const handleToggleFollow = async () => {
     if (!currentUserId) {
-      router.push('/login');
+      openGuestGate('follow', targetUserId);
       return;
     }
     const newValue = !isFollowing;
