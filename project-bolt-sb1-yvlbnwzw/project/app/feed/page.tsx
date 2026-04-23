@@ -134,32 +134,6 @@ function FeedContent() {
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
 
-  // Vertikalni swipe — tačno jedan post po gesturi
-  const touchStartYRef = useRef<number>(0);
-  const isNavigatingRef = useRef<boolean>(false);
-
-  const handleFeedTouchStart = (e: React.TouchEvent) => {
-    touchStartYRef.current = e.touches[0].clientY;
-  };
-
-  const handleFeedTouchEnd = (e: React.TouchEvent) => {
-    if (isNavigatingRef.current) return;
-    const deltaY = touchStartYRef.current - e.changedTouches[0].clientY;
-    if (Math.abs(deltaY) < 15) return; // preskoci tap/micro-swipe
-
-    const direction = deltaY > 0 ? 1 : -1;
-    const nextIndex = Math.max(0, Math.min(posts.length - 1, activePostIndex + direction));
-    if (nextIndex === activePostIndex) return;
-
-    isNavigatingRef.current = true;
-    const container = scrollContainerRef.current;
-    if (container) {
-      const postHeight = container.clientHeight;
-      container.scrollTo({ top: nextIndex * postHeight, behavior: 'smooth' });
-    }
-    setTimeout(() => { isNavigatingRef.current = false; }, 650);
-  };
-
   const videoRefs = useRef<{ [key: string]: HTMLVideoElement | null }>({});
   const postRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -544,10 +518,8 @@ function FeedContent() {
       {/* Main feed */}
       <div
         ref={scrollContainerRef}
-        className="overflow-y-scroll snap-y snap-proximity"
-        style={{ height: `calc(100dvh - ${HEADER_H}px)` }}
-        onTouchStart={handleFeedTouchStart}
-        onTouchEnd={handleFeedTouchEnd}
+        className="overflow-y-scroll snap-y snap-mandatory"
+        style={{ height: `calc(100dvh - ${HEADER_H}px)`, overscrollBehavior: 'contain' }}
       >
         {posts.length === 0 ? (
           <div className="flex h-full items-center justify-center">
