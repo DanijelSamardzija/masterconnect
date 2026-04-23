@@ -46,13 +46,14 @@ export default function OnboardingPage() {
       else if (meta?.name) setName(meta.name);
 
       // Check if profile is already complete — skip onboarding
+      // Use 'city' as completion indicator (name can be email fallback from trigger)
       supabase
         .from('profiles')
-        .select('name')
+        .select('city')
         .eq('id', user.id)
         .maybeSingle()
         .then(({ data }) => {
-          if (data?.name) router.replace('/feed');
+          if (data?.city) router.replace('/feed');
         });
     }
   }, [user, loading]);

@@ -28,11 +28,11 @@ export default function AuthCallbackPage() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('name')
+        .select('city')
         .eq('id', user.id)
         .maybeSingle();
 
-      if (profile?.name) {
+      if (profile?.city) {
         router.replace('/feed');
       } else {
         router.replace('/onboarding');
