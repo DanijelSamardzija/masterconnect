@@ -1,13 +1,18 @@
 'use client';
 
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import posthog from 'posthog-js';
 import { PostHogProvider as PHProvider } from 'posthog-js/react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth-context';
 
-const POSTHOG_KEY = 'phc_x3wZDZJh7G4oq8A5LffT2raWGQifq3vHTskZgoiV8yxZ';
-const POSTHOG_HOST = 'https://us.i.posthog.com';
+if (typeof window !== 'undefined') {
+  posthog.init('phc_x3wZDZJh7G4oq8A5LffT2raWGQifq3vHTskZgoiV8yxZ', {
+    api_host: 'https://us.i.posthog.com',
+    person_profiles: 'identified_only',
+    capture_pageview: false,
+  });
+}
 
 function PostHogPageView() {
   const pathname = usePathname();
@@ -15,7 +20,6 @@ function PostHogPageView() {
   const { user, profile } = useAuth();
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
     posthog.capture('$pageview', { $current_url: window.location.href });
   }, [pathname, searchParams]);
 
@@ -36,17 +40,11 @@ function PostHogPageView() {
 }
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
-  useEffect(() => {
-    posthog.init(POSTHOG_KEY, {
-      api_host: POSTHOG_HOST,
-      person_profiles: 'identified_only',
-      capture_pageview: false,
-    });
-  }, []);
-
   return (
     <PHProvider client={posthog}>
-      <PostHogPageView />
+      <Suspense fallback={null}>
+        <PostHogPageView />
+      </Suspense>
       {children}
     </PHProvider>
   );
