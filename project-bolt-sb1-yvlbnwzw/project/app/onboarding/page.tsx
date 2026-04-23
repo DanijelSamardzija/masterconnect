@@ -19,7 +19,7 @@ import { resumeAfterAuth } from '@/lib/guest-intent';
 type UserRole = 'customer' | 'professional';
 
 export default function OnboardingPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, refreshProfile } = useAuth();
   const router = useRouter();
   const { t, language } = useLanguage();
 
@@ -92,6 +92,7 @@ export default function OnboardingPage() {
       if (profileError) throw profileError;
 
       trackEvent('onboarding_complete', { role });
+      await refreshProfile();
       resumeAfterAuth(router);
     } catch (err: any) {
       setError(err.message);
