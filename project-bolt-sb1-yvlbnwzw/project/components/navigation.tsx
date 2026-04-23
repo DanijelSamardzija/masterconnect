@@ -416,7 +416,7 @@ export function Navigation() {
                   </Button>
                 </Link>
 
-                <Link href="/login">
+                <Link href="/login?tab=register">
                   <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white shadow-lg">
                     {t('nav.signUp')}
                   </Button>
@@ -610,7 +610,7 @@ export function Navigation() {
                         </Button>
                       </Link>
 
-                      <Link href="/login" onClick={closeMobileMenu}>
+                      <Link href="/login?tab=register" onClick={closeMobileMenu}>
                         <Button className="w-full rounded-xl bg-orange-600 hover:bg-orange-700">
                           {t('nav.signUp')}
                         </Button>
