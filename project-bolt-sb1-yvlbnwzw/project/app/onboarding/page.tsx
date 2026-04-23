@@ -48,11 +48,11 @@ export default function OnboardingPage() {
       // Check if profile is already complete — skip onboarding
       supabase
         .from('profiles')
-        .select('full_name')
+        .select('name')
         .eq('id', user.id)
         .maybeSingle()
         .then(({ data }) => {
-          if (data?.full_name) router.replace('/feed');
+          if (data?.name) router.replace('/feed');
         });
     }
   }, [user, loading]);
@@ -85,7 +85,7 @@ export default function OnboardingPage() {
       // Update profiles table
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ full_name: name, role, city, country: finalCountry, category })
+        .update({ name, role, city, country: finalCountry, category })
         .eq('id', user!.id);
 
       if (profileError) throw profileError;
