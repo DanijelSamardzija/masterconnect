@@ -18,25 +18,12 @@ export default function Home() {
   const router = useRouter();
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [autoPopupShown, setAutoPopupShown] = useState(false);
 
   useEffect(() => {
     if (!authLoading && user) {
       router.replace('/feed');
     }
   }, [user, authLoading]);
-
-  // Auto popup after 5 seconds for guests
-  useEffect(() => {
-    if (authLoading || user) return;
-    const already = sessionStorage.getItem('autoPopupShown');
-    if (already) return;
-    const timer = setTimeout(() => {
-      setAutoPopupShown(true);
-      sessionStorage.setItem('autoPopupShown', '1');
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [authLoading, user]);
 
   const openSignupModal = () => setModalOpen(true);
 
@@ -272,18 +259,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Action popup (triggered by buttons) */}
       <GuestSignupModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         variant="action"
-      />
-
-      {/* Auto popup after 5 seconds */}
-      <GuestSignupModal
-        open={autoPopupShown}
-        onClose={() => setAutoPopupShown(false)}
-        variant="auto"
       />
 
     </div>
