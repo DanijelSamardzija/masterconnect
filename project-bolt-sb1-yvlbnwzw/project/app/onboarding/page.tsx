@@ -86,7 +86,7 @@ export default function OnboardingPage() {
       // Update profiles table
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ name, role, city, country: finalCountry, category })
+        .update({ name, account_type: role, city, country: finalCountry, category })
         .eq('id', user!.id);
 
       if (profileError) throw profileError;
