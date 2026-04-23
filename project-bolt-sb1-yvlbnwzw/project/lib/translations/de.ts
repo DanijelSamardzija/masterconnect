@@ -54,7 +54,12 @@ export default {
   'login.privacyPolicy': 'Datenschutzrichtlinie',
   'login.termsOfService': 'Nutzungsbedingungen',
   'login.bannedError': 'Dein Konto wurde gesperrt. Bitte kontaktiere den Support.',
-  'login.tagline': 'Verbinden Sie sich mit Profis oder bieten Sie Ihre Dienste an',
+  'login.tagline': 'Konto in 30 Sekunden erstellen und sofort loslegen',
+  'login.taglineSubtitle': 'Kostenlos. Keine Verpflichtungen. Direkter Kontakt.',
+  'login.continueWithGoogle': 'Mit Google fortfahren',
+  'login.orDivider': 'oder',
+  'login.agreementText': 'Mit der Registrierung akzeptierst du die',
+  'login.agreementAnd': 'und die',
   'login.signIn': 'Anmelden',
   'login.signUp': 'Registrieren',
   'login.emailLabel': 'E-Mail-Adresse',
@@ -86,6 +91,14 @@ export default {
   'login.countryPlaceholder': 'Land auswählen',
   'login.enterCountry': 'Geben Sie Ihr Land ein',
   'login.clearSession': 'Sitzung löschen',
+
+  // Onboarding
+  'onboarding.title': 'Noch ein Schritt',
+  'onboarding.subtitle': 'Vervollständige dein Profil, damit andere dich finden können',
+  'onboarding.step': 'Schritt 2 von 2',
+  'onboarding.completeButton': 'Fertigstellen und zu GigZone',
+  'onboarding.completing': 'Speichern...',
+  'onboarding.skipButton': 'Jetzt überspringen →',
 
   // Navigation
   'nav.discover': 'Dienstleistungen',

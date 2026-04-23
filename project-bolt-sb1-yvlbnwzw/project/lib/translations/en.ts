@@ -54,7 +54,12 @@ export default {
   'login.privacyPolicy': 'Privacy Policy',
   'login.termsOfService': 'Terms of Service',
   'login.bannedError': 'Your account has been banned. Please contact support.',
-  'login.tagline': 'Connect with professionals or offer your services',
+  'login.tagline': 'Create your account in 30 seconds and start today',
+  'login.taglineSubtitle': 'Free. No obligations. Direct contact.',
+  'login.continueWithGoogle': 'Continue with Google',
+  'login.orDivider': 'or',
+  'login.agreementText': 'By registering you accept the',
+  'login.agreementAnd': 'and',
   'login.signIn': 'Sign In',
   'login.signUp': 'Sign Up',
   'login.emailLabel': 'Email Address',
@@ -86,6 +91,14 @@ export default {
   'login.countryPlaceholder': 'Select your country',
   'login.enterCountry': 'Enter your country',
   'login.clearSession': 'Clear Session',
+
+  // Onboarding
+  'onboarding.title': 'One more step',
+  'onboarding.subtitle': 'Complete your profile so others can find you',
+  'onboarding.step': 'Step 2 of 2',
+  'onboarding.completeButton': 'Finish and go to GigZone',
+  'onboarding.completing': 'Saving...',
+  'onboarding.skipButton': 'Skip for now →',
 
   // Navigation
   'nav.discover': 'Services',

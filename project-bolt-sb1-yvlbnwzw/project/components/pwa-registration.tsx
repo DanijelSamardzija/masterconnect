@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { X, Share, Plus, Download } from 'lucide-react';
@@ -27,6 +28,10 @@ export function PWARegistration() {
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const { language } = useLanguage();
+  const pathname = usePathname();
+
+  // Ne prikazuj banner na landing/login stranicama — fokus na konverziji
+  const hideOnPage = pathname === '/join' || pathname === '/login' || pathname === '/onboarding' || pathname?.startsWith('/auth');
 
   useEffect(() => {
     if ('serviceWorker' in navigator) {
@@ -93,6 +98,8 @@ export function PWARegistration() {
   };
 
   const sr = language === 'sr';
+
+  if (hideOnPage) return null;
 
   // ── iOS uputstva (dialog ostaje isti) ─────────────────────────────────────
   if (showIOSPrompt) {

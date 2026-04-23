@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, ArrowRight, Users, Briefcase, Wrench, Star } from 'lucide-react';
+import { trackEvent } from '@/lib/analytics';
 
 export default function JoinPage() {
   const { user, loading } = useAuth();
@@ -13,7 +14,9 @@ export default function JoinPage() {
   useEffect(() => {
     if (!loading && user) {
       router.replace('/feed');
+      return;
     }
+    trackEvent('view_join_page');
   }, [user, loading]);
 
   if (loading) {
@@ -25,50 +28,48 @@ export default function JoinPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f] flex flex-col items-center justify-center px-4 py-12">
+    <div className="min-h-[100dvh] bg-[#0f0f0f] flex flex-col items-center justify-center px-4 py-10">
 
       {/* Logo */}
-      <div className="mb-8 text-center">
+      <div className="mb-6 text-center">
         <span className="text-2xl font-black text-white tracking-tight">
           Gig<span className="text-orange-500">Zone</span>
         </span>
       </div>
 
       {/* Main card */}
-      <div className="w-full max-w-md bg-[#1a1a1a] border border-white/10 rounded-3xl p-8 text-center shadow-2xl">
+      <div className="w-full max-w-sm bg-[#1a1a1a] border border-white/10 rounded-3xl p-7 text-center shadow-2xl">
 
         {/* Headline */}
-        <h1 className="text-3xl md:text-4xl font-black text-white leading-tight mb-3">
-          Tražiš posao<br />ili klijente?
+        <h1 className="text-3xl font-black text-white leading-tight mb-1">
+          Napravi nalog<br />za 30 sekundi
         </h1>
-        <p className="text-slate-400 text-base mb-8">
-          Registruj se besplatno za 30 sekundi i počni danas.
+        <p className="text-slate-400 text-sm mb-6">
+          Besplatno. Bez obaveza. Direktan kontakt.
         </p>
 
         {/* Benefits */}
-        <div className="space-y-3 mb-4 text-left">
+        <div className="space-y-2.5 mb-5 text-left">
           {[
-            { icon: <Wrench className="h-4 w-4 text-orange-400 flex-shrink-0" />, text: 'Objavi usluge i pronađi klijente' },
-            { icon: <Briefcase className="h-4 w-4 text-orange-400 flex-shrink-0" />, text: 'Nađi posao u svojoj oblasti' },
-            { icon: <Users className="h-4 w-4 text-orange-400 flex-shrink-0" />, text: 'Komuniciraj direktno, bez posrednika' },
-            { icon: <Star className="h-4 w-4 text-orange-400 flex-shrink-0" />, text: 'Gradi reputaciju kroz ocene' },
+            { icon: <Wrench className="h-4 w-4 text-orange-400 shrink-0" />, text: 'Objavi usluge i pronađi klijente' },
+            { icon: <Briefcase className="h-4 w-4 text-orange-400 shrink-0" />, text: 'Nađi posao u svojoj oblasti' },
+            { icon: <Users className="h-4 w-4 text-orange-400 shrink-0" />, text: 'Komuniciraj direktno, bez posrednika' },
+            { icon: <Star className="h-4 w-4 text-orange-400 shrink-0" />, text: 'Gradi reputaciju kroz ocene' },
           ].map((item, i) => (
-            <div key={i} className="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-3">
+            <div key={i} className="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-2.5">
               {item.icon}
               <span className="text-slate-300 text-sm">{item.text}</span>
             </div>
           ))}
         </div>
 
-        {/* Trust text */}
-        <p className="text-slate-500 text-xs text-center mb-6">
-          Bez provizije. Bez posrednika. Direktan kontakt.
-        </p>
-
-        {/* CTA */}
+        {/* Main CTA */}
         <Button
           size="lg"
-          onClick={() => router.push('/login?tab=register')}
+          onClick={() => {
+            trackEvent('click_register_cta', { source: 'join_page' });
+            router.push('/login?tab=register');
+          }}
           className="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold text-lg h-14 rounded-2xl shadow-lg shadow-orange-600/30 mb-3"
         >
           Registruj se besplatno
@@ -83,15 +84,15 @@ export default function JoinPage() {
         </button>
       </div>
 
-      {/* Trust */}
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-5 text-slate-600 text-xs">
+      {/* Trust badges */}
+      <div className="mt-7 flex flex-wrap items-center justify-center gap-4 text-slate-600 text-xs">
         <div className="flex items-center gap-1.5">
           <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
           <span>Bez kreditne kartice</span>
         </div>
         <div className="flex items-center gap-1.5">
           <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-          <span>Registracija za 30 sekundi</span>
+          <span>30 sekundi</span>
         </div>
         <div className="flex items-center gap-1.5">
           <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />

@@ -54,7 +54,12 @@ export default {
   'login.privacyPolicy': 'Politikom privatnosti',
   'login.termsOfService': 'Uslovima korišćenja',
   'login.bannedError': 'Vaš nalog je banovan. Kontaktirajte podršku.',
-  'login.tagline': 'Povežite se sa profesionalcima ili ponudite usluge',
+  'login.tagline': 'Napravi nalog za 30 sekundi i počni odmah',
+  'login.taglineSubtitle': 'Besplatno. Bez obaveza. Direktan kontakt.',
+  'login.continueWithGoogle': 'Nastavi sa Google',
+  'login.orDivider': 'ili',
+  'login.agreementText': 'Registracijom prihvataš',
+  'login.agreementAnd': 'i',
   'login.signIn': 'Prijava',
   'login.signUp': 'Registracija',
   'login.emailLabel': 'Email adresa',
@@ -86,6 +91,14 @@ export default {
   'login.countryPlaceholder': 'Odaberite državu',
   'login.enterCountry': 'Unesite vašu državu',
   'login.clearSession': 'Očisti sesiju',
+
+  // Onboarding (korak 2 posle registracije)
+  'onboarding.title': 'Još jedan korak',
+  'onboarding.subtitle': 'Popuni profil da bi drugi mogli da te pronađu',
+  'onboarding.step': 'Korak 2 od 2',
+  'onboarding.completeButton': 'Završi i kreni na GigZone',
+  'onboarding.completing': 'Čuvanje...',
+  'onboarding.skipButton': 'Preskoči za sada →',
 
   // Navigation
   'nav.discover': 'Usluge',
