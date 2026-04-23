@@ -50,6 +50,11 @@ export default function LoginPage() {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>(initialTab);
 
   useEffect(() => {
+    const tab = searchParams.get('tab') === 'register' ? 'register' : 'login';
+    setActiveTab(tab);
+  }, [searchParams]);
+
+  useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) router.replace('/feed');
     });
