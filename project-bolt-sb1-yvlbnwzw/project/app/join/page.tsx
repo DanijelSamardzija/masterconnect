@@ -68,6 +68,7 @@ export default function JoinPage() {
           size="lg"
           onClick={() => {
             trackEvent('click_register_cta', { source: 'join_page' });
+            localStorage.setItem('signup_source', 'join_page');
             router.push('/login?tab=register');
           }}
           className="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold text-lg h-14 rounded-2xl shadow-lg shadow-orange-600/30 mb-3"

@@ -209,7 +209,9 @@ export default function LoginPage() {
       if (signUpError) throw signUpError;
       if (!data.user) throw new Error('Failed to create account. Please try again.');
 
-      trackEvent('register_success');
+      const signupSource = localStorage.getItem('signup_source') || 'direct';
+      localStorage.removeItem('signup_source');
+      trackEvent('register_success', { source: signupSource });
       await new Promise(r => setTimeout(r, 500));
       router.push('/onboarding');
     } catch (err: any) {

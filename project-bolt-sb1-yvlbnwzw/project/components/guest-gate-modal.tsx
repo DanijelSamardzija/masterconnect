@@ -33,6 +33,7 @@ export function GuestGateModal({ open, onClose, action }: Props) {
 
   const goToJoin = () => {
     trackEvent('click_register_cta', { source: 'guest_gate', action: action ?? '' });
+    localStorage.setItem('signup_source', 'guest_gate');
     router.push('/join');
     onClose();
   };

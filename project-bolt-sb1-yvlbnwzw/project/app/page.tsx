@@ -25,7 +25,10 @@ export default function Home() {
     }
   }, [user, authLoading]);
 
-  const openSignupModal = () => setModalOpen(true);
+  const openSignupModal = () => {
+    localStorage.setItem('signup_source', 'homepage');
+    setModalOpen(true);
+  };
 
   if (authLoading) {
     return (
