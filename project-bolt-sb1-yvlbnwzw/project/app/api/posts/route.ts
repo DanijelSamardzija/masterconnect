@@ -120,7 +120,28 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const postIds = postsData?.map(p => p.id) || [];
+    // Fetch promoted posts separately (they may not be in top N by score)
+    let promotedPostsData: any[] = [];
+    if (offset === 0) {
+      const { data: promoted } = await supabase
+        .from('posts')
+        .select(`
+          id, user_id, text, post_type, created_at, updated_at, is_pinned, pinned_at,
+          status, spam_score, rank_penalty, phone_count, link_count, hashtag_count,
+          city, category, hashtags, views_count, reactions_count, comments_count,
+          profiles!inner(name, email, account_type, avatar_url)
+        `)
+        .eq('is_promoted', true)
+        .eq('post_type', 'social_post')
+        .eq('status', 'published');
+      promotedPostsData = promoted || [];
+    }
+
+    const allPostIds = [
+      ...(postsData?.map(p => p.id) || []),
+      ...promotedPostsData.map(p => p.id),
+    ];
+    const postIds = [...new Set(allPostIds)];
     const professionalUserIds = postsData?.filter(p => p.user_account_type === 'professional').map(p => p.user_id) || [];
     let mediaData: any[] = [];
     let reviewsData: any[] = [];
@@ -199,18 +220,55 @@ export async function GET(request: NextRequest) {
     });
     const combined = [...realPosts, ...demoPosts];
 
-    // Inject promoted posts near the top (position 1) on first page only
+    // Inject promoted posts at position 2 on first page
     let postsWithMediaSorted = combined;
-    if (offset === 0) {
-      const promoted = combined.filter(p => p.is_promoted);
-      const notPromoted = combined.filter(p => !p.is_promoted);
-      if (promoted.length > 0) {
-        postsWithMediaSorted = [
-          ...notPromoted.slice(0, 1),
-          ...promoted,
-          ...notPromoted.slice(1),
-        ];
-      }
+    if (offset === 0 && promotedPostsData.length > 0) {
+      const promotedIds = new Set(promotedPostsData.map(p => p.id));
+
+      // Build promoted post objects (same shape as postsWithMedia)
+      const promotedMapped = promotedPostsData.map(p => {
+        const prof: any = p.profiles;
+        return {
+          id: p.id,
+          user_id: p.user_id,
+          text: p.text,
+          post_type: p.post_type,
+          created_at: p.created_at,
+          updated_at: p.updated_at,
+          is_pinned: p.is_pinned,
+          pinned_at: p.pinned_at,
+          status: p.status,
+          spam_score: p.spam_score,
+          rank_penalty: p.rank_penalty,
+          phone_count: p.phone_count,
+          link_count: p.link_count,
+          hashtag_count: p.hashtag_count,
+          city: p.city,
+          category: p.category,
+          reactions_count: p.reactions_count || 0,
+          comments_count: p.comments_count || 0,
+          views_count: p.views_count || 0,
+          hashtags: p.hashtags || [],
+          feed_score: 0,
+          is_promoted: true,
+          media: mediaData.filter(m => m.post_id === p.id),
+          user: {
+            name: prof?.name,
+            email: prof?.email,
+            account_type: prof?.account_type,
+            avatar_url: prof?.avatar_url,
+            ...(reviewStats[p.user_id] || {}),
+          },
+        };
+      });
+
+      // Remove promoted from organic feed (avoid duplicates) then inject at position 2
+      const organic = combined.filter(p => !promotedIds.has(p.id));
+      postsWithMediaSorted = [
+        ...organic.slice(0, 1),
+        ...promotedMapped,
+        ...organic.slice(1),
+      ];
     }
 
     return NextResponse.json({
