@@ -40,6 +40,7 @@ export default function OnboardingPage() {
     }
 
     if (user) {
+      trackEvent('view_onboarding');
       // Pre-fill name from OAuth metadata if available
       const meta = user.user_metadata;
       if (meta?.full_name) setName(meta.full_name);
