@@ -319,7 +319,7 @@ function EditProfileContent() {
               </div>
 
               <div className="space-y-2">
-                <Label>Tip naloga</Label>
+                <Label>{t('login.accountTypeLabel')}</Label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
@@ -331,7 +331,7 @@ function EditProfileContent() {
                         : 'border-border bg-background text-muted-foreground hover:bg-accent'
                     }`}
                   >
-                    Klijent
+                    {t('login.customerLabel')}
                   </button>
                   <button
                     type="button"
@@ -343,7 +343,7 @@ function EditProfileContent() {
                         : 'border-border bg-background text-muted-foreground hover:bg-accent'
                     }`}
                   >
-                    Profesional
+                    {t('login.professionalLabel')}
                   </button>
                 </div>
               </div>
