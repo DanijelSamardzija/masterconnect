@@ -11,7 +11,7 @@ import {
   Heart, MessageCircle, Share2, Loader2, Search, Volume2, VolumeX,
   MoreVertical, Plus, Star, Flag, AlertCircle, ChevronRight, Edit2,
   Trash2, Bookmark, Send, X, Eye, Home, MapPin, CheckCircle, Phone,
-  UserPlus
+  UserPlus, Wrench, Briefcase
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { CreatePostModal } from '@/components/create-post-modal';
@@ -481,12 +481,20 @@ function FeedContent() {
       )}
 
       {/* Sticky header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border py-2 flex items-center justify-center gap-5">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border py-2 flex items-center justify-center gap-3">
         <button onClick={() => router.push(user ? '/dashboard' : '/')} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
           <Home className="h-5 w-5" />
         </button>
+        <button onClick={() => router.push('/services')} className="flex items-center gap-1.5 h-9 px-3 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground border border-border text-xs font-semibold">
+          <Wrench className="h-3.5 w-3.5" />
+          Usluge
+        </button>
         <button onClick={() => user ? setCreatePostOpen(true) : openGuestGate('post')} className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-500 hover:bg-orange-600 transition-colors text-white shadow-md">
           <Plus className="h-5 w-5" />
+        </button>
+        <button onClick={() => router.push('/jobs')} className="flex items-center gap-1.5 h-9 px-3 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground border border-border text-xs font-semibold">
+          <Briefcase className="h-3.5 w-3.5" />
+          Poslovi
         </button>
         <button onClick={() => { setSearchOpen(true); setTimeout(() => searchInputRef.current?.focus(), 50); }} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
           <Search className="h-5 w-5" />
