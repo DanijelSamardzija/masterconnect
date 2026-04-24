@@ -50,11 +50,11 @@ export default function OnboardingPage() {
       // Use 'city' as completion indicator (name can be email fallback from trigger)
       supabase
         .from('profiles')
-        .select('city')
+        .select('onboarding_completed')
         .eq('id', user.id)
         .maybeSingle()
         .then(({ data }) => {
-          if (data?.city) router.replace('/feed');
+          if (data?.onboarding_completed) router.replace('/feed');
         });
     }
   }, [user, loading]);
@@ -73,9 +73,6 @@ export default function OnboardingPage() {
 
     try {
       if (!name.trim()) throw new Error(language === 'de' ? 'Bitte Namen eingeben' : language === 'en' ? 'Please enter your name' : 'Unesite ime i prezime');
-      if (!city.trim()) throw new Error(language === 'de' ? 'Bitte Stadt auswählen' : language === 'en' ? 'Please select a city' : 'Izaberite grad');
-      if (!country.trim()) throw new Error(language === 'de' ? 'Bitte Land auswählen' : language === 'en' ? 'Please select a country' : 'Izaberite državu');
-      if (!category.trim()) throw new Error(language === 'de' ? 'Bitte Kategorie auswählen' : language === 'en' ? 'Please select a category' : 'Izaberite kategoriju');
 
       const finalCountry = country === 'Ostalo' ? (customCountry.trim() || 'Ostalo') : country;
 
@@ -90,7 +87,7 @@ export default function OnboardingPage() {
       // Update profiles table
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ name, account_type: role, city, country: finalCountry, category, signup_source: signupSource })
+        .update({ name, account_type: role, city: city || null, country: finalCountry || null, category: category || null, signup_source: signupSource, onboarding_completed: true })
         .eq('id', user!.id);
 
       if (profileError) throw profileError;

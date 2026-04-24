@@ -29,11 +29,11 @@ export default function AuthCallbackPage() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('city')
+        .select('onboarding_completed')
         .eq('id', user.id)
         .maybeSingle();
 
-      if (profile?.city) {
+      if (profile?.onboarding_completed) {
         router.replace('/feed');
       } else {
         trackEvent('register_success', { source: 'google' });
