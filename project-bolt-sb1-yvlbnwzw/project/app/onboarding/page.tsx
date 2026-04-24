@@ -83,10 +83,13 @@ export default function OnboardingPage() {
         data: { full_name: name, account_type: role, city, country: finalCountry, category },
       });
 
+      const signupSource = localStorage.getItem('signup_source') || 'direct';
+      localStorage.removeItem('signup_source');
+
       // Update profiles table
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ name, account_type: role, city, country: finalCountry, category })
+        .update({ name, account_type: role, city, country: finalCountry, category, signup_source: signupSource })
         .eq('id', user!.id);
 
       if (profileError) throw profileError;

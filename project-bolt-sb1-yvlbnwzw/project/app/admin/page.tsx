@@ -110,6 +110,8 @@ type AnalyticsData = {
   dailyActiveUsers: DailyActiveUsers[];
   monthlyNewUsers: { month: string; count: number }[];
   monthlyActiveUsers: { month: string; count: number }[];
+  signupSources: { source: string; count: number }[];
+  dailyNewUsers: { date: string; count: number }[];
 };
 type ReportFilter = 'all' | 'open' | 'reviewed' | 'resolved';
 
@@ -268,6 +270,8 @@ function AdminContent() {
         { data: daily7 },
         { data: yearlyViews },
         { data: yearlyProfiles },
+        { data: signupSourceData },
+        { data: daily30Profiles },
       ] = await Promise.all([
         supabase.from('page_views').select('page'),
         // DAU/WAU/MAU always show current period
@@ -287,7 +291,33 @@ function AdminContent() {
         // Monthly charts for selected year
         supabase.from('page_views').select('user_id, created_at').gte('created_at', chosenYearStart.toISOString()).lt('created_at', chosenYearEnd.toISOString()),
         supabase.from('profiles').select('created_at').gte('created_at', chosenYearStart.toISOString()).lt('created_at', chosenYearEnd.toISOString()),
+        // Signup sources
+        supabase.from('profiles').select('signup_source').not('signup_source', 'is', null),
+        // Daily new users last 30 days
+        supabase.from('profiles').select('created_at').gte('created_at', monthStart.toISOString()),
       ]);
+
+      // Signup source aggregation
+      const sourceCount: Record<string, number> = {};
+      for (const p of (signupSourceData as any[] || [])) {
+        const s = p.signup_source || 'direct';
+        sourceCount[s] = (sourceCount[s] || 0) + 1;
+      }
+      const signupSources = Object.entries(sourceCount)
+        .map(([source, count]) => ({ source, count }))
+        .sort((a, b) => b.count - a.count);
+
+      // Daily new users (last 30 days)
+      const dailyNewMap: Record<string, number> = {};
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(now); d.setDate(d.getDate() - i);
+        dailyNewMap[d.toISOString().slice(0, 10)] = 0;
+      }
+      for (const p of (daily30Profiles as any[] || [])) {
+        const date = (p.created_at as string).slice(0, 10);
+        if (date in dailyNewMap) dailyNewMap[date]++;
+      }
+      const dailyNewUsers = Object.entries(dailyNewMap).map(([date, count]) => ({ date, count }));
 
       // Page views aggregation
       const pageCount: Record<string, number> = {};
@@ -380,6 +410,8 @@ function AdminContent() {
         dailyActiveUsers,
         monthlyNewUsers,
         monthlyActiveUsers,
+        signupSources,
+        dailyNewUsers,
       });
     } finally {
       setAnalyticsLoading(false);
@@ -1510,6 +1542,74 @@ function AdminContent() {
                         );
                       })}
                     </div>
+                  </div>
+                </div>
+
+                {/* Signup sources */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4 text-orange-500" />
+                      <h3 className="font-semibold text-sm text-foreground">Registracije po izvoru</h3>
+                    </div>
+                    {analytics.signupSources.length === 0 ? (
+                      <p className="text-sm text-muted-foreground py-4 text-center">Nema podataka</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {analytics.signupSources.map(({ source, count }) => {
+                          const total = analytics.signupSources.reduce((s, x) => s + x.count, 0);
+                          const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                          const colors: Record<string, string> = {
+                            join_page: 'bg-orange-500',
+                            homepage: 'bg-blue-500',
+                            guest_gate: 'bg-purple-500',
+                            direct: 'bg-slate-400',
+                          };
+                          const labels: Record<string, string> = {
+                            join_page: 'Join stranica',
+                            homepage: 'Početna',
+                            guest_gate: 'Guest gate',
+                            direct: 'Direktno',
+                          };
+                          return (
+                            <div key={source}>
+                              <div className="flex justify-between text-xs mb-1">
+                                <span className="font-medium">{labels[source] || source}</span>
+                                <span className="text-muted-foreground">{count} ({pct}%)</span>
+                              </div>
+                              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                <div className={`h-full ${colors[source] || 'bg-slate-500'} rounded-full transition-all`} style={{ width: `${pct}%` }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Daily new users (last 30 days) */}
+                  <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-emerald-500" />
+                      <h3 className="font-semibold text-sm text-foreground">Novi korisnici — zadnjih 30 dana</h3>
+                    </div>
+                    <div className="flex items-end gap-0.5 h-28">
+                      {analytics.dailyNewUsers.map(({ date, count }) => {
+                        const maxCount = Math.max(...analytics.dailyNewUsers.map(d => d.count), 1);
+                        const heightPct = Math.max((count / maxCount) * 100, count > 0 ? 4 : 0);
+                        return (
+                          <div key={date} className="flex-1 flex flex-col items-center gap-0.5 group relative">
+                            <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-foreground text-background text-[10px] rounded px-1 py-0.5 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                              {count} — {date.slice(5)}
+                            </div>
+                            <div className="w-full bg-muted rounded-t overflow-hidden flex items-end" style={{ height: '90px' }}>
+                              <div className="w-full bg-emerald-500 rounded-t transition-all" style={{ height: `${heightPct}%` }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground text-center">Hover za detalje · svaki stub = 1 dan</p>
                   </div>
                 </div>
 
