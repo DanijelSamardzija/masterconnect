@@ -142,45 +142,43 @@ export function FollowListSheet({ open, onOpenChange, profileId, type }: Props) 
                 return (
                   <div
                     key={u.id}
-                    className="flex items-center gap-3 px-2 py-2.5 rounded-xl hover:bg-accent transition-colors"
+                    className="flex items-center gap-3 px-2 py-2.5 rounded-xl hover:bg-accent transition-colors cursor-pointer"
+                    onClick={() => handleUserClick(u.id)}
                   >
-                    <button
-                      onClick={() => handleUserClick(u.id)}
-                      className="flex items-center gap-3 flex-1 min-w-0 text-left"
-                    >
-                      <Avatar className="h-11 w-11 flex-shrink-0">
-                        <AvatarImage src={u.avatar_url} alt={u.name} />
-                        <AvatarFallback className="bg-orange-600 text-white font-semibold">
-                          {u.name.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0">
-                        <p className="font-semibold text-sm text-foreground truncate">{u.name}</p>
-                        {u.city && (
-                          <p className="text-xs text-muted-foreground truncate">{u.city}</p>
-                        )}
-                      </div>
-                    </button>
+                    <Avatar className="h-11 w-11 flex-shrink-0">
+                      <AvatarImage src={u.avatar_url} alt={u.name} />
+                      <AvatarFallback className="bg-orange-600 text-white font-semibold">
+                        {u.name?.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm text-foreground truncate">{u.name}</p>
+                      {u.city && (
+                        <p className="text-xs text-muted-foreground truncate">{u.city}</p>
+                      )}
+                    </div>
+                    <div onClick={(e) => e.stopPropagation()}>
 
-                    {!isMe && user && (
-                      <Button
-                        size="sm"
-                        variant={isFollowing ? 'outline' : 'default'}
-                        disabled={loadingFollow === u.id}
-                        onClick={(e) => handleToggleFollow(e, u.id)}
-                        className={
-                          isFollowing
-                            ? 'gap-1.5 border-orange-500 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-950/30 flex-shrink-0'
-                            : 'gap-1.5 bg-orange-600 hover:bg-orange-700 text-white flex-shrink-0'
-                        }
-                      >
-                        {isFollowing ? (
-                          <><UserCheck className="h-3.5 w-3.5" />Following</>
-                        ) : (
-                          <><UserPlus className="h-3.5 w-3.5" />Follow</>
-                        )}
-                      </Button>
-                    )}
+                      {!isMe && user && (
+                        <Button
+                          size="sm"
+                          variant={isFollowing ? 'outline' : 'default'}
+                          disabled={loadingFollow === u.id}
+                          onClick={(e) => handleToggleFollow(e, u.id)}
+                          className={
+                            isFollowing
+                              ? 'gap-1.5 border-orange-500 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-950/30 flex-shrink-0'
+                              : 'gap-1.5 bg-orange-600 hover:bg-orange-700 text-white flex-shrink-0'
+                          }
+                        >
+                          {isFollowing ? (
+                            <><UserCheck className="h-3.5 w-3.5" />Following</>
+                          ) : (
+                            <><UserPlus className="h-3.5 w-3.5" />Follow</>
+                          )}
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 );
               })}
