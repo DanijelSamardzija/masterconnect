@@ -106,6 +106,7 @@ export default function ServicesPage() {
           phone_count,
           link_count,
           hashtag_count,
+          is_promoted,
           profiles (
             name,
             avatar_url,
@@ -175,8 +176,11 @@ export default function ServicesPage() {
         } : null
       }));
 
-      const sortedListings = applySorting(listingsWithReviews, sortBy);
-      setListings(sortedListings);
+      const sorted = applySorting(listingsWithReviews, sortBy);
+      // Promoted always first
+      const promoted = sorted.filter((l: any) => l.is_promoted);
+      const rest = sorted.filter((l: any) => !l.is_promoted);
+      setListings([...promoted, ...rest]);
     } catch (error) {
       console.error('Error loading listings:', error);
     } finally {
@@ -375,6 +379,11 @@ export default function ServicesPage() {
               className="relative transition-all duration-200 hover:scale-[1.02] hover:-translate-y-1"
             >
               <ProfessionalCard listing={listing} />
+              {(listing as any).is_promoted && (
+                <div className="absolute top-3 left-3 z-10">
+                  <span className="bg-yellow-400 text-yellow-900 text-[10px] font-bold px-2 py-0.5 rounded-full shadow">Sponzorisano</span>
+                </div>
+              )}
               <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
                 <button
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShareModalPostId(listing.id); }}

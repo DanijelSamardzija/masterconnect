@@ -52,6 +52,7 @@ type Post = {
   link_count?: number;
   hashtag_count?: number;
   feed_score?: number;
+  is_promoted?: boolean;
   user: {
     name: string;
     email: string;
@@ -671,6 +672,9 @@ function FeedContent() {
                   ? <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 text-[10px] px-1.5 py-0 h-4 shrink-0">PRO</Badge>
                   : <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-[10px] px-1.5 py-0 h-4 shrink-0">Klijent</Badge>
                 }
+                {post.is_promoted && (
+                  <Badge className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 text-[10px] px-1.5 py-0 h-4 shrink-0">Sponzorisano</Badge>
+                )}
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 {isPro && post.user.average_rating && post.user.average_rating > 0 && (

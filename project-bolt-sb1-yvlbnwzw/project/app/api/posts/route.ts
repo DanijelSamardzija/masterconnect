@@ -178,6 +178,7 @@ export async function GET(request: NextRequest) {
       views_count: post.views_count || 0,
       hashtags: post.hashtags || [],
       feed_score: post.feed_score,
+      is_promoted: post.is_promoted || false,
       media: mediaData.filter(m => m.post_id === post.id),
       user: {
         name: post.user_name,
@@ -196,7 +197,21 @@ export async function GET(request: NextRequest) {
       if (a.media.length === 0 && b.media.length > 0) return 1;
       return 0;
     });
-    const postsWithMediaSorted = [...realPosts, ...demoPosts];
+    const combined = [...realPosts, ...demoPosts];
+
+    // Inject promoted posts near the top (position 1) on first page only
+    let postsWithMediaSorted = combined;
+    if (offset === 0) {
+      const promoted = combined.filter(p => p.is_promoted);
+      const notPromoted = combined.filter(p => !p.is_promoted);
+      if (promoted.length > 0) {
+        postsWithMediaSorted = [
+          ...notPromoted.slice(0, 1),
+          ...promoted,
+          ...notPromoted.slice(1),
+        ];
+      }
+    }
 
     return NextResponse.json({
       data: postsWithMediaSorted,

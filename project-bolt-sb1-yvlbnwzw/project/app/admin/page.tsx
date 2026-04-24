@@ -51,6 +51,7 @@ type PostItem = {
   views_count: number;
   status: string;
   post_type: string;
+  is_promoted: boolean;
   author: { id: string; name: string; avatar_url?: string } | null;
 };
 
@@ -532,7 +533,7 @@ function AdminContent() {
   const loadPosts = useCallback(async (offset: number, append: boolean) => {
     const { data, error } = await supabase
       .from('posts')
-      .select('id, text, created_at, views_count, status, user_id, post_type')
+      .select('id, text, created_at, views_count, status, user_id, post_type, is_promoted')
       .order('created_at', { ascending: false })
       .range(offset, offset + PAGE_SIZE - 1);
 
@@ -558,6 +559,7 @@ function AdminContent() {
       views_count: p.views_count || 0,
       status: p.status,
       post_type: p.post_type || 'social_post',
+      is_promoted: p.is_promoted || false,
       author: authorsMap[p.user_id] || null,
     }));
 
@@ -579,6 +581,13 @@ function AdminContent() {
     toast.success('Post obrisan');
     setPosts(prev => prev.filter(p => p.id !== postId));
     fetchStats();
+  };
+
+  const handleTogglePromoted = async (postId: string, current: boolean) => {
+    const { error } = await supabase.from('posts').update({ is_promoted: !current }).eq('id', postId);
+    if (error) { toast.error('Greška'); return; }
+    setPosts(prev => prev.map(p => p.id === postId ? { ...p, is_promoted: !current } : p));
+    toast.success(!current ? 'Post označen kao sponzorisan' : 'Sponzorstvo uklonjeno');
   };
 
   // ── Support ───────────────────────────────────────────────────────────────
@@ -1073,6 +1082,11 @@ function AdminContent() {
                               : post.post_type === 'job_seeker_post' ? 'Tražim posao'
                               : post.post_type}
                           </span>
+                          {post.is_promoted && (
+                            <span className="text-xs bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 px-2 py-0.5 rounded-full font-semibold">
+                              Sponzorisano
+                            </span>
+                          )}
                           {post.status !== 'published' && (
                             <span className="text-xs bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400 px-2 py-0.5 rounded-full">
                               {post.status}
@@ -1084,6 +1098,15 @@ function AdminContent() {
                         </p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className={`h-8 px-2 rounded-xl text-xs font-semibold ${post.is_promoted ? 'text-yellow-600 bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-400' : 'text-muted-foreground hover:text-yellow-600 hover:bg-yellow-50'}`}
+                          title={post.is_promoted ? 'Ukloni sponzorstvo' : 'Označi kao sponzorisano'}
+                          onClick={() => handleTogglePromoted(post.id, post.is_promoted)}
+                        >
+                          {post.is_promoted ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
+                        </Button>
                         <Link href={`/posts/${post.id}`} target="_blank">
                           <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-xl" title="Pogledaj post">
                             <ExternalLink className="h-4 w-4" />
