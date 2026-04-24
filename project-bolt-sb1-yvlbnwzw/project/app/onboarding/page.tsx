@@ -93,7 +93,7 @@ export default function OnboardingPage() {
 
       trackEvent('onboarding_complete', { role });
       await refreshProfile();
-      resumeAfterAuth(router);
+      router.replace('/feed');
     } catch (err: any) {
       setError(err.message);
     } finally {
