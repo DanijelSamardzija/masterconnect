@@ -319,7 +319,7 @@ function EditProfileContent() {
               </div>
 
               <div className="space-y-2">
-                <Label>{t('onboarding.roleLabel') || 'Tip naloga'}</Label>
+                <Label>Tip naloga</Label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
@@ -331,7 +331,7 @@ function EditProfileContent() {
                         : 'border-border bg-background text-muted-foreground hover:bg-accent'
                     }`}
                   >
-                    {t('onboarding.roleCustomer') || 'Klijent'}
+                    Klijent
                   </button>
                   <button
                     type="button"
@@ -343,7 +343,7 @@ function EditProfileContent() {
                         : 'border-border bg-background text-muted-foreground hover:bg-accent'
                     }`}
                   >
-                    {t('onboarding.roleProfessional') || 'Profesional'}
+                    Profesional
                   </button>
                 </div>
               </div>
