@@ -29,6 +29,7 @@ function EditProfileContent() {
   const [country, setCountry] = useState('');
   const [customCountry, setCustomCountry] = useState('');
   const [category, setCategory] = useState('');
+  const [accountType, setAccountType] = useState<'customer' | 'professional'>('customer');
   const [bio, setBio] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -55,6 +56,7 @@ function EditProfileContent() {
         setCountry('Ostalo');
         setCustomCountry(savedCountry);
       }
+      setAccountType((profile.account_type as any) || 'customer');
       setCategory(profile.category || '');
       setBio(profile.bio || '');
       setPhone(profile.phone || '');
@@ -145,6 +147,7 @@ function EditProfileContent() {
         .from('profiles')
         .update({
           name: name.trim(),
+          account_type: accountType,
           city: city.trim() || null,
           country: (country === 'Ostalo' ? customCountry.trim() || 'Ostalo' : country.trim()) || null,
           category: category.trim() || null,
@@ -313,6 +316,36 @@ function EditProfileContent() {
                   placeholder={t('profile.editCategoryPlaceholder')}
                   disabled={saving}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t('onboarding.roleLabel') || 'Tip naloga'}</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setAccountType('customer')}
+                    disabled={saving}
+                    className={`p-3 rounded-xl border-2 text-sm font-medium transition-colors ${
+                      accountType === 'customer'
+                        ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600'
+                        : 'border-border bg-background text-muted-foreground hover:bg-accent'
+                    }`}
+                  >
+                    {t('onboarding.roleCustomer') || 'Klijent'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAccountType('professional')}
+                    disabled={saving}
+                    className={`p-3 rounded-xl border-2 text-sm font-medium transition-colors ${
+                      accountType === 'professional'
+                        ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600'
+                        : 'border-border bg-background text-muted-foreground hover:bg-accent'
+                    }`}
+                  >
+                    {t('onboarding.roleProfessional') || 'Profesional'}
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-2">
