@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
+import { trackEvent } from '@/lib/analytics';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -35,6 +36,7 @@ export default function AuthCallbackPage() {
       if (profile?.city) {
         router.replace('/feed');
       } else {
+        trackEvent('register_success', { source: 'google' });
         router.replace('/onboarding');
       }
     });
