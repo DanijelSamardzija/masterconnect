@@ -207,6 +207,7 @@ export default function OnboardingPage() {
               onChange={setCategory}
               suggestions={categories}
               placeholder={t('login.categoryPlaceholder')}
+              dropdownSide="top"
             />
           </div>
 

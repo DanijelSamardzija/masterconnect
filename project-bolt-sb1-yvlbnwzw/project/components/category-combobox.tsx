@@ -21,6 +21,7 @@ interface CategoryComboboxProps {
   disabled?: boolean;
   filterMode?: boolean;
   allCategoriesLabel?: string;
+  dropdownSide?: 'top' | 'bottom';
 }
 
 export function CategoryCombobox({
@@ -30,6 +31,7 @@ export function CategoryCombobox({
   disabled = false,
   filterMode = false,
   allCategoriesLabel,
+  dropdownSide = 'bottom',
 }: CategoryComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState('');
@@ -99,7 +101,7 @@ export function CategoryCombobox({
       <PopoverContent
         className="w-full p-0"
         align="start"
-        side="bottom"
+        side={dropdownSide}
         avoidCollisions={false}
       >
         <div className="flex flex-col">
