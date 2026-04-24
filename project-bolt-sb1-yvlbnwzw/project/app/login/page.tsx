@@ -145,16 +145,12 @@ export default function LoginPage() {
 
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('role, is_banned')
+        .select('role')
         .eq('id', data.user.id)
         .maybeSingle();
 
       if (profileError) throw new Error('Failed to load profile. Please contact support.');
       if (!profile) throw new Error('Profile not found. Please contact support.');
-      if (profile.is_banned) {
-        await supabase.auth.signOut();
-        throw new Error(t('login.bannedError'));
-      }
 
       await new Promise(r => setTimeout(r, 500));
       router.push(redirectTo);
