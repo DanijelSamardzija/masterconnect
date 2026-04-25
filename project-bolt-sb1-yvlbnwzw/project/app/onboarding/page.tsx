@@ -4,50 +4,36 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
-import { useLanguage } from '@/lib/contexts/language-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { UserCircle, Wrench, AlertCircle } from 'lucide-react';
-import { CityAutocomplete } from '@/components/city-autocomplete';
-import { CategoryCombobox } from '@/components/category-combobox';
-import { countries } from '@/lib/countries';
+import { UserCircle, Wrench, ArrowRight, Loader2 } from 'lucide-react';
 import { trackEvent } from '@/lib/analytics';
 import { resumeAfterAuth } from '@/lib/guest-intent';
 
+type Step = 1 | 2;
 type UserRole = 'customer' | 'professional';
 
 export default function OnboardingPage() {
   const { user, loading, refreshProfile } = useAuth();
   const router = useRouter();
-  const { t, language } = useLanguage();
 
+  const [step, setStep] = useState<Step>(1);
   const [name, setName] = useState('');
-  const [city, setCity] = useState('');
-  const [country, setCountry] = useState('');
-  const [customCountry, setCustomCountry] = useState('');
-  const [category, setCategory] = useState('');
-  const [role, setRole] = useState<UserRole>('customer');
+  const [role, setRole] = useState<UserRole | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [categories, setCategories] = useState<string[]>([]);
 
   useEffect(() => {
     if (!loading && !user) {
       router.replace('/login');
       return;
     }
-
     if (user) {
       trackEvent('view_onboarding');
-      // Pre-fill name from OAuth metadata if available
       const meta = user.user_metadata;
       if (meta?.full_name) setName(meta.full_name);
       else if (meta?.name) setName(meta.name);
 
-      // Check if profile is already complete — skip onboarding
-      // Use 'city' as completion indicator (name can be email fallback from trigger)
       supabase
         .from('profiles')
         .select('onboarding_completed')
@@ -59,218 +45,145 @@ export default function OnboardingPage() {
     }
   }, [user, loading]);
 
-  useEffect(() => {
-    fetch('/api/categories')
-      .then((r) => r.json())
-      .then((d) => { if (d.categories) setCategories(d.categories); });
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleStep1 = () => {
+    if (!name.trim()) { setError('Unesite vaše ime'); return; }
     setError('');
+    setStep(2);
+  };
+
+  const handleFinish = async (selectedRole: UserRole) => {
     setSaving(true);
-    trackEvent('submit_onboarding');
-
+    setError('');
     try {
-      if (!name.trim()) throw new Error(language === 'de' ? 'Bitte Namen eingeben' : language === 'en' ? 'Please enter your name' : 'Unesite ime i prezime');
-
-      const finalCountry = country === 'Ostalo' ? (customCountry.trim() || 'Ostalo') : country;
-
-      // Update auth user metadata
-      await supabase.auth.updateUser({
-        data: { full_name: name, account_type: role, city, country: finalCountry, category },
-      });
+      await supabase.auth.updateUser({ data: { full_name: name, account_type: selectedRole } });
 
       const signupSource = localStorage.getItem('signup_source') || 'direct';
       localStorage.removeItem('signup_source');
 
-      // Update profiles table
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ name, account_type: role, city: city || null, country: finalCountry || null, category: category || null, signup_source: signupSource, onboarding_completed: true })
+        .update({ name: name.trim(), account_type: selectedRole, signup_source: signupSource, onboarding_completed: true })
         .eq('id', user!.id);
 
       if (profileError) throw profileError;
 
-      trackEvent('onboarding_complete', { role });
+      trackEvent('onboarding_complete', { role: selectedRole });
       await refreshProfile();
-      router.replace('/feed');
+      resumeAfterAuth(router);
     } catch (err: any) {
       setError(err.message);
-    } finally {
       setSaving(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-[#0f0f0f]">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col items-center justify-center p-4">
+    <div className="min-h-[100dvh] bg-[#0f0f0f] flex flex-col items-center justify-center px-4 py-10">
 
-      <div className="w-full max-w-md">
+      {/* Logo */}
+      <div className="mb-8 text-center">
+        <span className="text-2xl font-black text-white tracking-tight">
+          Gig<span className="text-orange-500">Zone</span>
+        </span>
+      </div>
 
-        {/* Logo + progress */}
-        <div className="text-center mb-6">
-          <div className="flex justify-center mb-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg">
-              <span className="text-2xl font-black text-white" style={{ fontFamily: 'Georgia, serif' }}>G</span>
-            </div>
-          </div>
-          <p className="text-xs font-semibold text-orange-400 uppercase tracking-widest mb-1">
-            {t('onboarding.step')}
-          </p>
-          <h1 className="text-2xl font-bold text-white">{t('onboarding.title')}</h1>
-          <p className="text-slate-400 text-sm mt-1">{t('onboarding.subtitle')}</p>
-        </div>
+      {/* Progress dots */}
+      <div className="flex gap-2 mb-8">
+        <div className={`h-2 w-8 rounded-full transition-all ${step >= 1 ? 'bg-orange-500' : 'bg-white/10'}`} />
+        <div className={`h-2 w-8 rounded-full transition-all ${step >= 2 ? 'bg-orange-500' : 'bg-white/10'}`} />
+      </div>
 
-        {/* Progress bar */}
-        <div className="flex gap-1.5 mb-6">
-          <div className="flex-1 h-1.5 rounded-full bg-orange-500" />
-          <div className="flex-1 h-1.5 rounded-full bg-orange-500" />
-        </div>
+      <div className="w-full max-w-sm">
 
-        {/* Form card */}
-        <div className="bg-white rounded-2xl shadow-2xl p-6 space-y-4">
+        {/* ── STEP 1: Name ── */}
+        {step === 1 && (
+          <div className="bg-[#1a1a1a] border border-white/10 rounded-3xl p-7 shadow-2xl">
+            <h1 className="text-2xl font-black text-white mb-1">Kako se zoveš?</h1>
+            <p className="text-slate-400 text-sm mb-6">Ovo će biti tvoje ime na GigZone-u.</p>
 
-          {error && (
-            <Alert variant="destructive" className="border-red-200 bg-red-50">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          {/* Name */}
-          <div className="space-y-1.5">
-            <Label htmlFor="name" className="text-sm font-medium">{t('login.fullNameLabel')}</Label>
             <Input
-              id="name"
               type="text"
-              placeholder={t('login.fullNamePlaceholder')}
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="h-11"
-              required
+              onChange={(e) => { setName(e.target.value); setError(''); }}
+              onKeyDown={(e) => e.key === 'Enter' && handleStep1()}
+              placeholder="Ime i prezime"
+              className="h-14 text-base bg-white/5 border-white/10 text-white placeholder:text-slate-500 rounded-xl mb-3 focus-visible:ring-orange-500"
+              autoFocus
             />
-          </div>
 
-          {/* City */}
-          <div className="space-y-1.5">
-            <Label className="text-sm font-medium">{t('login.cityLabel')}</Label>
-            <CityAutocomplete
-              value={city}
-              onChange={setCity}
-              placeholder={t('login.cityPlaceholder')}
-            />
-          </div>
+            {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
 
-          {/* Country */}
-          <div className="space-y-1.5">
-            <Label className="text-sm font-medium">{t('login.countryLabel')}</Label>
-            <select
-              value={country}
-              onChange={(e) => { setCountry(e.target.value); setCustomCountry(''); }}
-              className="w-full h-11 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              required
+            <Button
+              onClick={handleStep1}
+              className="w-full h-14 text-base font-bold bg-orange-600 hover:bg-orange-500 rounded-2xl shadow-lg shadow-orange-600/30"
             >
-              <option value="">{t('login.countryPlaceholder')}</option>
-              {countries.map((c) => (
-                <option key={c.value} value={c.value}>
-                  {language === 'en' ? c.en : c.sr}
-                </option>
-              ))}
-            </select>
-            {country === 'Ostalo' && (
-              <Input
-                placeholder={t('login.enterCountry')}
-                value={customCountry}
-                onChange={(e) => setCustomCountry(e.target.value)}
-                className="h-11"
-                required
-              />
-            )}
+              Nastavi
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
           </div>
+        )}
 
-          {/* Category */}
-          <div className="space-y-1.5">
-            <Label className="text-sm font-medium">{t('login.categoryLabel')}</Label>
-            <CategoryCombobox
-              value={category}
-              onChange={setCategory}
-              suggestions={categories}
-              placeholder={t('login.categoryPlaceholder')}
-              dropdownSide="top"
-            />
-          </div>
+        {/* ── STEP 2: Role ── */}
+        {step === 2 && (
+          <div className="bg-[#1a1a1a] border border-white/10 rounded-3xl p-7 shadow-2xl">
+            <h1 className="text-2xl font-black text-white mb-1">Šta želiš?</h1>
+            <p className="text-slate-400 text-sm mb-6">Izaberi kako ćeš koristiti GigZone.</p>
 
-          {/* Account type */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">{t('login.accountTypeLabel')}</Label>
-            <div className="grid grid-cols-2 gap-3">
+            {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
+
+            <div className="space-y-3">
               <button
-                type="button"
-                onClick={() => setRole('customer')}
-                className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                  role === 'customer'
-                    ? 'border-orange-500 bg-orange-50 shadow-sm'
-                    : 'border-slate-200 hover:border-orange-300'
-                }`}
+                onClick={() => !saving && handleFinish('customer')}
+                disabled={saving}
+                className="w-full flex items-center gap-4 p-5 rounded-2xl border-2 border-white/10 hover:border-orange-500 hover:bg-orange-500/5 transition-all text-left group disabled:opacity-50"
               >
-                <UserCircle className={`h-6 w-6 ${role === 'customer' ? 'text-orange-600' : 'text-slate-500'}`} />
-                <div className="text-center">
-                  <span className="font-semibold text-sm block">{t('login.customerLabel')}</span>
-                  <span className="text-xs text-slate-500">{t('login.customerDesc')}</span>
+                <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-orange-500/20 transition-colors">
+                  {saving && role === 'customer' ? (
+                    <Loader2 className="h-6 w-6 text-orange-400 animate-spin" />
+                  ) : (
+                    <UserCircle className="h-6 w-6 text-orange-400" />
+                  )}
+                </div>
+                <div>
+                  <p className="text-white font-bold text-base">Klijent</p>
+                  <p className="text-slate-400 text-sm">Tražim usluge i majstore</p>
                 </div>
               </button>
 
               <button
-                type="button"
-                onClick={() => setRole('professional')}
-                className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                  role === 'professional'
-                    ? 'border-orange-500 bg-orange-50 shadow-sm'
-                    : 'border-slate-200 hover:border-orange-300'
-                }`}
+                onClick={() => !saving && handleFinish('professional')}
+                disabled={saving}
+                className="w-full flex items-center gap-4 p-5 rounded-2xl border-2 border-white/10 hover:border-orange-500 hover:bg-orange-500/5 transition-all text-left group disabled:opacity-50"
               >
-                <Wrench className={`h-6 w-6 ${role === 'professional' ? 'text-orange-600' : 'text-slate-500'}`} />
-                <div className="text-center">
-                  <span className="font-semibold text-sm block">{t('login.professionalLabel')}</span>
-                  <span className="text-xs text-slate-500">{t('login.professionalDesc')}</span>
+                <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-orange-500/20 transition-colors">
+                  {saving && role === 'professional' ? (
+                    <Loader2 className="h-6 w-6 text-orange-400 animate-spin" />
+                  ) : (
+                    <Wrench className="h-6 w-6 text-orange-400" />
+                  )}
+                </div>
+                <div>
+                  <p className="text-white font-bold text-base">Profesionalac</p>
+                  <p className="text-slate-400 text-sm">Nudim usluge i tražim posao</p>
                 </div>
               </button>
             </div>
+
+            <button
+              onClick={() => setStep(1)}
+              disabled={saving}
+              className="w-full text-center text-slate-500 text-sm mt-5 hover:text-slate-300 transition-colors disabled:opacity-50"
+            >
+              ← Nazad
+            </button>
           </div>
-
-          {/* Submit */}
-          <Button
-            onClick={handleSubmit}
-            className="w-full h-12 text-base font-bold bg-orange-600 hover:bg-orange-700 shadow-md rounded-xl mt-2"
-            disabled={saving}
-          >
-            {saving ? (
-              <span className="flex items-center gap-2">
-                <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                {t('onboarding.completing')}
-              </span>
-            ) : (
-              t('onboarding.completeButton')
-            )}
-          </Button>
-        </div>
-
-        {/* Skip — dostupno samo ako je ime uneseno */}
-        {name.trim() && (
-          <button
-            onClick={() => resumeAfterAuth(router)}
-            className="w-full text-center text-slate-400 text-sm mt-4 hover:text-slate-300 transition-colors"
-          >
-            {t('onboarding.skipButton')}
-          </button>
         )}
 
       </div>
