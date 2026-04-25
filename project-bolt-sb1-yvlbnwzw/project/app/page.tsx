@@ -27,7 +27,7 @@ export default function Home() {
 
   const openSignupModal = () => {
     localStorage.setItem('signup_source', 'homepage');
-    setModalOpen(true);
+    router.push('/join');
   };
 
   if (authLoading) {
