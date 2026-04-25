@@ -34,8 +34,10 @@ export default function AuthCallbackPage() {
         .maybeSingle();
 
       if (profile?.onboarding_completed) {
+        trackEvent('google_login_success', { returning: true });
         router.replace('/feed');
       } else {
+        trackEvent('google_login_success', { returning: false });
         trackEvent('register_success', { source: 'google' });
         router.replace('/onboarding');
       }

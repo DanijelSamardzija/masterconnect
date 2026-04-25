@@ -16,6 +16,7 @@ export default function JoinPage() {
   const handleGoogleSignup = async () => {
     setGoogleLoading(true);
     trackEvent('click_google_signup', { source: 'join_page' });
+    trackEvent('click_google_login', { source: 'join_page' });
     localStorage.setItem('signup_source', 'join_page');
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',

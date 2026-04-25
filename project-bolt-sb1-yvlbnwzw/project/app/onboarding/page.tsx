@@ -48,12 +48,14 @@ export default function OnboardingPage() {
   const handleStep1 = () => {
     if (!name.trim()) { setError('Unesite vaše ime'); return; }
     setError('');
+    trackEvent('onboarding_step_1_completed', { name_length: name.trim().length });
     setStep(2);
   };
 
   const handleFinish = async (selectedRole: UserRole) => {
     setSaving(true);
     setError('');
+    trackEvent('onboarding_step_2_completed', { role: selectedRole });
     try {
       await supabase.auth.updateUser({ data: { full_name: name, account_type: selectedRole } });
 
