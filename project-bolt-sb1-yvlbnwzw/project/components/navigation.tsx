@@ -515,26 +515,30 @@ export function Navigation() {
 
                   <Separator />
 
-                  <Link href="/services" onClick={closeMobileMenu}>
-                    <Button variant="ghost" className={mobileNavClass('/services')}>
-                      <Search className="h-4 w-4" />
-                      {t('nav.discover')}
-                    </Button>
-                  </Link>
+                  {(!isLandingPage || user) && (
+                    <>
+                      <Link href="/services" onClick={closeMobileMenu}>
+                        <Button variant="ghost" className={mobileNavClass('/services')}>
+                          <Search className="h-4 w-4" />
+                          {t('nav.discover')}
+                        </Button>
+                      </Link>
 
-                  <Link href="/feed" onClick={closeMobileMenu}>
-                    <Button variant="ghost" className={mobileNavClass('/feed')}>
-                      <FileText className="h-4 w-4" />
-                      {t('nav.feed')}
-                    </Button>
-                  </Link>
+                      <Link href="/feed" onClick={closeMobileMenu}>
+                        <Button variant="ghost" className={mobileNavClass('/feed')}>
+                          <FileText className="h-4 w-4" />
+                          {t('nav.feed')}
+                        </Button>
+                      </Link>
 
-                  <Link href="/jobs" onClick={closeMobileMenu}>
-                    <Button variant="ghost" className={mobileNavClass('/jobs')}>
-                      <Briefcase className="h-4 w-4" />
-                      {t('nav.jobs')}
-                    </Button>
-                  </Link>
+                      <Link href="/jobs" onClick={closeMobileMenu}>
+                        <Button variant="ghost" className={mobileNavClass('/jobs')}>
+                          <Briefcase className="h-4 w-4" />
+                          {t('nav.jobs')}
+                        </Button>
+                      </Link>
+                    </>
+                  )}
 
                   {user && profile ? (
                     <>
@@ -605,13 +609,13 @@ export function Navigation() {
                   ) : (
                     <>
                       <Link href="/login" onClick={closeMobileMenu}>
-                        <Button variant="ghost" className="w-full justify-start rounded-xl">
+                        <Button variant="outline" className="w-full rounded-xl">
                           {t('nav.signIn')}
                         </Button>
                       </Link>
 
-                      <Link href="/login?tab=register" onClick={closeMobileMenu}>
-                        <Button className="w-full rounded-xl bg-orange-600 hover:bg-orange-700">
+                      <Link href="/join" onClick={closeMobileMenu}>
+                        <Button className="w-full rounded-xl bg-orange-600 hover:bg-orange-700 h-12 text-base font-bold">
                           {t('nav.signUp')}
                         </Button>
                       </Link>
