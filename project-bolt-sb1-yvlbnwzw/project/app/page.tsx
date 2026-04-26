@@ -93,7 +93,7 @@ export default function Home() {
                 size="lg"
                 variant="outline"
                 onClick={() => router.push('/jobs')}
-                className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white text-base px-8 h-12 w-full sm:w-auto"
+                className="bg-white/5 border-slate-600 text-white hover:bg-white/10 hover:border-slate-500 text-base px-8 h-12 w-full sm:w-auto"
               >
                 <Search className="mr-2 h-4 w-4" />
                 {t('home.hero.findJob')}
@@ -102,7 +102,7 @@ export default function Home() {
                 size="lg"
                 variant="outline"
                 onClick={openSignupModal}
-                className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white text-base px-8 h-12 w-full sm:w-auto"
+                className="bg-white/5 border-slate-600 text-white hover:bg-white/10 hover:border-slate-500 text-base px-8 h-12 w-full sm:w-auto"
               >
                 <Users className="mr-2 h-4 w-4" />
                 {t('home.hero.findClients')}
