@@ -49,44 +49,44 @@ export default function Home() {
     <div className="overflow-x-hidden pb-20 md:pb-0">
 
       {/* ── HERO ─────────────────────────────────────────────── */}
-      <section className="relative min-h-[92vh] flex items-center bg-[#0f0f0f]">
+      <section className="relative min-h-[100dvh] flex items-center bg-[#0f0f0f]">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px]" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-600/20 rounded-full blur-[120px] pointer-events-none" />
 
-        <div className="container mx-auto px-4 relative z-10 py-16">
+        <div className="container mx-auto px-4 relative z-10 py-6">
           <div className="max-w-4xl mx-auto text-center">
 
             {/* Pill badge */}
-            <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 text-orange-400 text-sm font-medium px-4 py-1.5 rounded-full mb-8">
-              <Zap className="h-3.5 w-3.5" />
+            <div className="inline-flex items-center gap-1.5 bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-medium px-3 py-1 rounded-full mb-4">
+              <Zap className="h-3 w-3" />
               {t('home.hero.badge')}
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-black text-white leading-[1.05] tracking-tight mb-6">
+            <h1 className="text-4xl md:text-7xl font-black text-white leading-[1.1] tracking-tight mb-3">
               {t('home.hero.title1')}
               <span className="text-orange-500"> {t('home.hero.title2')}</span>
             </h1>
 
-            <p className="text-lg md:text-xl text-slate-400 mb-8 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-sm md:text-xl text-slate-400 mb-3 max-w-2xl mx-auto leading-snug">
               {t('home.hero.subtitle')}
             </p>
 
             {/* FOMO badges */}
-            <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
-              <span className="bg-orange-500/10 border border-orange-500/20 text-orange-300 text-sm px-4 py-1.5 rounded-full">
+            <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
+              <span className="bg-orange-500/10 border border-orange-500/20 text-orange-300 text-xs px-3 py-1 rounded-full">
                 {t('home.fomo.jobs')}
               </span>
-              <span className="bg-orange-500/10 border border-orange-500/20 text-orange-300 text-sm px-4 py-1.5 rounded-full">
+              <span className="bg-orange-500/10 border border-orange-500/20 text-orange-300 text-xs px-3 py-1 rounded-full">
                 {t('home.fomo.pros')}
               </span>
             </div>
 
             {/* Main CTA */}
-            <div className="flex flex-col items-center gap-3 mb-6 max-w-sm mx-auto">
+            <div className="flex flex-col items-center gap-2 mb-4 max-w-sm mx-auto">
               <Button
                 size="lg"
                 onClick={goToJoin}
-                className="bg-orange-600 hover:bg-orange-500 text-white text-lg px-10 h-14 shadow-lg shadow-orange-600/30 w-full rounded-xl font-bold"
+                className="bg-orange-600 hover:bg-orange-500 text-white text-base px-10 h-12 shadow-lg shadow-orange-600/30 w-full rounded-xl font-bold"
               >
                 {t('home.hero.ctaMain')}
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -97,7 +97,7 @@ export default function Home() {
                 size="lg"
                 onClick={handleGoogleSignup}
                 disabled={googleLoading}
-                className="w-full bg-white hover:bg-gray-100 text-gray-800 font-bold text-base h-12 rounded-xl shadow flex items-center justify-center gap-3"
+                className="w-full bg-white hover:bg-gray-100 text-gray-800 font-bold text-sm h-11 rounded-xl shadow flex items-center justify-center gap-3"
               >
                 {googleLoading ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
