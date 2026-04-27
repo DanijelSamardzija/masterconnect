@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import { trackEvent } from '@/lib/analytics';
+import { trackEvent, identifyUser } from '@/lib/analytics';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -26,6 +26,9 @@ export default function AuthCallbackPage() {
       // Check if profile already has a name (returning user or complete profile)
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.replace('/login'); return; }
+
+      // Identify user in PostHog BEFORE firing events so funnel connects sessions
+      identifyUser(user.id, user.email);
 
       const { data: profile } = await supabase
         .from('profiles')
