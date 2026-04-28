@@ -663,8 +663,8 @@ function FeedContent() {
               <AvatarFallback>{post.user.name?.[0]}</AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5">
-                <button className="font-semibold text-sm text-foreground truncate hover:text-orange-500 transition-colors" onClick={() => router.push(`/profile/${post.user_id}`)}>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <button className="font-semibold text-sm text-foreground hover:text-orange-500 transition-colors truncate max-w-[140px] sm:max-w-none" onClick={() => router.push(`/profile/${post.user_id}`)}>
                   {post.user.name}
                 </button>
                 {isPro && <CheckCircle className="h-3.5 w-3.5 text-orange-500 shrink-0" />}
