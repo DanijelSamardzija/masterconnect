@@ -52,11 +52,12 @@ export async function GET(request: NextRequest) {
       .from('posts')
       .select('id', { count: 'exact', head: true });
 
-    // Get total count with status filter (matching feed function logic)
+    // Get total count with status filter (matching feed function logic), excluding demo users
     let countQuery = supabase
       .from('posts')
       .select('id', { count: 'exact', head: true })
-      .eq('post_type', 'social_post');
+      .eq('post_type', 'social_post')
+      .not('user_id', 'like', 'b1000000-%');
 
     if (user) {
       countQuery = countQuery.or(`user_id.eq.${user.id},status.eq.published`);
