@@ -210,15 +210,13 @@ export async function GET(request: NextRequest) {
       }
     })) || [];
 
-    // Real posts (with media first) before demo posts
     const realPosts = postsWithMedia.filter(p => !p.user_id.startsWith('b1000000-'));
-    const demoPosts = postsWithMedia.filter(p => p.user_id.startsWith('b1000000-'));
     realPosts.sort((a, b) => {
       if (a.media.length > 0 && b.media.length === 0) return -1;
       if (a.media.length === 0 && b.media.length > 0) return 1;
       return 0;
     });
-    const combined = [...realPosts, ...demoPosts];
+    const combined = [...realPosts];
 
     // Inject promoted posts at position 2 on first page
     let postsWithMediaSorted = combined;
@@ -226,7 +224,7 @@ export async function GET(request: NextRequest) {
       const promotedIds = new Set(promotedPostsData.map(p => p.id));
 
       // Build promoted post objects (same shape as postsWithMedia)
-      const promotedMapped = promotedPostsData.map(p => {
+      const promotedMapped = promotedPostsData.filter(p => !p.user_id.startsWith('b1000000-')).map(p => {
         const prof: any = p.profiles;
         return {
           id: p.id,
