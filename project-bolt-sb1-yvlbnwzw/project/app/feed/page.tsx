@@ -737,16 +737,8 @@ function FeedContent() {
 
           {/* Media or text-only area */}
           {!media && post.text && (
-            <div className="flex-1 min-h-0 flex flex-col justify-center p-6 bg-gradient-to-br from-muted/30 to-muted/10 overflow-hidden">
-              <p className={`text-foreground text-base leading-relaxed whitespace-pre-line ${expandedText[post.id] ? '' : 'line-clamp-[10]'}`}>{post.text}</p>
-              {(post.text?.length || 0) > 300 && (
-                <button
-                  onClick={() => setExpandedText(prev => ({ ...prev, [post.id]: !prev[post.id] }))}
-                  className="text-xs text-orange-500 font-semibold mt-2 text-left"
-                >
-                  {expandedText[post.id] ? t('posts.showLess') : t('posts.readMore')}
-                </button>
-              )}
+            <div className="flex-1 min-h-0 overflow-y-auto p-6 bg-gradient-to-br from-muted/30 to-muted/10">
+              <p className="text-foreground text-base leading-relaxed whitespace-pre-line">{post.text}</p>
             </div>
           )}
 
