@@ -57,7 +57,8 @@ export async function GET(request: NextRequest) {
       .from('posts')
       .select('id, profiles!inner(email)', { count: 'exact', head: true })
       .eq('post_type', 'social_post')
-      .not('profiles.email', 'like', '%@demo.gigzone.app');
+      .not('profiles.email', 'like', '%@demo.gigzone.app')
+      .not('profiles.email', 'like', '%@masterconnect.rs');
 
     if (user) {
       countQuery = countQuery.or(`user_id.eq.${user.id},status.eq.published`);
@@ -109,7 +110,7 @@ export async function GET(request: NextRequest) {
 
       if (!batch || batch.length === 0) break;
 
-      const realBatch = batch.filter((p: any) => !p.user_id.startsWith('b1000000-'));
+      const realBatch = batch.filter((p: any) => !p.user_id.startsWith('b1000000-') && !p.user_id.startsWith('aaaaaaaa-'));
       postsData = [...postsData, ...realBatch];
       rpcOffset += batch.length;
       totalRpcFetched += batch.length;
@@ -244,7 +245,7 @@ export async function GET(request: NextRequest) {
       const promotedIds = new Set(promotedPostsData.map(p => p.id));
 
       // Build promoted post objects (same shape as postsWithMedia)
-      const promotedMapped = promotedPostsData.filter(p => !p.user_id.startsWith('b1000000-')).map(p => {
+      const promotedMapped = promotedPostsData.filter(p => !p.user_id.startsWith('b1000000-') && !p.user_id.startsWith('aaaaaaaa-')).map(p => {
         const prof: any = p.profiles;
         return {
           id: p.id,
