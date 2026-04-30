@@ -737,8 +737,8 @@ function FeedContent() {
 
           {/* Media or text-only area */}
           {!media && post.text && (
-            <div className="flex-1 min-h-0 flex items-center justify-center p-6 bg-gradient-to-br from-muted/30 to-muted/10">
-              <p className="text-foreground text-base leading-relaxed text-center whitespace-pre-line">{post.text}</p>
+            <div className="flex-1 min-h-0 overflow-y-auto p-6 bg-gradient-to-br from-muted/30 to-muted/10">
+              <p className="text-foreground text-base leading-relaxed whitespace-pre-line">{post.text}</p>
             </div>
           )}
 
