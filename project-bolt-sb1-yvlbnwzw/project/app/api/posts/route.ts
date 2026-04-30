@@ -52,12 +52,12 @@ export async function GET(request: NextRequest) {
       .from('posts')
       .select('id', { count: 'exact', head: true });
 
-    // Get total count with status filter (matching feed function logic), excluding demo users
+    // Get total count excluding demo users (join profiles to filter by email domain)
     let countQuery = supabase
       .from('posts')
-      .select('id', { count: 'exact', head: true })
+      .select('id, profiles!inner(email)', { count: 'exact', head: true })
       .eq('post_type', 'social_post')
-      .not('user_id', 'like', 'b1000000-%');
+      .not('profiles.email', 'like', '%@demo.gigzone.app');
 
     if (user) {
       countQuery = countQuery.or(`user_id.eq.${user.id},status.eq.published`);
@@ -86,11 +86,10 @@ export async function GET(request: NextRequest) {
       return acc;
     }, {});
 
-    // Loop fetching from RPC until we collect enough non-demo posts
+    // Loop fetching from RPC until we collect enough non-demo posts or exhaust all posts
     let postsData: any[] = [];
     let rpcOffset = offset;
     let totalRpcFetched = 0;
-    const totalAvailable = publishedPostsCount || 0;
 
     while (postsData.length < limit) {
       const { data: batch, error } = await supabase.rpc('get_feed_with_engagement_score', {
@@ -115,7 +114,8 @@ export async function GET(request: NextRequest) {
       rpcOffset += batch.length;
       totalRpcFetched += batch.length;
 
-      if (rpcOffset >= totalAvailable + (totalRpcFetched - postsData.length)) break;
+      // Stop if RPC returned fewer posts than requested — means no more posts in DB
+      if (batch.length < limit) break;
     }
 
     postsData = postsData.slice(0, limit);
