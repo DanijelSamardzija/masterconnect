@@ -737,7 +737,15 @@ function FeedContent() {
 
           {/* Media or text-only area */}
           {!media && post.text && (
-            <div className="flex-1 min-h-0 overflow-y-auto p-6 bg-gradient-to-br from-muted/30 to-muted/10" style={{ overscrollBehavior: 'contain', touchAction: 'pan-y' }}>
+            <div
+              className="flex-1 min-h-0 overflow-y-auto p-6 bg-gradient-to-br from-muted/30 to-muted/10"
+              style={{ overscrollBehavior: 'contain' }}
+              onScroll={e => {
+                const el = e.currentTarget;
+                const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 4;
+                el.style.overflowY = atBottom ? 'hidden' : 'auto';
+              }}
+            >
               <p className="text-foreground text-base leading-relaxed whitespace-pre-line">{post.text}</p>
             </div>
           )}
