@@ -86,12 +86,13 @@ export async function GET(request: NextRequest) {
       return acc;
     }, {});
 
-    // Loop fetching from RPC until we collect enough non-demo posts or exhaust all posts
+    // Loop fetching from RPC, tracking exact position so no posts are skipped
     let postsData: any[] = [];
     let rpcOffset = offset;
     let totalRpcFetched = 0;
+    let done = false;
 
-    while (postsData.length < limit) {
+    outer: while (postsData.length < limit && !done) {
       const { data: batch, error } = await supabase.rpc('get_feed_with_engagement_score', {
         p_user_id: user?.id || null,
         p_city: city,
@@ -109,16 +110,18 @@ export async function GET(request: NextRequest) {
 
       if (!batch || batch.length === 0) break;
 
-      const realBatch = batch.filter((p: any) => !p.user_id.startsWith('b1000000-') && !p.user_id.startsWith('aaaaaaaa-'));
-      postsData = [...postsData, ...realBatch];
-      rpcOffset += batch.length;
-      totalRpcFetched += batch.length;
+      for (const post of batch) {
+        totalRpcFetched++;
+        if (!post.user_id.startsWith('b1000000-') && !post.user_id.startsWith('aaaaaaaa-')) {
+          postsData.push(post);
+          if (postsData.length >= limit) break outer;
+        }
+      }
 
-      // Stop if RPC returned fewer posts than requested — means no more posts in DB
-      if (batch.length < limit) break;
+      rpcOffset += batch.length;
+      if (batch.length < limit) done = true;
     }
 
-    postsData = postsData.slice(0, limit);
     const error = null;
 
     const returnedStatusCounts = (postsData || []).reduce((acc: Record<string, number>, post: any) => {
