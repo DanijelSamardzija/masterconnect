@@ -311,7 +311,7 @@ function FeedContent() {
 
       if (!newPosts || newPosts.length === 0) { setHasMore(false); if (reset) setPosts([]); return; }
 
-      const nextOffset = currentOffset + newPosts.length;
+      const nextOffset = currentOffset + (meta?.rpcFetchedCount || newPosts.length);
       setHasMore(nextOffset < (meta?.totalAvailablePosts || 0));
 
       let userReactedPosts = new Set<string>();

@@ -276,6 +276,7 @@ export async function GET(request: NextRequest) {
         totalPostsInDB: totalPostsCount,
         totalAvailablePosts: publishedPostsCount,
         returnedCount: postsWithMedia.length,
+        rpcFetchedCount: postsData?.length || 0,
         limit,
         offset
       }
