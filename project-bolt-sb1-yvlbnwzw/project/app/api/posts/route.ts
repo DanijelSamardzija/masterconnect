@@ -86,20 +86,40 @@ export async function GET(request: NextRequest) {
       return acc;
     }, {});
 
-    const { data: postsData, error } = await supabase.rpc('get_feed_with_engagement_score', {
-      p_user_id: user?.id || null,
-      p_city: city,
-      p_category: category,
-      p_limit: limit,
-      p_offset: offset,
-      p_as_of: asOf || new Date().toISOString(),
-      p_post_type: 'social_post',
-      p_hashtag: hashtag || null,
-    });
+    // Loop fetching from RPC until we collect enough non-demo posts
+    let postsData: any[] = [];
+    let rpcOffset = offset;
+    let totalRpcFetched = 0;
+    const totalAvailable = publishedPostsCount || 0;
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    while (postsData.length < limit) {
+      const { data: batch, error } = await supabase.rpc('get_feed_with_engagement_score', {
+        p_user_id: user?.id || null,
+        p_city: city,
+        p_category: category,
+        p_limit: limit,
+        p_offset: rpcOffset,
+        p_as_of: asOf || new Date().toISOString(),
+        p_post_type: 'social_post',
+        p_hashtag: hashtag || null,
+      });
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+
+      if (!batch || batch.length === 0) break;
+
+      const realBatch = batch.filter((p: any) => !p.user_id.startsWith('b1000000-'));
+      postsData = [...postsData, ...realBatch];
+      rpcOffset += batch.length;
+      totalRpcFetched += batch.length;
+
+      if (rpcOffset >= totalAvailable + (totalRpcFetched - postsData.length)) break;
     }
+
+    postsData = postsData.slice(0, limit);
+    const error = null;
 
     const returnedStatusCounts = (postsData || []).reduce((acc: Record<string, number>, post: any) => {
       const status = post.status || 'unknown';
@@ -211,13 +231,12 @@ export async function GET(request: NextRequest) {
       }
     })) || [];
 
-    const realPosts = postsWithMedia.filter(p => !p.user_id.startsWith('b1000000-'));
-    realPosts.sort((a, b) => {
+    postsWithMedia.sort((a, b) => {
       if (a.media.length > 0 && b.media.length === 0) return -1;
       if (a.media.length === 0 && b.media.length > 0) return 1;
       return 0;
     });
-    const combined = [...realPosts];
+    const combined = [...postsWithMedia];
 
     // Inject promoted posts at position 2 on first page
     let postsWithMediaSorted = combined;
@@ -276,7 +295,7 @@ export async function GET(request: NextRequest) {
         totalPostsInDB: totalPostsCount,
         totalAvailablePosts: publishedPostsCount,
         returnedCount: postsWithMedia.length,
-        rpcFetchedCount: postsData?.length || 0,
+        rpcFetchedCount: totalRpcFetched,
         limit,
         offset
       }
