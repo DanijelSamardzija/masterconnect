@@ -62,9 +62,21 @@ export default function OnboardingPage() {
       const signupSource = localStorage.getItem('signup_source') || 'direct';
       localStorage.removeItem('signup_source');
 
+      let detectedCity: string | undefined;
+      try {
+        const geo = await fetch('https://ip-api.com/json/?fields=city').then(r => r.json());
+        if (geo.city) detectedCity = geo.city;
+      } catch {}
+
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ name: name.trim(), account_type: selectedRole, signup_source: signupSource, onboarding_completed: true })
+        .update({
+          name: name.trim(),
+          account_type: selectedRole,
+          signup_source: signupSource,
+          onboarding_completed: true,
+          ...(detectedCity ? { city: detectedCity } : {}),
+        })
         .eq('id', user!.id);
 
       if (profileError) throw profileError;

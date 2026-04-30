@@ -33,7 +33,7 @@ export default function AuthCallbackPage() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('onboarding_completed')
+        .select('onboarding_completed, city')
         .eq('id', user.id)
         .maybeSingle();
 
@@ -41,6 +41,18 @@ export default function AuthCallbackPage() {
         trackEvent('google_login_success', { returning: true });
         router.replace('/feed');
       } else {
+        // Auto-detect city/country from IP for new users
+        if (!profile?.city) {
+          fetch('https://ip-api.com/json/?fields=city,country,countryCode')
+            .then(r => r.json())
+            .then(geo => {
+              if (geo.city) {
+                supabase.from('profiles').update({ city: geo.city }).eq('id', user.id);
+              }
+            })
+            .catch(() => {});
+        }
+
         trackEvent('google_login_success', { returning: false });
         trackEvent('register_success', { source: 'google' });
         router.replace('/onboarding');
