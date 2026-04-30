@@ -52,13 +52,12 @@ export async function GET(request: NextRequest) {
       .from('posts')
       .select('id', { count: 'exact', head: true });
 
-    // Get total count excluding demo users (join profiles to filter by email domain)
+    // Count all published social posts (including demo) — used for hasMore comparison
+    // against rpcFetchedCount which also counts all posts from RPC
     let countQuery = supabase
       .from('posts')
-      .select('id, profiles!inner(email)', { count: 'exact', head: true })
-      .eq('post_type', 'social_post')
-      .not('profiles.email', 'like', '%@demo.gigzone.app')
-      .not('profiles.email', 'like', '%@masterconnect.rs');
+      .select('id', { count: 'exact', head: true })
+      .eq('post_type', 'social_post');
 
     if (user) {
       countQuery = countQuery.or(`user_id.eq.${user.id},status.eq.published`);
