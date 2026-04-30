@@ -740,15 +740,26 @@ function FeedContent() {
             <div
               className="flex-1 min-h-0 overflow-hidden p-6 bg-gradient-to-br from-muted/30 to-muted/10"
               style={{ overscrollBehavior: 'contain' }}
-              onTouchStart={e => {
-                const el = e.currentTarget;
-                const overflows = el.scrollHeight > el.clientHeight + 4;
-                if (overflows) el.style.overflowY = 'auto';
+              ref={el => {
+                if (!el) return;
+                requestAnimationFrame(() => {
+                  const overflows = el.scrollHeight > el.clientHeight + 4;
+                  el.style.overflowY = overflows ? 'auto' : 'hidden';
+                  el.style.pointerEvents = overflows ? 'auto' : 'none';
+                });
               }}
               onScroll={e => {
                 const el = e.currentTarget;
                 const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 4;
-                if (atBottom) el.style.overflowY = 'hidden';
+                if (atBottom) {
+                  el.style.overflowY = 'hidden';
+                  el.style.pointerEvents = 'none';
+                }
+              }}
+              onTouchStart={e => {
+                const el = e.currentTarget;
+                el.style.overflowY = 'auto';
+                el.style.pointerEvents = 'auto';
               }}
             >
               <p className="text-foreground text-base leading-relaxed whitespace-pre-line">{post.text}</p>
