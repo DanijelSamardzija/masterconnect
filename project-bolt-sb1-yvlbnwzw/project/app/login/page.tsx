@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Mail, Lock, AlertCircle, Home, LogOut, CheckCircle } from 'lucide-react';
 import { setRateLimitHit, isInRateLimitCooldown, getRemainingCooldownSeconds, clearRateLimitCooldown } from '@/lib/rate-limit-handler';
 import { useLanguage } from '@/lib/contexts/language-context';
-import { trackEvent } from '@/lib/analytics';
+import { trackEvent, saveAnonymousId } from '@/lib/analytics';
 
 // Briše localStorage ali čuva ključeve koji ne smiju biti obrisani
 function clearLocalStorageSafe() {
@@ -175,6 +175,7 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
     trackEvent('click_google_signup');
+    saveAnonymousId();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {

@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import { trackEvent, identifyUser } from '@/lib/analytics';
+import { trackEvent, identifyUser, aliasPreOAuthSession } from '@/lib/analytics';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -27,8 +27,9 @@ export default function AuthCallbackPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.replace('/login'); return; }
 
-      // Identify user in PostHog BEFORE firing events so funnel connects sessions
+      // Identify user and alias pre-OAuth anonymous session so PostHog funnel connects
       identifyUser(user.id, user.email);
+      aliasPreOAuthSession();
 
       const { data: profile } = await supabase
         .from('profiles')

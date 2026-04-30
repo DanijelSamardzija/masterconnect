@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, ArrowRight, Users, Briefcase, Wrench, Star, Loader2 } from 'lucide-react';
-import { trackEvent } from '@/lib/analytics';
+import { trackEvent, saveAnonymousId } from '@/lib/analytics';
 
 export default function JoinPage() {
   const { user, loading } = useAuth();
@@ -17,6 +17,7 @@ export default function JoinPage() {
     setGoogleLoading(true);
     trackEvent('click_google_signup', { source: 'join_page' });
     trackEvent('click_google_login', { source: 'join_page' });
+    saveAnonymousId();
     localStorage.setItem('signup_source', 'join_page');
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',

@@ -19,3 +19,30 @@ export function identifyUser(userId: string, email?: string) {
     // Silently fail
   }
 }
+
+export function saveAnonymousId() {
+  try {
+    if (typeof window !== 'undefined') {
+      const anonId = posthog.get_distinct_id();
+      if (anonId) {
+        localStorage.setItem('ph_pre_oauth_id', anonId);
+      }
+    }
+  } catch {
+    // Silently fail
+  }
+}
+
+export function aliasPreOAuthSession() {
+  try {
+    if (typeof window !== 'undefined') {
+      const anonId = localStorage.getItem('ph_pre_oauth_id');
+      if (anonId) {
+        posthog.alias(anonId);
+        localStorage.removeItem('ph_pre_oauth_id');
+      }
+    }
+  } catch {
+    // Silently fail
+  }
+}

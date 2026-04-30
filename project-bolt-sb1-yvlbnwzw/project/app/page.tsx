@@ -11,7 +11,7 @@ import {
   Search, Wrench, ArrowRight, Star, Shield, MessageSquare,
   Zap, CheckCircle2, Users, Briefcase, ChevronRight, Loader2
 } from 'lucide-react';
-import { trackEvent } from '@/lib/analytics';
+import { trackEvent, saveAnonymousId } from '@/lib/analytics';
 
 export default function Home() {
   const { t } = useLanguage();
@@ -33,6 +33,7 @@ export default function Home() {
     setGoogleLoading(true);
     trackEvent('click_google_signup', { source: 'homepage' });
     trackEvent('click_google_login', { source: 'homepage' });
+    saveAnonymousId();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${window.location.origin}/auth/callback` },
