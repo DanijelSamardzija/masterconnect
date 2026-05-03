@@ -251,7 +251,7 @@ function AdminContent() {
 
       const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0);
       const weekStart = new Date(now); weekStart.setDate(now.getDate() - 7);
-      const monthStart = new Date(now); monthStart.setDate(now.getDate() - 30);
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
       // Exact year range
       const chosenYearStart = new Date(`${targetYear}-01-01T00:00:00.000Z`);
