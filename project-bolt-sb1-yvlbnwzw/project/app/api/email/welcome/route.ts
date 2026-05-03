@@ -24,11 +24,15 @@ export async function POST(request: NextRequest) {
     const firstName = profile.name?.split(' ')[0] || profile.name || 'tu';
     const isPro = profile.account_type === 'professional';
 
-    const ctaText = isPro ? 'Objavi prvu uslugu' : 'Pronađi majstora ili uslugu';
-    const ctaUrl = isPro ? 'https://gigzone.app/create-post' : 'https://gigzone.app/services';
-    const bodyText = isPro
-      ? 'Predstavi šta radiš — objavi oglas i počni da primaš upite od klijenata.'
-      : 'Pregledaj dostupne usluge ili objavi šta ti treba i čekaj ponude.';
+    const ctaText = isPro ? 'Objavi prvi oglas' : 'Istraži GigZone';
+    const ctaUrl = isPro ? 'https://gigzone.app/create-post' : 'https://gigzone.app/feed';
+    const bulletPoints = isPro
+      ? `<li>Objavi <strong>uslugu</strong> koju nudiš i privuci klijente</li>
+         <li>Objavi <strong>oglas za posao</strong> ako tražiš radnika</li>
+         <li>Predstavi se u <strong>feedu</strong> — šta radiš, kako radiš</li>`
+      : `<li>Pronađi <strong>majstora ili uslugu</strong> koja ti treba</li>
+         <li>Objavi šta ti treba i <strong>čekaj ponude</strong></li>
+         <li>Potraži <strong>posao</strong> ili oglasi radno mesto</li>`;
 
     await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -53,7 +57,9 @@ export async function POST(request: NextRequest) {
               <h2 style="margin:0 0 8px;font-size:22px">Zdravo, ${firstName}! 👋</h2>
               <p style="color:#555;margin:0 0 20px">Dobrodošao na GigZone — platformu koja spaja profesionalce i klijente.</p>
 
-              <p style="color:#333;margin:0 0 24px">${bodyText}</p>
+              <ul style="color:#333;margin:0 0 24px;padding-left:20px;line-height:2">
+                ${bulletPoints}
+              </ul>
 
               <div style="text-align:center;margin:28px 0">
                 <a href="${ctaUrl}"
