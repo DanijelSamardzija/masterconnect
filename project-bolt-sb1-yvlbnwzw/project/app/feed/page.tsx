@@ -684,7 +684,7 @@ function FeedContent() {
                   </span>
                 )}
                 {post.city && <span className="flex items-center gap-0.5"><MapPin className="h-3 w-3" />{post.city}</span>}
-                <span>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</span>
+                {/* time hidden until user base grows */}
               </div>
             </div>
             <div className="flex items-center gap-1 shrink-0">
@@ -890,9 +890,7 @@ function FeedContent() {
             <button onClick={() => user ? (setSelectedPost(post), setCommentsOpen(true)) : openGuestGate('comment', post.id)} className="flex items-center gap-1.5 text-xs text-muted-foreground px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
               <MessageCircle className="h-4 w-4" />{post.comments_count}
             </button>
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground px-2 py-1.5 opacity-70">
-              <Eye className="h-4 w-4" />{post.views_count}
-            </div>
+            {/* views hidden until user base grows */}
             <div className="flex-1" />
             <button onClick={e => user ? handleSave(e, post.id) : openGuestGate('save', post.id)} className="flex items-center gap-1.5 text-xs px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
               <Bookmark className={`h-4 w-4 ${isSaved ? 'fill-foreground text-foreground' : 'text-muted-foreground'}`} />
