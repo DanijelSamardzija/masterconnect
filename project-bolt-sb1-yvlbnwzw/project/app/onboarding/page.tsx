@@ -86,6 +86,11 @@ export default function OnboardingPage() {
 
       trackEvent('onboarding_complete', { role: selectedRole });
       trackEvent('register_success', { source: 'google' });
+      fetch('/api/email/welcome', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user!.id }),
+      }).catch(() => {});
       await refreshProfile();
       resumeAfterAuth(router);
     } catch (err: any) {
