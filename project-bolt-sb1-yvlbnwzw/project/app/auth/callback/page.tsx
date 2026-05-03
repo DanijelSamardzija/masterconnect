@@ -43,11 +43,14 @@ export default function AuthCallbackPage() {
       } else {
         // Auto-detect city/country from IP for new users
         if (!profile?.city) {
-          fetch('https://ip-api.com/json/?fields=city,country,countryCode')
+          fetch('https://ip-api.com/json/?fields=city,country,countryCode&lang=en')
             .then(r => r.json())
             .then(geo => {
               if (geo.city) {
-                supabase.from('profiles').update({ city: geo.city }).eq('id', user.id);
+                supabase.from('profiles').update({
+                  city: geo.city,
+                  ...(geo.country ? { country: geo.country } : {}),
+                }).eq('id', user.id);
               }
             })
             .catch(() => {});

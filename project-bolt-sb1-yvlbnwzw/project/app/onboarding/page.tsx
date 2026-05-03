@@ -63,9 +63,11 @@ export default function OnboardingPage() {
       localStorage.removeItem('signup_source');
 
       let detectedCity: string | undefined;
+      let detectedCountry: string | undefined;
       try {
-        const geo = await fetch('https://ip-api.com/json/?fields=city').then(r => r.json());
+        const geo = await fetch('https://ip-api.com/json/?fields=city,country&lang=en').then(r => r.json());
         if (geo.city) detectedCity = geo.city;
+        if (geo.country) detectedCountry = geo.country;
       } catch {}
 
       const { error: profileError } = await supabase
@@ -76,6 +78,7 @@ export default function OnboardingPage() {
           signup_source: signupSource,
           onboarding_completed: true,
           ...(detectedCity ? { city: detectedCity } : {}),
+          ...(detectedCountry ? { country: detectedCountry } : {}),
         })
         .eq('id', user!.id);
 
