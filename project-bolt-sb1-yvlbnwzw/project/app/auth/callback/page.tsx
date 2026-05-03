@@ -54,7 +54,6 @@ export default function AuthCallbackPage() {
         }
 
         trackEvent('google_login_success', { returning: false });
-        trackEvent('register_success', { source: 'google' });
         router.replace('/onboarding');
       }
     });

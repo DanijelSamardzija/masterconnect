@@ -82,6 +82,7 @@ export default function OnboardingPage() {
       if (profileError) throw profileError;
 
       trackEvent('onboarding_complete', { role: selectedRole });
+      trackEvent('register_success', { source: 'google' });
       await refreshProfile();
       resumeAfterAuth(router);
     } catch (err: any) {

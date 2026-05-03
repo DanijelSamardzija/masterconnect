@@ -32,7 +32,7 @@ const SERBIAN_CITIES = [
   'Užice', 'Valjevo', 'Šabac', 'Sombor', 'Požarevac', 'Pirot', 'Zaječar', 'Kikinda',
   'Sremska Mitrovica', 'Jagodina', 'Vršac', 'Bor', 'Prokuplje', 'Loznica', 'Negotin',
   'Lazarevac', 'Bečej', 'Paraćin', 'Vrnjačka Banja', 'Inđija', 'Ruma', 'Ćuprija',
-  'Ćurug', 'Čoka', 'Žabalj', 'Žitište', 'Šid', 'Đakovica', 'Kosovska Mitrovica',
+  'Čurug', 'Čoka', 'Žabalj', 'Žitište', 'Šid', 'Đakovica', 'Kosovska Mitrovica',
   'Mladenovac', 'Aranđelovac', 'Sopot', 'Obrenovac', 'Stara Pazova', 'Bačka Palanka',
   'Bački Petrovac', 'Temerin', 'Beočin', 'Srbobran', 'Apatin', 'Odžaci', 'Kula',
   'Mali Zvornik', 'Ljubovija', 'Bajina Bašta', 'Krupanj', 'Boljevac', 'Kladovo',
