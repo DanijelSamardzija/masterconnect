@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
+import { compressImage } from '@/lib/utils/compress-image';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { findOrCreateThread } from '@/lib/thread-utils';
 import {
@@ -82,9 +83,11 @@ export function JobApplicationModal({ open, onOpenChange, postId, postTitle, pos
 
   const uploadToStorage = async (file: File, folder: string): Promise<string | null> => {
     if (!user) return null;
-    const ext  = file.name.split('.').pop() ?? 'bin';
+    const isImage = file.type.startsWith('image/');
+    const toUpload = isImage ? await compressImage(file, 1200) : file;
+    const ext = isImage ? 'jpg' : (file.name.split('.').pop() ?? 'bin');
     const path = `${user.id}/${folder}-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from('post-media').upload(path, file);
+    const { error } = await supabase.storage.from('post-media').upload(path, toUpload, isImage ? { contentType: 'image/jpeg' } : {});
     if (error) { console.error('Upload error:', error); return null; }
     const { data: { publicUrl } } = supabase.storage.from('post-media').getPublicUrl(path);
     return publicUrl;

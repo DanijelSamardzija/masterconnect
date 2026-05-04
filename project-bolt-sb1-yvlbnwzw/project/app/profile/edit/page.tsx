@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
+import { compressImage } from '@/lib/utils/compress-image';
 import { ProtectedRoute } from '@/components/protected-route';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -96,8 +97,8 @@ function EditProfileContent() {
     setUploadingAvatar(true);
 
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user!.id}/${Date.now()}.${fileExt}`;
+      const compressed = await compressImage(file, 400);
+      const fileName = `${user!.id}/${Date.now()}.jpg`;
 
       if (avatarUrl) {
         const oldPath = avatarUrl.split('/').slice(-2).join('/');
@@ -106,7 +107,7 @@ function EditProfileContent() {
 
       const { error: uploadError, data } = await supabase.storage
         .from('avatars')
-        .upload(fileName, file, { upsert: true });
+        .upload(fileName, compressed, { upsert: true, contentType: 'image/jpeg' });
 
       if (uploadError) throw uploadError;
 

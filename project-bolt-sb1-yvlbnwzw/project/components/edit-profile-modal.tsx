@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
+import { compressImage } from '@/lib/utils/compress-image';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -104,8 +105,8 @@ export function EditProfileModal({ open, onOpenChange, onSuccess, currentProfile
     setUploadingAvatar(true);
 
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user!.id}/${Date.now()}.${fileExt}`;
+      const compressed = await compressImage(file, 400);
+      const fileName = `${user!.id}/${Date.now()}.jpg`;
 
       if (avatarUrl) {
         const oldPath = avatarUrl.split('/').slice(-2).join('/');
@@ -114,7 +115,7 @@ export function EditProfileModal({ open, onOpenChange, onSuccess, currentProfile
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(fileName, file, { upsert: true });
+        .upload(fileName, compressed, { upsert: true, contentType: 'image/jpeg' });
 
       if (uploadError) throw uploadError;
 

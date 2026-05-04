@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
+import { compressImage } from '@/lib/utils/compress-image';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -145,13 +146,12 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
 
   const uploadFile = async (file: File): Promise<string | null> => {
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `${user!.id}/${fileName}`;
+      const compressed = await compressImage(file, 1200);
+      const filePath = `${user!.id}/${Date.now()}.jpg`;
 
       const { error: uploadError } = await supabase.storage
         .from('post-media')
-        .upload(filePath, file);
+        .upload(filePath, compressed, { contentType: 'image/jpeg' });
 
       if (uploadError) throw uploadError;
 
