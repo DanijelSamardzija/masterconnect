@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const BALKAN_COUNTRIES = ['Serbia', 'Croatia', 'Bosnia and Herzegovina', 'Montenegro', 'Slovenia', 'North Macedonia'];
-const GERMAN_COUNTRIES = ['Germany', 'Austria', 'Switzerland'];
+const BALKAN_COUNTRIES = ['Serbia', 'Srbija', 'Croatia', 'Hrvatska', 'Bosnia and Herzegovina', 'Bosna i Hercegovina', 'Montenegro', 'Crna Gora', 'Slovenia', 'Slovenija', 'North Macedonia', 'Sjeverna Makedonija'];
+const GERMAN_COUNTRIES = ['Germany', 'Deutschland', 'Austria', 'Österreich', 'Switzerland', 'Schweiz'];
 
 function getContent(isPro: boolean, lang: 'sr' | 'de' | 'en', firstName: string) {
   if (lang === 'sr') {
