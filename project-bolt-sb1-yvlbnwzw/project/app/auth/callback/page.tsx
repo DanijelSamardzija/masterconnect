@@ -43,13 +43,13 @@ export default function AuthCallbackPage() {
       } else {
         // Auto-detect city/country from IP for new users
         if (!profile?.city) {
-          fetch('https://ip-api.com/json/?fields=city,country,countryCode&lang=en')
+          fetch('https://ipapi.co/json/')
             .then(r => r.json())
             .then(geo => {
               if (geo.city) {
                 supabase.from('profiles').update({
                   city: geo.city,
-                  ...(geo.country ? { country: geo.country } : {}),
+                  ...(geo.country_name ? { country: geo.country_name } : {}),
                 }).eq('id', user.id);
               }
             })

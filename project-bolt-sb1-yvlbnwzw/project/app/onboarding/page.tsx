@@ -65,9 +65,9 @@ export default function OnboardingPage() {
       let detectedCity: string | undefined;
       let detectedCountry: string | undefined;
       try {
-        const geo = await fetch('https://ip-api.com/json/?fields=city,country&lang=en').then(r => r.json());
+        const geo = await fetch('https://ipapi.co/json/').then(r => r.json());
         if (geo.city) detectedCity = geo.city;
-        if (geo.country) detectedCountry = geo.country;
+        if (geo.country_name) detectedCountry = geo.country_name;
       } catch {}
 
       const { error: profileError } = await supabase
