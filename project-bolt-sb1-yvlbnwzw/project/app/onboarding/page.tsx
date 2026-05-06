@@ -19,6 +19,7 @@ export default function OnboardingPage() {
 
   const [step, setStep] = useState<Step>(1);
   const [name, setName] = useState('');
+  const [hasGoogleName, setHasGoogleName] = useState(false);
   const [role, setRole] = useState<UserRole | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -31,8 +32,13 @@ export default function OnboardingPage() {
     if (user) {
       trackEvent('view_onboarding');
       const meta = user.user_metadata;
-      if (meta?.full_name) setName(meta.full_name);
-      else if (meta?.name) setName(meta.name);
+      const googleName = meta?.full_name || meta?.name;
+      if (googleName) {
+        setName(googleName);
+        setHasGoogleName(true);
+        trackEvent('onboarding_step_1_completed', { name_length: googleName.trim().length, auto: true });
+        setStep(2);
+      }
 
       supabase
         .from('profiles')
@@ -118,10 +124,13 @@ export default function OnboardingPage() {
       </div>
 
       {/* Progress dots */}
-      <div className="flex gap-2 mb-8">
-        <div className={`h-2 w-8 rounded-full transition-all ${step >= 1 ? 'bg-orange-500' : 'bg-white/10'}`} />
-        <div className={`h-2 w-8 rounded-full transition-all ${step >= 2 ? 'bg-orange-500' : 'bg-white/10'}`} />
-      </div>
+      {!hasGoogleName && (
+        <div className="flex gap-2 mb-8">
+          <div className={`h-2 w-8 rounded-full transition-all ${step >= 1 ? 'bg-orange-500' : 'bg-white/10'}`} />
+          <div className={`h-2 w-8 rounded-full transition-all ${step >= 2 ? 'bg-orange-500' : 'bg-white/10'}`} />
+        </div>
+      )}
+      {hasGoogleName && <div className="mb-8" />}
 
       <div className="w-full max-w-sm">
 
@@ -199,13 +208,15 @@ export default function OnboardingPage() {
               </button>
             </div>
 
-            <button
-              onClick={() => setStep(1)}
-              disabled={saving}
-              className="w-full text-center text-slate-500 text-sm mt-5 hover:text-slate-300 transition-colors disabled:opacity-50"
-            >
-              ← Nazad
-            </button>
+            {!hasGoogleName && (
+              <button
+                onClick={() => setStep(1)}
+                disabled={saving}
+                className="w-full text-center text-slate-500 text-sm mt-5 hover:text-slate-300 transition-colors disabled:opacity-50"
+              >
+                ← Nazad
+              </button>
+            )}
           </div>
         )}
 
