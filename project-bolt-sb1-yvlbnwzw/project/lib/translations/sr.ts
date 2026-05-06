@@ -1186,6 +1186,7 @@ export default {
   'dashboard.browseJobsDesc': 'Pronađi zahtjeve za uslugama i prilike za posao u svom gradu',
 
   // Services sort
+  'discover.postService': 'Objavi uslugu',
   'discover.sortBy': 'Sortiraj',
   'discover.sortRating': 'Najbolje ocijenjeni',
   'discover.sortNewest': 'Najnoviji',

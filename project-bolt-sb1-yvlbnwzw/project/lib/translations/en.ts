@@ -1186,6 +1186,7 @@ export default {
   'dashboard.browseJobsDesc': 'Find service requests and job opportunities near you',
 
   // Services sort
+  'discover.postService': 'Post a Service',
   'discover.sortBy': 'Sort',
   'discover.sortRating': 'Top Rated',
   'discover.sortNewest': 'Newest',

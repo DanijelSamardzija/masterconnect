@@ -12,7 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { EmptyState } from '@/components/empty-state';
 import { SharePostModal } from '@/components/share-post-modal';
-import { Loader2, Search, Filter, X, Bookmark, Share2, ArrowUpDown, Star, Clock, TrendingUp } from 'lucide-react';
+import { Loader2, Search, Filter, X, Bookmark, Share2, ArrowUpDown, Star, Clock, TrendingUp, Plus } from 'lucide-react';
+import { CreateMarketplacePostModal } from '@/components/create-marketplace-post-modal';
 
 export const revalidate = 0;
 
@@ -55,6 +56,7 @@ export default function ServicesPage() {
   const [hasFilters, setHasFilters] = useState(false);
   const [savedSet, setSavedSet] = useState<Set<string>>(new Set());
   const [shareModalPostId, setShareModalPostId] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [sortBy, setSortBy] = useState<'rating' | 'newest' | 'price_asc' | 'price_desc'>('rating');
 
   useEffect(() => {
@@ -285,13 +287,24 @@ export default function ServicesPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20">
 
       {/* HEADER */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">
-          {t('discover.title')}
-        </h1>
-        <p className="text-muted-foreground">
-          {t('discover.subtitle')}
-        </p>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            {t('discover.title')}
+          </h1>
+          <p className="text-muted-foreground">
+            {t('discover.subtitle')}
+          </p>
+        </div>
+        {profile?.account_type === 'professional' && (
+          <Button
+            onClick={() => setShowCreateModal(true)}
+            className="flex-shrink-0 bg-orange-600 hover:bg-orange-500 text-white rounded-xl gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            {t('discover.postService')}
+          </Button>
+        )}
       </div>
 
       {/* FILTER CARD */}
@@ -421,6 +434,13 @@ export default function ServicesPage() {
         onOpenChange={(open) => { if (!open) setShareModalPostId(null); }}
       />
     )}
+
+    <CreateMarketplacePostModal
+      open={showCreateModal}
+      onOpenChange={setShowCreateModal}
+      onPostCreated={() => { setShowCreateModal(false); loadListings(); }}
+      initialPostType="service_listing"
+    />
   </div>
 );
 }
