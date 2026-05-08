@@ -289,6 +289,7 @@ export default {
   'home.hero.trust3': 'Echte Bewertungen',
   'home.fomo.jobs': '🔥 Täglich neue Jobs',
   'home.fomo.pros': '🔥 Aktive Fachleute bereit zu arbeiten',
+  'home.socialProof': 'Nutzer bereits auf der Plattform',
   'home.browseFeed': 'Feed durchsuchen',
   'home.browseJobs': 'Stellenanzeigen',
   'home.popup.title': 'Verpasse keine Kunden und Jobs',

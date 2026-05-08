@@ -18,6 +18,13 @@ export default function Home() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [userCount, setUserCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    supabase.from('profiles').select('id', { count: 'exact', head: true }).then(({ count }) => {
+      if (count) setUserCount(count);
+    });
+  }, []);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -84,6 +91,20 @@ export default function Home() {
                 {t('home.fomo.pros')}
               </span>
             </div>
+
+            {/* Social proof */}
+            {userCount && (
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <div className="flex -space-x-2">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="w-7 h-7 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 border-2 border-[#0f0f0f]" />
+                  ))}
+                </div>
+                <span className="text-slate-300 text-sm">
+                  <span className="text-white font-bold">{userCount}+</span> {t('home.socialProof')}
+                </span>
+              </div>
+            )}
 
             {/* Main CTA */}
             <div className="flex flex-col items-center gap-2 mb-4 max-w-sm mx-auto">

@@ -288,6 +288,7 @@ export default {
   'home.hero.trust3': 'Prave recenzije',
   'home.fomo.jobs': '🔥 Novi poslovi svaki dan',
   'home.fomo.pros': '🔥 Aktivni profesionalci spremni za rad',
+  'home.socialProof': 'korisnika već na platformi',
   'home.browseFeed': 'Pregledaj feed',
   'home.browseJobs': 'Oglasi za posao',
   'home.popup.title': 'Ne propusti klijente i poslove',
