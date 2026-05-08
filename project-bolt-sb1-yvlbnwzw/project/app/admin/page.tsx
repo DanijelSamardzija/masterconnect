@@ -360,9 +360,36 @@ function AdminContent() {
       const monthlyActiveUsers = Object.entries(monthlyActiveMap).map(([month, count]) => ({ month, count: count.size }));
 
       // City aggregation
+      const cityAliases: Record<string, string> = {
+        'belgrade': 'Beograd', 'beograd': 'Beograd',
+        'novi sad': 'Novi Sad', 'novisad': 'Novi Sad',
+        'nis': 'Niš', 'niš': 'Niš',
+        'kragujevac': 'Kragujevac',
+        'subotica': 'Subotica',
+        'curug': 'Čurug', 'čurug': 'Čurug',
+        'novi pazar': 'Novi Pazar',
+        'leskovac': 'Leskovac',
+        'pancevo': 'Pančevo', 'pančevo': 'Pančevo',
+        'cacak': 'Čačak', 'čačak': 'Čačak',
+        'krusevac': 'Kruševac', 'kruševac': 'Kruševac',
+        'kraljevo': 'Kraljevo',
+        'smederevo': 'Smederevo',
+        'zagreb': 'Zagreb',
+        'sarajevo': 'Sarajevo',
+        'vienna': 'Wien', 'wien': 'Wien',
+        'munich': 'München', 'münchen': 'München',
+        'berlin': 'Berlin',
+      };
+      const normalizeCity = (city: string): string => {
+        const key = city.toLowerCase().trim();
+        return cityAliases[key] || city.trim();
+      };
       const cityCount: Record<string, number> = {};
       for (const p of cityProfiles || []) {
-        if (p.city) cityCount[p.city] = (cityCount[p.city] || 0) + 1;
+        if (p.city) {
+          const normalized = normalizeCity(p.city);
+          cityCount[normalized] = (cityCount[normalized] || 0) + 1;
+        }
       }
       const topCities = Object.entries(cityCount)
         .map(([city, count]) => ({ city, count }))
