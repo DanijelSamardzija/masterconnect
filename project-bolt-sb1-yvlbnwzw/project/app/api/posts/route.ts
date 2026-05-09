@@ -201,7 +201,7 @@ export async function GET(request: NextRequest) {
       return acc;
     }, {} as Record<string, { average_rating: number; review_count: number }>);
 
-    const postsWithMedia = postsData?.map(post => ({
+    const postsWithMedia = (postsData?.map(post => ({
       id: post.id,
       user_id: post.user_id,
       text: post.text,
@@ -232,7 +232,9 @@ export async function GET(request: NextRequest) {
         avatar_url: post.user_avatar_url,
         ...(reviewStats[post.user_id] || {})
       }
-    })) || [];
+    })) || []).filter(post =>
+      post.post_type !== 'social_post' || !!post.text?.trim() || post.media.length > 0
+    );
 
     postsWithMedia.sort((a, b) => {
       if (a.media.length > 0 && b.media.length === 0) return -1;
