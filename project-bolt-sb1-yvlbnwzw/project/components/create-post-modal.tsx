@@ -58,28 +58,25 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
   const isPickerOpenRef = useRef(false);
 
   useEffect(() => {
-    if (!open) return;
-    const handleWindowFocus = () => {
-      if (!isPickerOpenRef.current) return;
+    const input = fileInputRef.current;
+    if (!input) return;
+    const handleNativeChange = (e: Event) => {
       isPickerOpenRef.current = false;
-      setTimeout(() => {
-        const input = fileInputRef.current;
-        if (input?.files?.length) {
-          const files = Array.from(input.files);
-          const newMediaFiles: MediaFile[] = [];
-          for (const file of files) {
-            const validation = validateFile(file);
-            if (!validation.valid) { toast.error(validation.error); }
-            else { newMediaFiles.push({ file, preview: URL.createObjectURL(file) }); }
-          }
-          if (newMediaFiles.length) setMediaFiles(prev => [...prev, ...newMediaFiles]);
-          input.value = '';
-        }
-      }, 300);
+      const target = e.target as HTMLInputElement;
+      const files = Array.from(target.files || []);
+      if (!files.length) return;
+      const newMediaFiles: MediaFile[] = [];
+      for (const file of files) {
+        const validation = validateFile(file);
+        if (!validation.valid) { toast.error(validation.error); }
+        else { newMediaFiles.push({ file, preview: URL.createObjectURL(file) }); }
+      }
+      if (newMediaFiles.length) setMediaFiles(prev => [...prev, ...newMediaFiles]);
+      input.value = '';
     };
-    window.addEventListener('focus', handleWindowFocus);
-    return () => window.removeEventListener('focus', handleWindowFocus);
-  }, [open]);
+    input.addEventListener('change', handleNativeChange);
+    return () => input.removeEventListener('change', handleNativeChange);
+  }, []);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -663,7 +660,6 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
               accept="image/*,video/*"
               multiple
               style={{ position: 'absolute', width: 0, height: 0, opacity: 0, overflow: 'hidden' }}
-              onChange={handleFileSelect}
               disabled={uploading}
             />
             <Button
