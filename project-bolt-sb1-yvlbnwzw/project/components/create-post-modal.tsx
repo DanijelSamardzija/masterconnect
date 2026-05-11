@@ -55,6 +55,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
   const [overlayEditorOpen, setOverlayEditorOpen] = useState(false);
   const [editingMediaIndex, setEditingMediaIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isPickerOpenRef = useRef(false);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -105,6 +106,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    isPickerOpenRef.current = false;
     const files = Array.from(e.target.files || []);
     const newMediaFiles: MediaFile[] = [];
 
@@ -412,7 +414,11 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
   return (
     <>
     <Dialog open={open && !overlayEditorOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto"
+        onInteractOutside={(e) => { if (isPickerOpenRef.current) e.preventDefault(); }}
+        onPointerDownOutside={(e) => { if (isPickerOpenRef.current) e.preventDefault(); }}
+      >
         <DialogHeader>
           <DialogTitle>{t('createPost.title')}</DialogTitle>
           <DialogDescription>
@@ -643,6 +649,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                isPickerOpenRef.current = true;
                 fileInputRef.current?.click();
               }}
               disabled={uploading}
@@ -658,6 +665,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                isPickerOpenRef.current = true;
                 fileInputRef.current?.click();
               }}
               disabled={uploading}
