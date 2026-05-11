@@ -416,7 +416,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
     <>
     <Dialog open={open && !overlayEditorOpen} onOpenChange={handleClose}>
       <DialogContent
-        className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto"
+        className="w-[calc(100%-2rem)] sm:max-w-[700px] max-h-[90vh] overflow-y-auto overflow-x-hidden"
         onInteractOutside={(e) => e.preventDefault()}
         onPointerDownOutside={(e) => e.preventDefault()}
         onFocusOutside={(e) => e.preventDefault()}
