@@ -416,8 +416,8 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
     <Dialog open={open && !overlayEditorOpen} onOpenChange={handleClose}>
       <DialogContent
         className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto"
-        onInteractOutside={(e) => { if (isPickerOpenRef.current) e.preventDefault(); }}
-        onPointerDownOutside={(e) => { if (isPickerOpenRef.current) e.preventDefault(); }}
+        onInteractOutside={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
           <DialogTitle>{t('createPost.title')}</DialogTitle>
@@ -638,7 +638,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
               type="file"
               accept="image/*,video/*"
               multiple
-              className="hidden"
+              style={{ position: 'absolute', width: 0, height: 0, opacity: 0, overflow: 'hidden' }}
               onChange={handleFileSelect}
               disabled={uploading}
             />
