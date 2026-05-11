@@ -439,6 +439,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
         className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto"
         onInteractOutside={(e) => e.preventDefault()}
         onPointerDownOutside={(e) => e.preventDefault()}
+        onFocusOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
           <DialogTitle>{t('createPost.title')}</DialogTitle>
