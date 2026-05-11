@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import en from '../translations/en';
 import sr from '../translations/sr';
 import de from '../translations/de';
+import { supabase } from '@/lib/supabase/client';
 
 type Language = 'en' | 'sr' | 'de';
 
@@ -31,6 +32,21 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
     const detect = async () => {
       try {
+        // Priority 0: logged-in user's saved language in DB
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('preferred_language')
+            .eq('id', user.id)
+            .maybeSingle();
+          if (profile?.preferred_language && VALID.includes(profile.preferred_language as Language)) {
+            setLanguageState(profile.preferred_language as Language);
+            localStorage.setItem(STORAGE_KEY, profile.preferred_language);
+            return;
+          }
+        }
+
         // Priority 1: user's saved choice (support both old 'language' key and new 'lang')
         const saved = (localStorage.getItem(STORAGE_KEY) || localStorage.getItem('language')) as Language;
         if (saved && VALID.includes(saved)) {
@@ -86,6 +102,12 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.warn('[LanguageContext] localStorage write blocked:', error);
     }
+    // Persist to DB if logged in
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        supabase.from('profiles').update({ preferred_language: lang }).eq('id', user.id);
+      }
+    });
   };
 
   const t = (key: string): string => translations[key] || key;

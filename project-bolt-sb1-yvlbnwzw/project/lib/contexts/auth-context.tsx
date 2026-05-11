@@ -26,6 +26,7 @@ type Profile = {
   show_phone?: boolean;
   show_email?: boolean;
   last_seen?: string;
+  preferred_language?: string;
 };
 
 type AuthContextType = {

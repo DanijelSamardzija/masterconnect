@@ -11,6 +11,10 @@ type Announcement = {
   id: string;
   title: string;
   body: string;
+  title_en?: string;
+  body_en?: string;
+  title_de?: string;
+  body_de?: string;
   created_at: string;
 };
 
@@ -24,7 +28,7 @@ export function AnnouncementBanner() {
     const fetchLatest = async () => {
       const { data } = await supabase
         .from('announcements')
-        .select('id, title, body, created_at')
+        .select('id, title, body, title_en, body_en, title_de, body_de, created_at')
         .eq('active', true)
         .order('created_at', { ascending: false })
         .limit(1)
@@ -52,6 +56,16 @@ export function AnnouncementBanner() {
 
   if (!announcement || dismissed) return null;
 
+  const displayTitle =
+    (language === 'en' && announcement.title_en) ||
+    (language === 'de' && announcement.title_de) ||
+    announcement.title;
+
+  const displayBody =
+    (language === 'en' && announcement.body_en) ||
+    (language === 'de' && announcement.body_de) ||
+    announcement.body;
+
   return (
     <>
       {/* Banner */}
@@ -61,7 +75,7 @@ export function AnnouncementBanner() {
           onClick={() => setModalOpen(true)}
           className="flex-1 flex items-center gap-1 text-left hover:underline min-w-0"
         >
-          <span className="text-sm font-semibold truncate">{announcement.title}</span>
+          <span className="text-sm font-semibold truncate">{displayTitle}</span>
           <ChevronRight className="h-4 w-4 shrink-0" />
         </button>
         <button
@@ -93,7 +107,7 @@ export function AnnouncementBanner() {
                   <Megaphone className="h-5 w-5 text-orange-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-foreground text-base">{announcement.title}</p>
+                  <p className="font-semibold text-foreground text-base">{displayTitle}</p>
                   <p className="text-xs text-muted-foreground">
                     {formatDistanceToNow(new Date(announcement.created_at), { addSuffix: true, locale: language === 'sr' ? sr : undefined })}
                   </p>
@@ -109,7 +123,7 @@ export function AnnouncementBanner() {
               {/* Body */}
               <div className="px-5 py-4">
                 <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                  {announcement.body}
+                  {displayBody}
                 </p>
               </div>
 
@@ -119,7 +133,7 @@ export function AnnouncementBanner() {
                   onClick={handleDismiss}
                   className="w-full py-3 rounded-2xl bg-muted hover:bg-accent border border-border text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {language === 'en' ? 'Got it, close' : 'Razumio, zatvori'}
+                  {language === 'en' ? 'Got it, close' : language === 'de' ? 'Verstanden, schließen' : 'Razumio, zatvori'}
                 </button>
               </div>
 

@@ -81,6 +81,10 @@ type Announcement = {
   id: string;
   title: string;
   body: string;
+  title_en?: string;
+  body_en?: string;
+  title_de?: string;
+  body_de?: string;
   active: boolean;
   created_at: string;
 };
@@ -177,7 +181,13 @@ function AdminContent() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [newTitle, setNewTitle] = useState('');
   const [newBody, setNewBody] = useState('');
+  const [newTitleEn, setNewTitleEn] = useState('');
+  const [newBodyEn, setNewBodyEn] = useState('');
+  const [newTitleDe, setNewTitleDe] = useState('');
+  const [newBodyDe, setNewBodyDe] = useState('');
   const [savingAnnouncement, setSavingAnnouncement] = useState(false);
+  const [sendEmail, setSendEmail] = useState(true);
+  const [langStats, setLangStats] = useState<{ lang: string; count: number; emails: string[] }[]>([]);
 
   // Support state
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
@@ -205,6 +215,7 @@ function AdminContent() {
         loadUsers('', 0, false),
         loadPosts(0, false),
         fetchAnnouncements(),
+        fetchLangStats(),
         fetchTickets(),
       ]);
       setLoading(false);
@@ -645,20 +656,46 @@ function AdminContent() {
   const fetchAnnouncements = async () => {
     const { data } = await supabase
       .from('announcements')
-      .select('id, title, body, active, created_at')
+      .select('id, title, body, title_en, body_en, title_de, body_de, active, created_at')
       .order('created_at', { ascending: false });
     setAnnouncements(data || []);
   };
 
+  const fetchLangStats = async () => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('email, preferred_language')
+      .not('email', 'is', null);
+    if (!data) return;
+    const grouped: Record<string, string[]> = {};
+    for (const u of data) {
+      const lang = (u.preferred_language as string) || 'sr';
+      if (!grouped[lang]) grouped[lang] = [];
+      if (u.email) grouped[lang].push(u.email);
+    }
+    const stats = Object.entries(grouped)
+      .map(([lang, emails]) => ({ lang, count: emails.length, emails }))
+      .sort((a, b) => b.count - a.count);
+    setLangStats(stats);
+  };
+
   const handlePublishAnnouncement = async () => {
     if (!newTitle.trim() || !newBody.trim()) {
-      toast.error('Popuni naslov i tekst');
+      toast.error('Popuni srpski naslov i tekst');
       return;
     }
     setSavingAnnouncement(true);
     const { data, error } = await supabase
       .from('announcements')
-      .insert({ title: newTitle.trim(), body: newBody.trim(), created_by: profile?.id })
+      .insert({
+        title: newTitle.trim(),
+        body: newBody.trim(),
+        title_en: newTitleEn.trim() || null,
+        body_en: newBodyEn.trim() || null,
+        title_de: newTitleDe.trim() || null,
+        body_de: newBodyDe.trim() || null,
+        created_by: profile?.id,
+      })
       .select()
       .single();
     if (error) { toast.error('Greška pri objavljivanju'); setSavingAnnouncement(false); return; }
@@ -675,9 +712,32 @@ function AdminContent() {
       await supabase.from('notifications').insert(notifs);
     }
 
-    toast.success('Obavještenje objavljeno i poslano svim korisnicima');
+    // Send emails if enabled
+    if (sendEmail) {
+      const res = await fetch('/api/announcements/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title_sr: newTitle.trim(),
+          body_sr: newBody.trim(),
+          title_en: newTitleEn.trim() || undefined,
+          body_en: newBodyEn.trim() || undefined,
+          title_de: newTitleDe.trim() || undefined,
+          body_de: newBodyDe.trim() || undefined,
+        }),
+      });
+      const json = await res.json();
+      toast.success(`Obavještenje objavljeno — mejl poslat ${json.sent ?? 0} korisnika`);
+    } else {
+      toast.success('Obavještenje objavljeno i poslano svim korisnicima');
+    }
+
     setNewTitle('');
     setNewBody('');
+    setNewTitleEn('');
+    setNewBodyEn('');
+    setNewTitleDe('');
+    setNewBodyDe('');
     setAnnouncements(prev => [data, ...prev]);
     setSavingAnnouncement(false);
   };
@@ -1296,25 +1356,80 @@ function AdminContent() {
           <div className="space-y-5">
 
             {/* Create form */}
-            <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
+            <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
               <p className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <Megaphone className="h-4 w-4 text-orange-500" />
                 Novo obavještenje
               </p>
-              <input
-                type="text"
-                value={newTitle}
-                onChange={e => setNewTitle(e.target.value)}
-                placeholder="Naslov obavještenja..."
-                className="w-full bg-muted border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-orange-500/50 transition-colors"
-              />
-              <textarea
-                value={newBody}
-                onChange={e => setNewBody(e.target.value)}
-                placeholder="Tekst obavještenja... (možeš pisati detaljno)"
-                rows={4}
-                className="w-full bg-muted border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-orange-500/50 transition-colors resize-none"
-              />
+
+              {/* Serbian */}
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🇷🇸 Srpski (obavezno)</p>
+                <input
+                  type="text"
+                  value={newTitle}
+                  onChange={e => setNewTitle(e.target.value)}
+                  placeholder="Naslov..."
+                  className="w-full bg-muted border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-orange-500/50 transition-colors"
+                />
+                <textarea
+                  value={newBody}
+                  onChange={e => setNewBody(e.target.value)}
+                  placeholder="Tekst obavještenja..."
+                  rows={3}
+                  className="w-full bg-muted border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-orange-500/50 transition-colors resize-none"
+                />
+              </div>
+
+              {/* English */}
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🇬🇧 English (opciono)</p>
+                <input
+                  type="text"
+                  value={newTitleEn}
+                  onChange={e => setNewTitleEn(e.target.value)}
+                  placeholder="Title..."
+                  className="w-full bg-muted border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-orange-500/50 transition-colors"
+                />
+                <textarea
+                  value={newBodyEn}
+                  onChange={e => setNewBodyEn(e.target.value)}
+                  placeholder="Announcement text..."
+                  rows={3}
+                  className="w-full bg-muted border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-orange-500/50 transition-colors resize-none"
+                />
+              </div>
+
+              {/* German */}
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🇩🇪 Deutsch (opciono)</p>
+                <input
+                  type="text"
+                  value={newTitleDe}
+                  onChange={e => setNewTitleDe(e.target.value)}
+                  placeholder="Titel..."
+                  className="w-full bg-muted border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-orange-500/50 transition-colors"
+                />
+                <textarea
+                  value={newBodyDe}
+                  onChange={e => setNewBodyDe(e.target.value)}
+                  placeholder="Ankündigungstext..."
+                  rows={3}
+                  className="w-full bg-muted border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-orange-500/50 transition-colors resize-none"
+                />
+              </div>
+
+              {/* Email toggle */}
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <div
+                  onClick={() => setSendEmail(v => !v)}
+                  className={`w-10 h-6 rounded-full transition-colors flex items-center px-0.5 ${sendEmail ? 'bg-orange-500' : 'bg-muted-foreground/30'}`}
+                >
+                  <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${sendEmail ? 'translate-x-4' : 'translate-x-0'}`} />
+                </div>
+                <span className="text-sm text-muted-foreground">Pošalji i mejl svim korisnicima</span>
+              </label>
+
               <button
                 onClick={handlePublishAnnouncement}
                 disabled={savingAnnouncement || !newTitle.trim() || !newBody.trim()}
@@ -1326,6 +1441,45 @@ function AdminContent() {
                 }
               </button>
             </div>
+
+            {/* Language breakdown table */}
+            {langStats.length > 0 && (
+              <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
+                <p className="text-sm font-semibold text-foreground">Korisnici po jeziku</p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-xs text-muted-foreground border-b border-border">
+                        <th className="pb-2 pr-4 font-medium">Jezik</th>
+                        <th className="pb-2 pr-4 font-medium">Korisnici</th>
+                        <th className="pb-2 font-medium">Emailovi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {langStats.map(({ lang, count, emails }) => (
+                        <tr key={lang} className="border-b border-border/50 last:border-0">
+                          <td className="py-2.5 pr-4 font-medium">
+                            {lang === 'sr' ? '🇷🇸 Srpski' : lang === 'de' ? '🇩🇪 Deutsch' : lang === 'en' ? '🇬🇧 English' : lang.toUpperCase()}
+                          </td>
+                          <td className="py-2.5 pr-4 text-muted-foreground">{count}</td>
+                          <td className="py-2.5">
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(emails.join(', '));
+                                toast.success(`${count} email adresa kopirano`);
+                              }}
+                              className="text-xs px-3 py-1 bg-muted hover:bg-accent rounded-lg border border-border transition-colors"
+                            >
+                              Kopiraj email adrese
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
 
             {/* List */}
             {announcements.length === 0 ? (
