@@ -57,26 +57,6 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isPickerOpenRef = useRef(false);
 
-  useEffect(() => {
-    const input = fileInputRef.current;
-    if (!input) return;
-    const handleNativeChange = (e: Event) => {
-      isPickerOpenRef.current = false;
-      const target = e.target as HTMLInputElement;
-      const files = Array.from(target.files || []);
-      if (!files.length) return;
-      const newMediaFiles: MediaFile[] = [];
-      for (const file of files) {
-        const validation = validateFile(file);
-        if (!validation.valid) { toast.error(validation.error); }
-        else { newMediaFiles.push({ file, preview: URL.createObjectURL(file) }); }
-      }
-      if (newMediaFiles.length) setMediaFiles(prev => [...prev, ...newMediaFiles]);
-      input.value = '';
-    };
-    input.addEventListener('change', handleNativeChange);
-    return () => input.removeEventListener('change', handleNativeChange);
-  }, []);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -660,7 +640,8 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
               type="file"
               accept="image/*,video/*"
               multiple
-              style={{ position: 'absolute', width: 0, height: 0, opacity: 0, overflow: 'hidden' }}
+              className="hidden"
+              onChange={handleFileSelect}
               disabled={uploading}
             />
             <Button
