@@ -55,7 +55,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
   const [overlayEditorOpen, setOverlayEditorOpen] = useState(false);
   const [editingMediaIndex, setEditingMediaIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
+
   const isPickerOpenRef = useRef(false);
 
 
@@ -105,7 +105,6 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
     setHashtags([]);
     setHashtagInput('');
     if (fileInputRef.current) fileInputRef.current.value = '';
-    if (cameraInputRef.current) cameraInputRef.current.value = '';
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -646,62 +645,31 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
               onChange={handleFileSelect}
               disabled={uploading}
             />
-            <input
-              ref={cameraInputRef}
-              type="file"
-              accept="image/*,video/*"
-              capture="environment"
-              className="hidden"
-              onChange={handleFileSelect}
-              disabled={uploading}
-            />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                isPickerOpenRef.current = true;
-                fileInputRef.current?.click();
-              }}
-              disabled={uploading}
-              className="gap-2"
-            >
+            <label className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,video/*"
+                multiple
+                className="hidden"
+                onChange={handleFileSelect}
+                disabled={uploading}
+              />
               <Image className="h-4 w-4" />
               {t('createPost.addImages')}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                isPickerOpenRef.current = true;
-                fileInputRef.current?.click();
-              }}
-              disabled={uploading}
-              className="gap-2"
-            >
-              <Video className="h-4 w-4" />
-              {t('createPost.addVideo')}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                cameraInputRef.current?.click();
-              }}
-              disabled={uploading}
-              className="gap-2"
-            >
+            </label>
+            <label className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+              <input
+                type="file"
+                accept="image/*,video/*"
+                capture="environment"
+                className="hidden"
+                onChange={handleFileSelect}
+                disabled={uploading}
+              />
               <Camera className="h-4 w-4" />
               {t('createPost.camera')}
-            </Button>
+            </label>
 
             <div className="flex-1" />
 
