@@ -1086,6 +1086,7 @@ export default {
   'createPost.editTextOverlay': 'Textüberlagerung bearbeiten',
   'createPost.addImages': 'Bilder hinzufügen',
   'createPost.addVideo': 'Video hinzufügen',
+  'createPost.camera': 'Kamera',
   'createPost.posting': 'Wird gepostet...',
   'createPost.post': 'Posten',
   'createPost.cancel': 'Abbrechen',

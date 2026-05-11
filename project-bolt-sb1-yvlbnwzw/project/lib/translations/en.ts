@@ -1090,6 +1090,7 @@ export default {
   'createPost.editTextOverlay': 'Edit Text Overlay',
   'createPost.addImages': 'Add Images',
   'createPost.addVideo': 'Add Video',
+  'createPost.camera': 'Camera',
   'createPost.posting': 'Posting...',
   'createPost.post': 'Post',
   'createPost.cancel': 'Cancel',

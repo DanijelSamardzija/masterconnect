@@ -1090,6 +1090,7 @@ export default {
   'createPost.editTextOverlay': 'Izmeni tekst na slici',
   'createPost.addImages': 'Dodaj slike',
   'createPost.addVideo': 'Dodaj video',
+  'createPost.camera': 'Kamera',
   'createPost.posting': 'Objavljujem...',
   'createPost.post': 'Objavi',
   'createPost.cancel': 'Otkaži',

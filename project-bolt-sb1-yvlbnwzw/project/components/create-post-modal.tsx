@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Image, Video, X, Loader2, Send, ChevronLeft, ChevronRight, Hash } from 'lucide-react';
+import { Image, Video, Camera, X, Loader2, Send, ChevronLeft, ChevronRight, Hash } from 'lucide-react';
 import { toast } from 'sonner';
 import { uploadFile, validateFile, uploadVideoToCloudinary } from '@/lib/attachment-utils';
 import { normalizeImageForFeed } from '@/lib/image-utils';
@@ -55,6 +55,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
   const [overlayEditorOpen, setOverlayEditorOpen] = useState(false);
   const [editingMediaIndex, setEditingMediaIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const isPickerOpenRef = useRef(false);
 
 
@@ -104,6 +105,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
     setHashtags([]);
     setHashtagInput('');
     if (fileInputRef.current) fileInputRef.current.value = '';
+    if (cameraInputRef.current) cameraInputRef.current.value = '';
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -644,6 +646,15 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
               onChange={handleFileSelect}
               disabled={uploading}
             />
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*,video/*"
+              capture="environment"
+              className="hidden"
+              onChange={handleFileSelect}
+              disabled={uploading}
+            />
             <Button
               type="button"
               variant="outline"
@@ -675,6 +686,21 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
             >
               <Video className="h-4 w-4" />
               {t('createPost.addVideo')}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                cameraInputRef.current?.click();
+              }}
+              disabled={uploading}
+              className="gap-2"
+            >
+              <Camera className="h-4 w-4" />
+              {t('createPost.camera')}
             </Button>
 
             <div className="flex-1" />
