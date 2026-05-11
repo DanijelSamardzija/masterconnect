@@ -58,6 +58,30 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
   const isPickerOpenRef = useRef(false);
 
   useEffect(() => {
+    if (!open) return;
+    const handleWindowFocus = () => {
+      if (!isPickerOpenRef.current) return;
+      isPickerOpenRef.current = false;
+      setTimeout(() => {
+        const input = fileInputRef.current;
+        if (input?.files?.length) {
+          const files = Array.from(input.files);
+          const newMediaFiles: MediaFile[] = [];
+          for (const file of files) {
+            const validation = validateFile(file);
+            if (!validation.valid) { toast.error(validation.error); }
+            else { newMediaFiles.push({ file, preview: URL.createObjectURL(file) }); }
+          }
+          if (newMediaFiles.length) setMediaFiles(prev => [...prev, ...newMediaFiles]);
+          input.value = '';
+        }
+      }, 300);
+    };
+    window.addEventListener('focus', handleWindowFocus);
+    return () => window.removeEventListener('focus', handleWindowFocus);
+  }, [open]);
+
+  useEffect(() => {
     const loadCategories = async () => {
       try {
         const response = await fetch('/api/categories');
