@@ -645,31 +645,57 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
               onChange={handleFileSelect}
               disabled={uploading}
             />
-            <label className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*,video/*"
-                multiple
-                className="hidden"
-                onChange={handleFileSelect}
-                disabled={uploading}
-              />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,video/*"
+              multiple
+              className="hidden"
+              onChange={handleFileSelect}
+              disabled={uploading}
+            />
+            <input
+              type="file"
+              accept="image/*,video/*"
+              capture="environment"
+              className="hidden"
+              id="camera-capture-input"
+              onChange={handleFileSelect}
+              disabled={uploading}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); isPickerOpenRef.current = true; fileInputRef.current?.click(); }}
+              disabled={uploading}
+              className="gap-2"
+            >
               <Image className="h-4 w-4" />
               {t('createPost.addImages')}
-            </label>
-            <label className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
-              <input
-                type="file"
-                accept="image/*,video/*"
-                capture="environment"
-                className="hidden"
-                onChange={handleFileSelect}
-                disabled={uploading}
-              />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); isPickerOpenRef.current = true; fileInputRef.current?.click(); }}
+              disabled={uploading}
+              className="gap-2"
+            >
+              <Video className="h-4 w-4" />
+              {t('createPost.addVideo')}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); document.getElementById('camera-capture-input')?.click(); }}
+              disabled={uploading}
+              className="gap-2"
+            >
               <Camera className="h-4 w-4" />
               {t('createPost.camera')}
-            </label>
+            </Button>
 
             <div className="flex-1" />
 
