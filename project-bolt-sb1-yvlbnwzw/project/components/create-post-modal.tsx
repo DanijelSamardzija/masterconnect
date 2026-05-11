@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Image, Video, Camera, X, Loader2, Send, ChevronLeft, ChevronRight, Hash } from 'lucide-react';
+import { Image, Video, X, Loader2, Send, ChevronLeft, ChevronRight, Hash } from 'lucide-react';
 import { toast } from 'sonner';
 import { uploadFile, validateFile, uploadVideoToCloudinary } from '@/lib/attachment-utils';
 import { normalizeImageForFeed } from '@/lib/image-utils';
@@ -654,15 +654,6 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
               onChange={handleFileSelect}
               disabled={uploading}
             />
-            <input
-              type="file"
-              accept="image/*,video/*"
-              capture="environment"
-              className="hidden"
-              id="camera-capture-input"
-              onChange={handleFileSelect}
-              disabled={uploading}
-            />
             <Button
               type="button"
               variant="outline"
@@ -684,17 +675,6 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
             >
               <Video className="h-4 w-4" />
               {t('createPost.addVideo')}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); document.getElementById('camera-capture-input')?.click(); }}
-              disabled={uploading}
-              className="gap-2"
-            >
-              <Camera className="h-4 w-4" />
-              {t('createPost.camera')}
             </Button>
 
             <div className="flex-1" />
