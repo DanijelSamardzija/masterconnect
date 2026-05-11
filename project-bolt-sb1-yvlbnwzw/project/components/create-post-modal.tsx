@@ -636,7 +636,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
             </div>
           )}
 
-          <div className="flex items-center gap-2 pt-2 border-t">
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t">
             <input
               ref={fileInputRef}
               type="file"
