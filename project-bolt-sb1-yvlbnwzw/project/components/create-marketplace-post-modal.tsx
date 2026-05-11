@@ -785,7 +785,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
                 <input
                   type="file"
                   id="marketplace-image-upload"
-                  accept="image/*"
+                  accept="image/*,video/*"
                   multiple
                   onChange={handleFileSelect}
                   className="hidden"

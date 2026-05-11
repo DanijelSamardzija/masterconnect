@@ -55,7 +55,6 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
   const [overlayEditorOpen, setOverlayEditorOpen] = useState(false);
   const [editingMediaIndex, setEditingMediaIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const videoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -103,7 +102,6 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
     setHashtags([]);
     setHashtagInput('');
     if (fileInputRef.current) fileInputRef.current.value = '';
-    if (videoInputRef.current) videoInputRef.current.value = '';
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -632,16 +630,8 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/*,video/*"
               multiple
-              className="hidden"
-              onChange={handleFileSelect}
-              disabled={uploading}
-            />
-            <input
-              ref={videoInputRef}
-              type="file"
-              accept="video/*"
               className="hidden"
               onChange={handleFileSelect}
               disabled={uploading}
@@ -668,7 +658,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                videoInputRef.current?.click();
+                fileInputRef.current?.click();
               }}
               disabled={uploading}
               className="gap-2"
