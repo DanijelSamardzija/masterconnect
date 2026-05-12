@@ -509,7 +509,9 @@ function MessagesContent() {
         prev.length !== messagesWithAttachments.length ||
         messagesWithAttachments.some((m: any, i: number) => {
           const p = prev[i] as any;
-          return !p || p.id !== m.id || p.is_deleted !== m.is_deleted || (p.offer?.status !== m.offer?.status);
+          return !p || p.id !== m.id || p.is_deleted !== m.is_deleted ||
+            (p.offer?.status !== m.offer?.status) ||
+            p.seen_at !== m.seen_at || p.delivered_at !== m.delivered_at;
         });
 
       if (changed) {
