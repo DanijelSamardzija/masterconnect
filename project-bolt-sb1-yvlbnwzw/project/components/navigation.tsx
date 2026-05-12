@@ -34,6 +34,7 @@ import {
   Moon,
   Sun,
   Shield,
+  TrendingUp,
 } from 'lucide-react';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { SearchModal } from '@/components/search-modal';
@@ -268,6 +269,14 @@ export function Navigation() {
               <Button variant="ghost" size="sm" className={desktopNavClass('/jobs')}>
                 <Briefcase className="h-4 w-4" />
                 <span className="hidden lg:inline">{t('nav.jobs')}</span>
+              </Button>
+            </Link>
+
+            <Link href="/invest">
+              <Button variant="ghost" size="sm" className={`${desktopNavClass('/invest')} relative`}>
+                <TrendingUp className="h-4 w-4" />
+                <span className="hidden lg:inline">Invest</span>
+                <span className="hidden lg:inline ml-1 text-[9px] font-bold bg-orange-500 text-white px-1 py-0.5 rounded-full leading-none">SOON</span>
               </Button>
             </Link>
 
@@ -535,6 +544,16 @@ export function Navigation() {
                         <Button variant="ghost" className={mobileNavClass('/jobs')}>
                           <Briefcase className="h-4 w-4" />
                           {t('nav.jobs')}
+                        </Button>
+                      </Link>
+
+                      <Link href="/invest" onClick={closeMobileMenu}>
+                        <Button variant="ghost" className={`${mobileNavClass('/invest')} justify-between`}>
+                          <span className="flex items-center gap-2">
+                            <TrendingUp className="h-4 w-4" />
+                            Invest
+                          </span>
+                          <span className="text-[9px] font-bold bg-orange-500 text-white px-1.5 py-0.5 rounded-full leading-none">SOON</span>
                         </Button>
                       </Link>
                     </>

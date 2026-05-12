@@ -31,6 +31,14 @@ export function Footer() {
             >
               {t('footer.contact')}
             </Link>
+            <span className="hidden md:inline text-muted-foreground mx-3">|</span>
+            <Link
+              href="/invest"
+              className="text-foreground hover:text-primary transition-colors flex items-center gap-1"
+            >
+              Invest
+              <span className="text-[9px] font-bold bg-orange-500 text-white px-1 py-0.5 rounded-full leading-none">SOON</span>
+            </Link>
           </div>
 
           <p className="text-xs text-gray-500 dark:text-gray-400 text-center max-w-3xl leading-relaxed">
