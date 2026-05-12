@@ -2,18 +2,18 @@
 
 import { useState } from 'react';
 import { useLanguage } from '@/lib/contexts/language-context';
-import { Button } from '@/components/ui/button';
 import {
-  TrendingUp, Search, MapPin, Calendar, Bookmark, BookmarkCheck,
-  ChevronRight, X, Target, Building2, Rocket, HardHat, Leaf,
-  Code2, Star, CheckCircle2, Eye, Users, DollarSign, ArrowUpRight,
-  Info, Lock, Shield, BarChart2, Globe, Zap, Award,
+  TrendingUp, Search, MapPin, Bookmark, BookmarkCheck,
+  ChevronRight, X, Building2, Rocket, HardHat, Leaf,
+  Code2, Star, CheckCircle2, Eye, Users, DollarSign,
+  Info, Lock, BarChart2, Globe, Zap, Award,
 } from 'lucide-react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 type RiskLevel = 'Low' | 'Medium' | 'High';
 type ProjectStatus = 'coming_soon' | 'preview' | 'under_review';
+type WaitlistRole = 'investor' | 'business_owner' | 'startup_founder' | 'service_business';
 
 type Project = {
   id: string;
@@ -136,6 +136,208 @@ function fmt(n: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
 }
 
+// ─── Waitlist Modal ───────────────────────────────────────────────────────────
+
+const ROLES: { value: WaitlistRole; labelKey: string; icon: React.ElementType }[] = [
+  { value: 'investor',         labelKey: 'invest.waitlist.role.investor',       icon: DollarSign },
+  { value: 'business_owner',   labelKey: 'invest.waitlist.role.businessOwner',  icon: Building2 },
+  { value: 'startup_founder',  labelKey: 'invest.waitlist.role.startupFounder', icon: Rocket },
+  { value: 'service_business', labelKey: 'invest.waitlist.role.serviceBusiness', icon: Zap },
+];
+
+const inputStyle = {
+  background: 'rgba(255,255,255,0.05)',
+  border: '1px solid rgba(255,255,255,0.10)',
+  color: '#fff',
+  caretColor: '#ea580c',
+};
+
+function WaitlistModal({ onClose }: { onClose: () => void }) {
+  const { t } = useLanguage();
+  const [name, setName]       = useState('');
+  const [email, setEmail]     = useState('');
+  const [role, setRole]       = useState<WaitlistRole | ''>('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted]   = useState(false);
+  const [error, setError]     = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (!name.trim() || !email.trim() || !role) {
+      setError(t('invest.waitlist.required'));
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/investment-waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), role }),
+      });
+      const json = await res.json();
+
+      if (!res.ok) {
+        if (json.error === 'duplicate') setError(t('invest.waitlist.errorDuplicate'));
+        else if (json.error === 'invalid_email') setError(t('invest.waitlist.invalidEmail'));
+        else if (json.error === 'required') setError(t('invest.waitlist.required'));
+        else setError(t('invest.waitlist.errorGeneric'));
+      } else {
+        setSubmitted(true);
+      }
+    } catch {
+      setError(t('invest.waitlist.errorGeneric'));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <>
+      <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md" onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div
+          className="relative w-full max-w-md animate-in zoom-in-95 duration-200"
+          style={{ filter: 'drop-shadow(0 0 40px rgba(234,88,12,0.25))' }}
+        >
+          <div className="bg-[#0d1528] border border-orange-500/25 rounded-3xl p-7 space-y-6">
+            {/* Close */}
+            <button
+              onClick={onClose}
+              className="absolute top-5 right-5 p-1.5 rounded-xl text-slate-500 hover:text-white hover:bg-white/10 transition-all"
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            {submitted ? (
+              /* ── Success state ── */
+              <div className="text-center space-y-4 py-2">
+                <div
+                  className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center"
+                  style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', boxShadow: '0 0 24px rgba(16,185,129,0.2)' }}
+                >
+                  <CheckCircle2 className="h-8 w-8 text-emerald-400" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-white mb-2">{t('invest.waitlist.success')}</h2>
+                  <p className="text-sm text-slate-400">{t('invest.waitlist.successSub')}</p>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="w-full py-3 rounded-xl font-semibold text-white transition-all duration-200"
+                  style={{ background: 'linear-gradient(135deg, #ea580c, #c2410c)', boxShadow: '0 4px 20px rgba(234,88,12,0.35)' }}
+                >
+                  OK
+                </button>
+              </div>
+            ) : (
+              /* ── Form ── */
+              <>
+                <div>
+                  <div
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4"
+                    style={{ background: 'rgba(234,88,12,0.15)', border: '1px solid rgba(234,88,12,0.3)' }}
+                  >
+                    <TrendingUp className="h-6 w-6 text-orange-400" />
+                  </div>
+                  <h2 className="text-xl font-bold text-white">{t('invest.waitlist.title')}</h2>
+                  <p className="text-sm text-slate-400 mt-1">{t('invest.waitlist.subtitle')}</p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Name */}
+                  <div>
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                      {t('invest.waitlist.name')}
+                    </label>
+                    <input
+                      value={name}
+                      onChange={e => setName(e.target.value)}
+                      placeholder={t('invest.waitlist.namePlaceholder')}
+                      className="w-full px-4 py-2.5 rounded-xl text-sm placeholder:text-slate-600 outline-none transition-all"
+                      style={inputStyle}
+                      onFocus={e => { e.currentTarget.style.borderColor = 'rgba(234,88,12,0.5)'; }}
+                      onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.10)'; }}
+                    />
+                  </div>
+
+                  {/* Email */}
+                  <div>
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                      {t('invest.waitlist.email')}
+                    </label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      placeholder={t('invest.waitlist.emailPlaceholder')}
+                      className="w-full px-4 py-2.5 rounded-xl text-sm placeholder:text-slate-600 outline-none transition-all"
+                      style={inputStyle}
+                      onFocus={e => { e.currentTarget.style.borderColor = 'rgba(234,88,12,0.5)'; }}
+                      onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.10)'; }}
+                    />
+                  </div>
+
+                  {/* Role */}
+                  <div>
+                    <label className="block text-xs font-medium text-slate-400 mb-2">
+                      {t('invest.waitlist.roleLabel')}
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {ROLES.map(({ value, labelKey, icon: Icon }) => {
+                        const active = role === value;
+                        return (
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() => setRole(value)}
+                            className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-left transition-all duration-150"
+                            style={active ? {
+                              background: 'rgba(234,88,12,0.18)',
+                              border: '1px solid rgba(234,88,12,0.55)',
+                              color: '#fb923c',
+                            } : {
+                              background: 'rgba(255,255,255,0.04)',
+                              border: '1px solid rgba(255,255,255,0.08)',
+                              color: '#94a3b8',
+                            }}
+                          >
+                            <Icon className="h-4 w-4 shrink-0" />
+                            <span className="leading-tight text-xs">{t(labelKey)}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Error */}
+                  {error && (
+                    <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">
+                      {error}
+                    </p>
+                  )}
+
+                  {/* Submit */}
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="w-full py-3 rounded-xl font-semibold text-white text-sm transition-all duration-200 disabled:opacity-60"
+                    style={{ background: 'linear-gradient(135deg, #ea580c, #c2410c)', boxShadow: '0 4px 20px rgba(234,88,12,0.35)' }}
+                  >
+                    {submitting ? t('invest.waitlist.submitting') : t('invest.waitlist.submit')}
+                  </button>
+                </form>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 // ─── Coming Soon Modal ────────────────────────────────────────────────────────
 
 function ComingSoonModal({ onClose }: { onClose: () => void }) {
@@ -157,9 +359,7 @@ function ComingSoonModal({ onClose }: { onClose: () => void }) {
             </div>
             <div>
               <h2 className="text-xl font-bold text-white mb-2">{t('invest.comingSoon')}</h2>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                {t('invest.modal.desc')}
-              </p>
+              <p className="text-sm text-slate-400 leading-relaxed">{t('invest.modal.desc')}</p>
             </div>
             <button
               onClick={onClose}
@@ -187,7 +387,6 @@ function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
   const risk = RISK_STYLES[project.risk_level];
   const grad = CATEGORY_GRADIENTS[project.category] || 'from-slate-600/20 to-slate-800/10';
   const iconColor = ICON_COLORS[project.category] || 'text-slate-400';
-
   const riskLabel = `${t(`invest.risk.${project.risk_level}`)} ${t('invest.risk.suffix')}`;
 
   return (
@@ -202,11 +401,9 @@ function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
         boxShadow: hovered ? '0 8px 40px rgba(234,88,12,0.15), 0 2px 8px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.3)',
       }}
     >
-      {/* Card top */}
       <div className={`relative h-36 bg-gradient-to-br ${grad} flex items-center justify-center`}>
         <Icon className={`h-12 w-12 ${iconColor} opacity-60`} />
 
-        {/* Badges */}
         <div className="absolute top-3 left-3 flex gap-1.5 flex-wrap">
           <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${risk.bg} ${risk.text}`}>
             {riskLabel}
@@ -223,7 +420,6 @@ function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
           )}
         </div>
 
-        {/* Save button */}
         <button
           onClick={() => onToggleSave(project.id)}
           className="absolute top-3 right-3 p-1.5 rounded-xl bg-black/40 hover:bg-black/60 border border-white/10 transition-all"
@@ -234,14 +430,12 @@ function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
           }
         </button>
 
-        {/* Investors count */}
         <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-black/50 border border-white/10 rounded-lg px-2 py-1">
           <Users className="h-3 w-3 text-slate-400" />
           <span className="text-[10px] text-slate-300 font-medium">{project.investors} {t('invest.card.interested')}</span>
         </div>
       </div>
 
-      {/* Card body */}
       <div className="p-4 flex flex-col gap-3 flex-1">
         <div>
           <p className="text-[11px] text-slate-500 font-medium mb-1">{project.category}</p>
@@ -254,7 +448,6 @@ function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
 
         <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-2">{project.description}</p>
 
-        {/* Progress bar */}
         <div>
           <div className="flex justify-between items-center mb-1.5">
             <span className="text-[11px] text-slate-400">{t('invest.card.fundingProgress')}</span>
@@ -263,11 +456,7 @@ function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
           <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-700"
-              style={{
-                width: `${project.funding_pct}%`,
-                background: 'linear-gradient(90deg, #ea580c, #f97316)',
-                boxShadow: '0 0 8px rgba(234,88,12,0.6)',
-              }}
+              style={{ width: `${project.funding_pct}%`, background: 'linear-gradient(90deg, #ea580c, #f97316)', boxShadow: '0 0 8px rgba(234,88,12,0.6)' }}
             />
           </div>
           <p className="text-[10px] text-slate-500 mt-1">
@@ -275,7 +464,6 @@ function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
           </p>
         </div>
 
-        {/* Stats grid */}
         <div className="grid grid-cols-3 gap-1.5">
           <div className="bg-white/[0.04] border border-white/[0.06] rounded-xl p-2 text-center">
             <p className="text-[9px] text-slate-500 mb-0.5">{t('invest.card.minInvest')}</p>
@@ -293,13 +481,11 @@ function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
           </div>
         </div>
 
-        {/* Return strip */}
         <div className="flex items-center gap-1.5 bg-white/[0.03] border border-white/[0.06] rounded-xl px-3 py-2">
           <TrendingUp className="h-3.5 w-3.5 text-orange-400 shrink-0" />
           <span className="text-[11px] text-slate-400">{t('invest.card.expected')} <span className="text-white font-medium">{project.expected_return}</span></span>
         </div>
 
-        {/* Buttons */}
         <div className="flex gap-2 mt-auto pt-1">
           <button
             onClick={onComingSoon}
@@ -352,9 +538,10 @@ function LockedSection({ title, subtitle, children }: { title: string; subtitle:
 export default function InvestPage() {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<string>('all');
-  const [search, setSearch] = useState('');
-  const [saved, setSaved] = useState<Set<string>>(new Set());
-  const [modal, setModal] = useState(false);
+  const [search, setSearch]       = useState('');
+  const [saved, setSaved]         = useState<Set<string>>(new Set());
+  const [modal, setModal]         = useState(false);
+  const [waitlist, setWaitlist]   = useState(false);
 
   const filtered = PROJECTS.filter(p => {
     if (activeTab === 'trending') return true;
@@ -379,10 +566,10 @@ export default function InvestPage() {
   })();
 
   const heroStats = [
-    { icon: Globe,      label: t('invest.stats.projectsListed'),   value: '5+',     sub: t('invest.stats.preview') },
-    { icon: Users,      label: t('invest.stats.interestedUsers'),   value: '40+',    sub: t('invest.stats.registered') },
-    { icon: DollarSign, label: t('invest.stats.totalGoal'),         value: '€388K',  sub: t('invest.stats.acrossProjects') },
-    { icon: Award,      label: t('invest.stats.avgRoi'),            value: '16%',    sub: t('invest.stats.annually') },
+    { icon: Globe,      label: t('invest.stats.projectsListed'), value: '5+',    sub: t('invest.stats.preview') },
+    { icon: Users,      label: t('invest.stats.interestedUsers'), value: '40+',  sub: t('invest.stats.registered') },
+    { icon: DollarSign, label: t('invest.stats.totalGoal'),       value: '€388K', sub: t('invest.stats.acrossProjects') },
+    { icon: Award,      label: t('invest.stats.avgRoi'),          value: '16%',  sub: t('invest.stats.annually') },
   ];
 
   const dashboardLabels = [
@@ -401,22 +588,23 @@ export default function InvestPage() {
         }
         @keyframes shimmer {
           0%   { background-position: -400px 0; }
-          100% { background-position: 400px 0; }
+          100% { background-position:  400px 0; }
         }
         @keyframes float {
           0%, 100% { transform: translateY(0px); }
           50%       { transform: translateY(-6px); }
         }
-        .glow-badge   { animation: glow-pulse 2.5s ease-in-out infinite; }
-        .float-icon   { animation: float 3s ease-in-out infinite; }
-        .shimmer-bar  {
+        .glow-badge  { animation: glow-pulse 2.5s ease-in-out infinite; }
+        .float-icon  { animation: float 3s ease-in-out infinite; }
+        .shimmer-bar {
           background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0) 100%);
           background-size: 400px 100%;
           animation: shimmer 2s infinite linear;
         }
       `}</style>
 
-      {modal && <ComingSoonModal onClose={() => setModal(false)} />}
+      {modal    && <ComingSoonModal onClose={() => setModal(false)} />}
+      {waitlist && <WaitlistModal   onClose={() => setWaitlist(false)} />}
 
       {/* ── HERO ─────────────────────────────────────────────── */}
       <div className="relative overflow-hidden" style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%, rgba(234,88,12,0.15) 0%, transparent 70%), linear-gradient(180deg, #0b1220 0%, #080d18 100%)' }}>
@@ -443,24 +631,28 @@ export default function InvestPage() {
             {t('invest.hero.subtitle')}
           </p>
 
+          {/* CTAs */}
           <div className="flex flex-wrap gap-3 justify-center">
+            {/* Primary — Waitlist */}
+            <button
+              onClick={() => setWaitlist(true)}
+              className="flex items-center gap-2 px-7 py-3.5 rounded-xl font-bold text-white text-sm transition-all duration-200 hover:scale-105"
+              style={{ background: 'linear-gradient(135deg, #ea580c, #c2410c)', boxShadow: '0 4px 28px rgba(234,88,12,0.45)' }}
+            >
+              <Award className="h-4 w-4" />
+              {t('invest.waitlist.button')}
+            </button>
+            {/* Secondary — Submit */}
             <button
               onClick={() => setModal(true)}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white text-sm transition-all duration-200 hover:scale-105"
-              style={{ background: 'linear-gradient(135deg, #ea580c, #c2410c)', boxShadow: '0 4px 24px rgba(234,88,12,0.4)' }}
+              className="flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-slate-300 text-sm border border-white/15 hover:border-white/30 hover:text-white transition-all duration-200 bg-white/[0.04] hover:bg-white/[0.08]"
             >
               <Rocket className="h-4 w-4" />
               {t('invest.hero.submitProject')}
             </button>
-            <button
-              onClick={() => setModal(true)}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-slate-300 text-sm border border-white/15 hover:border-white/30 hover:text-white transition-all duration-200 bg-white/[0.04] hover:bg-white/[0.08]"
-            >
-              <Users className="h-4 w-4" />
-              {t('invest.hero.becomeInvestor')}
-            </button>
           </div>
 
+          {/* Stats strip */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-12 max-w-2xl mx-auto">
             {heroStats.map(({ icon: Icon, label, value, sub }) => (
               <div key={label} className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
@@ -601,17 +793,24 @@ export default function InvestPage() {
             <BarChart2 className="h-6 w-6 text-orange-400" />
           </div>
           <h3 className="text-xl font-bold text-white">{t('invest.cta.title')}</h3>
-          <p className="text-sm text-slate-400 max-w-md mx-auto">
-            {t('invest.cta.subtitle')}
-          </p>
-          <button
-            onClick={() => setModal(true)}
-            className="inline-flex items-center gap-2 px-7 py-3 rounded-xl font-semibold text-white text-sm transition-all duration-200 hover:scale-105"
-            style={{ background: 'linear-gradient(135deg, #ea580c, #c2410c)', boxShadow: '0 4px 24px rgba(234,88,12,0.35)' }}
-          >
-            {t('invest.cta.button')}
-            <ChevronRight className="h-4 w-4" />
-          </button>
+          <p className="text-sm text-slate-400 max-w-md mx-auto">{t('invest.cta.subtitle')}</p>
+          <div className="flex flex-wrap gap-3 justify-center">
+            <button
+              onClick={() => setWaitlist(true)}
+              className="inline-flex items-center gap-2 px-7 py-3 rounded-xl font-bold text-white text-sm transition-all duration-200 hover:scale-105"
+              style={{ background: 'linear-gradient(135deg, #ea580c, #c2410c)', boxShadow: '0 4px 24px rgba(234,88,12,0.35)' }}
+            >
+              <Award className="h-4 w-4" />
+              {t('invest.waitlist.button')}
+            </button>
+            <button
+              onClick={() => setModal(true)}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-slate-300 text-sm border border-white/15 hover:border-white/30 hover:text-white transition-all duration-200 bg-white/[0.04] hover:bg-white/[0.08]"
+            >
+              {t('invest.cta.button')}
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
       </div>
