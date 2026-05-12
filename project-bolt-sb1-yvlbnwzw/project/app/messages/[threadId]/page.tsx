@@ -865,7 +865,6 @@ function MessagesContent() {
         console.warn('[Messages] localStorage access blocked:', storageError);
       }
 
-      toast.success('Message sent!');
     } catch (err: any) {
       setError(err.message || 'Failed to send message');
       toast.error('Failed to send message');
