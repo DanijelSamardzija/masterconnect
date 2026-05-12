@@ -581,28 +581,6 @@ export default function InvestPage() {
 
   return (
     <div className="min-h-screen" style={{ background: '#080d18' }}>
-      <style>{`
-        @keyframes glow-pulse {
-          0%, 100% { box-shadow: 0 0 12px rgba(234,88,12,0.4), 0 0 24px rgba(234,88,12,0.15); }
-          50%       { box-shadow: 0 0 20px rgba(234,88,12,0.7), 0 0 50px rgba(234,88,12,0.25); }
-        }
-        @keyframes shimmer {
-          0%   { background-position: -400px 0; }
-          100% { background-position:  400px 0; }
-        }
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50%       { transform: translateY(-6px); }
-        }
-        .glow-badge  { animation: glow-pulse 2.5s ease-in-out infinite; }
-        .float-icon  { animation: float 3s ease-in-out infinite; }
-        .shimmer-bar {
-          background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0) 100%);
-          background-size: 400px 100%;
-          animation: shimmer 2s infinite linear;
-        }
-      `}</style>
-
       {modal    && <ComingSoonModal onClose={() => setModal(false)} />}
       {waitlist && <WaitlistModal   onClose={() => setWaitlist(false)} />}
 
@@ -612,7 +590,7 @@ export default function InvestPage() {
         <div className="relative max-w-5xl mx-auto px-4 py-14 md:py-20 text-center">
           <div className="inline-flex items-center gap-2 mb-6">
             <span
-              className="glow-badge inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase text-orange-300"
+              className="invest-glow-badge inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase text-orange-300"
               style={{ background: 'rgba(234,88,12,0.15)', border: '1px solid rgba(234,88,12,0.4)' }}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
@@ -686,11 +664,11 @@ export default function InvestPage() {
               {dashboardLabels.map((l, i) => (
                 <div key={l} className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.04)' }}>
                   <p className="text-xs text-slate-500">{l}</p>
-                  <div className="h-5 mt-1 rounded shimmer-bar" style={{ width: ['70%', '50%', '60%', '80%'][i] }} />
+                  <div className="h-5 mt-1 rounded invest-shimmer-bar" style={{ width: ['70%', '50%', '60%', '80%'][i] }} />
                 </div>
               ))}
             </div>
-            <div className="h-24 rounded-xl shimmer-bar" />
+            <div className="h-24 rounded-xl invest-shimmer-bar" />
           </div>
         </LockedSection>
 
@@ -772,12 +750,12 @@ export default function InvestPage() {
             <p className="text-sm font-semibold text-white mb-4">{t('invest.leaderboard.subtitle')}</p>
             {[92, 78, 65, 54, 43].map((w, i) => (
               <div key={i} className="flex items-center gap-3 mb-3">
-                <div className="w-7 h-7 rounded-full shimmer-bar shrink-0" />
+                <div className="w-7 h-7 rounded-full invest-shimmer-bar shrink-0" />
                 <div className="flex-1">
-                  <div className="h-3 rounded shimmer-bar mb-1" style={{ width: `${w}%` }} />
-                  <div className="h-2 rounded shimmer-bar" style={{ width: `${w * 0.6}%` }} />
+                  <div className="h-3 rounded invest-shimmer-bar mb-1" style={{ width: `${w}%` }} />
+                  <div className="h-2 rounded invest-shimmer-bar" style={{ width: `${w * 0.6}%` }} />
                 </div>
-                <div className="h-4 w-12 rounded shimmer-bar" />
+                <div className="h-4 w-12 rounded invest-shimmer-bar" />
               </div>
             ))}
           </div>
@@ -788,7 +766,7 @@ export default function InvestPage() {
           className="rounded-2xl p-7 text-center space-y-4"
           style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(234,88,12,0.12) 0%, rgba(234,88,12,0.03) 70%)', border: '1px solid rgba(234,88,12,0.2)' }}
         >
-          <div className="float-icon w-12 h-12 mx-auto rounded-2xl flex items-center justify-center" style={{ background: 'rgba(234,88,12,0.15)', border: '1px solid rgba(234,88,12,0.3)' }}>
+          <div className="invest-float-icon w-12 h-12 mx-auto rounded-2xl flex items-center justify-center" style={{ background: 'rgba(234,88,12,0.15)', border: '1px solid rgba(234,88,12,0.3)' }}>
             <BarChart2 className="h-6 w-6 text-orange-400" />
           </div>
           <h3 className="text-xl font-bold text-white">{t('invest.cta.title')}</h3>

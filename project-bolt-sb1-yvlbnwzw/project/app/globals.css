@@ -181,3 +181,24 @@ body {
   height: auto !important;
   min-height: 100dvh !important;
 }
+
+/* ── Invest page animations ── */
+@keyframes invest-glow-pulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(234,88,12,0.4), 0 0 24px rgba(234,88,12,0.15); }
+  50%       { box-shadow: 0 0 20px rgba(234,88,12,0.7), 0 0 50px rgba(234,88,12,0.25); }
+}
+@keyframes invest-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+@keyframes invest-float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
+.invest-glow-badge  { animation: invest-glow-pulse 2.5s ease-in-out infinite; }
+.invest-float-icon  { animation: invest-float 3s ease-in-out infinite; }
+.invest-shimmer-bar {
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0) 100%);
+  background-size: 400px 100%;
+  animation: invest-shimmer 2s infinite linear;
+}
