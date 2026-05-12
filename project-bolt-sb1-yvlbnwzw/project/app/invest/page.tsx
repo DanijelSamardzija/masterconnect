@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useLanguage } from '@/lib/contexts/language-context';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   TrendingUp, Search, MapPin, Calendar, Bookmark, BookmarkCheck,
   ChevronRight, X, Target, Building2, Rocket, HardHat, Leaf,
@@ -94,16 +94,16 @@ const PROJECTS: Project[] = [
 ];
 
 const TABS = [
-  { key: 'all', label: 'Explore', icon: TrendingUp },
-  { key: 'trending', label: 'Trending', icon: Star },
-  { key: 'Local businesses', label: 'Local', icon: Building2 },
-  { key: 'Startups', label: 'Startups', icon: Rocket },
-  { key: 'Construction', label: 'Construction', icon: HardHat },
-  { key: 'Farming', label: 'Farming', icon: Leaf },
-  { key: 'Tech', label: 'Tech', icon: Code2 },
-  { key: 'saved', label: 'Saved', icon: Bookmark },
-  { key: 'mine', label: 'My projects', icon: Users },
-] as const;
+  { key: 'all',              labelKey: 'invest.tab.explore',      icon: TrendingUp },
+  { key: 'trending',         labelKey: 'invest.tab.trending',     icon: Star },
+  { key: 'Local businesses', labelKey: 'invest.tab.local',        icon: Building2 },
+  { key: 'Startups',         labelKey: 'invest.tab.startups',     icon: Rocket },
+  { key: 'Construction',     labelKey: 'invest.tab.construction', icon: HardHat },
+  { key: 'Farming',          labelKey: 'invest.tab.farming',      icon: Leaf },
+  { key: 'Tech',             labelKey: 'invest.tab.tech',         icon: Code2 },
+  { key: 'saved',            labelKey: 'invest.tab.saved',        icon: Bookmark },
+  { key: 'mine',             labelKey: 'invest.tab.mine',         icon: Users },
+];
 
 const RISK_STYLES: Record<RiskLevel, { bar: string; text: string; bg: string }> = {
   Low:    { bar: 'bg-emerald-500', text: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
@@ -139,6 +139,7 @@ function fmt(n: number) {
 // ─── Coming Soon Modal ────────────────────────────────────────────────────────
 
 function ComingSoonModal({ onClose }: { onClose: () => void }) {
+  const { t } = useLanguage();
   return (
     <>
       <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md" onClick={onClose} />
@@ -155,9 +156,9 @@ function ComingSoonModal({ onClose }: { onClose: () => void }) {
               <TrendingUp className="h-8 w-8 text-orange-400" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white mb-2">Coming Soon</h2>
+              <h2 className="text-xl font-bold text-white mb-2">{t('invest.comingSoon')}</h2>
               <p className="text-sm text-slate-400 leading-relaxed">
-                Investment features are currently in development. Soon you will be able to submit projects, connect with investors and explore verified opportunities.
+                {t('invest.modal.desc')}
               </p>
             </div>
             <button
@@ -165,7 +166,7 @@ function ComingSoonModal({ onClose }: { onClose: () => void }) {
               className="w-full py-3 rounded-xl font-semibold text-white transition-all duration-200"
               style={{ background: 'linear-gradient(135deg, #ea580c, #c2410c)', boxShadow: '0 4px 20px rgba(234,88,12,0.4)' }}
             >
-              OK, got it
+              {t('invest.modal.ok')}
             </button>
           </div>
         </div>
@@ -180,11 +181,14 @@ function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
   project: Project; saved: boolean;
   onComingSoon: () => void; onToggleSave: (id: string) => void;
 }) {
+  const { t } = useLanguage();
   const [hovered, setHovered] = useState(false);
   const Icon = CATEGORY_ICONS[project.category] || TrendingUp;
   const risk = RISK_STYLES[project.risk_level];
   const grad = CATEGORY_GRADIENTS[project.category] || 'from-slate-600/20 to-slate-800/10';
   const iconColor = ICON_COLORS[project.category] || 'text-slate-400';
+
+  const riskLabel = `${t(`invest.risk.${project.risk_level}`)} ${t('invest.risk.suffix')}`;
 
   return (
     <div
@@ -205,16 +209,16 @@ function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
         {/* Badges */}
         <div className="absolute top-3 left-3 flex gap-1.5 flex-wrap">
           <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${risk.bg} ${risk.text}`}>
-            {project.risk_level} risk
+            {riskLabel}
           </span>
           {project.status === 'preview' && (
             <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-orange-500/20 border border-orange-500/30 text-orange-400">
-              Preview
+              {t('invest.card.previewBadge')}
             </span>
           )}
           {project.status === 'coming_soon' && (
             <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-slate-500/20 border border-slate-500/30 text-slate-400">
-              Coming soon
+              {t('invest.card.comingSoonBadge')}
             </span>
           )}
         </div>
@@ -233,7 +237,7 @@ function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
         {/* Investors count */}
         <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-black/50 border border-white/10 rounded-lg px-2 py-1">
           <Users className="h-3 w-3 text-slate-400" />
-          <span className="text-[10px] text-slate-300 font-medium">{project.investors} interested</span>
+          <span className="text-[10px] text-slate-300 font-medium">{project.investors} {t('invest.card.interested')}</span>
         </div>
       </div>
 
@@ -253,7 +257,7 @@ function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
         {/* Progress bar */}
         <div>
           <div className="flex justify-between items-center mb-1.5">
-            <span className="text-[11px] text-slate-400">Funding progress</span>
+            <span className="text-[11px] text-slate-400">{t('invest.card.fundingProgress')}</span>
             <span className="text-[11px] font-semibold text-orange-400">{project.funding_pct}%</span>
           </div>
           <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
@@ -266,21 +270,23 @@ function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
               }}
             />
           </div>
-          <p className="text-[10px] text-slate-500 mt-1">{fmt(project.funding_goal * project.funding_pct / 100)} raised of {fmt(project.funding_goal)}</p>
+          <p className="text-[10px] text-slate-500 mt-1">
+            {fmt(project.funding_goal * project.funding_pct / 100)} {t('invest.card.raisedOf')} {fmt(project.funding_goal)}
+          </p>
         </div>
 
         {/* Stats grid */}
         <div className="grid grid-cols-3 gap-1.5">
           <div className="bg-white/[0.04] border border-white/[0.06] rounded-xl p-2 text-center">
-            <p className="text-[9px] text-slate-500 mb-0.5">Min invest</p>
+            <p className="text-[9px] text-slate-500 mb-0.5">{t('invest.card.minInvest')}</p>
             <p className="text-xs font-bold text-white">{fmt(project.minimum_investment)}</p>
           </div>
           <div className="bg-white/[0.04] border border-white/[0.06] rounded-xl p-2 text-center">
-            <p className="text-[9px] text-slate-500 mb-0.5">Est. ROI</p>
+            <p className="text-[9px] text-slate-500 mb-0.5">{t('invest.card.estRoi')}</p>
             <p className="text-xs font-bold text-orange-400">{project.estimated_roi}</p>
           </div>
           <div className="bg-white/[0.04] border border-white/[0.06] rounded-xl p-2 text-center">
-            <p className="text-[9px] text-slate-500 mb-0.5">Deadline</p>
+            <p className="text-[9px] text-slate-500 mb-0.5">{t('invest.card.deadline')}</p>
             <p className="text-xs font-bold text-white">
               {new Date(project.funding_deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
             </p>
@@ -290,7 +296,7 @@ function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
         {/* Return strip */}
         <div className="flex items-center gap-1.5 bg-white/[0.03] border border-white/[0.06] rounded-xl px-3 py-2">
           <TrendingUp className="h-3.5 w-3.5 text-orange-400 shrink-0" />
-          <span className="text-[11px] text-slate-400">Expected: <span className="text-white font-medium">{project.expected_return}</span></span>
+          <span className="text-[11px] text-slate-400">{t('invest.card.expected')} <span className="text-white font-medium">{project.expected_return}</span></span>
         </div>
 
         {/* Buttons */}
@@ -300,7 +306,7 @@ function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
             className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-medium text-slate-300 border border-white/10 hover:border-white/20 hover:text-white transition-all bg-white/[0.04] hover:bg-white/[0.07]"
           >
             <Eye className="h-3.5 w-3.5" />
-            View
+            {t('invest.card.view')}
           </button>
           <button
             onClick={onComingSoon}
@@ -311,7 +317,7 @@ function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
             }}
           >
             <Zap className="h-3.5 w-3.5" />
-            Invest now
+            {t('invest.card.investNow')}
           </button>
         </div>
       </div>
@@ -321,7 +327,7 @@ function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
 
 // ─── Blurred locked section ───────────────────────────────────────────────────
 
-function LockedSection({ title, children }: { title: string; children: React.ReactNode }) {
+function LockedSection({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
   return (
     <div className="relative rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.07)' }}>
       <div style={{ filter: 'blur(4px)', pointerEvents: 'none', userSelect: 'none' }}>
@@ -334,7 +340,7 @@ function LockedSection({ title, children }: { title: string; children: React.Rea
         </div>
         <div className="text-center">
           <p className="text-sm font-semibold text-white">{title}</p>
-          <p className="text-xs text-slate-500 mt-0.5">Available when platform launches</p>
+          <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>
         </div>
       </div>
     </div>
@@ -344,6 +350,7 @@ function LockedSection({ title, children }: { title: string; children: React.Rea
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function InvestPage() {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<string>('all');
   const [search, setSearch] = useState('');
   const [saved, setSaved] = useState<Set<string>>(new Set());
@@ -364,6 +371,26 @@ export default function InvestPage() {
     n.has(id) ? n.delete(id) : n.add(id);
     return n;
   });
+
+  const countLabel = (() => {
+    if (activeTab === 'saved' && saved.size === 0) return t('invest.count.noSaved');
+    if (activeTab === 'mine') return t('invest.count.noMine');
+    return `${filtered.length} ${filtered.length === 1 ? t('invest.count.project') : t('invest.count.projects')}`;
+  })();
+
+  const heroStats = [
+    { icon: Globe,      label: t('invest.stats.projectsListed'),   value: '5+',     sub: t('invest.stats.preview') },
+    { icon: Users,      label: t('invest.stats.interestedUsers'),   value: '40+',    sub: t('invest.stats.registered') },
+    { icon: DollarSign, label: t('invest.stats.totalGoal'),         value: '€388K',  sub: t('invest.stats.acrossProjects') },
+    { icon: Award,      label: t('invest.stats.avgRoi'),            value: '16%',    sub: t('invest.stats.annually') },
+  ];
+
+  const dashboardLabels = [
+    t('invest.dashboard.totalInvested'),
+    t('invest.dashboard.activeProjects'),
+    t('invest.dashboard.avgRoi'),
+    t('invest.dashboard.nextPayout'),
+  ];
 
   return (
     <div className="min-h-screen" style={{ background: '#080d18' }}>
@@ -393,33 +420,29 @@ export default function InvestPage() {
 
       {/* ── HERO ─────────────────────────────────────────────── */}
       <div className="relative overflow-hidden" style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%, rgba(234,88,12,0.15) 0%, transparent 70%), linear-gradient(180deg, #0b1220 0%, #080d18 100%)' }}>
-        {/* Grid overlay */}
         <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
 
         <div className="relative max-w-5xl mx-auto px-4 py-14 md:py-20 text-center">
-          {/* Animated glow badge */}
           <div className="inline-flex items-center gap-2 mb-6">
             <span
               className="glow-badge inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase text-orange-300"
               style={{ background: 'rgba(234,88,12,0.15)', border: '1px solid rgba(234,88,12,0.4)' }}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
-              Coming Soon
+              {t('invest.comingSoon')}
             </span>
           </div>
 
-          {/* Heading */}
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-4 text-white leading-tight">
-            Invest in{' '}
+            {t('invest.hero.title1')}{' '}
             <span style={{ background: 'linear-gradient(135deg, #f97316, #ea580c)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              real projects
+              {t('invest.hero.title2')}
             </span>
           </h1>
           <p className="text-slate-400 max-w-xl mx-auto text-base md:text-lg leading-relaxed mb-8">
-            Discover local businesses, startups and service projects looking for investors. Verified, transparent, community-driven.
+            {t('invest.hero.subtitle')}
           </p>
 
-          {/* CTAs */}
           <div className="flex flex-wrap gap-3 justify-center">
             <button
               onClick={() => setModal(true)}
@@ -427,25 +450,19 @@ export default function InvestPage() {
               style={{ background: 'linear-gradient(135deg, #ea580c, #c2410c)', boxShadow: '0 4px 24px rgba(234,88,12,0.4)' }}
             >
               <Rocket className="h-4 w-4" />
-              Submit a project
+              {t('invest.hero.submitProject')}
             </button>
             <button
               onClick={() => setModal(true)}
               className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-slate-300 text-sm border border-white/15 hover:border-white/30 hover:text-white transition-all duration-200 bg-white/[0.04] hover:bg-white/[0.08]"
             >
               <Users className="h-4 w-4" />
-              Become an investor
+              {t('invest.hero.becomeInvestor')}
             </button>
           </div>
 
-          {/* Platform stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-12 max-w-2xl mx-auto">
-            {[
-              { icon: Globe,    label: 'Projects listed',   value: '5+',     sub: 'preview' },
-              { icon: Users,    label: 'Interested users',  value: '40+',    sub: 'registered' },
-              { icon: DollarSign, label: 'Total goal value', value: '€388K', sub: 'across projects' },
-              { icon: Award,    label: 'Avg. est. ROI',     value: '16%',    sub: 'annually' },
-            ].map(({ icon: Icon, label, value, sub }) => (
+            {heroStats.map(({ icon: Icon, label, value, sub }) => (
               <div key={label} className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
                 <Icon className="h-4 w-4 text-orange-400 mx-auto mb-1.5" />
                 <p className="text-lg font-black text-white">{value}</p>
@@ -462,7 +479,8 @@ export default function InvestPage() {
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-start gap-2">
           <Info className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
           <p className="text-xs text-amber-400/80 leading-relaxed">
-            <strong className="text-amber-300">Preview only.</strong> GigZone does not provide financial advice, does not guarantee returns, and does not currently process investments. All investment features are under development.
+            <strong className="text-amber-300">{t('invest.disclaimer.title')}</strong>{' '}
+            {t('invest.disclaimer.body')}
           </p>
         </div>
       </div>
@@ -470,11 +488,11 @@ export default function InvestPage() {
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
 
         {/* ── LOCKED DASHBOARD ─────────────────────────────────── */}
-        <LockedSection title="Investor Dashboard">
+        <LockedSection title={t('invest.dashboard.title')} subtitle={t('invest.locked.available')}>
           <div className="p-5" style={{ background: 'rgba(255,255,255,0.02)' }}>
-            <p className="text-sm font-semibold text-white mb-4">Your portfolio overview</p>
+            <p className="text-sm font-semibold text-white mb-4">{t('invest.dashboard.portfolio')}</p>
             <div className="grid grid-cols-4 gap-3 mb-4">
-              {['Total invested', 'Active projects', 'Avg. ROI', 'Next payout'].map((l, i) => (
+              {dashboardLabels.map((l, i) => (
                 <div key={l} className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.04)' }}>
                   <p className="text-xs text-slate-500">{l}</p>
                   <div className="h-5 mt-1 rounded shimmer-bar" style={{ width: ['70%', '50%', '60%', '80%'][i] }} />
@@ -489,7 +507,7 @@ export default function InvestPage() {
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
           <input
-            placeholder="Search projects, cities, categories..."
+            placeholder={t('invest.search.placeholder')}
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-full pl-11 pr-10 py-3 rounded-xl text-sm text-white placeholder:text-slate-600 outline-none transition-all"
@@ -527,7 +545,7 @@ export default function InvestPage() {
                   }}
                 >
                   <Icon className="h-3.5 w-3.5" />
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </button>
               );
             })}
@@ -535,11 +553,7 @@ export default function InvestPage() {
         </div>
 
         {/* ── COUNT ────────────────────────────────────────────── */}
-        <p className="text-xs text-slate-600">
-          {activeTab === 'saved' && saved.size === 0 ? 'No saved projects yet.' :
-           activeTab === 'mine' ? 'You have no submitted projects yet.' :
-           `${filtered.length} project${filtered.length !== 1 ? 's' : ''}`}
-        </p>
+        <p className="text-xs text-slate-600">{countLabel}</p>
 
         {/* ── PROJECT GRID ─────────────────────────────────────── */}
         {filtered.length > 0 ? (
@@ -556,15 +570,15 @@ export default function InvestPage() {
         ) : (
           <div className="text-center py-20">
             <TrendingUp className="h-12 w-12 mx-auto mb-3 text-slate-700" />
-            <p className="font-medium text-slate-400">No projects found</p>
-            <p className="text-sm text-slate-600 mt-1">Try a different search or category</p>
+            <p className="font-medium text-slate-400">{t('invest.empty.title')}</p>
+            <p className="text-sm text-slate-600 mt-1">{t('invest.empty.subtitle')}</p>
           </div>
         )}
 
         {/* ── LOCKED LEADERBOARD ───────────────────────────────── */}
-        <LockedSection title="Top Investor Leaderboard">
+        <LockedSection title={t('invest.leaderboard.title')} subtitle={t('invest.locked.available')}>
           <div className="p-5" style={{ background: 'rgba(255,255,255,0.02)' }}>
-            <p className="text-sm font-semibold text-white mb-4">Top investors this month</p>
+            <p className="text-sm font-semibold text-white mb-4">{t('invest.leaderboard.subtitle')}</p>
             {[92, 78, 65, 54, 43].map((w, i) => (
               <div key={i} className="flex items-center gap-3 mb-3">
                 <div className="w-7 h-7 rounded-full shimmer-bar shrink-0" />
@@ -586,16 +600,16 @@ export default function InvestPage() {
           <div className="float-icon w-12 h-12 mx-auto rounded-2xl flex items-center justify-center" style={{ background: 'rgba(234,88,12,0.15)', border: '1px solid rgba(234,88,12,0.3)' }}>
             <BarChart2 className="h-6 w-6 text-orange-400" />
           </div>
-          <h3 className="text-xl font-bold text-white">Have a project that needs funding?</h3>
+          <h3 className="text-xl font-bold text-white">{t('invest.cta.title')}</h3>
           <p className="text-sm text-slate-400 max-w-md mx-auto">
-            Submit your business or project and connect with local investors. Verified, secure, transparent — coming soon.
+            {t('invest.cta.subtitle')}
           </p>
           <button
             onClick={() => setModal(true)}
             className="inline-flex items-center gap-2 px-7 py-3 rounded-xl font-semibold text-white text-sm transition-all duration-200 hover:scale-105"
             style={{ background: 'linear-gradient(135deg, #ea580c, #c2410c)', boxShadow: '0 4px 24px rgba(234,88,12,0.35)' }}
           >
-            Submit your project
+            {t('invest.cta.button')}
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>

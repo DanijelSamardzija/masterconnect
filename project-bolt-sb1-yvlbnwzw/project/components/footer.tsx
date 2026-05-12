@@ -36,8 +36,8 @@ export function Footer() {
               href="/invest"
               className="text-foreground hover:text-primary transition-colors flex items-center gap-1"
             >
-              Invest
-              <span className="text-[9px] font-bold bg-orange-500 text-white px-1 py-0.5 rounded-full leading-none">SOON</span>
+              {t('nav.invest')}
+              <span className="text-[9px] font-bold bg-orange-500 text-white px-1 py-0.5 rounded-full leading-none">{t('nav.soon')}</span>
             </Link>
           </div>
 
