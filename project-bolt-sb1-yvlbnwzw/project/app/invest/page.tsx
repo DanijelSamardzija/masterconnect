@@ -520,7 +520,7 @@ function LockedSection({ title, subtitle, children }: { title: string; subtitle:
         {children}
       </div>
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-3"
-        style={{ background: 'rgba(10,16,32,0.6)', backdropFilter: 'blur(2px)' }}>
+        style={{ background: 'rgba(10,16,32,0.75)' }}>
         <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
           <Lock className="h-5 w-5 text-slate-400" />
         </div>
@@ -608,7 +608,6 @@ export default function InvestPage() {
 
       {/* ── HERO ─────────────────────────────────────────────── */}
       <div className="relative overflow-hidden" style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%, rgba(234,88,12,0.15) 0%, transparent 70%), linear-gradient(180deg, #0b1220 0%, #080d18 100%)' }}>
-        <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
 
         <div className="relative max-w-5xl mx-auto px-4 py-14 md:py-20 text-center">
           <div className="inline-flex items-center gap-2 mb-6">
@@ -715,8 +714,8 @@ export default function InvestPage() {
         </div>
 
         {/* ── TABS ─────────────────────────────────────────────── */}
-        <div className="overflow-x-auto -mx-4 px-4 pb-1">
-          <div className="flex gap-2 min-w-max">
+        <div className="overflow-x-auto pb-1">
+          <div className="flex gap-2 min-w-max px-4">
             {TABS.map(tab => {
               const Icon = tab.icon;
               const active = activeTab === tab.key;
