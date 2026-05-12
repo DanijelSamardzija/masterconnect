@@ -218,6 +218,23 @@ function MessagesContent() {
     }
   }, [threadId, user]);
 
+  // Heartbeat: update last_read_at every 20s while viewing this thread so the
+  // push/email webhook knows the user is active and skips sending notifications.
+  useEffect(() => {
+    if (!threadId || !user) return;
+
+    const ping = () =>
+      supabase
+        .from('thread_participants')
+        .update({ last_read_at: new Date().toISOString() })
+        .eq('thread_id', threadId)
+        .eq('user_id', user.id);
+
+    ping();
+    const interval = setInterval(ping, 20_000);
+    return () => clearInterval(interval);
+  }, [threadId, user]);
+
   // Typing indicator channel
   useEffect(() => {
     if (!threadId || !user) return;

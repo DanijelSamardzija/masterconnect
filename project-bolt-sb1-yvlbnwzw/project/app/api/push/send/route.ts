@@ -47,8 +47,8 @@ export async function POST(request: NextRequest) {
     if (participant?.last_read_at) {
       const lastRead = new Date(participant.last_read_at).getTime();
       const now = Date.now();
-      // If user read something in this thread in the last 30 seconds, they're active
-      if (now - lastRead < 30000) {
+      // If user was active in this thread in the last 60 seconds, skip notification
+      if (now - lastRead < 60000) {
         return NextResponse.json({ skipped: 'user is active in conversation' });
       }
     }
