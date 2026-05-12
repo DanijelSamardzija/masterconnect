@@ -1204,18 +1204,28 @@ function MessagesContent() {
                             anySeenAfterLast ? (
                               <span className="flex items-center gap-0.5 text-[11px] text-blue-500 font-medium">
                                 <CheckCheck className="h-3.5 w-3.5" />
-                                Seen
+                                {t('messages.status.seen')}
                               </span>
                             ) : lastDelivered ? (
                               <span className="flex items-center gap-0.5 text-[11px] text-gray-400 dark:text-gray-500">
-                                <Check className="h-3.5 w-3.5" />
-                                Delivered
+                                <CheckCheck className="h-3.5 w-3.5" />
+                                {t('messages.status.delivered')}
                               </span>
-                            ) : null
+                            ) : (
+                              <span className="flex items-center gap-0.5 text-[11px] text-gray-400 dark:text-gray-500">
+                                <Check className="h-3.5 w-3.5" />
+                                {t('messages.status.sent')}
+                              </span>
+                            )
                           )}
                           {isOwn && !isDeleted && !isLastOwn && (
                             <span className="flex-shrink-0 text-gray-400 dark:text-gray-500">
-                              {message.seen_at ? <CheckCheck className="h-3 w-3" /> : message.delivered_at ? <Check className="h-3 w-3" /> : null}
+                              {message.seen_at
+                                ? <CheckCheck className="h-3 w-3 text-blue-500" />
+                                : message.delivered_at
+                                  ? <CheckCheck className="h-3 w-3" />
+                                  : <Check className="h-3 w-3" />
+                              }
                             </span>
                           )}
                         </div>

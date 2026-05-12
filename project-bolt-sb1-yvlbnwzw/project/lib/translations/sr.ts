@@ -453,6 +453,9 @@ export default {
   'messages.deleteConfirm': 'Obriši',
   'messages.deleteCancel': 'Otkaži',
   'messages.yourConversations': 'Vaši razgovori',
+  'messages.status.sent': 'Poslato',
+  'messages.status.delivered': 'Dostavljeno',
+  'messages.status.seen': 'Viđeno',
 
   // Dashboard
   'dashboard.welcome': 'Dobrodošli nazad',

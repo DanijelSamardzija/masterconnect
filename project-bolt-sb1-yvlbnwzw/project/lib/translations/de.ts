@@ -454,6 +454,9 @@ export default {
   'messages.deleteConfirm': 'Löschen',
   'messages.deleteCancel': 'Abbrechen',
   'messages.yourConversations': 'Ihre Unterhaltungen',
+  'messages.status.sent': 'Gesendet',
+  'messages.status.delivered': 'Zugestellt',
+  'messages.status.seen': 'Gesehen',
 
   // Dashboard
   'dashboard.welcome': 'Willkommen zurück',

@@ -453,6 +453,9 @@ export default {
   'messages.deleteConfirm': 'Delete',
   'messages.deleteCancel': 'Cancel',
   'messages.yourConversations': 'Your conversations',
+  'messages.status.sent': 'Sent',
+  'messages.status.delivered': 'Delivered',
+  'messages.status.seen': 'Seen',
 
   // Dashboard
   'dashboard.welcome': 'Welcome back',
