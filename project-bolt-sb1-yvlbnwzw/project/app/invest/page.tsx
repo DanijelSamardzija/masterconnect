@@ -516,11 +516,11 @@ function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
 function LockedSection({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
   return (
     <div className="relative rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.07)' }}>
-      <div style={{ filter: 'blur(4px)', pointerEvents: 'none', userSelect: 'none' }}>
+      <div style={{ opacity: 0.15, pointerEvents: 'none', userSelect: 'none' }}>
         {children}
       </div>
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-3"
-        style={{ background: 'rgba(10,16,32,0.75)' }}>
+        style={{ background: 'rgba(8,13,24,0.88)' }}>
         <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
           <Lock className="h-5 w-5 text-slate-400" />
         </div>
