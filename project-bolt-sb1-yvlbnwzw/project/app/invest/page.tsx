@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { useTheme } from '@/hooks/use-theme';
 import {
   TrendingUp, Search, MapPin, Bookmark, BookmarkCheck,
   ChevronRight, X, Building2, Rocket, HardHat, Leaf,
@@ -106,9 +107,9 @@ const TABS = [
 ];
 
 const RISK_STYLES: Record<RiskLevel, { bar: string; text: string; bg: string }> = {
-  Low:    { bar: 'bg-emerald-500', text: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
-  Medium: { bar: 'bg-amber-500',   text: 'text-amber-400',   bg: 'bg-amber-500/10 border-amber-500/20' },
-  High:   { bar: 'bg-red-500',     text: 'text-red-400',     bg: 'bg-red-500/10 border-red-500/20' },
+  Low:    { bar: 'bg-emerald-500', text: 'text-emerald-500', bg: 'bg-emerald-500/10 border-emerald-500/20' },
+  Medium: { bar: 'bg-amber-500',   text: 'text-amber-500',   bg: 'bg-amber-500/10 border-amber-500/20' },
+  High:   { bar: 'bg-red-500',     text: 'text-red-500',     bg: 'bg-red-500/10 border-red-500/20' },
 };
 
 const CATEGORY_ICONS: Record<string, React.ElementType> = {
@@ -125,11 +126,11 @@ const CATEGORY_GRADIENTS: Record<string, string> = {
 };
 
 const ICON_COLORS: Record<string, string> = {
-  'Local businesses': 'text-blue-400',
-  'Startups':         'text-purple-400',
-  'Construction':     'text-orange-400',
-  'Farming':          'text-emerald-400',
-  'Tech':             'text-cyan-400',
+  'Local businesses': 'text-blue-500',
+  'Startups':         'text-purple-500',
+  'Construction':     'text-orange-500',
+  'Farming':          'text-emerald-500',
+  'Tech':             'text-cyan-500',
 };
 
 function fmt(n: number) {
@@ -145,14 +146,7 @@ const ROLES: { value: WaitlistRole; labelKey: string; icon: React.ElementType }[
   { value: 'service_business', labelKey: 'invest.waitlist.role.serviceBusiness', icon: Zap },
 ];
 
-const inputStyle = {
-  background: 'rgba(255,255,255,0.05)',
-  border: '1px solid rgba(255,255,255,0.10)',
-  color: '#fff',
-  caretColor: '#ea580c',
-};
-
-function WaitlistModal({ onClose }: { onClose: () => void }) {
+function WaitlistModal({ onClose, isDark }: { onClose: () => void; isDark: boolean }) {
   const { t } = useLanguage();
   const [name, setName]       = useState('');
   const [email, setEmail]     = useState('');
@@ -160,6 +154,18 @@ function WaitlistModal({ onClose }: { onClose: () => void }) {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted]   = useState(false);
   const [error, setError]     = useState('');
+
+  const inputStyle = isDark ? {
+    background: 'rgba(255,255,255,0.05)',
+    border: '1px solid rgba(255,255,255,0.10)',
+    color: '#fff',
+    caretColor: '#ea580c',
+  } : {
+    background: 'rgba(0,0,0,0.03)',
+    border: '1px solid rgba(0,0,0,0.12)',
+    color: '#111827',
+    caretColor: '#ea580c',
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -194,6 +200,11 @@ function WaitlistModal({ onClose }: { onClose: () => void }) {
     }
   };
 
+  const modalBg = isDark ? '#0d1528' : '#ffffff';
+  const textMain = isDark ? '#ffffff' : '#111827';
+  const textSub  = isDark ? '#94a3b8' : '#6b7280';
+  const labelColor = isDark ? '#94a3b8' : '#6b7280';
+
   return (
     <>
       <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md" onClick={onClose} />
@@ -202,11 +213,18 @@ function WaitlistModal({ onClose }: { onClose: () => void }) {
           className="relative w-full max-w-md animate-in zoom-in-95 duration-200"
           style={{ filter: 'drop-shadow(0 0 40px rgba(234,88,12,0.25))' }}
         >
-          <div className="bg-[#0d1528] border border-orange-500/25 rounded-3xl p-7 space-y-6">
+          <div
+            className="rounded-3xl p-7 space-y-6"
+            style={{
+              background: modalBg,
+              border: isDark ? '1px solid rgba(234,88,12,0.25)' : '1px solid rgba(234,88,12,0.3)',
+            }}
+          >
             {/* Close */}
             <button
               onClick={onClose}
-              className="absolute top-5 right-5 p-1.5 rounded-xl text-slate-500 hover:text-white hover:bg-white/10 transition-all"
+              className="absolute top-5 right-5 p-1.5 rounded-xl transition-all"
+              style={{ color: textSub }}
             >
               <X className="h-4 w-4" />
             </button>
@@ -218,11 +236,11 @@ function WaitlistModal({ onClose }: { onClose: () => void }) {
                   className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center"
                   style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', boxShadow: '0 0 24px rgba(16,185,129,0.2)' }}
                 >
-                  <CheckCircle2 className="h-8 w-8 text-emerald-400" />
+                  <CheckCircle2 className="h-8 w-8 text-emerald-500" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-white mb-2">{t('invest.waitlist.success')}</h2>
-                  <p className="text-sm text-slate-400">{t('invest.waitlist.successSub')}</p>
+                  <h2 className="text-lg font-bold mb-2" style={{ color: textMain }}>{t('invest.waitlist.success')}</h2>
+                  <p className="text-sm" style={{ color: textSub }}>{t('invest.waitlist.successSub')}</p>
                 </div>
                 <button
                   onClick={onClose}
@@ -240,32 +258,35 @@ function WaitlistModal({ onClose }: { onClose: () => void }) {
                     className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4"
                     style={{ background: 'rgba(234,88,12,0.15)', border: '1px solid rgba(234,88,12,0.3)' }}
                   >
-                    <TrendingUp className="h-6 w-6 text-orange-400" />
+                    <TrendingUp className="h-6 w-6 text-orange-500" />
                   </div>
-                  <h2 className="text-xl font-bold text-white">{t('invest.waitlist.title')}</h2>
-                  <p className="text-sm text-slate-400 mt-1">{t('invest.waitlist.subtitle')}</p>
+                  <h2 className="text-xl font-bold" style={{ color: textMain }}>{t('invest.waitlist.title')}</h2>
+                  <p className="text-sm mt-1" style={{ color: textSub }}>{t('invest.waitlist.subtitle')}</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {/* Name */}
                   <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                    <label className="block text-xs font-medium mb-1.5" style={{ color: labelColor }}>
                       {t('invest.waitlist.name')}
                     </label>
                     <input
                       value={name}
                       onChange={e => setName(e.target.value)}
                       placeholder={t('invest.waitlist.namePlaceholder')}
-                      className="w-full px-4 py-2.5 rounded-xl text-sm placeholder:text-slate-600 outline-none transition-all"
-                      style={inputStyle}
+                      className="w-full px-4 py-2.5 rounded-xl text-sm outline-none transition-all"
+                      style={{
+                        ...inputStyle,
+                        '::placeholder': { color: isDark ? '#475569' : '#9ca3af' },
+                      } as React.CSSProperties}
                       onFocus={e => { e.currentTarget.style.borderColor = 'rgba(234,88,12,0.5)'; }}
-                      onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.10)'; }}
+                      onBlur={e => { e.currentTarget.style.borderColor = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.12)'; }}
                     />
                   </div>
 
                   {/* Email */}
                   <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                    <label className="block text-xs font-medium mb-1.5" style={{ color: labelColor }}>
                       {t('invest.waitlist.email')}
                     </label>
                     <input
@@ -273,16 +294,16 @@ function WaitlistModal({ onClose }: { onClose: () => void }) {
                       value={email}
                       onChange={e => setEmail(e.target.value)}
                       placeholder={t('invest.waitlist.emailPlaceholder')}
-                      className="w-full px-4 py-2.5 rounded-xl text-sm placeholder:text-slate-600 outline-none transition-all"
+                      className="w-full px-4 py-2.5 rounded-xl text-sm outline-none transition-all"
                       style={inputStyle}
                       onFocus={e => { e.currentTarget.style.borderColor = 'rgba(234,88,12,0.5)'; }}
-                      onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.10)'; }}
+                      onBlur={e => { e.currentTarget.style.borderColor = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.12)'; }}
                     />
                   </div>
 
                   {/* Role */}
                   <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-2">
+                    <label className="block text-xs font-medium mb-2" style={{ color: labelColor }}>
                       {t('invest.waitlist.roleLabel')}
                     </label>
                     <div className="grid grid-cols-2 gap-2">
@@ -297,11 +318,11 @@ function WaitlistModal({ onClose }: { onClose: () => void }) {
                             style={active ? {
                               background: 'rgba(234,88,12,0.18)',
                               border: '1px solid rgba(234,88,12,0.55)',
-                              color: '#fb923c',
+                              color: '#ea580c',
                             } : {
-                              background: 'rgba(255,255,255,0.04)',
-                              border: '1px solid rgba(255,255,255,0.08)',
-                              color: '#94a3b8',
+                              background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+                              border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)',
+                              color: isDark ? '#94a3b8' : '#6b7280',
                             }}
                           >
                             <Icon className="h-4 w-4 shrink-0" />
@@ -314,7 +335,7 @@ function WaitlistModal({ onClose }: { onClose: () => void }) {
 
                   {/* Error */}
                   {error && (
-                    <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">
+                    <p className="text-xs text-red-500 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">
                       {error}
                     </p>
                   )}
@@ -340,8 +361,11 @@ function WaitlistModal({ onClose }: { onClose: () => void }) {
 
 // ─── Coming Soon Modal ────────────────────────────────────────────────────────
 
-function ComingSoonModal({ onClose }: { onClose: () => void }) {
+function ComingSoonModal({ onClose, isDark }: { onClose: () => void; isDark: boolean }) {
   const { t } = useLanguage();
+  const modalBg  = isDark ? '#0d1528' : '#ffffff';
+  const textMain = isDark ? '#ffffff' : '#111827';
+  const textSub  = isDark ? '#94a3b8' : '#6b7280';
   return (
     <>
       <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md" onClick={onClose} />
@@ -350,16 +374,22 @@ function ComingSoonModal({ onClose }: { onClose: () => void }) {
           className="relative w-full max-w-sm animate-in zoom-in-95 duration-200"
           style={{ filter: 'drop-shadow(0 0 40px rgba(234,88,12,0.3))' }}
         >
-          <div className="bg-[#0d1528] border border-orange-500/30 rounded-3xl p-7 text-center space-y-5">
+          <div
+            className="rounded-3xl p-7 text-center space-y-5"
+            style={{
+              background: modalBg,
+              border: isDark ? '1px solid rgba(234,88,12,0.3)' : '1px solid rgba(234,88,12,0.35)',
+            }}
+          >
             <div
               className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center"
               style={{ background: 'radial-gradient(circle, rgba(234,88,12,0.3) 0%, rgba(234,88,12,0.05) 100%)', boxShadow: '0 0 30px rgba(234,88,12,0.4)' }}
             >
-              <TrendingUp className="h-8 w-8 text-orange-400" />
+              <TrendingUp className="h-8 w-8 text-orange-500" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white mb-2">{t('invest.comingSoon')}</h2>
-              <p className="text-sm text-slate-400 leading-relaxed">{t('invest.modal.desc')}</p>
+              <h2 className="text-xl font-bold mb-2" style={{ color: textMain }}>{t('invest.comingSoon')}</h2>
+              <p className="text-sm leading-relaxed" style={{ color: textSub }}>{t('invest.modal.desc')}</p>
             </div>
             <button
               onClick={onClose}
@@ -377,8 +407,8 @@ function ComingSoonModal({ onClose }: { onClose: () => void }) {
 
 // ─── Project Card ─────────────────────────────────────────────────────────────
 
-function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
-  project: Project; saved: boolean;
+function ProjectCard({ project, saved, onComingSoon, onToggleSave, isDark }: {
+  project: Project; saved: boolean; isDark: boolean;
   onComingSoon: () => void; onToggleSave: (id: string) => void;
 }) {
   const { t } = useLanguage();
@@ -386,8 +416,19 @@ function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
   const Icon = CATEGORY_ICONS[project.category] || TrendingUp;
   const risk = RISK_STYLES[project.risk_level];
   const grad = CATEGORY_GRADIENTS[project.category] || 'from-slate-600/20 to-slate-800/10';
-  const iconColor = ICON_COLORS[project.category] || 'text-slate-400';
+  const iconColor = ICON_COLORS[project.category] || 'text-slate-500';
   const riskLabel = `${t(`invest.risk.${project.risk_level}`)} ${t('invest.risk.suffix')}`;
+
+  const cardBg     = isDark ? 'linear-gradient(145deg, #0d1528, #0a1020)' : 'linear-gradient(145deg, #ffffff, #f8f9fb)';
+  const cardBorder = hovered
+    ? '1px solid rgba(234,88,12,0.5)'
+    : isDark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(0,0,0,0.09)';
+  const textMain   = isDark ? '#ffffff' : '#111827';
+  const textMuted  = isDark ? '#94a3b8' : '#6b7280';
+  const textFaint  = isDark ? '#64748b' : '#9ca3af';
+  const statBg     = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)';
+  const statBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.07)';
+  const rowBg      = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)';
 
   return (
     <div
@@ -395,10 +436,10 @@ function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
       onMouseLeave={() => setHovered(false)}
       className="flex flex-col rounded-2xl overflow-hidden transition-all duration-300"
       style={{
-        background: 'linear-gradient(145deg, #0d1528, #0a1020)',
-        border: hovered ? '1px solid rgba(234,88,12,0.5)' : '1px solid rgba(255,255,255,0.07)',
+        background: cardBg,
+        border: cardBorder,
         transform: hovered ? 'translateY(-3px)' : 'translateY(0)',
-        boxShadow: hovered ? '0 8px 40px rgba(234,88,12,0.15), 0 2px 8px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.3)',
+        boxShadow: hovered ? '0 8px 40px rgba(234,88,12,0.15), 0 2px 8px rgba(0,0,0,0.15)' : isDark ? '0 2px 8px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.06)',
       }}
     >
       <div className={`relative h-36 bg-gradient-to-br ${grad} flex items-center justify-center`}>
@@ -409,12 +450,12 @@ function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
             {riskLabel}
           </span>
           {project.status === 'preview' && (
-            <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-orange-500/20 border border-orange-500/30 text-orange-400">
+            <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-orange-500/20 border border-orange-500/30 text-orange-500">
               {t('invest.card.previewBadge')}
             </span>
           )}
           {project.status === 'coming_soon' && (
-            <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-slate-500/20 border border-slate-500/30 text-slate-400">
+            <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-slate-500/20 border border-slate-500/30 text-slate-500">
               {t('invest.card.comingSoonBadge')}
             </span>
           )}
@@ -422,74 +463,83 @@ function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
 
         <button
           onClick={() => onToggleSave(project.id)}
-          className="absolute top-3 right-3 p-1.5 rounded-xl bg-black/40 hover:bg-black/60 border border-white/10 transition-all"
+          className="absolute top-3 right-3 p-1.5 rounded-xl transition-all"
+          style={{ background: isDark ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.75)', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)' }}
         >
           {saved
-            ? <BookmarkCheck className="h-4 w-4 text-orange-400" />
-            : <Bookmark className="h-4 w-4 text-slate-400" />
+            ? <BookmarkCheck className="h-4 w-4 text-orange-500" />
+            : <Bookmark className="h-4 w-4" style={{ color: textFaint }} />
           }
         </button>
 
-        <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-black/50 border border-white/10 rounded-lg px-2 py-1">
-          <Users className="h-3 w-3 text-slate-400" />
-          <span className="text-[10px] text-slate-300 font-medium">{project.investors} {t('invest.card.interested')}</span>
+        <div
+          className="absolute bottom-3 right-3 flex items-center gap-1 rounded-lg px-2 py-1"
+          style={{ background: isDark ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.75)', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)' }}
+        >
+          <Users className="h-3 w-3" style={{ color: textFaint }} />
+          <span className="text-[10px] font-medium" style={{ color: textMuted }}>{project.investors} {t('invest.card.interested')}</span>
         </div>
       </div>
 
       <div className="p-4 flex flex-col gap-3 flex-1">
         <div>
-          <p className="text-[11px] text-slate-500 font-medium mb-1">{project.category}</p>
-          <h3 className="font-semibold text-white text-sm leading-snug">{project.title}</h3>
+          <p className="text-[11px] font-medium mb-1" style={{ color: textFaint }}>{project.category}</p>
+          <h3 className="font-semibold text-sm leading-snug" style={{ color: textMain }}>{project.title}</h3>
           <div className="flex items-center gap-1 mt-1.5">
-            <MapPin className="h-3 w-3 text-slate-500 shrink-0" />
-            <span className="text-[11px] text-slate-500">{project.city}, {project.country}</span>
+            <MapPin className="h-3 w-3 shrink-0" style={{ color: textFaint }} />
+            <span className="text-[11px]" style={{ color: textFaint }}>{project.city}, {project.country}</span>
           </div>
         </div>
 
-        <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-2">{project.description}</p>
+        <p className="text-[11px] leading-relaxed line-clamp-2" style={{ color: textMuted }}>{project.description}</p>
 
         <div>
           <div className="flex justify-between items-center mb-1.5">
-            <span className="text-[11px] text-slate-400">{t('invest.card.fundingProgress')}</span>
-            <span className="text-[11px] font-semibold text-orange-400">{project.funding_pct}%</span>
+            <span className="text-[11px]" style={{ color: textMuted }}>{t('invest.card.fundingProgress')}</span>
+            <span className="text-[11px] font-semibold text-orange-500">{project.funding_pct}%</span>
           </div>
-          <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)' }}>
             <div
               className="h-full rounded-full transition-all duration-700"
               style={{ width: `${project.funding_pct}%`, background: 'linear-gradient(90deg, #ea580c, #f97316)', boxShadow: '0 0 8px rgba(234,88,12,0.6)' }}
             />
           </div>
-          <p className="text-[10px] text-slate-500 mt-1">
+          <p className="text-[10px] mt-1" style={{ color: textFaint }}>
             {fmt(project.funding_goal * project.funding_pct / 100)} {t('invest.card.raisedOf')} {fmt(project.funding_goal)}
           </p>
         </div>
 
         <div className="grid grid-cols-3 gap-1.5">
-          <div className="bg-white/[0.04] border border-white/[0.06] rounded-xl p-2 text-center">
-            <p className="text-[9px] text-slate-500 mb-0.5">{t('invest.card.minInvest')}</p>
-            <p className="text-xs font-bold text-white">{fmt(project.minimum_investment)}</p>
+          <div className="rounded-xl p-2 text-center" style={{ background: statBg, border: `1px solid ${statBorder}` }}>
+            <p className="text-[9px] mb-0.5" style={{ color: textFaint }}>{t('invest.card.minInvest')}</p>
+            <p className="text-xs font-bold" style={{ color: textMain }}>{fmt(project.minimum_investment)}</p>
           </div>
-          <div className="bg-white/[0.04] border border-white/[0.06] rounded-xl p-2 text-center">
-            <p className="text-[9px] text-slate-500 mb-0.5">{t('invest.card.estRoi')}</p>
-            <p className="text-xs font-bold text-orange-400">{project.estimated_roi}</p>
+          <div className="rounded-xl p-2 text-center" style={{ background: statBg, border: `1px solid ${statBorder}` }}>
+            <p className="text-[9px] mb-0.5" style={{ color: textFaint }}>{t('invest.card.estRoi')}</p>
+            <p className="text-xs font-bold text-orange-500">{project.estimated_roi}</p>
           </div>
-          <div className="bg-white/[0.04] border border-white/[0.06] rounded-xl p-2 text-center">
-            <p className="text-[9px] text-slate-500 mb-0.5">{t('invest.card.deadline')}</p>
-            <p className="text-xs font-bold text-white">
+          <div className="rounded-xl p-2 text-center" style={{ background: statBg, border: `1px solid ${statBorder}` }}>
+            <p className="text-[9px] mb-0.5" style={{ color: textFaint }}>{t('invest.card.deadline')}</p>
+            <p className="text-xs font-bold" style={{ color: textMain }}>
               {new Date(project.funding_deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 bg-white/[0.03] border border-white/[0.06] rounded-xl px-3 py-2">
-          <TrendingUp className="h-3.5 w-3.5 text-orange-400 shrink-0" />
-          <span className="text-[11px] text-slate-400">{t('invest.card.expected')} <span className="text-white font-medium">{project.expected_return}</span></span>
+        <div className="flex items-center gap-1.5 rounded-xl px-3 py-2" style={{ background: rowBg, border: `1px solid ${statBorder}` }}>
+          <TrendingUp className="h-3.5 w-3.5 text-orange-500 shrink-0" />
+          <span className="text-[11px]" style={{ color: textMuted }}>{t('invest.card.expected')} <span className="font-medium" style={{ color: textMain }}>{project.expected_return}</span></span>
         </div>
 
         <div className="flex gap-2 mt-auto pt-1">
           <button
             onClick={onComingSoon}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-medium text-slate-300 border border-white/10 hover:border-white/20 hover:text-white transition-all bg-white/[0.04] hover:bg-white/[0.07]"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-medium transition-all"
+            style={{
+              color: textMuted,
+              background: statBg,
+              border: `1px solid ${statBorder}`,
+            }}
           >
             <Eye className="h-3.5 w-3.5" />
             {t('invest.card.view')}
@@ -498,7 +548,7 @@ function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
             onClick={onComingSoon}
             className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold text-white transition-all duration-200"
             style={{
-              background: hovered ? 'linear-gradient(135deg, #ea580c, #c2410c)' : 'rgba(234,88,12,0.8)',
+              background: hovered ? 'linear-gradient(135deg, #ea580c, #c2410c)' : 'rgba(234,88,12,0.85)',
               boxShadow: hovered ? '0 4px 16px rgba(234,88,12,0.4)' : 'none',
             }}
           >
@@ -513,20 +563,28 @@ function ProjectCard({ project, saved, onComingSoon, onToggleSave }: {
 
 // ─── Blurred locked section ───────────────────────────────────────────────────
 
-function LockedSection({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
+function LockedSection({ title, subtitle, children, isDark }: {
+  title: string; subtitle: string; children: React.ReactNode; isDark: boolean;
+}) {
+  const overlayBg  = isDark ? 'rgba(8,13,24,0.88)'    : 'rgba(248,249,252,0.92)';
+  const iconBg     = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)';
+  const iconBorder = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.10)';
+  const border     = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.09)';
+  const textMain   = isDark ? '#ffffff' : '#111827';
+  const textSub    = isDark ? '#64748b' : '#9ca3af';
   return (
-    <div className="relative rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.07)' }}>
+    <div className="relative rounded-2xl overflow-hidden" style={{ border: `1px solid ${border}` }}>
       <div style={{ opacity: 0.15, pointerEvents: 'none', userSelect: 'none' }}>
         {children}
       </div>
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-3"
-        style={{ background: 'rgba(8,13,24,0.88)' }}>
-        <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
-          <Lock className="h-5 w-5 text-slate-400" />
+        style={{ background: overlayBg }}>
+        <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ background: iconBg, border: `1px solid ${iconBorder}` }}>
+          <Lock className="h-5 w-5" style={{ color: isDark ? '#64748b' : '#9ca3af' }} />
         </div>
         <div className="text-center">
-          <p className="text-sm font-semibold text-white">{title}</p>
-          <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>
+          <p className="text-sm font-semibold" style={{ color: textMain }}>{title}</p>
+          <p className="text-xs mt-0.5" style={{ color: textSub }}>{subtitle}</p>
         </div>
       </div>
     </div>
@@ -537,6 +595,9 @@ function LockedSection({ title, subtitle, children }: { title: string; subtitle:
 
 export default function InvestPage() {
   const { t } = useLanguage();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   const [activeTab, setActiveTab] = useState<string>('all');
   const [search, setSearch]       = useState('');
   const [saved, setSaved]         = useState<Set<string>>(new Set());
@@ -579,38 +640,55 @@ export default function InvestPage() {
     t('invest.dashboard.nextPayout'),
   ];
 
+  const pageBg     = isDark ? '#080d18'                  : 'hsl(var(--background))';
+  const heroBg     = isDark
+    ? 'radial-gradient(ellipse 80% 60% at 50% -10%, rgba(234,88,12,0.15) 0%, transparent 70%), linear-gradient(180deg, #0b1220 0%, #080d18 100%)'
+    : 'radial-gradient(ellipse 80% 60% at 50% -10%, rgba(234,88,12,0.08) 0%, transparent 70%), linear-gradient(180deg, #f3f4f6 0%, hsl(var(--background)) 100%)';
+  const textMain   = isDark ? '#ffffff' : '#111827';
+  const textMuted  = isDark ? '#94a3b8' : '#6b7280';
+  const textFaint  = isDark ? '#64748b' : '#9ca3af';
+  const statBg     = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)';
+  const statBorder = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.08)';
+  const searchBg   = isDark ? 'rgba(255,255,255,0.05)' : '#ffffff';
+  const searchBorder = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.12)';
+  const ctaBg      = isDark
+    ? 'radial-gradient(ellipse at 50% 0%, rgba(234,88,12,0.12) 0%, rgba(234,88,12,0.03) 70%)'
+    : 'radial-gradient(ellipse at 50% 0%, rgba(234,88,12,0.07) 0%, rgba(234,88,12,0.01) 70%)';
+  const ctaBorder  = isDark ? 'rgba(234,88,12,0.2)' : 'rgba(234,88,12,0.25)';
+  const dashInnerBg = isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)';
+  const dashBoxBg   = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)';
+
   return (
-    <div className="min-h-screen" style={{ background: '#080d18' }}>
-      {modal    && <ComingSoonModal onClose={() => setModal(false)} />}
-      {waitlist && <WaitlistModal   onClose={() => setWaitlist(false)} />}
+    <div className="min-h-screen" style={{ background: pageBg }}>
+      {modal    && <ComingSoonModal onClose={() => setModal(false)}    isDark={isDark} />}
+      {waitlist && <WaitlistModal   onClose={() => setWaitlist(false)} isDark={isDark} />}
 
       {/* ── HERO ─────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden" style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%, rgba(234,88,12,0.15) 0%, transparent 70%), linear-gradient(180deg, #0b1220 0%, #080d18 100%)' }}>
+      <div className="relative overflow-hidden" style={{ background: heroBg }}>
 
         <div className="relative max-w-5xl mx-auto px-4 py-14 md:py-20 text-center">
           <div className="inline-flex items-center gap-2 mb-6">
             <span
-              className="invest-glow-badge inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase text-orange-300"
-              style={{ background: 'rgba(234,88,12,0.15)', border: '1px solid rgba(234,88,12,0.4)' }}
+              className="invest-glow-badge inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase text-orange-500"
+              style={{ background: 'rgba(234,88,12,0.12)', border: '1px solid rgba(234,88,12,0.4)' }}
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
               {t('invest.comingSoon')}
             </span>
           </div>
 
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-4 text-white leading-tight">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-4 leading-tight" style={{ color: textMain }}>
             {t('invest.hero.title1')}{' '}
             <span style={{ background: 'linear-gradient(135deg, #f97316, #ea580c)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               {t('invest.hero.title2')}
             </span>
           </h1>
-          <p className="text-slate-400 max-w-xl mx-auto text-base md:text-lg leading-relaxed mb-8">
+          <p className="max-w-xl mx-auto text-base md:text-lg leading-relaxed mb-8" style={{ color: textMuted }}>
             {t('invest.hero.subtitle')}
           </p>
 
           {/* CTAs */}
           <div className="flex flex-wrap gap-3 justify-center">
-            {/* Primary — Waitlist */}
             <button
               onClick={() => setWaitlist(true)}
               className="flex items-center gap-2 px-7 py-3.5 rounded-xl font-bold text-white text-sm transition-all duration-200 hover:scale-105"
@@ -619,10 +697,14 @@ export default function InvestPage() {
               <Award className="h-4 w-4" />
               {t('invest.waitlist.button')}
             </button>
-            {/* Secondary — Submit */}
             <button
               onClick={() => setModal(true)}
-              className="flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-slate-300 text-sm border border-white/15 hover:border-white/30 hover:text-white transition-all duration-200 bg-white/[0.04] hover:bg-white/[0.08]"
+              className="flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200"
+              style={{
+                color: textMuted,
+                background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
+                border: isDark ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(0,0,0,0.12)',
+              }}
             >
               <Rocket className="h-4 w-4" />
               {t('invest.hero.submitProject')}
@@ -632,11 +714,11 @@ export default function InvestPage() {
           {/* Stats strip */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-12 max-w-2xl mx-auto">
             {heroStats.map(({ icon: Icon, label, value, sub }) => (
-              <div key={label} className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                <Icon className="h-4 w-4 text-orange-400 mx-auto mb-1.5" />
-                <p className="text-lg font-black text-white">{value}</p>
-                <p className="text-[10px] text-slate-500 leading-tight">{label}</p>
-                <p className="text-[9px] text-slate-600">{sub}</p>
+              <div key={label} className="rounded-xl p-3 text-center" style={{ background: statBg, border: `1px solid ${statBorder}` }}>
+                <Icon className="h-4 w-4 text-orange-500 mx-auto mb-1.5" />
+                <p className="text-lg font-black" style={{ color: textMain }}>{value}</p>
+                <p className="text-[10px] leading-tight" style={{ color: textFaint }}>{label}</p>
+                <p className="text-[9px]" style={{ color: textFaint }}>{sub}</p>
               </div>
             ))}
           </div>
@@ -646,9 +728,9 @@ export default function InvestPage() {
       {/* ── DISCLAIMER ───────────────────────────────────────── */}
       <div style={{ background: 'rgba(251,191,36,0.05)', borderBottom: '1px solid rgba(251,191,36,0.15)' }}>
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-start gap-2">
-          <Info className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-          <p className="text-xs text-amber-400/80 leading-relaxed">
-            <strong className="text-amber-300">{t('invest.disclaimer.title')}</strong>{' '}
+          <Info className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+          <p className="text-xs text-amber-600 dark:text-amber-400 leading-relaxed">
+            <strong className="text-amber-700 dark:text-amber-300">{t('invest.disclaimer.title')}</strong>{' '}
             {t('invest.disclaimer.body')}
           </p>
         </div>
@@ -657,13 +739,13 @@ export default function InvestPage() {
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
 
         {/* ── LOCKED DASHBOARD ─────────────────────────────────── */}
-        <LockedSection title={t('invest.dashboard.title')} subtitle={t('invest.locked.available')}>
-          <div className="p-5" style={{ background: 'rgba(255,255,255,0.02)' }}>
-            <p className="text-sm font-semibold text-white mb-4">{t('invest.dashboard.portfolio')}</p>
+        <LockedSection title={t('invest.dashboard.title')} subtitle={t('invest.locked.available')} isDark={isDark}>
+          <div className="p-5" style={{ background: dashInnerBg }}>
+            <p className="text-sm font-semibold mb-4" style={{ color: textMain }}>{t('invest.dashboard.portfolio')}</p>
             <div className="grid grid-cols-4 gap-3 mb-4">
               {dashboardLabels.map((l, i) => (
-                <div key={l} className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.04)' }}>
-                  <p className="text-xs text-slate-500">{l}</p>
+                <div key={l} className="rounded-xl p-3" style={{ background: dashBoxBg }}>
+                  <p className="text-xs" style={{ color: textFaint }}>{l}</p>
                   <div className="h-5 mt-1 rounded invest-shimmer-bar" style={{ width: ['70%', '50%', '60%', '80%'][i] }} />
                 </div>
               ))}
@@ -674,19 +756,19 @@ export default function InvestPage() {
 
         {/* ── SEARCH ───────────────────────────────────────────── */}
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: textFaint }} />
           <input
             placeholder={t('invest.search.placeholder')}
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-11 pr-10 py-3 rounded-xl text-sm text-white placeholder:text-slate-600 outline-none transition-all"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', caretColor: '#ea580c' }}
+            className="w-full pl-11 pr-10 py-3 rounded-xl text-sm outline-none transition-all"
+            style={{ background: searchBg, border: `1px solid ${searchBorder}`, color: isDark ? '#ffffff' : '#111827', caretColor: '#ea580c' }}
             onFocus={e => { e.currentTarget.style.borderColor = 'rgba(234,88,12,0.4)'; }}
-            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+            onBlur={e => { e.currentTarget.style.borderColor = searchBorder; }}
           />
           {search && (
             <button onClick={() => setSearch('')} className="absolute right-4 top-1/2 -translate-y-1/2">
-              <X className="h-4 w-4 text-slate-500 hover:text-white transition-colors" />
+              <X className="h-4 w-4" style={{ color: textFaint }} />
             </button>
           )}
         </div>
@@ -705,12 +787,12 @@ export default function InvestPage() {
                   style={active ? {
                     background: 'linear-gradient(135deg, rgba(234,88,12,0.3), rgba(234,88,12,0.15))',
                     border: '1px solid rgba(234,88,12,0.5)',
-                    color: '#fb923c',
+                    color: '#ea580c',
                     boxShadow: '0 0 12px rgba(234,88,12,0.2)',
                   } : {
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.07)',
-                    color: '#64748b',
+                    background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
+                    border: isDark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(0,0,0,0.09)',
+                    color: textFaint,
                   }}
                 >
                   <Icon className="h-3.5 w-3.5" />
@@ -722,7 +804,7 @@ export default function InvestPage() {
         </div>
 
         {/* ── COUNT ────────────────────────────────────────────── */}
-        <p className="text-xs text-slate-600">{countLabel}</p>
+        <p className="text-xs" style={{ color: textFaint }}>{countLabel}</p>
 
         {/* ── PROJECT GRID ─────────────────────────────────────── */}
         {filtered.length > 0 ? (
@@ -733,21 +815,22 @@ export default function InvestPage() {
                 saved={saved.has(p.id)}
                 onComingSoon={() => setModal(true)}
                 onToggleSave={toggleSave}
+                isDark={isDark}
               />
             ))}
           </div>
         ) : (
           <div className="text-center py-20">
-            <TrendingUp className="h-12 w-12 mx-auto mb-3 text-slate-700" />
-            <p className="font-medium text-slate-400">{t('invest.empty.title')}</p>
-            <p className="text-sm text-slate-600 mt-1">{t('invest.empty.subtitle')}</p>
+            <TrendingUp className="h-12 w-12 mx-auto mb-3" style={{ color: textFaint }} />
+            <p className="font-medium" style={{ color: textMuted }}>{t('invest.empty.title')}</p>
+            <p className="text-sm mt-1" style={{ color: textFaint }}>{t('invest.empty.subtitle')}</p>
           </div>
         )}
 
         {/* ── LOCKED LEADERBOARD ───────────────────────────────── */}
-        <LockedSection title={t('invest.leaderboard.title')} subtitle={t('invest.locked.available')}>
-          <div className="p-5" style={{ background: 'rgba(255,255,255,0.02)' }}>
-            <p className="text-sm font-semibold text-white mb-4">{t('invest.leaderboard.subtitle')}</p>
+        <LockedSection title={t('invest.leaderboard.title')} subtitle={t('invest.locked.available')} isDark={isDark}>
+          <div className="p-5" style={{ background: dashInnerBg }}>
+            <p className="text-sm font-semibold mb-4" style={{ color: textMain }}>{t('invest.leaderboard.subtitle')}</p>
             {[92, 78, 65, 54, 43].map((w, i) => (
               <div key={i} className="flex items-center gap-3 mb-3">
                 <div className="w-7 h-7 rounded-full invest-shimmer-bar shrink-0" />
@@ -764,13 +847,13 @@ export default function InvestPage() {
         {/* ── BOTTOM CTA ───────────────────────────────────────── */}
         <div
           className="rounded-2xl p-7 text-center space-y-4"
-          style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(234,88,12,0.12) 0%, rgba(234,88,12,0.03) 70%)', border: '1px solid rgba(234,88,12,0.2)' }}
+          style={{ background: ctaBg, border: `1px solid ${ctaBorder}` }}
         >
           <div className="invest-float-icon w-12 h-12 mx-auto rounded-2xl flex items-center justify-center" style={{ background: 'rgba(234,88,12,0.15)', border: '1px solid rgba(234,88,12,0.3)' }}>
-            <BarChart2 className="h-6 w-6 text-orange-400" />
+            <BarChart2 className="h-6 w-6 text-orange-500" />
           </div>
-          <h3 className="text-xl font-bold text-white">{t('invest.cta.title')}</h3>
-          <p className="text-sm text-slate-400 max-w-md mx-auto">{t('invest.cta.subtitle')}</p>
+          <h3 className="text-xl font-bold" style={{ color: textMain }}>{t('invest.cta.title')}</h3>
+          <p className="text-sm max-w-md mx-auto" style={{ color: textMuted }}>{t('invest.cta.subtitle')}</p>
           <div className="flex flex-wrap gap-3 justify-center">
             <button
               onClick={() => setWaitlist(true)}
@@ -782,7 +865,12 @@ export default function InvestPage() {
             </button>
             <button
               onClick={() => setModal(true)}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-slate-300 text-sm border border-white/15 hover:border-white/30 hover:text-white transition-all duration-200 bg-white/[0.04] hover:bg-white/[0.08]"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200"
+              style={{
+                color: textMuted,
+                background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
+                border: isDark ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(0,0,0,0.12)',
+              }}
             >
               {t('invest.cta.button')}
               <ChevronRight className="h-4 w-4" />
