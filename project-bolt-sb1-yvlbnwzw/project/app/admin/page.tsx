@@ -417,9 +417,26 @@ function AdminContent() {
         .slice(0, 15);
 
       // Country aggregation
+      const countryAliases: Record<string, string> = {
+        'serbia': 'Srbija', 'srbija': 'Srbija',
+        'croatia': 'Hrvatska', 'hrvatska': 'Hrvatska',
+        'bosnia and herzegovina': 'Bosna i Hercegovina', 'bosna i hercegovina': 'Bosna i Hercegovina', 'bosnia': 'Bosna i Hercegovina',
+        'montenegro': 'Crna Gora', 'crna gora': 'Crna Gora',
+        'slovenia': 'Slovenija', 'slovenija': 'Slovenija',
+        'north macedonia': 'Sjeverna Makedonija', 'sjeverna makedonija': 'Sjeverna Makedonija', 'macedonia': 'Sjeverna Makedonija',
+        'germany': 'Njemačka', 'njemačka': 'Njemačka', 'deutschland': 'Njemačka',
+        'austria': 'Austrija', 'austrija': 'Austrija', 'österreich': 'Austrija',
+        'switzerland': 'Švajcarska', 'švajcarska': 'Švajcarska', 'schweiz': 'Švajcarska',
+        'slovakia': 'Slovačka', 'slovačka': 'Slovačka',
+        'united states': 'SAD', 'usa': 'SAD', 'united states of america': 'SAD',
+        'united kingdom': 'Velika Britanija', 'uk': 'Velika Britanija',
+      };
       const countryCount: Record<string, number> = {};
       for (const p of countryProfiles || []) {
-        if (p.country) countryCount[p.country] = (countryCount[p.country] || 0) + 1;
+        if (p.country) {
+          const normalized = countryAliases[p.country.toLowerCase()] ?? p.country;
+          countryCount[normalized] = (countryCount[normalized] || 0) + 1;
+        }
       }
       const topCountries = Object.entries(countryCount)
         .map(([country, count]) => ({ country, count }))
