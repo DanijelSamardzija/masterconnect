@@ -18,6 +18,7 @@ function getContent(isPro: boolean, lang: 'sr' | 'de' | 'en', firstName: string)
            <li>Objavi šta ti treba i <strong>čekaj ponude</strong></li>
            <li>Potraži <strong>posao</strong> ili oglasi radno mesto</li>`,
       cta: isPro ? 'Objavi prvi oglas' : 'Istraži GigZone',
+      social: 'Povremeno dijelimo najbolje oglase na našem <strong>TikTok</strong> i <strong>Instagram</strong> nalogu — tvoj oglas može biti jedan od njih!',
       footer: 'Ako imaš pitanja, samo odgovori na ovaj mejl.',
       team: 'GigZone tim',
     };
@@ -36,6 +37,7 @@ function getContent(isPro: boolean, lang: 'sr' | 'de' | 'en', firstName: string)
            <li>Schreibe, was du brauchst, und <strong>warte auf Angebote</strong></li>
            <li>Suche einen <strong>Job</strong> oder veröffentliche eine Stelle</li>`,
       cta: isPro ? 'Erste Anzeige schalten' : 'GigZone entdecken',
+      social: 'Wir teilen gelegentlich die besten Anzeigen auf unserem <strong>TikTok</strong> und <strong>Instagram</strong> — deine könnte dabei sein!',
       footer: 'Bei Fragen antworte einfach auf diese E-Mail.',
       team: 'Das GigZone-Team',
     };
@@ -53,6 +55,7 @@ function getContent(isPro: boolean, lang: 'sr' | 'de' | 'en', firstName: string)
          <li>Post what you need and <strong>wait for offers</strong></li>
          <li>Search for a <strong>job</strong> or post a vacancy</li>`,
     cta: isPro ? 'Post your first listing' : 'Explore GigZone',
+    social: 'We occasionally share the best listings on our <strong>TikTok</strong> and <strong>Instagram</strong> — yours could be one of them!',
     footer: 'If you have any questions, just reply to this email.',
     team: 'The GigZone Team',
   };
@@ -121,6 +124,10 @@ export async function POST(request: NextRequest) {
                   ${c.cta}
                 </a>
               </div>
+
+              <p style="color:#555;font-size:14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:14px 16px;margin:0 0 20px">
+                📱 ${c.social}
+              </p>
 
               <p style="color:#888;font-size:13px;margin:24px 0 0">
                 ${c.footer}<br/>
