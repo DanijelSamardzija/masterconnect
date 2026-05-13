@@ -118,6 +118,14 @@ type AnalyticsData = {
   signupSources: { source: string; count: number }[];
   dailyNewUsers: { date: string; count: number }[];
 };
+type InvestStats = {
+  waitlistTotal: number;
+  byRole: { role: string; count: number }[];
+  recent: { name: string; email: string; role: string; created_at: string }[];
+  interestsTotal: number;
+  projectsTotal: number;
+};
+
 type ReportFilter = 'all' | 'open' | 'reviewed' | 'resolved';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -198,6 +206,10 @@ function AdminContent() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
+  // Invest analytics state
+  const [investStats, setInvestStats] = useState<InvestStats | null>(null);
+  const [investLoading, setInvestLoading] = useState(false);
 
   // ── Redirect non-admins ──────────────────────────────────────────────────
   useEffect(() => {
@@ -454,6 +466,37 @@ function AdminContent() {
       });
     } finally {
       setAnalyticsLoading(false);
+    }
+  };
+
+  // ── Invest analytics ─────────────────────────────────────────────────────
+  const fetchInvestStats = async () => {
+    setInvestLoading(true);
+    try {
+      const [waitlistRes, interestsRes, projectsRes] = await Promise.all([
+        supabase.from('investment_waitlist').select('name, email, role, created_at').order('created_at', { ascending: false }),
+        supabase.from('investment_interests').select('id', { count: 'exact', head: true }),
+        supabase.from('investment_projects').select('id', { count: 'exact', head: true }),
+      ]);
+
+      const waitlist = waitlistRes.data || [];
+      const roleMap: Record<string, number> = {};
+      for (const w of waitlist) {
+        roleMap[w.role] = (roleMap[w.role] || 0) + 1;
+      }
+      const byRole = Object.entries(roleMap)
+        .map(([role, count]) => ({ role, count }))
+        .sort((a, b) => b.count - a.count);
+
+      setInvestStats({
+        waitlistTotal: waitlist.length,
+        byRole,
+        recent: waitlist.slice(0, 8),
+        interestsTotal: interestsRes.count || 0,
+        projectsTotal: projectsRes.count || 0,
+      });
+    } finally {
+      setInvestLoading(false);
     }
   };
 
@@ -815,7 +858,10 @@ function AdminContent() {
                 key={key}
                 onClick={() => {
                   setActiveTab(key);
-                  if (key === 'analytics' && !analytics) fetchAnalytics(selectedYear);
+                  if (key === 'analytics') {
+                    if (!analytics) fetchAnalytics(selectedYear);
+                    if (!investStats) fetchInvestStats();
+                  }
                 }}
                 className={`px-3 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px whitespace-nowrap ${
                   activeTab === key
@@ -1857,6 +1903,120 @@ function AdminContent() {
                     </div>
                   )}
                 </div>
+              {/* ── INVEST ANALYTICS ── */}
+              <div className="mt-2 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-orange-500" />
+                    <h3 className="font-semibold text-sm text-foreground">Invest — Lista čekanja</h3>
+                  </div>
+                  <button
+                    onClick={() => { setInvestStats(null); fetchInvestStats(); }}
+                    className="text-xs text-orange-500 hover:underline flex items-center gap-1"
+                  >
+                    <RefreshCw className="h-3 w-3" /> Osvježi
+                  </button>
+                </div>
+
+                {investLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-5 w-5 animate-spin text-orange-500" />
+                  </div>
+                ) : investStats ? (
+                  <div className="space-y-4">
+                    {/* Summary cards */}
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { label: 'Ukupno na listi', value: investStats.waitlistTotal, color: 'text-orange-500' },
+                        { label: 'Ukupno interesa', value: investStats.interestsTotal, color: 'text-blue-500' },
+                        { label: 'Projekata', value: investStats.projectsTotal, color: 'text-purple-500' },
+                      ].map(({ label, value, color }) => (
+                        <div key={label} className="bg-card border border-border rounded-2xl p-4 text-center">
+                          <p className={`text-2xl font-black ${color}`}>{value}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{label}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Role breakdown */}
+                    <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
+                      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Po ulozi</h4>
+                      {investStats.byRole.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-2">Nema podataka</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {investStats.byRole.map(({ role, count }) => {
+                            const pct = investStats.waitlistTotal > 0 ? Math.round((count / investStats.waitlistTotal) * 100) : 0;
+                            const roleLabels: Record<string, string> = {
+                              investor: 'Investitor',
+                              business_owner: 'Vlasnik biznisa',
+                              startup_founder: 'Osnivač startapa',
+                              service_business: 'Servisni biznis',
+                            };
+                            const roleColors: Record<string, string> = {
+                              investor: 'bg-orange-500',
+                              business_owner: 'bg-blue-500',
+                              startup_founder: 'bg-purple-500',
+                              service_business: 'bg-emerald-500',
+                            };
+                            return (
+                              <div key={role}>
+                                <div className="flex justify-between text-xs mb-1">
+                                  <span className="font-medium">{roleLabels[role] || role}</span>
+                                  <span className="text-muted-foreground">{count} ({pct}%)</span>
+                                </div>
+                                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                  <div className={`h-full ${roleColors[role] || 'bg-slate-500'} rounded-full`} style={{ width: `${pct}%` }} />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Recent signups */}
+                    <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
+                      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Zadnjih 8 prijava</h4>
+                      {investStats.recent.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-2">Nema prijava</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {investStats.recent.map((w, i) => {
+                            const roleLabels: Record<string, string> = {
+                              investor: 'Investitor',
+                              business_owner: 'Vlasnik biznisa',
+                              startup_founder: 'Osnivač startapa',
+                              service_business: 'Servisni biznis',
+                            };
+                            return (
+                              <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-border last:border-0">
+                                <div className="min-w-0">
+                                  <p className="text-sm font-medium text-foreground truncate">{w.name}</p>
+                                  <p className="text-xs text-muted-foreground truncate">{w.email}</p>
+                                </div>
+                                <div className="text-right shrink-0">
+                                  <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 font-medium">
+                                    {roleLabels[w.role] || w.role}
+                                  </span>
+                                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                                    {formatDistanceToNow(new Date(w.created_at), { addSuffix: true })}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground text-sm">
+                    <button onClick={fetchInvestStats} className="text-orange-500 hover:underline">Učitaj invest podatke</button>
+                  </div>
+                )}
+              </div>
+
               </>
             ) : (
               <div className="text-center py-20 text-muted-foreground text-sm">
