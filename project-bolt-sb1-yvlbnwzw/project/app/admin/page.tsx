@@ -297,7 +297,7 @@ function AdminContent() {
         { data: signupSourceData },
         { data: daily30Profiles },
       ] = await Promise.all([
-        supabase.from('page_views').select('page').limit(100000),
+        supabase.rpc('get_page_view_counts'),
         // DAU/WAU/MAU always show current period
         supabase.from('page_views').select('user_id').gte('created_at', todayStart.toISOString()).limit(100000),
         supabase.from('page_views').select('user_id').gte('created_at', weekStart.toISOString()).limit(100000),
@@ -343,14 +343,11 @@ function AdminContent() {
       }
       const dailyNewUsers = Object.entries(dailyNewMap).map(([date, count]) => ({ date, count }));
 
-      // Page views aggregation
-      const pageCount: Record<string, number> = {};
-      for (const v of allViews || []) {
-        pageCount[v.page] = (pageCount[v.page] || 0) + 1;
-      }
-      const pageViews: PageViewStat[] = Object.entries(pageCount)
-        .map(([page, count]) => ({ page, count }))
-        .sort((a, b) => b.count - a.count);
+      // Page views aggregation — already grouped by RPC
+      const pageViews: PageViewStat[] = (allViews || []).map((r: any) => ({
+        page: r.page,
+        count: Number(r.count),
+      }));
 
       // Unique users
       const dau = new Set((dauData || []).map(r => r.user_id)).size;
