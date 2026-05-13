@@ -282,10 +282,7 @@ function AdminContent() {
 
       const [
         { data: allViews },
-        { data: dauData },
-        { data: wauData },
-        { data: mauData },
-        { data: yauData },
+        { data: activeUserCounts },
         { data: newWeek },
         { data: newMonth },
         { data: newYear },
@@ -298,12 +295,14 @@ function AdminContent() {
         { data: daily30Profiles },
       ] = await Promise.all([
         supabase.rpc('get_page_view_counts'),
-        // DAU/WAU/MAU always show current period
-        supabase.from('page_views').select('user_id').gte('created_at', todayStart.toISOString()).limit(100000),
-        supabase.from('page_views').select('user_id').gte('created_at', weekStart.toISOString()).limit(100000),
-        supabase.from('page_views').select('user_id').gte('created_at', monthStart.toISOString()).limit(100000),
-        // YAU for selected year
-        supabase.from('page_views').select('user_id').gte('created_at', chosenYearStart.toISOString()).lt('created_at', chosenYearEnd.toISOString()).limit(100000),
+        // DAU/WAU/MAU/YAU via server-side COUNT DISTINCT
+        supabase.rpc('get_active_user_counts', {
+          today_start: todayStart.toISOString(),
+          week_start:  weekStart.toISOString(),
+          month_start: monthStart.toISOString(),
+          year_start:  chosenYearStart.toISOString(),
+          year_end:    chosenYearEnd.toISOString(),
+        }),
         supabase.from('profiles').select('id').gte('created_at', weekStart.toISOString()),
         supabase.from('profiles').select('id').gte('created_at', monthStart.toISOString()),
         // New users for selected year
@@ -349,11 +348,12 @@ function AdminContent() {
         count: Number(r.count),
       }));
 
-      // Unique users
-      const dau = new Set((dauData || []).map(r => r.user_id)).size;
-      const wau = new Set((wauData || []).map(r => r.user_id)).size;
-      const mau = new Set((mauData || []).map(r => r.user_id)).size;
-      const yau = new Set((yauData || []).map(r => r.user_id)).size;
+      // Unique users — from server-side COUNT DISTINCT
+      const counts = (activeUserCounts as any)?.[0] ?? {};
+      const dau = Number(counts.dau ?? 0);
+      const wau = Number(counts.wau ?? 0);
+      const mau = Number(counts.mau ?? 0);
+      const yau = Number(counts.yau ?? 0);
 
       // Monthly new users — svih 12 mjeseci odabrane godine
       const monthlyNewMap: Record<string, number> = {};
