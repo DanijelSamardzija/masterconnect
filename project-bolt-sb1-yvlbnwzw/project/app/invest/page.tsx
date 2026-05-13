@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { usePageTracking } from '@/lib/hooks/use-page-tracking';
 import {
   TrendingUp, Search, MapPin, Bookmark, BookmarkCheck,
   ChevronRight, X, Building2, Rocket, HardHat, Leaf,
@@ -529,6 +530,7 @@ function LockedSection({ title, subtitle, children }: { title: string; subtitle:
 
 export default function InvestPage() {
   const { t } = useLanguage();
+  usePageTracking('invest');
   const [activeTab, setActiveTab] = useState<string>('all');
   const [search, setSearch]       = useState('');
   const [saved, setSaved]         = useState<Set<string>>(new Set());
