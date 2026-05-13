@@ -297,13 +297,13 @@ function AdminContent() {
         { data: signupSourceData },
         { data: daily30Profiles },
       ] = await Promise.all([
-        supabase.from('page_views').select('page'),
+        supabase.from('page_views').select('page').limit(100000),
         // DAU/WAU/MAU always show current period
-        supabase.from('page_views').select('user_id').gte('created_at', todayStart.toISOString()),
-        supabase.from('page_views').select('user_id').gte('created_at', weekStart.toISOString()),
-        supabase.from('page_views').select('user_id').gte('created_at', monthStart.toISOString()),
+        supabase.from('page_views').select('user_id').gte('created_at', todayStart.toISOString()).limit(100000),
+        supabase.from('page_views').select('user_id').gte('created_at', weekStart.toISOString()).limit(100000),
+        supabase.from('page_views').select('user_id').gte('created_at', monthStart.toISOString()).limit(100000),
         // YAU for selected year
-        supabase.from('page_views').select('user_id').gte('created_at', chosenYearStart.toISOString()).lt('created_at', chosenYearEnd.toISOString()),
+        supabase.from('page_views').select('user_id').gte('created_at', chosenYearStart.toISOString()).lt('created_at', chosenYearEnd.toISOString()).limit(100000),
         supabase.from('profiles').select('id').gte('created_at', weekStart.toISOString()),
         supabase.from('profiles').select('id').gte('created_at', monthStart.toISOString()),
         // New users for selected year
@@ -311,9 +311,9 @@ function AdminContent() {
         supabase.from('profiles').select('city').not('city', 'is', null),
         supabase.from('profiles').select('country').not('country', 'is', null),
         // Daily 7 always current
-        supabase.from('page_views').select('user_id, created_at').gte('created_at', weekStart.toISOString()),
+        supabase.from('page_views').select('user_id, created_at').gte('created_at', weekStart.toISOString()).limit(100000),
         // Monthly charts for selected year
-        supabase.from('page_views').select('user_id, created_at').gte('created_at', chosenYearStart.toISOString()).lt('created_at', chosenYearEnd.toISOString()),
+        supabase.from('page_views').select('user_id, created_at').gte('created_at', chosenYearStart.toISOString()).lt('created_at', chosenYearEnd.toISOString()).limit(100000),
         supabase.from('profiles').select('created_at').gte('created_at', chosenYearStart.toISOString()).lt('created_at', chosenYearEnd.toISOString()),
         // Signup sources
         supabase.from('profiles').select('signup_source').not('signup_source', 'is', null),
