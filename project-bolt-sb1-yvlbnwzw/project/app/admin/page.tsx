@@ -152,6 +152,112 @@ const STATUS_LABEL: Record<string, string> = {
   resolved: 'Riješeno',
 };
 
+const COUNTRY_LANG_MAP: Record<string, string> = {
+  // Serbian / Balkan
+  'serbia': 'sr', 'srbija': 'sr',
+  'croatia': 'sr', 'hrvatska': 'sr',
+  'bosnia and herzegovina': 'sr', 'bosna i hercegovina': 'sr', 'bosnia': 'sr', 'bosna': 'sr',
+  'montenegro': 'sr', 'crna gora': 'sr',
+  'slovenia': 'sr', 'slovenija': 'sr',
+  'north macedonia': 'sr', 'sjeverna makedonija': 'sr', 'macedonia': 'sr', 'makedonija': 'sr',
+  // German
+  'germany': 'de', 'deutschland': 'de', 'njemačka': 'de', 'nemacka': 'de', 'nemačka': 'de',
+  'austria': 'de', 'österreich': 'de', 'austrija': 'de',
+  'switzerland': 'de', 'schweiz': 'de', 'švicarska': 'de', 'svicarska': 'de',
+  'liechtenstein': 'de',
+  // French
+  'france': 'fr', 'francuska': 'fr',
+  'belgium': 'fr', 'belgija': 'fr',
+  'luxembourg': 'fr',
+  'monaco': 'fr',
+  // Spanish
+  'spain': 'es', 'španija': 'es', 'spanija': 'es', 'espana': 'es', 'españa': 'es',
+  'mexico': 'es', 'meksiko': 'es', 'méxico': 'es',
+  'argentina': 'es',
+  'colombia': 'es', 'kolumbija': 'es',
+  'chile': 'es',
+  'peru': 'es', 'perú': 'es',
+  'venezuela': 'es',
+  'ecuador': 'es',
+  'bolivia': 'es',
+  'paraguay': 'es',
+  'uruguay': 'es',
+  'cuba': 'es', 'kuba': 'es',
+  'costa rica': 'es',
+  'panama': 'es', 'panamá': 'es',
+  // Italian
+  'italy': 'it', 'italija': 'it', 'italia': 'it',
+  // Bulgarian
+  'bulgaria': 'bg', 'bugarska': 'bg', 'bălgarija': 'bg',
+  // Romanian
+  'romania': 'ro', 'rumunija': 'ro', 'românia': 'ro',
+  // Hungarian
+  'hungary': 'hu', 'mađarska': 'hu', 'madarska': 'hu', 'magyarország': 'hu',
+  // Slovak
+  'slovakia': 'sk', 'slovačka': 'sk', 'slovacka': 'sk',
+  // Czech
+  'czech republic': 'cs', 'czechia': 'cs', 'češka': 'cs', 'ceska': 'cs',
+  // Polish
+  'poland': 'pl', 'poljska': 'pl', 'polska': 'pl',
+  // Dutch
+  'netherlands': 'nl', 'holland': 'nl', 'holandija': 'nl', 'nederland': 'nl',
+  // Portuguese
+  'portugal': 'pt',
+  'brazil': 'pt', 'brasil': 'pt', 'brazil': 'pt',
+  // Turkish
+  'turkey': 'tr', 'turska': 'tr', 'türkiye': 'tr',
+  // Russian
+  'russia': 'ru', 'rusija': 'ru', 'rossija': 'ru',
+  // Ukrainian
+  'ukraine': 'uk', 'ukrajina': 'uk',
+  // Greek
+  'greece': 'el', 'grčka': 'el', 'grcka': 'el',
+  // Arabic
+  'saudi arabia': 'ar', 'saudijska arabija': 'ar',
+  'united arab emirates': 'ar', 'uae': 'ar', 'ujedinjeni arapski emirati': 'ar',
+  'egypt': 'ar', 'egipat': 'ar',
+  'morocco': 'ar', 'maroko': 'ar',
+  // English-primary
+  'united kingdom': 'en', 'uk': 'en', 'great britain': 'en', 'velika britanija': 'en',
+  'united states': 'en', 'usa': 'en', 'us': 'en', 'sjedinjene države': 'en', 'sjedinjene americke drzave': 'en',
+  'canada': 'en', 'kanada': 'en',
+  'australia': 'en', 'australija': 'en',
+  'new zealand': 'en', 'novi zeland': 'en',
+  'ireland': 'en', 'irska': 'en',
+  'india': 'en', 'indija': 'en',
+  'bangladesh': 'en',
+  'pakistan': 'en',
+  'nigeria': 'en',
+  'ghana': 'en',
+  'kenya': 'en',
+  'south africa': 'en', 'južna afrika': 'en',
+  'singapore': 'en',
+  'malaysia': 'en',
+  'philippines': 'en', 'filipini': 'en',
+};
+
+const LANG_INFO: Record<string, { name: string; flag: string }> = {
+  sr: { name: 'Srpski', flag: '🇷🇸' },
+  de: { name: 'Njemački', flag: '🇩🇪' },
+  en: { name: 'Engleski', flag: '🇬🇧' },
+  fr: { name: 'Francuski', flag: '🇫🇷' },
+  es: { name: 'Španski', flag: '🇪🇸' },
+  it: { name: 'Italijanski', flag: '🇮🇹' },
+  bg: { name: 'Bugarski', flag: '🇧🇬' },
+  ro: { name: 'Rumunski', flag: '🇷🇴' },
+  hu: { name: 'Mađarski', flag: '🇭🇺' },
+  sk: { name: 'Slovački', flag: '🇸🇰' },
+  cs: { name: 'Češki', flag: '🇨🇿' },
+  pl: { name: 'Poljski', flag: '🇵🇱' },
+  nl: { name: 'Nizozemski', flag: '🇳🇱' },
+  pt: { name: 'Portugalski', flag: '🇵🇹' },
+  tr: { name: 'Turski', flag: '🇹🇷' },
+  ru: { name: 'Ruski', flag: '🇷🇺' },
+  uk: { name: 'Ukrajinski', flag: '🇺🇦' },
+  el: { name: 'Grčki', flag: '🇬🇷' },
+  ar: { name: 'Arapski', flag: '🇸🇦' },
+};
+
 // ─── Admin Content ────────────────────────────────────────────────────────────
 
 function AdminContent() {
@@ -721,12 +827,14 @@ function AdminContent() {
   const fetchLangStats = async () => {
     const { data } = await supabase
       .from('profiles')
-      .select('email, preferred_language')
-      .not('email', 'is', null);
+      .select('email, country')
+      .not('email', 'is', null)
+      .limit(100000);
     if (!data) return;
     const grouped: Record<string, string[]> = {};
     for (const u of data) {
-      const lang = (u.preferred_language as string) || 'sr';
+      const key = (u.country as string | null)?.toLowerCase().trim() ?? '';
+      const lang = COUNTRY_LANG_MAP[key] ?? 'other';
       if (!grouped[lang]) grouped[lang] = [];
       if (u.email) grouped[lang].push(u.email);
     }
@@ -1519,7 +1627,9 @@ function AdminContent() {
                       {langStats.map(({ lang, count, emails }) => (
                         <tr key={lang} className="border-b border-border/50 last:border-0">
                           <td className="py-2.5 pr-4 font-medium">
-                            {lang === 'sr' ? '🇷🇸 Srpski' : lang === 'de' ? '🇩🇪 Deutsch' : lang === 'en' ? '🇬🇧 English' : lang.toUpperCase()}
+                            {lang === 'other'
+                              ? '🌍 Ostalo'
+                              : `${LANG_INFO[lang]?.flag ?? '🌐'} ${LANG_INFO[lang]?.name ?? lang.toUpperCase()}`}
                           </td>
                           <td className="py-2.5 pr-4 text-muted-foreground">{count}</td>
                           <td className="py-2.5">
