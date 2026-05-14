@@ -827,14 +827,16 @@ function AdminContent() {
   const fetchLangStats = async () => {
     const { data } = await supabase
       .from('profiles')
-      .select('email, country')
+      .select('email, country, preferred_language')
       .not('email', 'is', null)
       .limit(100000);
     if (!data) return;
     const grouped: Record<string, string[]> = {};
     for (const u of data) {
-      const key = (u.country as string | null)?.toLowerCase().trim() ?? '';
-      const lang = COUNTRY_LANG_MAP[key] ?? 'other';
+      const countryKey = (u.country as string | null)?.toLowerCase().trim() ?? '';
+      const fromCountry = COUNTRY_LANG_MAP[countryKey];
+      const fromPref = (u.preferred_language as string | null)?.toLowerCase().trim();
+      const lang = fromCountry ?? (fromPref && LANG_INFO[fromPref] ? fromPref : 'sr');
       if (!grouped[lang]) grouped[lang] = [];
       if (u.email) grouped[lang].push(u.email);
     }
