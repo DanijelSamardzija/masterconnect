@@ -1,4 +1,4 @@
-const CACHE_VERSION = '2026-05-14-v13-badge-color';
+const CACHE_VERSION = '2026-05-14-v14-badge-fullicon';
 const CACHE_NAME = `majstor-servis-v${CACHE_VERSION}`;
 const urlsToCache = [
   '/',
@@ -120,7 +120,7 @@ self.addEventListener('push', (event) => {
     self.registration.showNotification(title, {
       body,
       icon: icon || '/icon-192.png',
-      badge: '/badge.svg',
+      badge: '/icon-192.png',
       data: { url },
       vibrate: [200, 100, 200],
     })
