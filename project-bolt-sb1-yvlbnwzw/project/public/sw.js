@@ -1,4 +1,4 @@
-const CACHE_VERSION = '2026-05-14-v12-badge-icon';
+const CACHE_VERSION = '2026-05-14-v13-badge-color';
 const CACHE_NAME = `majstor-servis-v${CACHE_VERSION}`;
 const urlsToCache = [
   '/',
