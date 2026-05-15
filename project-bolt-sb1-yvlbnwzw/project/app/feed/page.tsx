@@ -786,7 +786,7 @@ function FeedContent() {
                 <img
                   src={media.url}
                   alt="Post"
-                  className="absolute inset-0 w-full h-full object-cover"
+                  className="absolute inset-0 w-full h-full object-contain"
                   draggable={false}
                 />
               )}
