@@ -111,6 +111,7 @@ function FeedContent() {
   const [reportTarget, setReportTarget] = useState<{ type: 'post' | 'profile'; id: string; userId: string } | null>(null);
 
   const [currentMediaIndex, setCurrentMediaIndex] = useState<{ [key: string]: number }>({});
+  const [imgFit, setImgFit] = useState<{ [mediaId: string]: 'cover' | 'contain' }>({});
   const [debugMode, setDebugMode] = useState(false);
 
   const [savedSet, setSavedSet] = useState<Set<string>>(new Set());
@@ -786,8 +787,14 @@ function FeedContent() {
                 <img
                   src={media.url}
                   alt="Post"
-                  className="absolute inset-0 w-full h-full object-contain"
+                  className={`absolute inset-0 w-full h-full ${imgFit[media.id] === 'contain' ? 'object-contain' : 'object-cover'}`}
                   draggable={false}
+                  onLoad={(e) => {
+                    const img = e.currentTarget;
+                    const ratio = img.naturalWidth / img.naturalHeight;
+                    // Square/landscape images (ratio > 0.75) use contain to avoid cropping
+                    setImgFit(prev => ({ ...prev, [media.id]: ratio > 0.75 ? 'contain' : 'cover' }));
+                  }}
                 />
               )}
 
