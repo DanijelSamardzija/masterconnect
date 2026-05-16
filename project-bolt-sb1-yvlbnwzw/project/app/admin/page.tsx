@@ -519,8 +519,7 @@ function AdminContent() {
       }
       const topCities = Object.entries(cityCount)
         .map(([city, count]) => ({ city, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 25);
+        .sort((a, b) => b.count - a.count);
 
       // Country aggregation
       const countryAliases: Record<string, string> = {
@@ -546,8 +545,7 @@ function AdminContent() {
       }
       const topCountries = Object.entries(countryCount)
         .map(([country, count]) => ({ country, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 15);
+        .sort((a, b) => b.count - a.count);
 
       // Daily active users (last 7 days)
       const dailyMap: Record<string, Set<string>> = {};
@@ -1810,7 +1808,7 @@ function AdminContent() {
                     {analytics.topCities.length === 0 ? (
                       <p className="text-sm text-muted-foreground py-4 text-center">Nema podataka</p>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
                         {analytics.topCities.map(({ city, count }) => {
                           const maxCount = analytics.topCities[0]?.count || 1;
                           const pct = Math.round((count / maxCount) * 100);
@@ -1842,7 +1840,7 @@ function AdminContent() {
                     {analytics.topCountries.length === 0 ? (
                       <p className="text-sm text-muted-foreground py-4 text-center">Nema podataka — korisnici još nisu unijeli državu</p>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
                         {analytics.topCountries.map(({ country, count }) => {
                           const maxCount = analytics.topCountries[0]?.count || 1;
                           const pct = Math.round((count / maxCount) * 100);
