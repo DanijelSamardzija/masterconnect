@@ -1282,6 +1282,16 @@ function JobsMarketplaceContent() {
       return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
     });
 
+  const userCityForBoost = !cityFilter && profile?.city
+    ? cyrillicToLatin(profile.city).toLowerCase().trim()
+    : '';
+  const boostedPosts = userCityForBoost
+    ? [
+        ...filteredPosts.filter(p => cyrillicToLatin(p.city || p.location || '').toLowerCase().includes(userCityForBoost)),
+        ...filteredPosts.filter(p => !cyrillicToLatin(p.city || p.location || '').toLowerCase().includes(userCityForBoost)),
+      ]
+    : filteredPosts;
+
   const hiringCount = posts.filter((p) => p.post_type === 'hiring_post').length;
   const serviceRequestCount = posts.filter((p) => p.post_type === 'service_request').length;
   const jobSeekerCount = posts.filter((p) => p.post_type === 'job_seeker_post').length;
@@ -1439,7 +1449,7 @@ function JobsMarketplaceContent() {
           </Card>
 
           <div className="mt-6">
-            {filteredPosts.length === 0 ? (
+            {boostedPosts.length === 0 ? (
               <Card className="bg-card text-card-foreground border border-border rounded-2xl shadow-sm">
                 <CardContent className="py-12 text-center">
                   <p className="text-slate-500">{t('jobs.noPosts')}</p>
@@ -1447,7 +1457,7 @@ function JobsMarketplaceContent() {
               </Card>
             ) : (
               <div className="space-y-3">
-                {filteredPosts.map((post) => {
+                {boostedPosts.map((post) => {
                   const isServiceRequest = post.post_type === 'service_request';
 
                   return (

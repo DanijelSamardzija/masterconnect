@@ -179,10 +179,19 @@ export default function ServicesPage() {
       }));
 
       const sorted = applySorting(listingsWithReviews, sortBy);
-      // Promoted always first
       const promoted = sorted.filter((l: any) => l.is_promoted);
       const rest = sorted.filter((l: any) => !l.is_promoted);
-      setListings([...promoted, ...rest]);
+
+      const userCity = !cityFilter && profile?.city
+        ? cyrillicToLatin(profile.city).toLowerCase().trim()
+        : '';
+      if (userCity) {
+        const cityFirst = rest.filter((l: any) => cyrillicToLatin(l.city || '').toLowerCase().includes(userCity));
+        const others = rest.filter((l: any) => !cyrillicToLatin(l.city || '').toLowerCase().includes(userCity));
+        setListings([...promoted, ...cityFirst, ...others]);
+      } else {
+        setListings([...promoted, ...rest]);
+      }
     } catch (error) {
       console.error('Error loading listings:', error);
     } finally {

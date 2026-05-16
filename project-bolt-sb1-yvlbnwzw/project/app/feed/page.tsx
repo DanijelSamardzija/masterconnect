@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { CreatePostModal } from '@/components/create-post-modal';
+import { cyrillicToLatin } from '@/components/city-autocomplete';
 import { ProfessionalBadge } from '@/components/professional-badge';
 import { ReportModal } from '@/components/report-modal';
 import { CommentsSheet } from '@/components/comments-sheet';
@@ -87,7 +88,7 @@ const HEADER_H = 52;
 
 function FeedContent() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { t } = useLanguage();
   const { openGuestGate } = useGuestGate();
   usePageTracking('feed');
@@ -343,8 +344,18 @@ function FeedContent() {
         user_has_reacted: userReactedPosts.has(post.id),
       }));
 
-      if (reset) setPosts(postsWithData);
-      else setPosts(prev => [...prev, ...postsWithData]);
+      if (reset) {
+        const userCity = profile?.city ? cyrillicToLatin(profile.city).toLowerCase().trim() : '';
+        if (userCity) {
+          const cityFirst = postsWithData.filter((p: any) => cyrillicToLatin(p.city || '').toLowerCase().includes(userCity));
+          const others = postsWithData.filter((p: any) => !cyrillicToLatin(p.city || '').toLowerCase().includes(userCity));
+          setPosts([...cityFirst, ...others]);
+        } else {
+          setPosts(postsWithData);
+        }
+      } else {
+        setPosts(prev => [...prev, ...postsWithData]);
+      }
       setOffset(nextOffset);
     } catch (error: any) {
       console.error('[Feed] Error loading posts:', error);
