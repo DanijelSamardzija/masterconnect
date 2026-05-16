@@ -230,6 +230,7 @@ export async function GET(request: NextRequest) {
         email: post.user_email,
         account_type: post.user_account_type,
         avatar_url: post.user_avatar_url,
+        country: post.user_country || null,
         ...(reviewStats[post.user_id] || {})
       }
     })) || []).filter(post =>

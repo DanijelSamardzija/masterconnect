@@ -8,6 +8,7 @@ import { usePageTracking } from '@/lib/hooks/use-page-tracking';
 import { ProfessionalCard } from '@/components/professional-card';
 import { CategoryCombobox } from '@/components/category-combobox';
 import { CityAutocomplete, cyrillicToLatin } from '@/components/city-autocomplete';
+import { locationScore } from '@/lib/location-sort';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { EmptyState } from '@/components/empty-state';
@@ -115,7 +116,9 @@ export default function ServicesPage() {
             account_type,
             average_rating,
             review_count,
-            last_seen
+            last_seen,
+            city,
+            country
           ),
           post_media (
             id,
@@ -182,16 +185,14 @@ export default function ServicesPage() {
       const promoted = sorted.filter((l: any) => l.is_promoted);
       const rest = sorted.filter((l: any) => !l.is_promoted);
 
-      const userCity = !cityFilter && profile?.city
-        ? cyrillicToLatin(profile.city).toLowerCase().trim()
-        : '';
-      if (userCity) {
-        const cityFirst = rest.filter((l: any) => cyrillicToLatin(l.city || '').toLowerCase().includes(userCity));
-        const others = rest.filter((l: any) => !cyrillicToLatin(l.city || '').toLowerCase().includes(userCity));
-        setListings([...promoted, ...cityFirst, ...others]);
-      } else {
-        setListings([...promoted, ...rest]);
+      if (!cityFilter && (profile?.city || profile?.country)) {
+        rest.sort((a: any, b: any) => {
+          const sa = locationScore(profile?.city || '', profile?.country || '', a.city || '', a.profiles?.country || '');
+          const sb = locationScore(profile?.city || '', profile?.country || '', b.city || '', b.profiles?.country || '');
+          return sa - sb;
+        });
       }
+      setListings([...promoted, ...rest]);
     } catch (error) {
       console.error('Error loading listings:', error);
     } finally {

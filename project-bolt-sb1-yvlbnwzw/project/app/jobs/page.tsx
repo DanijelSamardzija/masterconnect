@@ -35,6 +35,7 @@ import { useGuestGate } from '@/lib/contexts/guest-gate-context';
 import { CreateMarketplacePostModal } from '@/components/create-marketplace-post-modal';
 import { SharePostModal } from '@/components/share-post-modal';
 import { CityAutocomplete, cyrillicToLatin } from '@/components/city-autocomplete';
+import { locationScore } from '@/lib/location-sort';
 import { CategoryCombobox } from '@/components/category-combobox';
 import { OfferServiceModal } from '@/components/offer-service-modal';
 import { SendOfferModal } from '@/components/send-offer-modal-v2';
@@ -1074,7 +1075,7 @@ function JobsMarketplaceContent() {
             currency,
             created_at,
             status,
-            user:profiles!posts_user_id_fkey(name, email, account_type, avatar_url)
+            user:profiles!posts_user_id_fkey(name, email, account_type, avatar_url, country)
           `)
           .in('post_type', ['hiring_post', 'service_request', 'job_seeker_post'])
           .eq('status', 'published')
@@ -1282,14 +1283,12 @@ function JobsMarketplaceContent() {
       return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
     });
 
-  const userCityForBoost = !cityFilter && profile?.city
-    ? cyrillicToLatin(profile.city).toLowerCase().trim()
-    : '';
-  const boostedPosts = userCityForBoost
-    ? [
-        ...filteredPosts.filter(p => cyrillicToLatin(p.city || p.location || '').toLowerCase().includes(userCityForBoost)),
-        ...filteredPosts.filter(p => !cyrillicToLatin(p.city || p.location || '').toLowerCase().includes(userCityForBoost)),
-      ]
+  const boostedPosts = (!cityFilter && (profile?.city || profile?.country))
+    ? [...filteredPosts].sort((a, b) => {
+        const sa = locationScore(profile?.city || '', profile?.country || '', a.city || a.location || '', a.user?.country || '');
+        const sb = locationScore(profile?.city || '', profile?.country || '', b.city || b.location || '', b.user?.country || '');
+        return sa - sb;
+      })
     : filteredPosts;
 
   const hiringCount = posts.filter((p) => p.post_type === 'hiring_post').length;

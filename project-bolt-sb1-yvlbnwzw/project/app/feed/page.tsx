@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { CreatePostModal } from '@/components/create-post-modal';
-import { cyrillicToLatin } from '@/components/city-autocomplete';
+import { locationScore } from '@/lib/location-sort';
 import { ProfessionalBadge } from '@/components/professional-badge';
 import { ReportModal } from '@/components/report-modal';
 import { CommentsSheet } from '@/components/comments-sheet';
@@ -344,15 +344,15 @@ function FeedContent() {
         user_has_reacted: userReactedPosts.has(post.id),
       }));
 
-      if (reset) {
-        const userCity = profile?.city ? cyrillicToLatin(profile.city).toLowerCase().trim() : '';
-        if (userCity) {
-          const cityFirst = postsWithData.filter((p: any) => cyrillicToLatin(p.city || '').toLowerCase().includes(userCity));
-          const others = postsWithData.filter((p: any) => !cyrillicToLatin(p.city || '').toLowerCase().includes(userCity));
-          setPosts([...cityFirst, ...others]);
-        } else {
-          setPosts(postsWithData);
-        }
+      if (reset && (profile?.city || profile?.country)) {
+        const sorted = [...postsWithData].sort((a: any, b: any) => {
+          const sa = locationScore(profile?.city || '', profile?.country || '', a.city || '', a.user?.country || '');
+          const sb = locationScore(profile?.city || '', profile?.country || '', b.city || '', b.user?.country || '');
+          return sa - sb;
+        });
+        setPosts(sorted);
+      } else if (reset) {
+        setPosts(postsWithData);
       } else {
         setPosts(prev => [...prev, ...postsWithData]);
       }
