@@ -520,7 +520,7 @@ function AdminContent() {
       const topCities = Object.entries(cityCount)
         .map(([city, count]) => ({ city, count }))
         .sort((a, b) => b.count - a.count)
-        .slice(0, 15);
+        .slice(0, 25);
 
       // Country aggregation
       const countryAliases: Record<string, string> = {
