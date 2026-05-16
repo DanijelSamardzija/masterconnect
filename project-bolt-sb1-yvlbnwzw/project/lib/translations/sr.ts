@@ -1152,6 +1152,11 @@ export default {
   'onboarding.customerStep3Action': 'Pregledaj profesionalce',
   'onboarding.next': 'Dalje',
   'onboarding.done': 'Počni',
+  'onboarding.cityTitle': 'Iz kog si mesta?',
+  'onboarding.citySubtitle': 'Prikazaćemo ti oglase i majstore iz tvog grada prvi. Lakše pronalazite jedni druge.',
+  'onboarding.cityPlaceholder': 'Unesite grad...',
+  'onboarding.cityError': 'Unesite vaš grad',
+  'onboarding.roleTitle': 'Šta želiš?',
 
   'feed.scrollHint': 'Skroluj gore-dole',
   'feed.contact': 'Kontaktiraj',

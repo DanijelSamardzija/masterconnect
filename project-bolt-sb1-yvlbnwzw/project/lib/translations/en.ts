@@ -1152,6 +1152,11 @@ export default {
   'onboarding.customerStep3Action': 'Browse Professionals',
   'onboarding.next': 'Next',
   'onboarding.done': 'Get Started',
+  'onboarding.cityTitle': 'Where are you from?',
+  'onboarding.citySubtitle': 'We\'ll show you listings and professionals from your city first. Easier to find each other.',
+  'onboarding.cityPlaceholder': 'Enter your city...',
+  'onboarding.cityError': 'Please enter your city',
+  'onboarding.roleTitle': 'What are you looking for?',
 
   'feed.scrollHint': 'Scroll up & down',
   'feed.contact': 'Contact',

@@ -6,8 +6,10 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { UserCircle, Wrench, ArrowRight, Loader2 } from 'lucide-react';
+import { UserCircle, Wrench, ArrowRight, Loader2, MapPin } from 'lucide-react';
+import { CityAutocomplete } from '@/components/city-autocomplete';
 import { trackEvent } from '@/lib/analytics';
+import { useLanguage } from '@/lib/contexts/language-context';
 import { resumeAfterAuth } from '@/lib/guest-intent';
 
 type Step = 1 | 2;
@@ -15,11 +17,13 @@ type UserRole = 'customer' | 'professional';
 
 export default function OnboardingPage() {
   const { user, loading, refreshProfile } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
 
   const [step, setStep] = useState<Step>(1);
   const [name, setName] = useState('');
   const [hasGoogleName, setHasGoogleName] = useState(false);
+  const [city, setCity] = useState('');
   const [role, setRole] = useState<UserRole | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -59,6 +63,10 @@ export default function OnboardingPage() {
   };
 
   const handleFinish = async (selectedRole: UserRole) => {
+    if (!city.trim()) {
+      setError(t('onboarding.cityError'));
+      return;
+    }
     setSaving(true);
     setError('');
     trackEvent('onboarding_step_2_completed', { role: selectedRole });
@@ -68,11 +76,9 @@ export default function OnboardingPage() {
       const signupSource = localStorage.getItem('signup_source') || 'direct';
       localStorage.removeItem('signup_source');
 
-      let detectedCity: string | undefined;
       let detectedCountry: string | undefined;
       try {
         const geo = await fetch('https://ipapi.co/json/').then(r => r.json());
-        if (geo.city) detectedCity = geo.city;
         if (geo.country_name) detectedCountry = geo.country_name;
       } catch {}
 
@@ -83,7 +89,7 @@ export default function OnboardingPage() {
           account_type: selectedRole,
           signup_source: signupSource,
           onboarding_completed: true,
-          ...(detectedCity ? { city: detectedCity } : {}),
+          city: city.trim(),
           ...(detectedCountry ? { country: detectedCountry } : {}),
         })
         .eq('id', user!.id);
@@ -162,11 +168,25 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* ── STEP 2: Role ── */}
+        {/* ── STEP 2: City + Role ── */}
         {step === 2 && (
           <div className="bg-[#1a1a1a] border border-white/10 rounded-3xl p-7 shadow-2xl">
-            <h1 className="text-2xl font-black text-white mb-1">Šta želiš?</h1>
-            <p className="text-slate-400 text-sm mb-6">Izaberi kako ćeš koristiti GigZone.</p>
+            <div className="flex items-center gap-2 mb-1">
+              <MapPin className="h-5 w-5 text-orange-400 flex-shrink-0" />
+              <h1 className="text-2xl font-black text-white">{t('onboarding.cityTitle')}</h1>
+            </div>
+            <p className="text-slate-400 text-sm mb-5">
+              {t('onboarding.citySubtitle')}
+            </p>
+
+            <CityAutocomplete
+              value={city}
+              onChange={(val) => { setCity(val); setError(''); }}
+              placeholder={t('onboarding.cityPlaceholder')}
+              className="mb-6 [&_input]:h-14 [&_input]:text-base [&_input]:bg-white/5 [&_input]:border-white/10 [&_input]:text-white [&_input]:placeholder:text-slate-500 [&_input]:rounded-xl [&_input]:focus-visible:ring-orange-500"
+            />
+
+            <p className="text-slate-400 text-sm mb-4">{t('onboarding.roleTitle')}</p>
 
             {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
 

@@ -1148,6 +1148,11 @@ export default {
   'onboarding.customerStep3Action': 'Fachleute durchsuchen',
   'onboarding.next': 'Weiter',
   'onboarding.done': 'Loslegen',
+  'onboarding.cityTitle': 'Aus welcher Stadt kommst du?',
+  'onboarding.citySubtitle': 'Wir zeigen dir zuerst Anzeigen und Profis aus deiner Stadt. Leichter, sich gegenseitig zu finden.',
+  'onboarding.cityPlaceholder': 'Stadt eingeben...',
+  'onboarding.cityError': 'Bitte gib deine Stadt ein',
+  'onboarding.roleTitle': 'Was suchst du?',
 
   'feed.scrollHint': 'Hoch und runter scrollen',
   'feed.contact': 'Kontaktieren',
