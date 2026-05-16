@@ -34,7 +34,7 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { useGuestGate } from '@/lib/contexts/guest-gate-context';
 import { CreateMarketplacePostModal } from '@/components/create-marketplace-post-modal';
 import { SharePostModal } from '@/components/share-post-modal';
-import { CityAutocomplete } from '@/components/city-autocomplete';
+import { CityAutocomplete, cyrillicToLatin } from '@/components/city-autocomplete';
 import { CategoryCombobox } from '@/components/category-combobox';
 import { OfferServiceModal } from '@/components/offer-service-modal';
 import { SendOfferModal } from '@/components/send-offer-modal-v2';
@@ -1263,8 +1263,8 @@ function JobsMarketplaceContent() {
       }
 
       if (cityFilter) {
-        const postCity = post.city || post.location || '';
-        if (!postCity.toLowerCase().includes(cityFilter.toLowerCase())) return false;
+        const postCity = cyrillicToLatin(post.city || post.location || '').toLowerCase();
+        if (!postCity.includes(cyrillicToLatin(cityFilter).toLowerCase())) return false;
       }
 
       if (categoryFilter && post.category) {

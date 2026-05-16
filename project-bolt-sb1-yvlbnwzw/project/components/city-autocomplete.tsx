@@ -54,6 +54,19 @@ function normalizeSerbianText(text: string): string {
     .trim();
 }
 
+const CYRILLIC_MAP: Record<string, string> = {
+  'А':'A','Б':'B','В':'V','Г':'G','Д':'D','Ђ':'Đ','Е':'E','Ж':'Ž','З':'Z','И':'I',
+  'Ј':'J','К':'K','Л':'L','Љ':'Lj','М':'M','Н':'N','Њ':'Nj','О':'O','П':'P','Р':'R',
+  'С':'S','Т':'T','Ћ':'Ć','У':'U','Ф':'F','Х':'H','Ц':'C','Ч':'Č','Џ':'Dž','Ш':'Š',
+  'а':'a','б':'b','в':'v','г':'g','д':'d','ђ':'đ','е':'e','ж':'ž','з':'z','и':'i',
+  'ј':'j','к':'k','л':'l','љ':'lj','м':'m','н':'n','њ':'nj','о':'o','п':'p','р':'r',
+  'с':'s','т':'t','ћ':'ć','у':'u','ф':'f','х':'h','ц':'c','ч':'č','џ':'dž','ш':'š',
+};
+
+export function cyrillicToLatin(text: string): string {
+  return text.replace(/[А-ЯЂЉЊЋЏа-яђљњћџ]/g, (ch) => CYRILLIC_MAP[ch] ?? ch);
+}
+
 export function CityAutocomplete({
   value,
   onChange,
@@ -122,7 +135,7 @@ export function CityAutocomplete({
       }
 
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(input)}&format=json&addressdetails=1&limit=10`,
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(input)}&format=json&addressdetails=1&limit=10&accept-language=sr-Latn,hr,bs,en`,
         {
           signal: abortControllerRef.current.signal,
           headers: {
@@ -171,15 +184,16 @@ export function CityAutocomplete({
   };
 
   const handleCitySelect = (place: NominatimPlace) => {
-    const cityName = place.address?.city || place.address?.town || place.display_name.split(',')[0];
+    const raw = place.address?.city || place.address?.town || place.display_name.split(',')[0];
+    const cityName = cyrillicToLatin(raw.trim());
     const country = place.address?.country || '';
 
-    setInputValue(cityName.trim());
+    setInputValue(cityName);
     setIsOpen(false);
     setPredictions([]);
 
-    onChange(cityName.trim(), {
-      city: cityName.trim(),
+    onChange(cityName, {
+      city: cityName,
       country: country,
       place_id: place.place_id.toString(),
     });

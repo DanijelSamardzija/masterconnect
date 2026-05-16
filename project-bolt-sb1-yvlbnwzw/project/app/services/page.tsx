@@ -7,7 +7,7 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { usePageTracking } from '@/lib/hooks/use-page-tracking';
 import { ProfessionalCard } from '@/components/professional-card';
 import { CategoryCombobox } from '@/components/category-combobox';
-import { CityAutocomplete } from '@/components/city-autocomplete';
+import { CityAutocomplete, cyrillicToLatin } from '@/components/city-autocomplete';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { EmptyState } from '@/components/empty-state';
@@ -135,7 +135,7 @@ export default function ServicesPage() {
       }
 
       if (cityFilter) {
-        query = query.ilike('city', `%${cityFilter}%`);
+        query = query.ilike('city', `%${cyrillicToLatin(cityFilter)}%`);
       }
 
       const { data, error } = await query;
