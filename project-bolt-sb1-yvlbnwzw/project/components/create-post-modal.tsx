@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { supabase } from '@/lib/supabase/client';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Image, Video, X, Loader2, Send, ChevronLeft, ChevronRight, Hash } from 'lucide-react';
+import { Image, Video, X, Loader2, Send, ChevronLeft, ChevronRight, Hash, Briefcase, Wrench, UserSearch } from 'lucide-react';
 import { toast } from 'sonner';
 import { uploadFile, validateFile, uploadVideoToCloudinary } from '@/lib/attachment-utils';
 import { normalizeImageForFeed } from '@/lib/image-utils';
@@ -39,8 +40,10 @@ type MediaFile = {
 };
 
 export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostModalProps) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { t } = useLanguage();
+  const router = useRouter();
+  const [showSuggestion, setShowSuggestion] = useState(false);
   const [postText, setPostText] = useState('');
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -390,11 +393,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
       }
 
       resetForm();
-      onOpenChange(false);
-
-      if (onSuccess) {
-        onSuccess();
-      }
+      setShowSuggestion(true);
     } catch (error: any) {
       console.error(`[Client ${requestId}] Error creating post:`, error);
       toast.error(t('createPost.errorGeneric'));
@@ -412,6 +411,15 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
       onOpenChange(false);
     }
   };
+
+  const dismissSuggestion = (path?: string) => {
+    setShowSuggestion(false);
+    onOpenChange(false);
+    if (onSuccess) onSuccess();
+    if (path) router.push(path);
+  };
+
+  const isPro = profile?.account_type === 'professional';
 
   return (
     <>
@@ -718,6 +726,79 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
           setEditingMediaIndex(null);
         }}
       />
+    )}
+
+    {/* Post-publish suggestion */}
+    {showSuggestion && (
+      <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 pb-8" onClick={() => dismissSuggestion()}>
+        <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md shadow-2xl animate-in slide-in-from-bottom-4 duration-300" onClick={e => e.stopPropagation()}>
+          <div className="text-center mb-5">
+            <p className="text-2xl mb-2">🎉</p>
+            <h3 className="font-bold text-lg text-foreground">Objava je objavljena!</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              {isPro
+                ? 'Nudiš uslugu ili tražiš radnika? Objavi i tamo — klijenti i poslodavci aktivno pretražuju.'
+                : 'Tražiš uslugu ili posao? Objavi i tamo — mnogo je lakše da te pronađu.'}
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            {isPro ? (
+              <>
+                <button
+                  onClick={() => dismissSuggestion('/services')}
+                  className="w-full flex items-center gap-3 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 rounded-xl px-4 py-3 text-left transition-colors"
+                >
+                  <Wrench className="h-5 w-5 text-orange-500 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold text-sm text-foreground">Objavi uslugu</p>
+                    <p className="text-xs text-muted-foreground">Stranica Usluge</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => dismissSuggestion('/jobs')}
+                  className="w-full flex items-center gap-3 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 rounded-xl px-4 py-3 text-left transition-colors"
+                >
+                  <UserSearch className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold text-sm text-foreground">Tražim radnika</p>
+                    <p className="text-xs text-muted-foreground">Stranica Poslovi</p>
+                  </div>
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => dismissSuggestion('/jobs')}
+                  className="w-full flex items-center gap-3 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 rounded-xl px-4 py-3 text-left transition-colors"
+                >
+                  <Briefcase className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold text-sm text-foreground">Tražim posao</p>
+                    <p className="text-xs text-muted-foreground">Stranica Poslovi</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => dismissSuggestion('/jobs')}
+                  className="w-full flex items-center gap-3 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 rounded-xl px-4 py-3 text-left transition-colors"
+                >
+                  <Wrench className="h-5 w-5 text-purple-500 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold text-sm text-foreground">Tražim uslugu</p>
+                    <p className="text-xs text-muted-foreground">Stranica Poslovi</p>
+                  </div>
+                </button>
+              </>
+            )}
+            <button
+              onClick={() => dismissSuggestion()}
+              className="w-full py-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Zatvori
+            </button>
+          </div>
+        </div>
+      </div>
     )}
   </>
   );
