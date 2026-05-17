@@ -450,6 +450,7 @@ export default function ServicesPage() {
       onOpenChange={setShowCreateModal}
       onPostCreated={() => { setShowCreateModal(false); loadListings(); }}
       initialPostType="service_listing"
+      allowedTypes={['service_listing', 'portfolio_post', 'service_request']}
     />
   </div>
 );

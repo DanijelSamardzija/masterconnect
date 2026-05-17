@@ -19,14 +19,17 @@ import { toast } from 'sonner';
 import { validateImageFile, processImageForUpload, getImageDimensions } from '@/lib/image-utils';
 import { uploadVideoToCloudinary } from '@/lib/attachment-utils';
 
+type PostType = 'service_request' | 'job_seeker_post' | 'hiring_post' | 'portfolio_post' | 'service_listing';
+
 type MarketplacePostModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onPostCreated?: () => void;
-  initialPostType?: 'service_request' | 'job_seeker_post' | 'hiring_post' | 'portfolio_post' | 'service_listing';
+  initialPostType?: PostType;
+  allowedTypes?: PostType[];
 };
 
-export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, initialPostType }: MarketplacePostModalProps) {
+export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, initialPostType, allowedTypes }: MarketplacePostModalProps) {
   const { user, profile } = useAuth();
   const { t } = useLanguage();
   const isCustomer = profile?.account_type === 'customer';
@@ -494,15 +497,25 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
               <SelectContent side="bottom" align="start" sideOffset={4}>
                 {isCustomer && (
                   <>
-                    <SelectItem value="service_request">{t('marketplace.serviceRequest')}</SelectItem>
-                    <SelectItem value="job_seeker_post">{t('marketplace.jobSeekerPost')}</SelectItem>
+                    {(!allowedTypes || allowedTypes.includes('service_request')) && (
+                      <SelectItem value="service_request">{t('marketplace.serviceRequest')}</SelectItem>
+                    )}
+                    {(!allowedTypes || allowedTypes.includes('job_seeker_post')) && (
+                      <SelectItem value="job_seeker_post">{t('marketplace.jobSeekerPost')}</SelectItem>
+                    )}
                   </>
                 )}
                 {isProfessional && (
                   <>
-                    <SelectItem value="service_listing">{t('marketplace.serviceListing')}</SelectItem>
-                    <SelectItem value="hiring_post">{t('marketplace.hiringPost')}</SelectItem>
-                    <SelectItem value="portfolio_post">{t('marketplace.portfolioPost')}</SelectItem>
+                    {(!allowedTypes || allowedTypes.includes('service_listing')) && (
+                      <SelectItem value="service_listing">{t('marketplace.serviceListing')}</SelectItem>
+                    )}
+                    {(!allowedTypes || allowedTypes.includes('hiring_post')) && (
+                      <SelectItem value="hiring_post">{t('marketplace.hiringPost')}</SelectItem>
+                    )}
+                    {(!allowedTypes || allowedTypes.includes('portfolio_post')) && (
+                      <SelectItem value="portfolio_post">{t('marketplace.portfolioPost')}</SelectItem>
+                    )}
                   </>
                 )}
               </SelectContent>

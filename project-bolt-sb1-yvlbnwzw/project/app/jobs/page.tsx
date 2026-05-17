@@ -1343,6 +1343,7 @@ function JobsMarketplaceContent() {
           open={showCreateModal}
           onOpenChange={setShowCreateModal}
           onPostCreated={loadPosts}
+          allowedTypes={['hiring_post', 'job_seeker_post']}
         />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
