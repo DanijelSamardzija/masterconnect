@@ -6,11 +6,14 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { X, Share, Plus, Download } from 'lucide-react';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { useAuth } from '@/lib/contexts/auth-context';
 
 // Saved permanently only after user clicks Install
 const PWA_INSTALLED_KEY = 'pwa_installed_v1';
 // Saved for current session only when user clicks X
 const PWA_SESSION_KEY = 'pwa_dismissed_session';
+// Counts how many sessions the user has visited (show banner only on 2nd+)
+const PWA_VISIT_COUNT_KEY = 'pwa_visit_count';
 
 function isIOS() {
   if (typeof window === 'undefined') return false;
@@ -28,6 +31,7 @@ export function PWARegistration() {
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const { language } = useLanguage();
+  const { user } = useAuth();
   const pathname = usePathname();
 
   // Ne prikazuj banner na landing/login stranicama — fokus na konverziji
@@ -55,6 +59,9 @@ export function PWARegistration() {
         });
     }
 
+    // Only show to logged-in users
+    if (!user) return;
+
     // Already installed as PWA — never show
     if (isInStandaloneMode()) return;
 
@@ -63,6 +70,16 @@ export function PWARegistration() {
 
     // User clicked X this session — don't show again until next visit
     try { if (sessionStorage.getItem(PWA_SESSION_KEY)) return; } catch {}
+
+    // Track visits — only show from the 2nd session onward
+    try {
+      const visitCount = parseInt(localStorage.getItem(PWA_VISIT_COUNT_KEY) || '0', 10);
+      if (visitCount < 1) {
+        // First visit — just record it, don't show
+        localStorage.setItem(PWA_VISIT_COUNT_KEY, '1');
+        return;
+      }
+    } catch {}
 
     if (isIOS()) {
       setTimeout(() => setShowIOSPrompt(true), 1000);
@@ -77,7 +94,7 @@ export function PWARegistration() {
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-  }, []);
+  }, [user]);
 
   const handleInstall = async () => {
     if (deferredPrompt) {
