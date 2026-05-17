@@ -13,7 +13,8 @@ import {
   Users, FileText, AlertTriangle, Shield, Eye, Trash2,
   MessageSquare, TrendingUp, ExternalLink, Search, Ban,
   UserCheck, Loader2, ChevronDown, Filter, Megaphone, Plus,
-  ToggleLeft, ToggleRight, BarChart2, Activity, MapPin, CalendarDays, RefreshCw
+  ToggleLeft, ToggleRight, BarChart2, Activity, MapPin, CalendarDays, RefreshCw,
+  Bell, X
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
@@ -316,6 +317,13 @@ function AdminContent() {
   // Invest analytics state
   const [investStats, setInvestStats] = useState<InvestStats | null>(null);
   const [investLoading, setInvestLoading] = useState(false);
+
+  // Send notification state
+  const [notifTarget, setNotifTarget] = useState<{ id: string; name: string } | null>(null);
+  const [notifTitle, setNotifTitle] = useState('');
+  const [notifBody, setNotifBody] = useState('');
+  const [notifLink, setNotifLink] = useState('/services');
+  const [sendingNotif, setSendingNotif] = useState(false);
 
   // ── Redirect non-admins ──────────────────────────────────────────────────
   useEffect(() => {
@@ -719,6 +727,30 @@ function AdminContent() {
     }
   };
 
+  const handleSendNotification = async () => {
+    if (!notifTarget || !notifTitle.trim() || !notifBody.trim()) return;
+    setSendingNotif(true);
+    try {
+      const { error } = await supabase.from('notifications').insert({
+        user_id: notifTarget.id,
+        type: 'admin',
+        title: notifTitle.trim(),
+        body: notifBody.trim(),
+        meta: notifLink.trim() ? { link: notifLink.trim() } : {},
+      });
+      if (error) throw error;
+      toast.success(`Notifikacija poslana korisniku "${notifTarget.name}"`);
+      setNotifTarget(null);
+      setNotifTitle('');
+      setNotifBody('');
+      setNotifLink('/services');
+    } catch (e: any) {
+      toast.error('Greška: ' + e.message);
+    } finally {
+      setSendingNotif(false);
+    }
+  };
+
   const handleToggleBan = async (userId: string, name: string, currentlyBanned: boolean) => {
     const action = currentlyBanned ? 'odbanirati' : 'banovati';
     if (!confirm(`Da li želiš da ${action} korisnika "${name}"?`)) return;
@@ -926,6 +958,7 @@ function AdminContent() {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
+    <>
     <div className="min-h-screen bg-background">
       <div className="max-w-6xl mx-auto px-4 py-8 space-y-6">
 
@@ -1217,6 +1250,15 @@ function AdminContent() {
                             <Eye className="h-4 w-4" />
                           </Button>
                         </Link>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 rounded-xl text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950"
+                          title="Pošalji notifikaciju"
+                          onClick={() => { setNotifTarget({ id: u.id, name: u.name }); setNotifTitle(''); setNotifBody(''); setNotifLink('/services'); }}
+                        >
+                          <Bell className="h-4 w-4" />
+                        </Button>
                         {!u.is_admin && (
                           <>
                             <Button
@@ -2152,6 +2194,58 @@ function AdminContent() {
 
       </div>
     </div>
+
+    {/* Send notification modal */}
+
+    {notifTarget && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setNotifTarget(null)}>
+        <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="font-bold text-lg flex items-center gap-2"><Bell className="h-5 w-5 text-blue-500" /> Pošalji notifikaciju</h3>
+            <button onClick={() => setNotifTarget(null)} className="text-muted-foreground hover:text-foreground transition-colors">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">Korisnik: <strong className="text-foreground">{notifTarget.name}</strong></p>
+          <div className="space-y-3">
+            <input
+              type="text"
+              value={notifTitle}
+              onChange={e => setNotifTitle(e.target.value)}
+              placeholder="Naslov notifikacije..."
+              className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm outline-none focus:border-orange-500/50 transition-colors"
+            />
+            <textarea
+              value={notifBody}
+              onChange={e => setNotifBody(e.target.value)}
+              placeholder="Tekst notifikacije..."
+              rows={3}
+              className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm outline-none focus:border-orange-500/50 transition-colors resize-none"
+            />
+            <input
+              type="text"
+              value={notifLink}
+              onChange={e => setNotifLink(e.target.value)}
+              placeholder="Link (npr. /services)"
+              className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm outline-none focus:border-orange-500/50 transition-colors"
+            />
+          </div>
+          <div className="flex gap-2 mt-4">
+            <Button variant="outline" className="flex-1" onClick={() => setNotifTarget(null)}>Otkaži</Button>
+            <Button
+              className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
+              onClick={handleSendNotification}
+              disabled={sendingNotif || !notifTitle.trim() || !notifBody.trim()}
+            >
+              {sendingNotif
+                ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Slanje...</>
+                : <><Bell className="h-4 w-4 mr-2" />Pošalji</>}
+            </Button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
 
