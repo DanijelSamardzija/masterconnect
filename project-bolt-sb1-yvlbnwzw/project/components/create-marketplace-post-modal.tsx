@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { CityAutocomplete } from '@/components/city-autocomplete';
 import { CategoryCombobox } from '@/components/category-combobox';
 import { ImageCropModal } from '@/components/image-crop-modal';
-import { Image as ImageIcon, Video, X, Loader2 } from 'lucide-react';
+import { Image as ImageIcon, Video, X, Loader2, Lightbulb } from 'lucide-react';
 import { toast } from 'sonner';
 import { validateImageFile, processImageForUpload, getImageDimensions } from '@/lib/image-utils';
 import { uploadVideoToCloudinary } from '@/lib/attachment-utils';
@@ -465,6 +465,26 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+
+          {postType === 'service_listing' && (
+            <div className="flex items-start gap-3 bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 rounded-xl p-3">
+              <Lightbulb className="h-4 w-4 text-orange-500 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-orange-800 dark:text-orange-300">
+                  <strong>Pro savet:</strong> Usluge sa profilnom fotografijom i slikama radova dobijaju mnogo više upita.{' '}
+                  <a
+                    href="/profile/edit"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline font-semibold hover:text-orange-600"
+                  >
+                    Dodaj profilnu →
+                  </a>
+                </p>
+              </div>
+            </div>
+          )}
+
           <div>
             <Label>{t('marketplace.postType')}</Label>
             <Select value={postType} onValueChange={(value: any) => setPostType(value)}>
