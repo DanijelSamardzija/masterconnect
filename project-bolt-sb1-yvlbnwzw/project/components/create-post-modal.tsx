@@ -41,7 +41,7 @@ type MediaFile = {
 
 export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostModalProps) {
   const { user, profile } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
   const [showSuggestion, setShowSuggestion] = useState(false);
   const [postText, setPostText] = useState('');
@@ -421,6 +421,12 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
 
   const isPro = profile?.account_type === 'professional';
 
+  const quickTags: string[] = language === 'de'
+    ? ['jobabgeschlossen', 'mitarbeitergesucht', 'lob', 'reklamation', 'angebot']
+    : language === 'en'
+    ? ['jobdone', 'hiringnow', 'review', 'complaint', 'offer']
+    : ['završenposao', 'tražimradnika', 'pohvala', 'reklamacija', 'ponuda'];
+
   return (
     <>
     <Dialog open={open && !overlayEditorOpen} onOpenChange={handleClose}>
@@ -478,7 +484,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
           <div>
             <p className="text-xs text-muted-foreground mb-2">{t('createPost.suggestedTags')}</p>
             <div className="flex flex-wrap gap-2">
-              {(['završenposao', 'tražimradnika', 'pohvala', 'reklamacija', 'ponuda'] as const).map(tag => (
+              {quickTags.map(tag => (
                 <button
                   key={tag}
                   type="button"
