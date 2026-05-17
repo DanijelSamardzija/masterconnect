@@ -868,6 +868,9 @@ export default {
   'marketplace.creating': 'Kreiranje...',
   'marketplace.portfolioLimitReached': 'Možete imati samo 1 aktivan portfolio oglas. Obrišite postojeći portfolio oglas da biste kreirali novi.',
   'marketplace.serviceListingLimitReached': 'Možete imati samo 10 aktivnih ponuda usluga. Obrišite jednu od postojećih ponuda da biste kreirali novu.',
+  'marketplace.proTipTitle': 'Pro savet:',
+  'marketplace.proTipText': 'Usluge sa profilnom fotografijom i slikama radova dobijaju mnogo više upita.',
+  'marketplace.proTipCta': 'Dodaj profilnu →',
 
   // Professional cards
   'professional.newProfile': 'Novi profil',

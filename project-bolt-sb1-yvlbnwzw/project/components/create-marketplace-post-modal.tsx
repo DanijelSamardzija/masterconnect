@@ -471,14 +471,14 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
               <Lightbulb className="h-4 w-4 text-orange-500 flex-shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-orange-800 dark:text-orange-300">
-                  <strong>Pro savet:</strong> Usluge sa profilnom fotografijom i slikama radova dobijaju mnogo više upita.{' '}
+                  <strong>{t('marketplace.proTipTitle')}</strong> {t('marketplace.proTipText')}{' '}
                   <a
                     href="/profile/edit"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="underline font-semibold hover:text-orange-600"
                   >
-                    Dodaj profilnu →
+                    {t('marketplace.proTipCta')}
                   </a>
                 </p>
               </div>

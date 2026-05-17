@@ -868,6 +868,9 @@ export default {
   'marketplace.creating': 'Creating...',
   'marketplace.portfolioLimitReached': 'You can only have 1 active portfolio post. Please delete your existing portfolio post to create a new one.',
   'marketplace.serviceListingLimitReached': 'You can only have 10 active service listings. Please delete one of your existing listings to create a new one.',
+  'marketplace.proTipTitle': 'Pro tip:',
+  'marketplace.proTipText': 'Services with a profile photo and work images get significantly more inquiries.',
+  'marketplace.proTipCta': 'Add profile photo →',
 
   // Professional cards
   'professional.newProfile': 'New profile',
