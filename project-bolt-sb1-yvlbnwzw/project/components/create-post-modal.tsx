@@ -734,11 +734,9 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
         <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md shadow-2xl animate-in slide-in-from-bottom-4 duration-300" onClick={e => e.stopPropagation()}>
           <div className="text-center mb-5">
             <p className="text-2xl mb-2">🎉</p>
-            <h3 className="font-bold text-lg text-foreground">Objava je objavljena!</h3>
+            <h3 className="font-bold text-lg text-foreground">{t('createPost.suggestionTitle')}</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              {isPro
-                ? 'Nudiš uslugu ili tražiš radnika? Objavi i tamo — klijenti i poslodavci aktivno pretražuju.'
-                : 'Tražiš uslugu ili posao? Objavi i tamo — mnogo je lakše da te pronađu.'}
+              {isPro ? t('createPost.suggestionProText') : t('createPost.suggestionClientText')}
             </p>
           </div>
 
@@ -751,8 +749,8 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
                 >
                   <Wrench className="h-5 w-5 text-orange-500 flex-shrink-0" />
                   <div>
-                    <p className="font-semibold text-sm text-foreground">Objavi uslugu</p>
-                    <p className="text-xs text-muted-foreground">Stranica Usluge</p>
+                    <p className="font-semibold text-sm text-foreground">{t('createPost.suggestionPostService')}</p>
+                    <p className="text-xs text-muted-foreground">{t('createPost.suggestionServicesPage')}</p>
                   </div>
                 </button>
                 <button
@@ -761,8 +759,8 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
                 >
                   <UserSearch className="h-5 w-5 text-blue-500 flex-shrink-0" />
                   <div>
-                    <p className="font-semibold text-sm text-foreground">Tražim radnika</p>
-                    <p className="text-xs text-muted-foreground">Stranica Poslovi</p>
+                    <p className="font-semibold text-sm text-foreground">{t('createPost.suggestionLookingForWorker')}</p>
+                    <p className="text-xs text-muted-foreground">{t('createPost.suggestionJobsPage')}</p>
                   </div>
                 </button>
               </>
@@ -774,8 +772,8 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
                 >
                   <Briefcase className="h-5 w-5 text-blue-500 flex-shrink-0" />
                   <div>
-                    <p className="font-semibold text-sm text-foreground">Tražim posao</p>
-                    <p className="text-xs text-muted-foreground">Stranica Poslovi</p>
+                    <p className="font-semibold text-sm text-foreground">{t('createPost.suggestionLookingForJob')}</p>
+                    <p className="text-xs text-muted-foreground">{t('createPost.suggestionJobsPage')}</p>
                   </div>
                 </button>
                 <button
@@ -784,8 +782,8 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
                 >
                   <Wrench className="h-5 w-5 text-purple-500 flex-shrink-0" />
                   <div>
-                    <p className="font-semibold text-sm text-foreground">Tražim uslugu</p>
-                    <p className="text-xs text-muted-foreground">Stranica Poslovi</p>
+                    <p className="font-semibold text-sm text-foreground">{t('createPost.suggestionLookingForService')}</p>
+                    <p className="text-xs text-muted-foreground">{t('createPost.suggestionJobsPage')}</p>
                   </div>
                 </button>
               </>
@@ -794,7 +792,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
               onClick={() => dismissSuggestion()}
               className="w-full py-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              Zatvori
+              {t('createPost.suggestionClose')}
             </button>
           </div>
         </div>
