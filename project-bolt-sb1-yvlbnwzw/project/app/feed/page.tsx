@@ -113,6 +113,7 @@ function FeedContent() {
 
   const [currentMediaIndex, setCurrentMediaIndex] = useState<{ [key: string]: number }>({});
   const [imgFit, setImgFit] = useState<{ [mediaId: string]: 'cover' | 'contain' }>({});
+  const [imgRatio, setImgRatio] = useState<{ [mediaId: string]: number }>({});
   const [debugMode, setDebugMode] = useState(false);
 
   const [savedSet, setSavedSet] = useState<Set<string>>(new Set());
@@ -806,12 +807,13 @@ function FeedContent() {
                   <img
                     src={media.url}
                     alt="Post"
-                    className={`absolute inset-0 w-full h-full md:object-contain ${imgFit[media.id] === 'contain' ? 'object-contain' : 'object-cover'}`}
+                    className={`absolute inset-0 w-full h-full ${imgFit[media.id] === 'contain' ? 'object-contain' : 'object-cover'} ${(imgRatio[media.id] ?? 1) > 1 ? 'md:object-cover' : 'md:object-contain'}`}
                     draggable={false}
                     onLoad={(e) => {
                       const img = e.currentTarget;
                       const ratio = img.naturalWidth / img.naturalHeight;
                       setImgFit(prev => ({ ...prev, [media.id]: ratio > 0.75 ? 'contain' : 'cover' }));
+                      setImgRatio(prev => ({ ...prev, [media.id]: ratio }));
                     }}
                   />
                 </>
