@@ -781,7 +781,7 @@ function FeedContent() {
 
           {media && (
             <div
-              className="flex-1 min-h-0 relative overflow-hidden md:flex-none md:w-full"
+              className="flex-1 min-h-0 relative overflow-hidden md:flex-none md:w-full md:max-h-[calc(100vh-240px)]"
               style={imgRatio[media.id] ? { aspectRatio: `${imgRatio[media.id]}` } : undefined}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
