@@ -113,7 +113,6 @@ function FeedContent() {
 
   const [currentMediaIndex, setCurrentMediaIndex] = useState<{ [key: string]: number }>({});
   const [imgFit, setImgFit] = useState<{ [mediaId: string]: 'cover' | 'contain' }>({});
-  const [imgRatio, setImgRatio] = useState<{ [mediaId: string]: number }>({});
   const [debugMode, setDebugMode] = useState(false);
 
   const [savedSet, setSavedSet] = useState<Set<string>>(new Set());
@@ -796,34 +795,17 @@ function FeedContent() {
                   videoRef={el => { if (el) videoRefs.current[`${post.id}-${currentIndex}`] = el; }}
                 />
               ) : (
-                <>
-                  {/* Blurred backdrop for desktop - fills dead space around portrait/landscape images */}
-                  <img
-                    src={media.url}
-                    aria-hidden="true"
-                    draggable={false}
-                    className="hidden md:block absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-50 pointer-events-none"
-                  />
-                  <img
-                    src={media.url}
-                    alt="Post"
-                    className={`absolute inset-0 w-full h-full ${imgFit[media.id] === 'contain' ? 'object-contain' : 'object-cover'} ${(imgRatio[media.id] ?? 0) > 1 ? 'md:object-cover' : 'md:object-contain'}`}
-                    draggable={false}
-                    ref={(el) => {
-                      if (el && el.complete && el.naturalWidth > 0 && !imgRatio[media.id]) {
-                        const ratio = el.naturalWidth / el.naturalHeight;
-                        setImgFit(prev => ({ ...prev, [media.id]: ratio > 0.75 ? 'contain' : 'cover' }));
-                        setImgRatio(prev => ({ ...prev, [media.id]: ratio }));
-                      }
-                    }}
-                    onLoad={(e) => {
-                      const img = e.currentTarget;
-                      const ratio = img.naturalWidth / img.naturalHeight;
-                      setImgFit(prev => ({ ...prev, [media.id]: ratio > 0.75 ? 'contain' : 'cover' }));
-                      setImgRatio(prev => ({ ...prev, [media.id]: ratio }));
-                    }}
-                  />
-                </>
+                <img
+                  src={media.url}
+                  alt="Post"
+                  className={`absolute inset-0 w-full h-full md:object-cover ${imgFit[media.id] === 'contain' ? 'object-contain' : 'object-cover'}`}
+                  draggable={false}
+                  onLoad={(e) => {
+                    const img = e.currentTarget;
+                    const ratio = img.naturalWidth / img.naturalHeight;
+                    setImgFit(prev => ({ ...prev, [media.id]: ratio > 0.75 ? 'contain' : 'cover' }));
+                  }}
+                />
               )}
 
               {/* Overlay text */}
