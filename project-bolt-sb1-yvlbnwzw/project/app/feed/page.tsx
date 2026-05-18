@@ -795,24 +795,26 @@ function FeedContent() {
                   videoRef={el => { if (el) videoRefs.current[`${post.id}-${currentIndex}`] = el; }}
                 />
               ) : (
-                {/* Blurred backdrop for desktop - fills dead space around portrait/landscape images */}
-                <img
-                  src={media.url}
-                  aria-hidden="true"
-                  draggable={false}
-                  className="hidden md:block absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-50 pointer-events-none"
-                />
-                <img
-                  src={media.url}
-                  alt="Post"
-                  className={`absolute inset-0 w-full h-full md:object-contain ${imgFit[media.id] === 'contain' ? 'object-contain' : 'object-cover'}`}
-                  draggable={false}
-                  onLoad={(e) => {
-                    const img = e.currentTarget;
-                    const ratio = img.naturalWidth / img.naturalHeight;
-                    setImgFit(prev => ({ ...prev, [media.id]: ratio > 0.75 ? 'contain' : 'cover' }));
-                  }}
-                />
+                <>
+                  {/* Blurred backdrop for desktop - fills dead space around portrait/landscape images */}
+                  <img
+                    src={media.url}
+                    aria-hidden="true"
+                    draggable={false}
+                    className="hidden md:block absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-50 pointer-events-none"
+                  />
+                  <img
+                    src={media.url}
+                    alt="Post"
+                    className={`absolute inset-0 w-full h-full md:object-contain ${imgFit[media.id] === 'contain' ? 'object-contain' : 'object-cover'}`}
+                    draggable={false}
+                    onLoad={(e) => {
+                      const img = e.currentTarget;
+                      const ratio = img.naturalWidth / img.naturalHeight;
+                      setImgFit(prev => ({ ...prev, [media.id]: ratio > 0.75 ? 'contain' : 'cover' }));
+                    }}
+                  />
+                </>
               )}
 
               {/* Overlay text */}
