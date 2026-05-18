@@ -67,6 +67,8 @@ type Post = {
     type: 'image' | 'video';
     url: string;
     order: number;
+    width?: number | null;
+    height?: number | null;
     overlay_text?: string | null;
     overlay_color?: string | null;
     overlay_x?: number | null;
@@ -112,7 +114,6 @@ function FeedContent() {
   const [reportTarget, setReportTarget] = useState<{ type: 'post' | 'profile'; id: string; userId: string } | null>(null);
 
   const [currentMediaIndex, setCurrentMediaIndex] = useState<{ [key: string]: number }>({});
-  const [imgFit, setImgFit] = useState<{ [mediaId: string]: 'cover' | 'contain' }>({});
   const [debugMode, setDebugMode] = useState(false);
 
   const [savedSet, setSavedSet] = useState<Set<string>>(new Set());
@@ -798,7 +799,7 @@ function FeedContent() {
                 <img
                   src={media.url}
                   alt="Post"
-                  className="absolute inset-0 w-full h-full object-cover"
+                  className={`absolute inset-0 w-full h-full ${media.width && media.height && (media.width / media.height) > 0.75 ? 'object-contain' : 'object-cover'}`}
                   draggable={false}
                 />
               )}

@@ -294,6 +294,22 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
           const isVideo = file.type.startsWith('video/');
           let uploadResult: { url: string; path?: string } | null = null;
 
+          // Detect image dimensions before upload
+          let imgWidth: number | null = null;
+          let imgHeight: number | null = null;
+          if (!isVideo) {
+            try {
+              const dims = await new Promise<{ width: number; height: number }>((resolve) => {
+                const objectUrl = URL.createObjectURL(fileToUpload);
+                const img = new window.Image();
+                img.onload = () => { resolve({ width: img.naturalWidth, height: img.naturalHeight }); URL.revokeObjectURL(objectUrl); };
+                img.onerror = () => { resolve({ width: 0, height: 0 }); URL.revokeObjectURL(objectUrl); };
+                img.src = objectUrl;
+              });
+              if (dims.width > 0) { imgWidth = dims.width; imgHeight = dims.height; }
+            } catch {}
+          }
+
           if (isVideo) {
             uploadResult = await uploadVideoToCloudinary(fileToUpload, 'gigzone/feed');
           } else {
@@ -312,7 +328,8 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
               post_id: postData.id,
               type: mediaType,
               url: uploadResult.url,
-              order: i
+              order: i,
+              ...(imgWidth && imgHeight ? { width: imgWidth, height: imgHeight } : {})
             });
           } else {
             console.error(`[Client ${requestId}] Failed to upload file:`, file.name);
