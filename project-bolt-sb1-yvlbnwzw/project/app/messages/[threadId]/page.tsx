@@ -182,12 +182,19 @@ function MessagesContent() {
     }
   }, [searchParams]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const isInitialLoad = useRef(true);
+
+  const scrollToBottom = (instant?: boolean) => {
+    messagesEndRef.current?.scrollIntoView({ behavior: instant ? 'instant' : 'smooth' });
   };
 
   useEffect(() => {
-    scrollToBottom();
+    if (isInitialLoad.current && messages.length > 0) {
+      isInitialLoad.current = false;
+      scrollToBottom(true);
+    } else {
+      scrollToBottom();
+    }
   }, [messages]);
 
   useEffect(() => {
