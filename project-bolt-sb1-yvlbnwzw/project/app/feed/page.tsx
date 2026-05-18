@@ -113,6 +113,7 @@ function FeedContent() {
 
   const [currentMediaIndex, setCurrentMediaIndex] = useState<{ [key: string]: number }>({});
   const [imgFit, setImgFit] = useState<{ [mediaId: string]: 'cover' | 'contain' }>({});
+  const [imgRatio, setImgRatio] = useState<{ [mediaId: string]: number }>({});
   const [debugMode, setDebugMode] = useState(false);
 
   const [savedSet, setSavedSet] = useState<Set<string>>(new Set());
@@ -780,7 +781,8 @@ function FeedContent() {
 
           {media && (
             <div
-              className="flex-1 min-h-0 relative overflow-hidden"
+              className="flex-1 min-h-0 relative overflow-hidden md:flex-none md:w-full"
+              style={imgRatio[media.id] ? { aspectRatio: `${imgRatio[media.id]}` } : undefined}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
@@ -803,8 +805,8 @@ function FeedContent() {
                   onLoad={(e) => {
                     const img = e.currentTarget;
                     const ratio = img.naturalWidth / img.naturalHeight;
-                    // Square/landscape images (ratio > 0.75) use contain to avoid cropping
                     setImgFit(prev => ({ ...prev, [media.id]: ratio > 0.75 ? 'contain' : 'cover' }));
+                    setImgRatio(prev => ({ ...prev, [media.id]: ratio }));
                   }}
                 />
               )}
