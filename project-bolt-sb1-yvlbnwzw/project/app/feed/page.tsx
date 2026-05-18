@@ -798,7 +798,7 @@ function FeedContent() {
                 <img
                   src={media.url}
                   alt="Post"
-                  className={`absolute inset-0 w-full h-full ${imgFit[media.id] === 'contain' ? 'object-contain' : 'object-cover'}`}
+                  className={`absolute inset-0 w-full h-full md:object-contain ${imgFit[media.id] === 'contain' ? 'object-contain' : 'object-cover'}`}
                   draggable={false}
                   onLoad={(e) => {
                     const img = e.currentTarget;
