@@ -306,25 +306,42 @@ export function EditPostModal({
           'Authorization': `Bearer ${token}`,
         };
 
-        // STEP 2: TEXT + CITY + CATEGORY PAYLOAD
+        // STEP 2: BUILD FULL PAYLOAD
         const minimalPayload: any = {
           postId,
           text: text.trim(),
         };
 
-        // Add city if present
-        if (city !== undefined && city !== null && city.trim().length > 0) {
-          minimalPayload.city = city.trim();
+        if (city?.trim()) minimalPayload.city = city.trim();
+        if (category?.trim()) minimalPayload.category = category.trim();
+
+        if (postType === 'service_listing') {
+          minimalPayload.job_title = jobTitle.trim();
+          minimalPayload.price_type = priceType;
+          if ((priceType === 'fixed' || priceType === 'hourly') && priceValue.trim()) {
+            minimalPayload.price_value = parseFloat(priceValue);
+            minimalPayload.currency = currency;
+          } else {
+            minimalPayload.price_value = null;
+            minimalPayload.currency = currency;
+          }
         }
 
-        // Add category if present (backend will compute category_normalized)
-        if (category !== undefined && category !== null && category.trim().length > 0) {
-          minimalPayload.category = category.trim();
+        if (postType === 'service_request') {
+          minimalPayload.job_title = jobTitle.trim();
         }
 
-        console.log('[EDIT MODAL DEBUG] Request headers:', headers);
-        console.log('[EDIT MODAL DEBUG] Step 2 payload (text + city + category):', minimalPayload);
-        console.log('[EDIT MODAL DEBUG] Original updateData (ignored):', updateData);
+        if (postType === 'portfolio_post') {
+          minimalPayload.profession = profession;
+          minimalPayload.experience_level = experienceLevel;
+          minimalPayload.location = location;
+          minimalPayload.availability = availability;
+        }
+
+        if (postType === 'job_seeker_post' || postType === 'hiring_post') {
+          minimalPayload.experience_level = experienceLevel;
+          minimalPayload.availability = availability;
+        }
 
         const response = await fetch('/api/posts/update', {
           method: 'PUT',

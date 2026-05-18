@@ -149,8 +149,35 @@ export async function PUT(request: NextRequest) {
       }
     }
 
+    // CATEGORY field (optional)
+    if (body.job_title !== undefined) {
+      updateData.job_title = typeof body.job_title === 'string' ? body.job_title.trim() : null;
+    }
+    if (body.price_type !== undefined) {
+      updateData.price_type = typeof body.price_type === 'string' ? body.price_type.trim() : null;
+    }
+    if (body.price_value !== undefined) {
+      const parsed = body.price_value !== null ? parseFloat(body.price_value) : null;
+      updateData.price_value = (parsed !== null && !isNaN(parsed) && isFinite(parsed)) ? parsed : null;
+    }
+    if (body.currency !== undefined) {
+      updateData.currency = typeof body.currency === 'string' ? body.currency.trim() : 'RSD';
+    }
+    if (body.experience_level !== undefined) {
+      updateData.experience_level = typeof body.experience_level === 'string' ? body.experience_level.trim() : null;
+    }
+    if (body.availability !== undefined) {
+      updateData.availability = typeof body.availability === 'string' ? body.availability.trim() : null;
+    }
+    if (body.profession !== undefined) {
+      updateData.profession = typeof body.profession === 'string' ? body.profession.trim() : null;
+    }
+    if (body.location !== undefined) {
+      updateData.location = typeof body.location === 'string' ? body.location.trim() : null;
+    }
+
     // SECURITY: Whitelist filter - only allow user-controlled fields
-    const allowedFields = ['text', 'city', 'category'];
+    const allowedFields = ['text', 'city', 'category', 'job_title', 'price_type', 'price_value', 'currency', 'experience_level', 'availability', 'profession', 'location'];
     Object.keys(updateData).forEach((key) => {
       if (!allowedFields.includes(key)) {
         if (DEBUG) console.log(`[SECURITY] Removing disallowed field: ${key}`);
