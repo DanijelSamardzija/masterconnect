@@ -807,8 +807,15 @@ function FeedContent() {
                   <img
                     src={media.url}
                     alt="Post"
-                    className={`absolute inset-0 w-full h-full ${imgFit[media.id] === 'contain' ? 'object-contain' : 'object-cover'} ${(imgRatio[media.id] ?? 1) > 1 ? 'md:object-cover' : 'md:object-contain'}`}
+                    className={`absolute inset-0 w-full h-full ${imgFit[media.id] === 'contain' ? 'object-contain' : 'object-cover'} ${(imgRatio[media.id] ?? 0) > 1 ? 'md:object-cover' : 'md:object-contain'}`}
                     draggable={false}
+                    ref={(el) => {
+                      if (el && el.complete && el.naturalWidth > 0 && !imgRatio[media.id]) {
+                        const ratio = el.naturalWidth / el.naturalHeight;
+                        setImgFit(prev => ({ ...prev, [media.id]: ratio > 0.75 ? 'contain' : 'cover' }));
+                        setImgRatio(prev => ({ ...prev, [media.id]: ratio }));
+                      }
+                    }}
                     onLoad={(e) => {
                       const img = e.currentTarget;
                       const ratio = img.naturalWidth / img.naturalHeight;
