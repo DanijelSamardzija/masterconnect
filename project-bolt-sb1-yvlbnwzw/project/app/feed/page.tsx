@@ -11,13 +11,10 @@ import {
   Heart, MessageCircle, Share2, Loader2, Search, Volume2, VolumeX,
   MoreVertical, Plus, Star, Flag, AlertCircle, ChevronRight, Edit2,
   Trash2, Bookmark, Send, X, Eye, Home, MapPin, CheckCircle, Phone,
-  UserPlus, Wrench, Briefcase, Bell
+  UserPlus, Wrench, Briefcase
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { CreatePostModal } from '@/components/create-post-modal';
-import { NotificationsModal, Notification } from '@/components/notifications-modal';
-import { sr } from 'date-fns/locale';
-import { translateNotification } from '@/lib/notification-translations';
 import { locationScore } from '@/lib/location-sort';
 import { ProfessionalBadge } from '@/components/professional-badge';
 import { ReportModal } from '@/components/report-modal';
@@ -94,7 +91,7 @@ const HEADER_H = 52;
 function FeedContent() {
   const router = useRouter();
   const { user, profile } = useAuth();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const { openGuestGate } = useGuestGate();
   usePageTracking('feed');
 
@@ -135,8 +132,6 @@ function FeedContent() {
   const [newPostsCount, setNewPostsCount] = useState(0);
   const [shareModalPostId, setShareModalPostId] = useState<string | null>(null);
   const [contactingUserId, setContactingUserId] = useState<string | null>(null);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [notificationsList, setNotificationsList] = useState<Notification[]>([]);
   const [notificationUnreadCount, setNotificationUnreadCount] = useState(0);
   const newestPostTimestamp = useRef<string | null>(null);
   const viewedPostIds = useRef<Set<string>>(new Set());
@@ -209,67 +204,6 @@ function FeedContent() {
       .eq('user_id', user.id).is('read_at', null)
       .then(({ count }) => setNotificationUnreadCount(count || 0));
   }, [user]);
-
-  const fetchNotificationsData = async () => {
-    if (!user) return;
-    const { data } = await supabase.from('notifications').select('*')
-      .eq('user_id', user.id).order('created_at', { ascending: false });
-    const mapped: Notification[] = (data || []).map((n: any) => {
-      const translated = translateNotification({ title: n.title, body: n.body, action_type: n.action_type, meta: n.meta }, language);
-      return {
-        id: n.id, type: n.type, title: translated.title, body: translated.body,
-        time: formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: language === 'sr' ? sr : undefined }),
-        read: !!n.read_at, meta: { ...(n.meta || {}), post_id: n.post_id },
-      };
-    });
-    setNotificationsList(mapped);
-    setNotificationUnreadCount(mapped.filter(n => !n.read).length);
-  };
-
-  const handleOpenNotifications = async () => {
-    await fetchNotificationsData();
-    setNotificationsOpen(true);
-    setNotificationsList(prev => prev.map(n => ({ ...n, read: true })));
-    setNotificationUnreadCount(0);
-    await (supabase.from('notifications') as any).update({ read_at: new Date().toISOString() })
-      .eq('user_id', user?.id).is('read_at', null);
-  };
-
-  const handleMarkAllRead = async () => {
-    if (!user) return;
-    setNotificationsList(prev => prev.map(n => ({ ...n, read: true })));
-    setNotificationUnreadCount(0);
-    await (supabase.from('notifications') as any).update({ read_at: new Date().toISOString() })
-      .eq('user_id', user.id).is('read_at', null);
-  };
-
-  const handleClearAll = async () => {
-    if (!user) return;
-    setNotificationsList([]);
-    setNotificationUnreadCount(0);
-    await supabase.from('notifications').delete().eq('user_id', user.id);
-  };
-
-  const handleNotificationClick = (notification: Notification) => {
-    setNotificationsOpen(false);
-    if (notification.type === 'message' && notification.meta?.thread_id) { router.push(`/messages/${notification.meta.thread_id}`); return; }
-    if (notification.type === 'save') {
-      const pt = notification.meta?.post_type as string | undefined;
-      if (pt === 'service_listing') router.push(`/services/${notification.meta?.post_id}`);
-      else if (['hiring_post', 'service_request', 'job_seeker_post'].includes(pt || '')) router.push('/jobs');
-      return;
-    }
-    if (['comment', 'reply', 'reaction'].includes(notification.type)) { return; }
-    if (notification.type === 'follow') { if (notification.meta?.follower_id) router.push(`/profile/${notification.meta.follower_id}`); return; }
-    if (notification.linkUrl) { router.push(notification.linkUrl); return; }
-    if (notification.messageId) { router.push(`/messages/${notification.messageId}`); return; }
-    if (notification.jobId) { router.push(`/jobs/${notification.jobId}`); return; }
-    switch (notification.type) {
-      case 'message': router.push('/messages'); break;
-      case 'job': case 'job_request': router.push('/jobs'); break;
-      case 'review': if (user?.id) router.push(`/profile/${user.id}`); break;
-    }
-  };
 
   const fetchSavedPosts = async () => {
     if (!user) return;
@@ -577,17 +511,12 @@ function FeedContent() {
 
       {/* Sticky header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border py-2 flex items-center justify-center gap-3">
-        <button onClick={() => router.push(user ? '/dashboard' : '/')} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+        <button onClick={() => router.push(user ? '/dashboard' : '/')} className="relative w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
           <Home className="h-5 w-5" />
+          {notificationUnreadCount > 0 && (
+            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500" />
+          )}
         </button>
-        {user && (
-          <button onClick={handleOpenNotifications} className="relative w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
-            <Bell className="h-5 w-5" />
-            {notificationUnreadCount > 0 && (
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500" />
-            )}
-          </button>
-        )}
         <button onClick={() => router.push('/services')} className="flex items-center gap-1.5 h-9 px-3 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground border border-border text-xs font-semibold">
           <Wrench className="h-3.5 w-3.5" />
           Usluge
@@ -676,14 +605,6 @@ function FeedContent() {
 
       {shareModalPostId && <SharePostModal postId={shareModalPostId} open={!!shareModalPostId} onOpenChange={open => { if (!open) setShareModalPostId(null); }} />}
 
-      <NotificationsModal
-        open={notificationsOpen}
-        onOpenChange={setNotificationsOpen}
-        notifications={notificationsList}
-        onNotificationClick={handleNotificationClick}
-        onMarkAllRead={handleMarkAllRead}
-        onClearAll={handleClearAll}
-      />
 
       {postToEdit && (
         <EditPostModal open={editModalOpen} onOpenChange={setEditModalOpen} postId={postToEdit.id} postType={undefined} initialText={postToEdit.text} media={postToEdit.media}
