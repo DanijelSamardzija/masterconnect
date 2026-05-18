@@ -795,24 +795,11 @@ function FeedContent() {
                   videoRef={el => { if (el) videoRefs.current[`${post.id}-${currentIndex}`] = el; }}
                 />
               ) : (
-                {/* Desktop: blurred backdrop fills dead space behind contained images */}
-                <img
-                  src={media.url}
-                  aria-hidden="true"
-                  draggable={false}
-                  style={{ transform: 'scale(1.3)', filter: 'blur(20px)', opacity: 0.6 }}
-                  className="hidden md:block absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
-                />
                 <img
                   src={media.url}
                   alt="Post"
-                  className={`absolute inset-0 w-full h-full md:z-10 ${imgFit[media.id] === 'contain' ? 'object-contain' : 'object-cover'}`}
+                  className="absolute inset-0 w-full h-full object-cover"
                   draggable={false}
-                  onLoad={(e) => {
-                    const img = e.currentTarget;
-                    const ratio = img.naturalWidth / img.naturalHeight;
-                    setImgFit(prev => ({ ...prev, [media.id]: ratio > 0.75 ? 'contain' : 'cover' }));
-                  }}
                 />
               )}
 
