@@ -517,6 +517,19 @@ export function Navigation() {
                 >
                   <Search className="h-5 w-5" />
                 </Button>
+                <Link href="/messages">
+                  <Button variant="ghost" size="icon" className="relative text-slate-200 hover:text-white hover:bg-slate-800" aria-label="Messages">
+                    <MessageSquare className="h-5 w-5" />
+                    {unreadCount > 0 && (
+                      <Badge
+                        variant="destructive"
+                        className="absolute -top-1 -right-1 px-1 py-0 h-4 min-w-4 flex items-center justify-center text-[10px] bg-orange-600 border-2 border-slate-900"
+                      >
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </Link>
                 <Button
                   variant="ghost"
                   size="icon"
