@@ -539,7 +539,7 @@ function FeedContent() {
       {/* Main feed */}
       <div
         ref={scrollContainerRef}
-        className="overflow-y-scroll snap-y snap-mandatory md:snap-none"
+        className="overflow-y-scroll snap-y snap-mandatory"
         style={{ height: `calc(100dvh - ${HEADER_H}px)`, overscrollBehavior: 'contain' }}
       >
         {posts.length === 0 ? (
@@ -660,10 +660,10 @@ function FeedContent() {
         key={post.id}
         data-post-id={post.id}
         ref={el => { postRefs.current[post.id] = el; }}
-        className="feed-post-item snap-start flex justify-center px-2 py-1"
+        className="snap-start flex justify-center px-2 py-1"
         style={{ height: `calc(100dvh - ${HEADER_H}px)` }}
       >
-        <div className={`feed-card-inner w-full max-w-md h-full flex flex-col rounded-2xl overflow-hidden shadow-sm bg-card border border-border ${isPro ? 'border-l-4 border-l-orange-500' : 'border-l-4 border-l-blue-500'}`}>
+        <div className={`w-full max-w-md h-full flex flex-col rounded-2xl overflow-hidden shadow-sm bg-card border border-border ${isPro ? 'border-l-4 border-l-orange-500' : 'border-l-4 border-l-blue-500'}`}>
 
           {/* Card header */}
           <div className="flex items-center gap-2.5 p-3 shrink-0">
@@ -780,7 +780,7 @@ function FeedContent() {
 
           {media && (
             <div
-              className="feed-media-container flex-1 min-h-0 relative overflow-hidden"
+              className="flex-1 min-h-0 relative overflow-hidden"
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
@@ -795,10 +795,17 @@ function FeedContent() {
                   videoRef={el => { if (el) videoRefs.current[`${post.id}-${currentIndex}`] = el; }}
                 />
               ) : (
+                {/* Blurred backdrop for desktop - fills dead space around portrait/landscape images */}
+                <img
+                  src={media.url}
+                  aria-hidden="true"
+                  draggable={false}
+                  className="hidden md:block absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-50 pointer-events-none"
+                />
                 <img
                   src={media.url}
                   alt="Post"
-                  className={`feed-media-img absolute inset-0 w-full h-full ${imgFit[media.id] === 'contain' ? 'object-contain' : 'object-cover'}`}
+                  className={`absolute inset-0 w-full h-full md:object-contain ${imgFit[media.id] === 'contain' ? 'object-contain' : 'object-cover'}`}
                   draggable={false}
                   onLoad={(e) => {
                     const img = e.currentTarget;
