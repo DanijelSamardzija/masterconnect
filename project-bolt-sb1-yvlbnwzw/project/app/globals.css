@@ -131,6 +131,28 @@ img.emoji {
   object-position: center !important;
 }
 
+/* Desktop feed: auto-height cards, no snap scroll */
+@media (min-width: 768px) {
+  .feed-post-item {
+    height: auto !important;
+    scroll-snap-align: none !important;
+  }
+  .feed-card-inner {
+    height: auto !important;
+  }
+  .feed-media-container {
+    flex: none !important;
+    min-height: 0 !important;
+  }
+  .feed-media-img {
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 80vh !important;
+    object-fit: contain !important;
+  }
+}
+
 [data-debug="stage-wrapper"]::before,
 [data-debug="stage-wrapper"]::after,
 [data-debug="stage-wrapper"] *::before,
