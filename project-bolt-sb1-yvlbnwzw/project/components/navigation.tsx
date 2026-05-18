@@ -38,18 +38,24 @@ import {
 } from 'lucide-react';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { SearchModal } from '@/components/search-modal';
+import { NotificationsModal, Notification } from '@/components/notifications-modal';
 import { useTheme } from '@/hooks/use-theme';
+import { formatDistanceToNow } from 'date-fns';
+import { sr } from 'date-fns/locale';
+import { translateNotification } from '@/lib/notification-translations';
 
 export function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, profile, signOut } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { theme, toggleTheme, mounted } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notificationUnreadCount, setNotificationUnreadCount] = useState(0);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notificationsList, setNotificationsList] = useState<Notification[]>([]);
 
   const isAuthPage = pathname === '/login' || pathname === '/register';
   const isFeedPage = pathname === '/feed';
@@ -194,6 +200,71 @@ export function Navigation() {
   if (isAuthPage || isFeedPage) {
     return null;
   }
+
+  const fetchNotificationsData = async () => {
+    if (!profile) return;
+    const { data } = await supabase.from('notifications').select('*')
+      .eq('user_id', profile.id).order('created_at', { ascending: false });
+    const mapped: Notification[] = (data || []).map((n: any) => {
+      const translated = translateNotification({ title: n.title, body: n.body, action_type: n.action_type, meta: n.meta }, language);
+      return {
+        id: n.id, type: n.type, title: translated.title, body: translated.body,
+        time: formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: language === 'sr' ? sr : undefined }),
+        read: !!n.read_at, meta: { ...(n.meta || {}), post_id: n.post_id },
+      };
+    });
+    setNotificationsList(mapped);
+    setNotificationUnreadCount(mapped.filter(n => !n.read).length);
+  };
+
+  const handleOpenNotifications = async () => {
+    await fetchNotificationsData();
+    setNotificationsOpen(true);
+    setNotificationsList(prev => prev.map(n => ({ ...n, read: true })));
+    setNotificationUnreadCount(0);
+    await (supabase.from('notifications') as any).update({ read_at: new Date().toISOString() })
+      .eq('user_id', profile?.id).is('read_at', null);
+    window.dispatchEvent(new Event('unreadCountChanged'));
+  };
+
+  const handleMarkAllRead = async () => {
+    if (!profile) return;
+    setNotificationsList(prev => prev.map(n => ({ ...n, read: true })));
+    setNotificationUnreadCount(0);
+    await (supabase.from('notifications') as any).update({ read_at: new Date().toISOString() })
+      .eq('user_id', profile.id).is('read_at', null);
+    window.dispatchEvent(new Event('unreadCountChanged'));
+  };
+
+  const handleClearAll = async () => {
+    if (!profile) return;
+    setNotificationsList([]);
+    setNotificationUnreadCount(0);
+    await supabase.from('notifications').delete().eq('user_id', profile.id);
+    window.dispatchEvent(new Event('unreadCountChanged'));
+  };
+
+  const handleNotificationClick = (notification: Notification) => {
+    setNotificationsOpen(false);
+    if (notification.type === 'message' && notification.meta?.thread_id) { router.push(`/messages/${notification.meta.thread_id}`); return; }
+    if (notification.type === 'save') {
+      const pt = notification.meta?.post_type as string | undefined;
+      if (pt === 'service_listing') router.push(`/services/${notification.meta?.post_id}`);
+      else if (['hiring_post', 'service_request', 'job_seeker_post'].includes(pt || '')) router.push('/jobs');
+      else router.push('/feed');
+      return;
+    }
+    if (['comment', 'reply', 'reaction'].includes(notification.type)) { if (notification.meta?.post_id) router.push('/feed'); return; }
+    if (notification.type === 'follow') { if (notification.meta?.follower_id) router.push(`/profile/${notification.meta.follower_id}`); return; }
+    if (notification.linkUrl) { router.push(notification.linkUrl); return; }
+    if (notification.messageId) { router.push(`/messages/${notification.messageId}`); return; }
+    if (notification.jobId) { router.push(`/jobs/${notification.jobId}`); return; }
+    switch (notification.type) {
+      case 'message': router.push('/messages'); break;
+      case 'job': case 'job_request': router.push('/jobs'); break;
+      case 'review': router.push(`/profile/${profile?.id}`); break;
+    }
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -446,19 +517,23 @@ export function Navigation() {
                 >
                   <Search className="h-5 w-5" />
                 </Button>
-                <Link href="/dashboard">
-                  <Button variant="ghost" size="icon" className="relative text-slate-200 hover:text-white hover:bg-slate-800">
-                    <Bell className="h-5 w-5" />
-                    {notificationUnreadCount > 0 && (
-                      <Badge
-                        variant="destructive"
-                        className="absolute -top-1 -right-1 px-1 py-0 h-4 min-w-4 flex items-center justify-center text-[10px] bg-orange-600 border-2 border-slate-900"
-                      >
-                        {notificationUnreadCount > 9 ? '9+' : notificationUnreadCount}
-                      </Badge>
-                    )}
-                  </Button>
-                </Link>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleOpenNotifications}
+                  className="relative text-slate-200 hover:text-white hover:bg-slate-800"
+                  aria-label="Notifications"
+                >
+                  <Bell className="h-5 w-5" />
+                  {notificationUnreadCount > 0 && (
+                    <Badge
+                      variant="destructive"
+                      className="absolute -top-1 -right-1 px-1 py-0 h-4 min-w-4 flex items-center justify-center text-[10px] bg-orange-600 border-2 border-slate-900"
+                    >
+                      {notificationUnreadCount > 9 ? '9+' : notificationUnreadCount}
+                    </Badge>
+                  )}
+                </Button>
               </>
             ) : (
               <LanguageSwitcher className={
@@ -648,6 +723,15 @@ export function Navigation() {
       </div>
 
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+
+      <NotificationsModal
+        open={notificationsOpen}
+        onOpenChange={setNotificationsOpen}
+        notifications={notificationsList}
+        onNotificationClick={handleNotificationClick}
+        onMarkAllRead={handleMarkAllRead}
+        onClearAll={handleClearAll}
+      />
     </nav>
   );
 }
