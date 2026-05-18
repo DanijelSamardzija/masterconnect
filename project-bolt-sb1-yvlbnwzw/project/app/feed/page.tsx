@@ -113,7 +113,6 @@ function FeedContent() {
 
   const [currentMediaIndex, setCurrentMediaIndex] = useState<{ [key: string]: number }>({});
   const [imgFit, setImgFit] = useState<{ [mediaId: string]: 'cover' | 'contain' }>({});
-  const [imgRatio, setImgRatio] = useState<{ [mediaId: string]: number }>({});
   const [debugMode, setDebugMode] = useState(false);
 
   const [savedSet, setSavedSet] = useState<Set<string>>(new Set());
@@ -781,8 +780,7 @@ function FeedContent() {
 
           {media && (
             <div
-              className="flex-1 min-h-0 relative overflow-hidden md:flex-none md:w-full md:max-h-[calc(100vh-240px)]"
-              style={imgRatio[media.id] ? { aspectRatio: `${imgRatio[media.id]}` } : undefined}
+              className="flex-1 min-h-0 relative overflow-hidden"
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
@@ -800,13 +798,12 @@ function FeedContent() {
                 <img
                   src={media.url}
                   alt="Post"
-                  className={`absolute inset-0 w-full h-full md:object-contain ${imgFit[media.id] === 'contain' ? 'object-contain' : 'object-cover'}`}
+                  className={`absolute inset-0 w-full h-full ${imgFit[media.id] === 'contain' ? 'object-contain' : 'object-cover'}`}
                   draggable={false}
                   onLoad={(e) => {
                     const img = e.currentTarget;
                     const ratio = img.naturalWidth / img.naturalHeight;
                     setImgFit(prev => ({ ...prev, [media.id]: ratio > 0.75 ? 'contain' : 'cover' }));
-                    setImgRatio(prev => ({ ...prev, [media.id]: ratio }));
                   }}
                 />
               )}
