@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { Check, MapPin, Loader2 } from 'lucide-react';
+import { Check, MapPin, Loader2, PenLine } from 'lucide-react';
 
 interface CityAutocompleteProps {
   value: string;
@@ -43,6 +43,47 @@ const SERBIAN_CITIES = [
   'Vlasotince', 'Surdulica', 'Crna Trava', 'Bosilegrad', 'Bujanovac', 'Preševo', 'Vladičin Han'
 ];
 
+// Normalize known city name variants to canonical form
+const CITY_NORMALIZE: Record<string, string> = {
+  'wien': 'Beč',
+  'vienna': 'Beč',
+  'bec': 'Beč',
+  'grad zagreb': 'Zagreb',
+  'münchen': 'Minhen',
+  'munich': 'Minhen',
+  'munchen': 'Minhen',
+  'köln': 'Keln',
+  'cologne': 'Keln',
+  'frankfurt am main': 'Frankfurt',
+  'berlin': 'Berlin',
+  'hamburg': 'Hamburg',
+  'Stuttgart': 'Štutgart',
+  'stuttgart': 'Štutgart',
+  'zürich': 'Cirih',
+  'zurich': 'Cirih',
+  'geneva': 'Ženeva',
+  'genève': 'Ženeva',
+  'brussels': 'Brisel',
+  'bruxelles': 'Brisel',
+  'amsterdam': 'Amsterdam',
+  'london': 'London',
+  'paris': 'Pariz',
+  'rome': 'Rim',
+  'roma': 'Rim',
+  'milan': 'Milano',
+  'milano': 'Milano',
+  'trieste': 'Trst',
+  'ljubljana': 'Ljubljana',
+  'graz': 'Grac',
+  'linz': 'Linc',
+  'salzburg': 'Salcburg',
+};
+
+function normalizeCityName(name: string): string {
+  const key = name.toLowerCase().trim();
+  return CITY_NORMALIZE[key] || name;
+}
+
 function normalizeSerbianText(text: string): string {
   return text
     .toLowerCase()
@@ -81,27 +122,36 @@ export function CityAutocomplete({
   const [inputValue, setInputValue] = useState(value);
   const [predictions, setPredictions] = useState<NominatimPlace[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [manualMode, setManualMode] = useState(false);
+  const [hasSelected, setHasSelected] = useState(!!value);
+  const [searchDone, setSearchDone] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     setInputValue(value);
+    setHasSelected(!!value);
   }, [value]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        // If user didn't select from list and not in manual mode, reset
+        if (!hasSelected && !manualMode && inputValue && inputValue !== value) {
+          setInputValue(value);
+        }
         setIsOpen(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [hasSelected, manualMode, inputValue, value]);
 
   const searchCities = async (input: string) => {
     if (!input || input.length < 2) {
       setPredictions([]);
+      setSearchDone(false);
       return;
     }
 
@@ -111,6 +161,7 @@ export function CityAutocomplete({
 
     abortControllerRef.current = new AbortController();
     setIsLoading(true);
+    setSearchDone(false);
 
     try {
       const normalizedInput = normalizeSerbianText(input);
@@ -131,6 +182,7 @@ export function CityAutocomplete({
       if (localMatches.length > 0) {
         setPredictions(localMatches);
         setIsLoading(false);
+        setSearchDone(true);
         return;
       }
 
@@ -158,10 +210,12 @@ export function CityAutocomplete({
 
       setPredictions(filteredCities.slice(0, 5));
       setIsLoading(false);
+      setSearchDone(true);
     } catch (error: any) {
       if (error.name !== 'AbortError') {
         console.error('Error fetching city predictions:', error);
         setPredictions([]);
+        setSearchDone(true);
       }
       setIsLoading(false);
     }
@@ -170,7 +224,9 @@ export function CityAutocomplete({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputValue(newValue);
+    setHasSelected(false);
     setIsOpen(true);
+    setSearchDone(false);
 
     if (newValue.length >= 2) {
       searchCities(newValue);
@@ -180,17 +236,20 @@ export function CityAutocomplete({
 
     if (newValue === '') {
       onChange('');
+      setHasSelected(false);
     }
   };
 
   const handleCitySelect = (place: NominatimPlace) => {
     const raw = place.address?.city || place.address?.town || place.display_name.split(',')[0];
-    const cityName = cyrillicToLatin(raw.trim());
+    const cityName = normalizeCityName(cyrillicToLatin(raw.trim()));
     const country = place.address?.country || '';
 
     setInputValue(cityName);
     setIsOpen(false);
     setPredictions([]);
+    setHasSelected(true);
+    setManualMode(false);
 
     onChange(cityName, {
       city: cityName,
@@ -199,11 +258,20 @@ export function CityAutocomplete({
     });
   };
 
+  const handleManualEntry = () => {
+    setManualMode(true);
+    setIsOpen(false);
+    setPredictions([]);
+    setHasSelected(true);
+    onChange(inputValue);
+  };
+
   const handleAllCitiesSelect = () => {
     setInputValue('');
     onChange('');
     setIsOpen(false);
     setPredictions([]);
+    setHasSelected(false);
   };
 
   const handleFocus = () => {
@@ -217,6 +285,19 @@ export function CityAutocomplete({
     if (e.key === 'Escape') {
       setIsOpen(false);
     }
+    if (e.key === 'Enter' && manualMode) {
+      setHasSelected(true);
+      onChange(inputValue);
+      setIsOpen(false);
+    }
+  };
+
+  const handleBlur = () => {
+    setTimeout(() => {
+      if (!hasSelected && !manualMode && inputValue && inputValue !== value) {
+        setInputValue(value);
+      }
+    }, 200);
   };
 
   return (
@@ -227,6 +308,7 @@ export function CityAutocomplete({
         onChange={handleInputChange}
         onFocus={handleFocus}
         onKeyDown={handleKeyDown}
+        onBlur={handleBlur}
         placeholder={placeholder}
         disabled={disabled}
         required={required}
@@ -253,15 +335,23 @@ export function CityAutocomplete({
             </div>
           )}
 
-          {!isLoading && predictions.length === 0 && inputValue.length >= 2 && (
-            <div className="px-3 py-4 text-sm text-gray-500 dark:text-gray-400 text-center">
-              No cities found
+          {!isLoading && predictions.length === 0 && searchDone && inputValue.length >= 2 && (
+            <div className="px-3 py-3 text-center">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Grad nije pronađen</p>
+              <button
+                type="button"
+                onClick={handleManualEntry}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-orange-500 hover:text-orange-600 transition-colors"
+              >
+                <PenLine className="h-3.5 w-3.5" />
+                Unesi "{inputValue}" ručno
+              </button>
             </div>
           )}
 
           {!isLoading && predictions.length > 0 && predictions.map((place) => {
             const cityName = place.address?.city || place.address?.town || place.display_name.split(',')[0];
-            const displayName = cityName.trim();
+            const displayName = normalizeCityName(cyrillicToLatin(cityName.trim()));
 
             return (
               <button
