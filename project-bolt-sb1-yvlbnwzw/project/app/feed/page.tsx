@@ -162,9 +162,11 @@ function FeedContent() {
     if (!user) return;
     const reactionsChannel = supabase.channel('feed-reactions')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'post_reactions' }, (payload) => {
+        if (payload.new.user_id === user.id) return;
         setPosts(prev => prev.map(p => p.id === payload.new.post_id ? { ...p, reactions_count: p.reactions_count + 1 } : p));
       })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'post_reactions' }, (payload) => {
+        if (payload.old.user_id === user.id) return;
         setPosts(prev => prev.map(p => p.id === payload.old.post_id ? { ...p, reactions_count: Math.max(0, p.reactions_count - 1) } : p));
       })
       .subscribe();
@@ -392,7 +394,7 @@ function FeedContent() {
         const { error } = await supabase.from('post_reactions').delete().eq('post_id', post.id).eq('user_id', user.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('post_reactions').insert({ post_id: post.id, user_id: user.id, reaction_type: 'like', emoji: '❤️' });
+        const { error } = await supabase.from('post_reactions').upsert({ post_id: post.id, user_id: user.id, reaction_type: 'like', emoji: '❤️' }, { onConflict: 'post_id,user_id' });
         if (error) throw error;
       }
     } catch {
