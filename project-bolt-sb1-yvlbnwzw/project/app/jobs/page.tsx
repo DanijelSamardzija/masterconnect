@@ -1454,6 +1454,16 @@ function JobsMarketplaceContent() {
               💼 Ova sekcija je namijenjena isključivo za <strong>oglase za zapošljavanje</strong> — poslodavci objavljuju slobodna radna mjesta i traže radnike.
             </p>
           )}
+          {activeTab === 'service-requests' && (
+            <p className="mt-4 text-sm text-muted-foreground bg-muted/50 border border-border rounded-xl px-4 py-2.5">
+              🔍 Ova sekcija je namijenjena za <strong>traženje usluga</strong> — klijenti objavljuju šta im treba i čekaju ponude od profesionalaca.
+            </p>
+          )}
+          {activeTab === 'job-seekers' && (
+            <p className="mt-4 text-sm text-muted-foreground bg-muted/50 border border-border rounded-xl px-4 py-2.5">
+              👤 Ova sekcija je namijenjena za <strong>traženje posla</strong> — kandidati objavljuju da traže zaposlenje i opisuju svoje vještine.
+            </p>
+          )}
 
           <div className="mt-6">
             {boostedPosts.length === 0 ? (
