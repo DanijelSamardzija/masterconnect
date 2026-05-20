@@ -1449,6 +1449,12 @@ function JobsMarketplaceContent() {
             </CardContent>
           </Card>
 
+          {activeTab === 'hiring' && (
+            <p className="mt-4 text-sm text-muted-foreground bg-muted/50 border border-border rounded-xl px-4 py-2.5">
+              💼 Ova sekcija je namijenjena isključivo za <strong>oglase za zapošljavanje</strong> — poslodavci objavljuju slobodna radna mjesta i traže radnike.
+            </p>
+          )}
+
           <div className="mt-6">
             {boostedPosts.length === 0 ? (
               <Card className="bg-card text-card-foreground border border-border rounded-2xl shadow-sm">
