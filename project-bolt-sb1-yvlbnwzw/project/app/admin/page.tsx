@@ -403,7 +403,7 @@ function AdminContent() {
         { data: cityProfiles },
         { data: countryProfiles },
         { data: daily7 },
-        { data: yearlyViews },
+        { data: monthlyActiveRpc },
         { data: yearlyProfiles },
         { data: signupSourceData },
         { data: daily30Profiles },
@@ -425,8 +425,11 @@ function AdminContent() {
         supabase.from('profiles').select('country').not('country', 'is', null),
         // Daily 7 always current
         supabase.from('page_views').select('user_id, created_at').gte('created_at', weekStart.toISOString()).limit(100000),
-        // Monthly charts for selected year
-        supabase.from('page_views').select('user_id, created_at').gte('created_at', chosenYearStart.toISOString()).lt('created_at', chosenYearEnd.toISOString()).limit(100000),
+        // Monthly active users via RPC — avoids row limit truncation
+        supabase.rpc('get_monthly_active_users', {
+          year_start: chosenYearStart.toISOString(),
+          year_end:   chosenYearEnd.toISOString(),
+        }),
         supabase.from('profiles').select('created_at').gte('created_at', chosenYearStart.toISOString()).lt('created_at', chosenYearEnd.toISOString()),
         // Signup sources
         supabase.from('profiles').select('signup_source').not('signup_source', 'is', null),
@@ -481,17 +484,16 @@ function AdminContent() {
       }
       const monthlyNewUsers = Object.entries(monthlyNewMap).map(([month, count]) => ({ month, count }));
 
-      // Monthly active users — svih 12 mjeseci odabrane godine
-      const monthlyActiveMap: Record<string, Set<string>> = {};
+      // Monthly active users — from RPC (no row limit issues)
+      const rpcActiveMap: Record<string, number> = {};
       for (let m = 0; m < 12; m++) {
         const key = `${targetYear}-${String(m + 1).padStart(2, '0')}`;
-        monthlyActiveMap[key] = new Set();
+        rpcActiveMap[key] = 0;
       }
-      for (const r of yearlyViews || []) {
-        const key = (r.created_at as string).slice(0, 7);
-        if (key in monthlyActiveMap) monthlyActiveMap[key].add(r.user_id);
+      for (const r of (monthlyActiveRpc as any[] || [])) {
+        if (r.month in rpcActiveMap) rpcActiveMap[r.month] = Number(r.count);
       }
-      const monthlyActiveUsers = Object.entries(monthlyActiveMap).map(([month, count]) => ({ month, count: count.size }));
+      const monthlyActiveUsers = Object.entries(rpcActiveMap).map(([month, count]) => ({ month, count }));
 
       // City aggregation
       const cityAliases: Record<string, string> = {
