@@ -43,6 +43,8 @@ type UserProfile = {
   is_admin: boolean;
   is_banned?: boolean;
   created_at: string;
+  city?: string;
+  country?: string;
 };
 
 type PostItem = {
@@ -679,7 +681,7 @@ function AdminContent() {
   const loadUsers = useCallback(async (search: string, offset: number, append: boolean) => {
     let query = supabase
       .from('profiles')
-      .select('id, name, email, account_type, avatar_url, is_admin, is_banned, created_at')
+      .select('id, name, email, account_type, avatar_url, is_admin, is_banned, created_at, city, country')
       .order('created_at', { ascending: false })
       .range(offset, offset + PAGE_SIZE - 1);
     if (search.trim()) {
@@ -1245,6 +1247,12 @@ function AdminContent() {
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground truncate">{u.email}</p>
+                        {(u.city || u.country) && (
+                          <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                            <MapPin className="h-3 w-3 shrink-0" />
+                            {[u.city, u.country].filter(Boolean).join(', ')}
+                          </p>
+                        )}
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
                         <Link href={`/profile/${u.id}`}>
