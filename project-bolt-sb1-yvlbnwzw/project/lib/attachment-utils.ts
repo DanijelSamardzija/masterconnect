@@ -147,7 +147,7 @@ export const uploadVideoToCloudinary = async (
       console.error('[Cloudinary] Failed to get signature');
       return null;
     }
-    const { signature, timestamp, api_key, cloud_name } = await signRes.json();
+    const { signature, timestamp, api_key, cloud_name, format } = await signRes.json();
 
     // Step 2: upload directly from browser to Cloudinary (bypasses Vercel 4.5MB limit)
     const formData = new FormData();
@@ -156,6 +156,7 @@ export const uploadVideoToCloudinary = async (
     formData.append('timestamp', String(timestamp));
     formData.append('signature', signature);
     formData.append('folder', folder);
+    if (format) formData.append('format', format);
 
     onProgress?.(10);
 
