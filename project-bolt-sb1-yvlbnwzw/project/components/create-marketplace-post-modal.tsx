@@ -522,6 +522,17 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
             </Select>
           </div>
 
+          {isCustomer && postType === 'service_request' && (
+            <p className="text-xs text-muted-foreground bg-muted/50 border border-border rounded-lg px-3 py-2">
+              🔍 <strong>Tražim uslugu</strong> — objavi šta ti treba (npr. "Trebam molera za stan 60m²") i čekaj ponude od profesionalaca.
+            </p>
+          )}
+          {isCustomer && postType === 'job_seeker_post' && (
+            <p className="text-xs text-muted-foreground bg-muted/50 border border-border rounded-lg px-3 py-2">
+              👤 <strong>Tražim posao</strong> — objavi da tražiš zaposlenje i opiši svoje vještine (npr. "Tražim posao konobara, Beograd").
+            </p>
+          )}
+
           {postType === 'service_request' && (
             <div>
               <Label>{t('marketplace.serviceRequestTitle')}</Label>
