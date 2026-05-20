@@ -1343,6 +1343,7 @@ function JobsMarketplaceContent() {
           open={showCreateModal}
           onOpenChange={setShowCreateModal}
           onPostCreated={loadPosts}
+          initialPostType={profile?.account_type === 'professional' ? 'hiring_post' : undefined}
           allowedTypes={['hiring_post', 'job_seeker_post']}
         />
 
