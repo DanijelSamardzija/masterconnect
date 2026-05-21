@@ -1325,4 +1325,23 @@ export default {
   'invest.waitlist.errorGeneric': 'Nešto je pošlo naopako. Pokušajte ponovo.',
   'invest.waitlist.required': 'Sva polja su obavezna.',
   'invest.waitlist.invalidEmail': 'Unesite validnu email adresu.',
+
+  // Credits & Premium
+  'credits.modal.badge': 'Dolazi uskoro',
+  'credits.modal.description': 'Uskoro ćete moći koristiti GigZone Kredite — virtualnu valutu platforme za nagrađivanje kvalitetnih profesionalaca i sadržaja.',
+  'credits.modal.feature1.title': 'Podržite profesionalce',
+  'credits.modal.feature1.desc': 'Pošaljite kredite majstorima čiji vam je rad impresionirao — direktno s feeda.',
+  'credits.modal.feature2.title': 'Istaknite oglas',
+  'credits.modal.feature2.desc': 'Koristite kredite da se vaš oglas pojavi na vrhu pretrage i u sponzorisanim spotovima.',
+  'credits.modal.feature3.title': 'Premium nalog',
+  'credits.modal.feature3.desc': 'Pretplatite se na Premium od 4,99 €/mj i dobijte bonus kredite svaki mjesec.',
+  'credits.modal.closeButton': 'Razumijem, čekam!',
+  'credits.premiumBadge': 'Premium nalog',
+  'credits.balance.title': 'GigZone Krediti',
+  'credits.balance.comingSoon': 'Dolazi uskoro',
+  'credits.sponsored.label': 'Sponzorisano mjesto',
+  'credits.sponsored.soon': 'Reklame — dolazi uskoro',
+  'credits.sponsored.jobsLabel': 'Sponzorisano mjesto — dolazi uskoro',
+  'credits.sponsored.jobsDesc': 'Reklamirajte svoju uslugu ili oglas između rezultata',
+  'credits.support.button': 'Podrži',
 } as const;

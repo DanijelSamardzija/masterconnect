@@ -591,8 +591,8 @@ function FeedContent() {
                       <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-100 dark:bg-orange-900/30 mb-3">
                         <Sparkles className="h-7 w-7 text-orange-400" />
                       </div>
-                      <p className="text-sm font-semibold text-orange-500">Sponzorisano mjesto</p>
-                      <p className="text-xs text-muted-foreground mt-1">Reklame — dolazi uskoro</p>
+                      <p className="text-sm font-semibold text-orange-500">{t('credits.sponsored.label')}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{t('credits.sponsored.soon')}</p>
                     </div>
                   </div>
                 )}
@@ -956,7 +956,7 @@ function FeedContent() {
             <button
               onClick={() => setSupportModalOpen(true)}
               className="flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-amber-500 hover:text-amber-600"
-              title="Podrži"
+              title={t('credits.support.button')}
             >
               <Coins className="h-4 w-4" />
             </button>

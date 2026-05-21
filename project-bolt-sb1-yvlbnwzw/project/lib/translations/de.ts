@@ -1321,4 +1321,23 @@ export default {
   'invest.waitlist.errorGeneric': 'Etwas ist schiefgelaufen. Bitte versuche es erneut.',
   'invest.waitlist.required': 'Alle Felder sind erforderlich.',
   'invest.waitlist.invalidEmail': 'Bitte gib eine gültige E-Mail-Adresse ein.',
+
+  // Credits & Premium
+  'credits.modal.badge': 'Demnächst verfügbar',
+  'credits.modal.description': 'Bald können Sie GigZone Credits nutzen — die virtuelle Währung der Plattform, um großartige Fachleute und Inhalte zu belohnen.',
+  'credits.modal.feature1.title': 'Fachleute unterstützen',
+  'credits.modal.feature1.desc': 'Senden Sie Credits an Fachleute, deren Arbeit Sie beeindruckt hat — direkt aus dem Feed.',
+  'credits.modal.feature2.title': 'Anzeige hervorheben',
+  'credits.modal.feature2.desc': 'Verwenden Sie Credits, damit Ihre Anzeige oben in den Suchergebnissen und in gesponserten Spots erscheint.',
+  'credits.modal.feature3.title': 'Premium-Konto',
+  'credits.modal.feature3.desc': 'Abonnieren Sie Premium ab 4,99 €/Monat und erhalten Sie jeden Monat Bonus-Credits.',
+  'credits.modal.closeButton': 'Verstanden, ich warte!',
+  'credits.premiumBadge': 'Premium-Konto',
+  'credits.balance.title': 'GigZone Credits',
+  'credits.balance.comingSoon': 'Demnächst',
+  'credits.sponsored.label': 'Gesponserte Stelle',
+  'credits.sponsored.soon': 'Werbung — demnächst',
+  'credits.sponsored.jobsLabel': 'Gesponserte Stelle — demnächst',
+  'credits.sponsored.jobsDesc': 'Bewerben Sie Ihren Service oder Ihre Anzeige zwischen den Ergebnissen',
+  'credits.support.button': 'Unterstützen',
 } as const;

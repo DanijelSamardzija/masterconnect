@@ -1325,4 +1325,23 @@ export default {
   'invest.waitlist.errorGeneric': 'Something went wrong. Please try again.',
   'invest.waitlist.required': 'All fields are required.',
   'invest.waitlist.invalidEmail': 'Please enter a valid email address.',
+
+  // Credits & Premium
+  'credits.modal.badge': 'Coming soon',
+  'credits.modal.description': "Soon you will be able to use GigZone Credits — the platform's virtual currency for rewarding great professionals and content.",
+  'credits.modal.feature1.title': 'Support professionals',
+  'credits.modal.feature1.desc': 'Send credits to professionals whose work impressed you — directly from the feed.',
+  'credits.modal.feature2.title': 'Boost your listing',
+  'credits.modal.feature2.desc': 'Use credits to make your listing appear at the top of search results and in sponsored spots.',
+  'credits.modal.feature3.title': 'Premium account',
+  'credits.modal.feature3.desc': 'Subscribe to Premium from €4.99/mo and receive bonus credits every month.',
+  'credits.modal.closeButton': "Got it, I'll wait!",
+  'credits.premiumBadge': 'Premium account',
+  'credits.balance.title': 'GigZone Credits',
+  'credits.balance.comingSoon': 'Coming soon',
+  'credits.sponsored.label': 'Sponsored slot',
+  'credits.sponsored.soon': 'Ads — coming soon',
+  'credits.sponsored.jobsLabel': 'Sponsored slot — coming soon',
+  'credits.sponsored.jobsDesc': 'Advertise your service or listing between results',
+  'credits.support.button': 'Support',
 } as const;
