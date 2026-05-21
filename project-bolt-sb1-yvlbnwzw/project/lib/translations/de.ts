@@ -1331,7 +1331,7 @@ export default {
   'credits.modal.feature2.title': 'Anzeige hervorheben',
   'credits.modal.feature2.desc': 'Verwenden Sie Credits, damit Ihre Anzeige oben in den Suchergebnissen und in gesponserten Spots erscheint.',
   'credits.modal.feature3.title': 'Premium-Konto',
-  'credits.modal.feature3.desc': 'Abonnieren Sie Premium ab 4,99 €/Monat und erhalten Sie jeden Monat Bonus-Credits.',
+  'credits.modal.feature3.desc': 'Premium-Nutzer können durch ihre Beiträge Unterstützung und Credits erhalten. Abonnieren Sie Premium ab 4,99 €/Monat.',
   'credits.modal.closeButton': 'Verstanden, ich warte!',
   'credits.premiumBadge': 'Premium-Konto',
   'credits.balance.title': 'GigZone Credits',

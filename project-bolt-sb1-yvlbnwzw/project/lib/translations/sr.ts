@@ -1335,7 +1335,7 @@ export default {
   'credits.modal.feature2.title': 'Istaknite oglas',
   'credits.modal.feature2.desc': 'Koristite kredite da se vaš oglas pojavi na vrhu pretrage i u sponzorisanim spotovima.',
   'credits.modal.feature3.title': 'Premium nalog',
-  'credits.modal.feature3.desc': 'Pretplatite se na Premium od 4,99 €/mj i dobijte bonus kredite svaki mjesec.',
+  'credits.modal.feature3.desc': 'Premium korisnici mogu primati podršku i kredite kroz objave. Pretplatite se na Premium od 4,99 €/mj.',
   'credits.modal.closeButton': 'Razumijem, čekam!',
   'credits.premiumBadge': 'Premium nalog',
   'credits.balance.title': 'GigZone Krediti',

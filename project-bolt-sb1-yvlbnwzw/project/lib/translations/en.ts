@@ -1335,7 +1335,7 @@ export default {
   'credits.modal.feature2.title': 'Boost your listing',
   'credits.modal.feature2.desc': 'Use credits to make your listing appear at the top of search results and in sponsored spots.',
   'credits.modal.feature3.title': 'Premium account',
-  'credits.modal.feature3.desc': 'Subscribe to Premium from €4.99/mo and receive bonus credits every month.',
+  'credits.modal.feature3.desc': 'Premium users can receive support and credits through their posts. Subscribe to Premium from €4.99/mo.',
   'credits.modal.closeButton': "Got it, I'll wait!",
   'credits.premiumBadge': 'Premium account',
   'credits.balance.title': 'GigZone Credits',
