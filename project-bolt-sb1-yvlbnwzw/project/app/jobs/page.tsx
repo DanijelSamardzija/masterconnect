@@ -1344,7 +1344,7 @@ function JobsMarketplaceContent() {
           onOpenChange={setShowCreateModal}
           onPostCreated={loadPosts}
           initialPostType={profile?.account_type === 'professional' ? 'hiring_post' : undefined}
-          allowedTypes={['hiring_post', 'job_seeker_post']}
+          allowedTypes={['hiring_post', 'job_seeker_post', 'service_request']}
         />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

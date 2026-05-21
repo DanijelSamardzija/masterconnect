@@ -764,6 +764,7 @@ export function ProfileView({
           { value: 'hiring_post', label: t('profile.hiringPosts') },
           { value: 'service_listing', label: t('profile.serviceListings') },
           { value: 'portfolio_post', label: t('profile.portfolioPosts') },
+          { value: 'service_request', label: t('profile.serviceRequests') },
         ];
 
   const tabTriggerClass =

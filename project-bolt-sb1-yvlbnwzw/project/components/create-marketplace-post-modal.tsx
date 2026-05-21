@@ -516,13 +516,16 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
                     {(!allowedTypes || allowedTypes.includes('portfolio_post')) && (
                       <SelectItem value="portfolio_post">{t('marketplace.portfolioPost')}</SelectItem>
                     )}
+                    {(!allowedTypes || allowedTypes.includes('service_request')) && (
+                      <SelectItem value="service_request">{t('marketplace.serviceRequest')}</SelectItem>
+                    )}
                   </>
                 )}
               </SelectContent>
             </Select>
           </div>
 
-          {isCustomer && postType === 'service_request' && (
+          {postType === 'service_request' && (
             <p className="text-xs text-muted-foreground bg-muted/50 border border-border rounded-lg px-3 py-2">
               🔍 <strong>Tražim uslugu</strong> — objavi šta ti treba (npr. "Trebam molera za stan 60m²") i čekaj ponude od profesionalaca.
             </p>
