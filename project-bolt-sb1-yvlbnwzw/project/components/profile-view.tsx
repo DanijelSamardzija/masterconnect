@@ -845,7 +845,6 @@ export function ProfileView({
                   ...(profile.account_type === 'professional' ? [
                     { value: 'services', label: t('profile.services'), icon: <Briefcase className="h-4 w-4" /> },
                     { value: 'portfolio', label: 'Portfolio', icon: <Star className="h-4 w-4" /> },
-                    { value: 'hiring', label: t('profile.hiring'), icon: <Plus className="h-4 w-4" /> },
                     { value: 'reviews', label: t('profile.reviews'), icon: <StarIcon className="h-4 w-4" /> },
                   ] : []),
                   { value: 'listings', label: t('profile.myListings'), icon: <Briefcase className="h-4 w-4" /> },
