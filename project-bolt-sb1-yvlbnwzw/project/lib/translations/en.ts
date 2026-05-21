@@ -1329,7 +1329,7 @@ export default {
   // Credits & Premium
   'credits.modal.badge': 'Coming soon',
   'credits.modal.description': "Soon you will be able to use GigZone Credits — the platform's virtual currency for rewarding great professionals and content.",
-  'credits.modal.feature1.title': 'Support professionals',
+  'credits.modal.feature1.title': 'Support craftsmen & freelancers',
   'credits.modal.feature1.desc': 'Send credits to professionals whose work impressed you — directly from the feed.',
   'credits.modal.feature2.title': 'Boost your listing',
   'credits.modal.feature2.desc': 'Use credits to make your listing appear at the top of search results and in sponsored spots.',

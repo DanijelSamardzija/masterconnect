@@ -1329,7 +1329,7 @@ export default {
   // Credits & Premium
   'credits.modal.badge': 'Dolazi uskoro',
   'credits.modal.description': 'Uskoro ćete moći koristiti GigZone Kredite — virtualnu valutu platforme za nagrađivanje kvalitetnih profesionalaca i sadržaja.',
-  'credits.modal.feature1.title': 'Podržite profesionalce',
+  'credits.modal.feature1.title': 'Podržite majstore i frilensere',
   'credits.modal.feature1.desc': 'Pošaljite kredite majstorima čiji vam je rad impresionirao — direktno s feeda.',
   'credits.modal.feature2.title': 'Istaknite oglas',
   'credits.modal.feature2.desc': 'Koristite kredite da se vaš oglas pojavi na vrhu pretrage i u sponzorisanim spotovima.',
