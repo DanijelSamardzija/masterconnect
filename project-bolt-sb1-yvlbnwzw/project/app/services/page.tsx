@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { EmptyState } from '@/components/empty-state';
 import { SharePostModal } from '@/components/share-post-modal';
-import { Loader2, Search, Filter, X, Bookmark, Share2, ArrowUpDown, Star, Clock, TrendingUp, Plus } from 'lucide-react';
+import { Loader2, Search, Filter, X, Bookmark, Share2, ArrowUpDown, Star, Clock, TrendingUp, Plus, Sparkles } from 'lucide-react';
 import { CreateMarketplacePostModal } from '@/components/create-marketplace-post-modal';
 
 export const revalidate = 0;
@@ -396,40 +396,46 @@ export default function ServicesPage() {
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {listings.map((listing) => (
-            <div
-              key={listing.id}
-              className="relative transition-all duration-200 hover:scale-[1.02] hover:-translate-y-1"
-            >
-              <ProfessionalCard listing={listing} />
-              {(listing as any).is_promoted && (
-                <div className="absolute top-3 left-3 z-10">
-                  <span className="bg-yellow-400 text-yellow-900 text-[10px] font-bold px-2 py-0.5 rounded-full shadow">Sponzorisano</span>
+          {listings.map((listing, idx) => (
+            <React.Fragment key={listing.id}>
+              <div className="relative transition-all duration-200 hover:scale-[1.02] hover:-translate-y-1">
+                <ProfessionalCard listing={listing} />
+                {(listing as any).is_promoted && (
+                  <div className="absolute top-3 left-3 z-10">
+                    <span className="bg-yellow-400 text-yellow-900 text-[10px] font-bold px-2 py-0.5 rounded-full shadow">Sponzorisano</span>
+                  </div>
+                )}
+                <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
+                  <button
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShareModalPostId(listing.id); }}
+                    className="p-1.5 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors"
+                    title={t('share.title')}
+                  >
+                    <Share2 className="h-5 w-5 text-white drop-shadow" />
+                  </button>
+                  {user && (
+                    <button
+                      onClick={(e) => handleSaveListing(e, listing.id)}
+                      className="p-1.5 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors"
+                      title={savedSet.has(listing.id) ? t('profile.savedRemove') : t('profile.savedSaveService')}
+                    >
+                      <Bookmark
+                        className={`h-5 w-5 transition-all drop-shadow ${
+                          savedSet.has(listing.id) ? 'fill-white text-white scale-110' : 'text-white'
+                        }`}
+                      />
+                    </button>
+                  )}
+                </div>
+              </div>
+              {(idx + 1) % 6 === 0 && (
+                <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-orange-300/40 bg-gradient-to-br from-orange-50/60 to-amber-50/30 dark:from-orange-900/10 dark:to-amber-900/5 min-h-[180px]">
+                  <Sparkles className="h-8 w-8 text-orange-400/60 mb-2" />
+                  <p className="text-xs font-semibold text-orange-500">Sponzorisano</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">Dolazi uskoro</p>
                 </div>
               )}
-              <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
-                <button
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShareModalPostId(listing.id); }}
-                  className="p-1.5 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors"
-                  title={t('share.title')}
-                >
-                  <Share2 className="h-5 w-5 text-white drop-shadow" />
-                </button>
-                {user && (
-                  <button
-                    onClick={(e) => handleSaveListing(e, listing.id)}
-                    className="p-1.5 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors"
-                    title={savedSet.has(listing.id) ? t('profile.savedRemove') : t('profile.savedSaveService')}
-                  >
-                    <Bookmark
-                      className={`h-5 w-5 transition-all drop-shadow ${
-                        savedSet.has(listing.id) ? 'fill-white text-white scale-110' : 'text-white'
-                      }`}
-                    />
-                  </button>
-                )}
-              </div>
-            </div>
+            </React.Fragment>
           ))}
         </div>
       )}

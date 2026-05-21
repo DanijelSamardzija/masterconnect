@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
@@ -11,8 +11,9 @@ import {
   Heart, MessageCircle, Share2, Loader2, Search, Volume2, VolumeX,
   MoreVertical, Plus, Star, Flag, AlertCircle, ChevronRight, Edit2,
   Trash2, Bookmark, Send, X, Eye, Home, MapPin, CheckCircle, Phone,
-  UserPlus, Wrench, Briefcase
+  UserPlus, Wrench, Briefcase, Coins, Sparkles
 } from 'lucide-react';
+import { SupportModal } from '@/components/support-modal';
 import { toast } from 'sonner';
 import { CreatePostModal } from '@/components/create-post-modal';
 import { locationScore } from '@/lib/location-sort';
@@ -133,6 +134,7 @@ function FeedContent() {
   const [shareModalPostId, setShareModalPostId] = useState<string | null>(null);
   const [contactingUserId, setContactingUserId] = useState<string | null>(null);
   const [notificationUnreadCount, setNotificationUnreadCount] = useState(0);
+  const [supportModalOpen, setSupportModalOpen] = useState(false);
   const newestPostTimestamp = useRef<string | null>(null);
   const viewedPostIds = useRef<Set<string>>(new Set());
 
@@ -577,7 +579,25 @@ function FeedContent() {
           </div>
         ) : (
           <>
-            {filteredPosts.map((post, postIndex) => renderCard(post, postIndex))}
+            {filteredPosts.map((post, postIndex) => (
+              <React.Fragment key={post.id}>
+                {renderCard(post, postIndex)}
+                {(postIndex + 1) % 5 === 0 && (
+                  <div
+                    className="snap-start flex justify-center px-2 py-1"
+                    style={{ height: `calc(100dvh - ${HEADER_H}px)` }}
+                  >
+                    <div className="w-full max-w-md h-full flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-orange-300/40 bg-gradient-to-br from-orange-50/50 to-amber-50/30 dark:from-orange-900/10 dark:to-amber-900/5">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-100 dark:bg-orange-900/30 mb-3">
+                        <Sparkles className="h-7 w-7 text-orange-400" />
+                      </div>
+                      <p className="text-sm font-semibold text-orange-500">Sponzorisano mjesto</p>
+                      <p className="text-xs text-muted-foreground mt-1">Reklame — dolazi uskoro</p>
+                    </div>
+                  </div>
+                )}
+              </React.Fragment>
+            ))}
 
             {hasMore && (
               <div ref={loaderRef} className="flex items-center justify-center py-8" style={{ minHeight: `calc(100dvh - ${HEADER_H}px)` }}>
@@ -602,6 +622,7 @@ function FeedContent() {
       )}
 
       <CreatePostModal open={createPostOpen} onOpenChange={setCreatePostOpen} onSuccess={handlePostCreated} />
+      <SupportModal open={supportModalOpen} onOpenChange={setSupportModalOpen} />
 
       {reportTarget && <ReportModal open={reportModalOpen} onOpenChange={setReportModalOpen} targetType={reportTarget.type} targetId={reportTarget.id} targetOwnerUserId={reportTarget.userId} />}
 
@@ -931,6 +952,13 @@ function FeedContent() {
             </button>
             <button onClick={() => setShareModalPostId(post.id)} className="flex items-center gap-1.5 text-xs text-muted-foreground px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
               <Share2 className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setSupportModalOpen(true)}
+              className="flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-amber-500 hover:text-amber-600"
+              title="Podrži"
+            >
+              <Coins className="h-4 w-4" />
             </button>
             {isPro && !isOwn && user && (
               <button

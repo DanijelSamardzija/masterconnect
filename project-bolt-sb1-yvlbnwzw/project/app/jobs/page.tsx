@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Briefcase, Users, UserCircle, MessageCircle, Plus, MoreVertical, Trash2, Send, X, Bookmark, Share2, MapPin, Star, Clock } from 'lucide-react';
+import { Briefcase, Users, UserCircle, MessageCircle, Plus, MoreVertical, Trash2, Send, X, Bookmark, Share2, MapPin, Star, Clock, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -1474,12 +1474,12 @@ function JobsMarketplaceContent() {
               </Card>
             ) : (
               <div className="space-y-3">
-                {boostedPosts.map((post) => {
+                {boostedPosts.map((post, postIdx) => {
                   const isServiceRequest = post.post_type === 'service_request';
 
                   return (
+                    <React.Fragment key={post.id}>
                     <Card
-                      key={post.id}
                       className="bg-card text-card-foreground border border-border rounded-2xl shadow-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 hover:border-orange-400/40"
                       style={{ touchAction: 'manipulation' }}
                     >
@@ -1863,6 +1863,16 @@ function JobsMarketplaceContent() {
                         </div>
                       </CardContent>
                     </Card>
+                    {(postIdx + 1) % 5 === 0 && (
+                      <div className="flex items-center gap-3 rounded-2xl border-2 border-dashed border-orange-300/40 bg-gradient-to-r from-orange-50/60 to-amber-50/30 dark:from-orange-900/10 dark:to-amber-900/5 px-5 py-4">
+                        <Sparkles className="h-6 w-6 text-orange-400/70 shrink-0" />
+                        <div>
+                          <p className="text-sm font-semibold text-orange-500">Sponzorisano mjesto — dolazi uskoro</p>
+                          <p className="text-xs text-muted-foreground">Reklamirajte svoju uslugu ili oglas između rezultata</p>
+                        </div>
+                      </div>
+                    )}
+                    </React.Fragment>
                   );
                 })}
               </div>

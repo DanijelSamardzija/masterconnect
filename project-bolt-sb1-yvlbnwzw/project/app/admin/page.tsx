@@ -14,7 +14,7 @@ import {
   MessageSquare, TrendingUp, ExternalLink, Search, Ban,
   UserCheck, Loader2, ChevronDown, Filter, Megaphone, Plus,
   ToggleLeft, ToggleRight, BarChart2, Activity, MapPin, CalendarDays, RefreshCw,
-  Bell, X
+  Bell, X, Coins, Crown, Sparkles
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
@@ -92,7 +92,7 @@ type Announcement = {
   created_at: string;
 };
 
-type ActiveTab = 'reports' | 'users' | 'posts' | 'announcements' | 'support' | 'analytics';
+type ActiveTab = 'reports' | 'users' | 'posts' | 'announcements' | 'support' | 'analytics' | 'credits';
 
 type PageViewStat = {
   page: string;
@@ -1012,6 +1012,7 @@ function AdminContent() {
               { key: 'announcements', label: `Obavještenja` },
               { key: 'support', label: `Support (${tickets.filter(t => t.status === 'open').length})` },
               { key: 'analytics', label: 'Analitika' },
+              { key: 'credits', label: 'Krediti' },
             ] as const).map(({ key, label }) => (
               <button
                 key={key}
@@ -1763,6 +1764,65 @@ function AdminContent() {
         )}
 
         {/* ── ANALYTICS TAB ── */}
+        {/* ── CREDITS TAB ── */}
+        {activeTab === 'credits' && (
+          <div className="space-y-6 py-4">
+            {/* Coming soon header */}
+            <div className="rounded-2xl bg-gradient-to-br from-orange-500/10 to-amber-500/5 border border-orange-300/30 p-6 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-100 dark:bg-orange-900/30 mx-auto mb-3">
+                <Coins className="h-7 w-7 text-orange-500" />
+              </div>
+              <h2 className="text-lg font-bold text-foreground mb-1">GigZone Credits & Premium</h2>
+              <p className="text-sm text-muted-foreground mb-3">Sistem upravljanja kreditima i pretplatama — dolazi uskoro</p>
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-orange-600 bg-orange-100 dark:bg-orange-900/30 px-3 py-1 rounded-full">
+                <Sparkles className="h-3.5 w-3.5" /> Coming soon
+              </span>
+            </div>
+
+            {/* Placeholder stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { label: 'Ukupno kredita', value: '—', icon: <Coins className="h-4 w-4 text-orange-500" /> },
+                { label: 'Premium korisnici', value: '—', icon: <Crown className="h-4 w-4 text-amber-500" /> },
+                { label: 'Transakcije (30d)', value: '—', icon: <TrendingUp className="h-4 w-4 text-blue-500" /> },
+                { label: 'Prihod (30d)', value: '—', icon: <BarChart2 className="h-4 w-4 text-emerald-500" /> },
+              ].map(({ label, value, icon }) => (
+                <div key={label} className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-2">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    {icon}
+                    <span className="text-xs font-medium">{label}</span>
+                  </div>
+                  <p className="text-2xl font-bold text-foreground">{value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Placeholder table */}
+            <div className="bg-card border border-border rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-4">
+                <Activity className="h-4 w-4 text-orange-500" />
+                <h3 className="font-semibold text-sm">Posljednje transakcije</h3>
+              </div>
+              <div className="flex flex-col items-center justify-center py-10 text-muted-foreground gap-2">
+                <Coins className="h-8 w-8 opacity-30" />
+                <p className="text-sm">Transakcije će biti prikazane ovdje</p>
+              </div>
+            </div>
+
+            {/* Premium management placeholder */}
+            <div className="bg-card border border-border rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-4">
+                <Crown className="h-4 w-4 text-amber-500" />
+                <h3 className="font-semibold text-sm">Premium pretplatnici</h3>
+              </div>
+              <div className="flex flex-col items-center justify-center py-10 text-muted-foreground gap-2">
+                <Crown className="h-8 w-8 opacity-30" />
+                <p className="text-sm">Lista Premium korisnika — dolazi uskoro</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {activeTab === 'analytics' && (
           <div className="space-y-6">
             {/* Year selector */}

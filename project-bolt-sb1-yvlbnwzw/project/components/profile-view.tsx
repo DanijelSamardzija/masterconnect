@@ -34,6 +34,8 @@ import {
   Star,
   Bookmark,
   Eye,
+  Crown,
+  Coins,
 } from 'lucide-react';
 import { CommentsSheet } from '@/components/comments-sheet';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -119,6 +121,7 @@ type UserProfile = {
   website_url?: string;
   show_phone?: boolean;
   show_email?: boolean;
+  is_premium?: boolean;
 };
 
 type ProfileViewProps = {
@@ -834,6 +837,30 @@ export function ProfileView({
           }
           reviewAction={reviewAction}
         />
+
+        {/* Premium badge */}
+        {profile.is_premium && (
+          <div className="mt-3 flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500/10 to-yellow-500/5 border border-amber-400/30 px-3 py-2">
+            <Crown className="h-4 w-4 text-amber-500 shrink-0" />
+            <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">Premium nalog</span>
+          </div>
+        )}
+
+        {/* GigZone Krediti — own profile only */}
+        {isOwnProfile && (
+          <div className="mt-3 flex items-center justify-between rounded-xl bg-gradient-to-r from-orange-500/8 to-amber-500/5 border border-orange-300/30 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <Coins className="h-4 w-4 text-orange-500 shrink-0" />
+              <div>
+                <p className="text-xs font-semibold text-foreground">GigZone Krediti</p>
+                <p className="text-[11px] text-muted-foreground">Dolazi uskoro</p>
+              </div>
+            </div>
+            <span className="text-[10px] font-bold text-orange-500 bg-orange-100 dark:bg-orange-900/30 px-2 py-0.5 rounded-full">
+              Coming soon
+            </span>
+          </div>
+        )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
           {/* Tab bar - single scrollable, Instagram underline style */}
