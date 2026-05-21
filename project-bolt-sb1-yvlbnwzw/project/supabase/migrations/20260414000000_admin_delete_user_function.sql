@@ -27,8 +27,8 @@ BEGIN
   -- Message reactions
   DELETE FROM message_reactions WHERE user_id = target_user_id;
 
-  -- Soft-delete messages sent by user
-  UPDATE messages SET sender_id = NULL, is_deleted = true WHERE sender_id = target_user_id;
+  -- Delete messages sent or received by user (sender_id is NOT NULL so cannot be nulled)
+  DELETE FROM messages WHERE sender_id = target_user_id OR receiver_id = target_user_id;
 
   -- Thread participants
   DELETE FROM thread_participants WHERE user_id = target_user_id;
