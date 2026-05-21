@@ -132,7 +132,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
     setMediaFiles(prev => {
       const combined = [...prev, ...newMediaFiles];
       if (combined.length > MAX_FEED_FILES) {
-        toast.error(`Maksimalno ${MAX_FEED_FILES} fajlova po objavi`);
+        toast.error(t('createPost.mediaMaxError'));
         return prev.length < MAX_FEED_FILES ? combined.slice(0, MAX_FEED_FILES) : prev;
       }
       return combined;

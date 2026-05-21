@@ -854,6 +854,7 @@ export default {
   'marketplace.priceHourlyLabel': 'Hourly Rate *',
   'marketplace.imagesRequired': 'Images (Required, min 3, max 10) *',
   'marketplace.imagesMinError': 'Please add at least 3 images for a service listing',
+  'createPost.mediaMaxError': 'Maximum 6 files per post',
   'marketplace.hiringAvailability': 'Job Start *',
   'marketplace.hiringAvailabilityPlaceholder': 'Select when they can start',
   'marketplace.hiringImmediately': 'Immediately',

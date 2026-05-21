@@ -850,6 +850,7 @@ export default {
   'marketplace.priceHourlyLabel': 'Stundensatz *',
   'marketplace.imagesRequired': 'Bilder (Erforderlich, min. 3, max. 10) *',
   'marketplace.imagesMinError': 'Bitte füge mindestens 3 Bilder für eine Dienstleistungsanzeige hinzu',
+  'createPost.mediaMaxError': 'Maximal 6 Dateien pro Beitrag',
   'marketplace.hiringAvailability': 'Jobstart *',
   'marketplace.hiringAvailabilityPlaceholder': 'Wähle, wann sie anfangen können',
   'marketplace.hiringImmediately': 'Sofort',
