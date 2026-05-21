@@ -220,8 +220,8 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
     }
 
     if (postType === 'service_listing') {
-      if (selectedFiles.length === 0) {
-        toast.error('Please add at least one image');
+      if (selectedFiles.length < 3) {
+        toast.error(t('marketplace.imagesMinError'));
         return;
       }
       if (!priceType) {
