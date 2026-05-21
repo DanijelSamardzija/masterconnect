@@ -765,7 +765,7 @@ export default {
   'marketplace.postType': 'Beitragstyp',
   'marketplace.serviceRequest': 'Serviceanfrage',
   'marketplace.jobSeekerPost': 'Jobsuche-Beitrag',
-  'marketplace.hiringPost': 'Stellenausschreibung',
+  'marketplace.hiringPost': 'Suche Mitarbeiter',
   'marketplace.portfolioPost': 'Portfolio-Beitrag',
   'marketplace.serviceListing': 'Dienstleistungsangebot',
   'marketplace.offerService': 'Dienst anbieten',

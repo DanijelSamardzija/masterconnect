@@ -767,7 +767,7 @@ export default {
   'marketplace.postType': 'Post Type',
   'marketplace.serviceRequest': 'Service Request',
   'marketplace.jobSeekerPost': 'Job Seeker Post',
-  'marketplace.hiringPost': 'Hiring Post',
+  'marketplace.hiringPost': 'Looking for a worker',
   'marketplace.portfolioPost': 'Portfolio Post',
   'marketplace.serviceListing': 'Service Listing',
   'marketplace.offerService': 'Offer Service',

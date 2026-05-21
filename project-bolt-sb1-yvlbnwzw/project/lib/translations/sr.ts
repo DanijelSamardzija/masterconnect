@@ -767,7 +767,7 @@ export default {
   'marketplace.postType': 'Tip oglasa',
   'marketplace.serviceRequest': 'Tražim uslugu',
   'marketplace.jobSeekerPost': 'Tražim posao',
-  'marketplace.hiringPost': 'Oglašavam posao',
+  'marketplace.hiringPost': 'Tražim radnika',
   'marketplace.portfolioPost': 'Portfolio',
   'marketplace.serviceListing': 'Ponuda usluge',
   'marketplace.offerService': 'Ponudi uslugu',
