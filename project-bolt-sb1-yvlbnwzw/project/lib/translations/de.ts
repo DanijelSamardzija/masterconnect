@@ -1326,7 +1326,7 @@ export default {
   'credits.modal.badge': 'Demnächst verfügbar',
   'credits.modal.description': 'Bald können Sie GigZone Credits nutzen — die virtuelle Währung der Plattform, um großartige Fachleute und Inhalte zu belohnen.',
   'credits.modal.feature1.title': 'Handwerker & Freelancer unterstützen',
-  'credits.modal.feature1.desc': 'Senden Sie Credits an Fachleute, deren Arbeit Sie beeindruckt hat — direkt aus dem Feed.',
+  'credits.modal.feature1.desc': 'Senden Sie Credits an Handwerker und Freelancer, deren Arbeit Sie beeindruckt hat — direkt aus dem Feed.',
   'credits.modal.feature2.title': 'Anzeige hervorheben',
   'credits.modal.feature2.desc': 'Verwenden Sie Credits, damit Ihre Anzeige oben in den Suchergebnissen und in gesponserten Spots erscheint.',
   'credits.modal.feature3.title': 'Premium-Konto',
