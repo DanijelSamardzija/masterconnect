@@ -110,6 +110,8 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  const MAX_FEED_FILES = 6;
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     isPickerOpenRef.current = false;
     const files = Array.from(e.target.files || []);
@@ -127,7 +129,14 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
       }
     }
 
-    setMediaFiles(prev => [...prev, ...newMediaFiles]);
+    setMediaFiles(prev => {
+      const combined = [...prev, ...newMediaFiles];
+      if (combined.length > MAX_FEED_FILES) {
+        toast.error(`Maksimalno ${MAX_FEED_FILES} fajlova po objavi`);
+        return prev.length < MAX_FEED_FILES ? combined.slice(0, MAX_FEED_FILES) : prev;
+      }
+      return combined;
+    });
 
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -685,6 +694,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
               onChange={handleFileSelect}
               disabled={uploading}
             />
+            {mediaFiles.length < MAX_FEED_FILES && (
             <Button
               type="button"
               variant="outline"
@@ -694,8 +704,10 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
               className="gap-2"
             >
               <Image className="h-4 w-4" />
-              {t('createPost.addImages')}
+              {t('createPost.addImages')} ({mediaFiles.length}/{MAX_FEED_FILES})
             </Button>
+            )}
+            {mediaFiles.length < MAX_FEED_FILES && (
             <Button
               type="button"
               variant="outline"
@@ -707,6 +719,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
               <Video className="h-4 w-4" />
               {t('createPost.addVideo')}
             </Button>
+            )}
 
             <div className="flex-1" />
 
