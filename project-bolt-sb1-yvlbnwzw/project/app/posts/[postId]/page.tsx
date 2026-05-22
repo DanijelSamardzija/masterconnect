@@ -94,7 +94,12 @@ function SinglePostContent() {
   }, [postId]);
 
   useEffect(() => {
-    if (post?.post_type === 'social_post') {
+    if (!post) return;
+    if (post.post_type === 'social_post' && !post.text && post.media.length === 0) {
+      router.replace('/feed');
+      return;
+    }
+    if (post.post_type === 'social_post' && post.media.length > 0) {
       console.log('[PostDetail] Triggering resize event for media');
       setTimeout(() => {
         window.dispatchEvent(new Event('resize'));
@@ -298,7 +303,7 @@ function SinglePostContent() {
     }
   };
 
-  if (post?.post_type === 'social_post') {
+  if (post?.post_type === 'social_post' && post.media.length > 0) {
     console.log('[PostDetail] Rendering social_post with FeedMedia');
     return (
       <div className="min-h-screen bg-black">

@@ -725,7 +725,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
 
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || (!postText.trim() && mediaFiles.length === 0)}
               className="gap-2"
             >
               {isSubmitting ? (
