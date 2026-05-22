@@ -364,15 +364,27 @@ function FeedContent() {
         user_has_reacted: userReactedPosts.has(post.id),
       }));
 
-      if (reset && (profile?.city || profile?.country)) {
-        const sorted = [...postsWithData].sort((a: any, b: any) => {
-          const sa = locationScore(profile?.city || '', profile?.country || '', a.city || '', a.user?.country || '');
-          const sb = locationScore(profile?.city || '', profile?.country || '', b.city || '', b.user?.country || '');
-          return sa - sb;
-        });
-        setPosts(sorted);
-      } else if (reset) {
-        setPosts(postsWithData);
+      if (reset) {
+        const userCity = profile?.city || '';
+        const userCountry = profile?.country || (() => {
+          if (typeof navigator === 'undefined') return '';
+          const lang = navigator.language || '';
+          const parts = lang.split('-');
+          if (parts.length >= 2) return parts[1].toLowerCase();
+          const map: Record<string, string> = { hr: 'hr', sr: 'rs', bs: 'ba', de: 'de', sl: 'si', sk: 'sk', hu: 'hu' };
+          return map[parts[0].toLowerCase()] || '';
+        })();
+
+        if (userCity || userCountry) {
+          const sorted = [...postsWithData].sort((a: any, b: any) => {
+            const sa = locationScore(userCity, userCountry, a.city || '', a.user?.country || a.user?.city || '');
+            const sb = locationScore(userCity, userCountry, b.city || '', b.user?.country || b.user?.city || '');
+            return sa - sb;
+          });
+          setPosts(sorted);
+        } else {
+          setPosts(postsWithData);
+        }
       } else {
         setPosts(prev => [...prev, ...postsWithData]);
       }
