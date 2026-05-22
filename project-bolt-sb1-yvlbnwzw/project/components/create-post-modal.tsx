@@ -48,7 +48,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [uploading, setUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [city, setCity] = useState('');
+  const [city, setCity] = useState(profile?.city || '');
   const [category, setCategory] = useState('');
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [hashtagInput, setHashtagInput] = useState('');
@@ -61,6 +61,12 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
 
   const isPickerOpenRef = useRef(false);
 
+
+  useEffect(() => {
+    if (open && profile?.city && !city) {
+      setCity(profile.city);
+    }
+  }, [open, profile?.city]);
 
   useEffect(() => {
     const loadCategories = async () => {
