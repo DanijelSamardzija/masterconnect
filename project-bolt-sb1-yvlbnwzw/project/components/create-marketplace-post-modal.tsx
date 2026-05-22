@@ -40,6 +40,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
   const [text, setText] = useState('');
   const [title, setTitle] = useState('');
   const [jobTitle, setJobTitle] = useState('');
+  const [jobSeekerTitle, setJobSeekerTitle] = useState('');
   const [category, setCategory] = useState('');
   const [city, setCity] = useState('');
   const [experienceLevel, setExperienceLevel] = useState('');
@@ -190,32 +191,37 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
     }
 
     if (postType === 'service_request' && !title.trim()) {
-      toast.error('Please enter a title (minimum 20 characters)');
+      toast.error(t('marketplace.serviceRequestTitleEnter'));
       return;
     }
 
     if (postType === 'service_request' && title.trim().length < 20) {
-      toast.error('Title must be at least 20 characters');
+      toast.error(t('marketplace.serviceRequestTitleMin'));
+      return;
+    }
+
+    if (postType === 'job_seeker_post' && !jobSeekerTitle.trim()) {
+      toast.error(t('marketplace.jobSeekerTitle').replace(' *', ''));
       return;
     }
 
     if (postType !== 'service_request' && !text.trim()) {
-      toast.error('Please enter a description');
+      toast.error(t('marketplace.descriptionRequired'));
       return;
     }
 
     if ((postType === 'hiring_post' || postType === 'portfolio_post') && !jobTitle.trim()) {
-      toast.error('Please enter a job title');
+      toast.error(t('marketplace.jobTitleRequired'));
       return;
     }
 
     if (!category.trim()) {
-      toast.error('Please select or enter a category');
+      toast.error(t('marketplace.selectCategory'));
       return;
     }
 
     if (!city.trim()) {
-      toast.error('Please enter a city');
+      toast.error(t('marketplace.enterCity'));
       return;
     }
 
@@ -225,24 +231,24 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
         return;
       }
       if (!priceType) {
-        toast.error('Please select a price type');
+        toast.error(t('marketplace.priceTypeSelect2'));
         return;
       }
       if ((priceType === 'fixed' || priceType === 'hourly') && !priceValue.trim()) {
-        toast.error('Please enter a price amount');
+        toast.error(t('marketplace.priceRequired'));
         return;
       }
     }
 
     if (postType === 'job_seeker_post' || postType === 'hiring_post') {
       if (!experienceLevel || !availability) {
-        toast.error('Please fill in all required fields');
+        toast.error(t('marketplace.allFieldsRequired'));
         return;
       }
     }
 
     if (!user) {
-      toast.error('You must be logged in');
+      toast.error(t('marketplace.mustBeLoggedIn'));
       return;
     }
 
@@ -283,7 +289,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session) {
-        toast.error('Session expired. Please log in again.');
+        toast.error(t('marketplace.sessionExpired'));
         return;
       }
 
@@ -318,7 +324,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
       }
 
       if (postType === 'job_seeker_post') {
-        postPayload.job_title = `${trimmedCategory} - ${experienceLevel}`;
+        postPayload.job_title = jobSeekerTitle.trim();
         if (expectedSalaryType && expectedSalaryAmount) {
           postPayload.price_type = expectedSalaryType;
           postPayload.price_value = parseFloat(expectedSalaryAmount);
@@ -340,7 +346,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
 
       if (!token) {
         console.error('[Marketplace Post] ❌ No access token in session');
-        toast.error('No access token in session. Please log in again.');
+        toast.error(t('marketplace.sessionExpired'));
         throw new Error('No access token in session');
       }
 
@@ -370,7 +376,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
         } catch (e) {
           // Not JSON, ignore
         }
-        toast.error('Failed to create post. Please try again.');
+        toast.error(t('marketplace.createFailed'));
         return;
       }
 
@@ -414,7 +420,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
         }
       }
 
-      toast.success('Post created successfully!');
+      toast.success(t('marketplace.postCreated'));
 
       // Show warnings if detected
       if (result.warnings) {
@@ -437,6 +443,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
       setText('');
       setTitle('');
       setJobTitle('');
+      setJobSeekerTitle('');
       setCategory('');
       setCity('');
       setExperienceLevel('');
@@ -532,7 +539,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
           )}
           {isCustomer && postType === 'job_seeker_post' && (
             <p className="text-xs text-muted-foreground bg-muted/50 border border-border rounded-lg px-3 py-2">
-              👤 <strong>Tražim posao</strong> — objavi da tražiš zaposlenje i opiši svoje vještine (npr. "Tražim posao konobara, Beograd").
+              👤 <strong>{t('marketplace.jobSeekerPost')}</strong> — {t('marketplace.jobSeekerHint')}
             </p>
           )}
 
@@ -572,6 +579,24 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
               <p className="text-xs text-gray-500 mt-1">
                 {t('marketplace.titleHint')}
               </p>
+            </div>
+          )}
+
+          {postType === 'job_seeker_post' && (
+            <div>
+              <Label>{t('marketplace.jobSeekerTitle')}</Label>
+              <Input
+                placeholder={t('marketplace.jobSeekerTitlePlaceholder')}
+                value={jobSeekerTitle}
+                onChange={(e) => setJobSeekerTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                  }
+                }}
+                maxLength={100}
+              />
+              <p className="text-xs text-slate-500 mt-1">{t('marketplace.jobSeekerTitleHint')}</p>
             </div>
           )}
 
@@ -624,7 +649,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
             />
             {postType === 'job_seeker_post' && (
               <p className="text-xs text-slate-500 mt-1">
-                {text.length}/800 characters
+                {text.length}/800 {t('marketplace.characters')}
               </p>
             )}
           </div>
