@@ -467,10 +467,11 @@ function FeedContent() {
 
   const filteredPosts = searchQuery.trim()
     ? posts.filter(p => {
+        if (!p.user) return false;
         const q = searchQuery.toLowerCase();
-        return p.user.name.toLowerCase().includes(q) || (p.text || '').toLowerCase().includes(q) || (p.city || '').toLowerCase().includes(q) || (p.category || '').toLowerCase().includes(q);
+        return (p.user.name || '').toLowerCase().includes(q) || (p.text || '').toLowerCase().includes(q) || (p.city || '').toLowerCase().includes(q) || (p.category || '').toLowerCase().includes(q);
       })
-    : posts;
+    : posts.filter(p => !!p.user);
 
   return (
     <>
@@ -667,6 +668,7 @@ function FeedContent() {
   );
 
   function renderCard(post: Post, postIndex: number) {
+    if (!post.user) return null;
     const currentIndex = currentMediaIndex[post.id] || 0;
     const media = post.media[currentIndex];
     const hasMultipleMedia = post.media.length > 1;
