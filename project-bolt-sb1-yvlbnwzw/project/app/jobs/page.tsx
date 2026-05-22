@@ -1283,10 +1283,19 @@ function JobsMarketplaceContent() {
       return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
     });
 
-  const boostedPosts = (!cityFilter && (profile?.city || profile?.country))
+  const effectiveCountry = profile?.country || (() => {
+    if (typeof navigator === 'undefined') return '';
+    const lang = navigator.language || '';
+    const parts = lang.split('-');
+    if (parts.length >= 2) return parts[1].toLowerCase();
+    const map: Record<string, string> = { hr: 'hr', sr: 'rs', bs: 'ba', de: 'de', sl: 'si', sk: 'sk', hu: 'hu' };
+    return map[parts[0].toLowerCase()] || '';
+  })();
+
+  const boostedPosts = (!cityFilter && (profile?.city || effectiveCountry))
     ? [...filteredPosts].sort((a, b) => {
-        const sa = locationScore(profile?.city || '', profile?.country || '', a.city || a.location || '', a.user?.country || '');
-        const sb = locationScore(profile?.city || '', profile?.country || '', b.city || b.location || '', b.user?.country || '');
+        const sa = locationScore(profile?.city || '', effectiveCountry, a.city || a.location || '', a.user?.country || '');
+        const sb = locationScore(profile?.city || '', effectiveCountry, b.city || b.location || '', b.user?.country || '');
         return sa - sb;
       })
     : filteredPosts;

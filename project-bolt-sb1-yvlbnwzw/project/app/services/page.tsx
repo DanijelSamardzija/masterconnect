@@ -185,10 +185,18 @@ export default function ServicesPage() {
       const promoted = sorted.filter((l: any) => l.is_promoted);
       const rest = sorted.filter((l: any) => !l.is_promoted);
 
-      if (!cityFilter && (profile?.city || profile?.country)) {
+      const effectiveCountry = profile?.country || (() => {
+        if (typeof navigator === 'undefined') return '';
+        const lang = navigator.language || '';
+        const parts = lang.split('-');
+        if (parts.length >= 2) return parts[1].toLowerCase();
+        const map: Record<string, string> = { hr: 'hr', sr: 'rs', bs: 'ba', de: 'de', sl: 'si', sk: 'sk', hu: 'hu' };
+        return map[parts[0].toLowerCase()] || '';
+      })();
+      if (!cityFilter && (profile?.city || effectiveCountry)) {
         rest.sort((a: any, b: any) => {
-          const sa = locationScore(profile?.city || '', profile?.country || '', a.city || '', a.profiles?.country || '');
-          const sb = locationScore(profile?.city || '', profile?.country || '', b.city || '', b.profiles?.country || '');
+          const sa = locationScore(profile?.city || '', effectiveCountry, a.city || '', a.profiles?.country || '');
+          const sb = locationScore(profile?.city || '', effectiveCountry, b.city || '', b.profiles?.country || '');
           return sa - sb;
         });
       }
