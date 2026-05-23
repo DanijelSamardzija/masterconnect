@@ -593,7 +593,7 @@ function FeedContent() {
           </div>
         ) : (
           <>
-            {filteredPosts.map((post, postIndex) => (
+            {(user ? filteredPosts : filteredPosts.slice(0, 4)).map((post, postIndex) => (
               <React.Fragment key={post.id}>
                 {renderCard(post, postIndex)}
                 {!user && postIndex === 3 && <GuestWall variant="feed" />}
