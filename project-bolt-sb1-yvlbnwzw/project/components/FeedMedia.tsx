@@ -21,7 +21,7 @@ export function FeedMedia({
         <video
           ref={videoRef}
           src={src}
-          className="absolute inset-0 w-full h-full object-contain"
+          className="absolute inset-0 w-full h-full object-cover"
           autoPlay
           muted={isMuted}
           playsInline
