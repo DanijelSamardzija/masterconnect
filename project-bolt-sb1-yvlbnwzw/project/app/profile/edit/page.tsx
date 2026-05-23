@@ -279,6 +279,7 @@ function EditProfileContent() {
                   placeholder={t('profile.editCityPlaceholder')}
                   disabled={saving}
                 />
+                <p className="text-xs text-muted-foreground">{t('profile.editCityHint')}</p>
               </div>
 
               <div className="space-y-2">
@@ -306,6 +307,7 @@ function EditProfileContent() {
                     className="h-10"
                   />
                 )}
+                <p className="text-xs text-muted-foreground">{t('profile.editCountryHint')}</p>
               </div>
 
               <div className="space-y-2">
