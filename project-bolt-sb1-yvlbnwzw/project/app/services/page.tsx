@@ -436,13 +436,6 @@ export default function ServicesPage() {
                   )}
                 </div>
               </div>
-              {(idx + 1) % 6 === 0 && (
-                <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-orange-300/40 bg-gradient-to-br from-orange-50/60 to-amber-50/30 dark:from-orange-900/10 dark:to-amber-900/5 min-h-[180px]">
-                  <Sparkles className="h-8 w-8 text-orange-400/60 mb-2" />
-                  <p className="text-xs font-semibold text-orange-500">{t('credits.sponsored.label')}</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">{t('credits.modal.badge')}</p>
-                </div>
-              )}
             </React.Fragment>
           ))}
         </div>

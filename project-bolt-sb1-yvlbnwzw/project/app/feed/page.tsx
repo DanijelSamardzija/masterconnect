@@ -595,20 +595,6 @@ function FeedContent() {
             {filteredPosts.map((post, postIndex) => (
               <React.Fragment key={post.id}>
                 {renderCard(post, postIndex)}
-                {(postIndex + 1) % 5 === 0 && (
-                  <div
-                    className="snap-start flex justify-center px-2 py-1"
-                    style={{ height: `calc(100dvh - ${HEADER_H}px)` }}
-                  >
-                    <div className="w-full max-w-md h-full flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-orange-300/40 bg-gradient-to-br from-orange-50/50 to-amber-50/30 dark:from-orange-900/10 dark:to-amber-900/5">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-100 dark:bg-orange-900/30 mb-3">
-                        <Sparkles className="h-7 w-7 text-orange-400" />
-                      </div>
-                      <p className="text-sm font-semibold text-orange-500">{t('credits.sponsored.label')}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{t('credits.sponsored.soon')}</p>
-                    </div>
-                  </div>
-                )}
               </React.Fragment>
             ))}
 
