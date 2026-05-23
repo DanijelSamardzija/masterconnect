@@ -969,10 +969,11 @@ function FeedContent() {
             </button>
             <button
               onClick={() => setSupportModalOpen(true)}
-              className="flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-amber-500 hover:text-amber-600"
+              className="relative flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-amber-500 hover:text-amber-600"
               title={t('credits.support.button')}
             >
-              <Coins className="h-4 w-4" />
+              <span className="absolute inset-0 rounded-lg animate-ping bg-amber-400 opacity-25" />
+              <Coins className="relative h-4 w-4" />
             </button>
             {isPro && !isOwn && user && (
               <button
