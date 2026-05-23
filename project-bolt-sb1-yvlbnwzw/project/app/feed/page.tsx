@@ -967,14 +967,16 @@ function FeedContent() {
             <button onClick={() => setShareModalPostId(post.id)} className="flex items-center gap-1.5 text-xs text-muted-foreground px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
               <Share2 className="h-4 w-4" />
             </button>
-            <button
-              onClick={() => setSupportModalOpen(true)}
-              className="relative flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-amber-500 hover:text-amber-600"
-              title={t('credits.support.button')}
-            >
-              <span className="absolute inset-0 rounded-lg animate-ping bg-amber-400 opacity-25" />
-              <Coins className="relative h-4 w-4" />
-            </button>
+            {isPro && !isOwn && (
+              <button
+                onClick={() => setSupportModalOpen(true)}
+                className="relative flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-amber-500 hover:text-amber-600"
+                title={t('credits.support.button')}
+              >
+                <span className="absolute inset-0 rounded-lg animate-ping bg-amber-400 opacity-25" />
+                <Coins className="relative h-4 w-4" />
+              </button>
+            )}
             {isPro && !isOwn && user && (
               <button
                 onClick={() => handleContact(post.user_id)}
