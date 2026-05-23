@@ -843,9 +843,11 @@ function FeedContent() {
                   alt="Post"
                   className="absolute inset-0 w-full h-full object-cover"
                   onLoad={(e) => {
-                    const img = e.currentTarget;
-                    const ratio = img.naturalWidth / img.naturalHeight;
-                    img.style.objectFit = ratio > 0.75 ? 'contain' : 'cover';
+                    if (window.innerWidth >= 768) {
+                      const img = e.currentTarget;
+                      const ratio = img.naturalWidth / img.naturalHeight;
+                      img.style.objectFit = ratio > 0.75 ? 'contain' : 'cover';
+                    }
                   }}
                   draggable={false}
                 />
