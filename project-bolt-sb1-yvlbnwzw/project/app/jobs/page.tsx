@@ -1872,6 +1872,15 @@ function JobsMarketplaceContent() {
                         </div>
                       </CardContent>
                     </Card>
+                    {(postIdx + 1) % 5 === 0 && (
+                      <div className="flex items-center gap-3 rounded-2xl border-2 border-dashed border-orange-300/40 bg-gradient-to-r from-orange-50/60 to-amber-50/30 dark:from-orange-900/10 dark:to-amber-900/5 px-5 py-4">
+                        <Sparkles className="h-6 w-6 text-orange-400/70 shrink-0" />
+                        <div>
+                          <p className="text-sm font-semibold text-orange-500">{t('credits.sponsored.jobsLabel')}</p>
+                          <p className="text-xs text-muted-foreground">{t('credits.sponsored.jobsDesc')}</p>
+                        </div>
+                      </div>
+                    )}
                     </React.Fragment>
                   );
                 })}
