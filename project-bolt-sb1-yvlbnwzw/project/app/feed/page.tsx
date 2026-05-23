@@ -33,7 +33,6 @@ import { EditPostModal } from '@/components/edit-post-modal';
 import { FeedMedia } from '@/components/FeedMedia';
 import { FollowButton } from '@/components/follow-button';
 import { SharePostModal } from '@/components/share-post-modal';
-import { AnnouncementBanner } from '@/components/announcement-banner';
 import { usePageTracking } from '@/lib/hooks/use-page-tracking';
 import { useGuestGate } from '@/lib/contexts/guest-gate-context';
 import { GuestWall } from '@/components/guest-wall';
@@ -488,8 +487,6 @@ function FeedContent() {
 
   return (
     <>
-      <AnnouncementBanner />
-
       {/* Search overlay */}
       {searchOpen && (
         <div className="fixed inset-0 z-50 bg-background/98 backdrop-blur-sm flex flex-col">
