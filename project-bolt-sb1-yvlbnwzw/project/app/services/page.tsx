@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { EmptyState } from '@/components/empty-state';
 import { SharePostModal } from '@/components/share-post-modal';
 import { Loader2, Search, Filter, X, Bookmark, Share2, ArrowUpDown, Star, Clock, TrendingUp, Plus, Sparkles } from 'lucide-react';
+import { GuestWall } from '@/components/guest-wall';
 import { CreateMarketplacePostModal } from '@/components/create-marketplace-post-modal';
 
 export const revalidate = 0;
@@ -404,7 +405,7 @@ export default function ServicesPage() {
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {listings.map((listing, idx) => (
+          {(user ? listings : listings.slice(0, 6)).map((listing, idx) => (
             <React.Fragment key={listing.id}>
               <div className="relative transition-all duration-200 hover:scale-[1.02] hover:-translate-y-1">
                 <ProfessionalCard listing={listing} />
@@ -438,6 +439,7 @@ export default function ServicesPage() {
               </div>
             </React.Fragment>
           ))}
+          {!user && listings.length > 6 && <GuestWall variant="page" />}
         </div>
       )}
 

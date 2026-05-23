@@ -32,6 +32,7 @@ export const revalidate = 0;
 
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useGuestGate } from '@/lib/contexts/guest-gate-context';
+import { GuestWall } from '@/components/guest-wall';
 import { CreateMarketplacePostModal } from '@/components/create-marketplace-post-modal';
 import { SharePostModal } from '@/components/share-post-modal';
 import { CityAutocomplete, cyrillicToLatin } from '@/components/city-autocomplete';
@@ -1483,7 +1484,7 @@ function JobsMarketplaceContent() {
               </Card>
             ) : (
               <div className="space-y-3">
-                {boostedPosts.map((post, postIdx) => {
+                {(user ? boostedPosts : boostedPosts.slice(0, 5)).map((post, postIdx) => {
                   const isServiceRequest = post.post_type === 'service_request';
 
                   return (
@@ -1884,6 +1885,7 @@ function JobsMarketplaceContent() {
                     </React.Fragment>
                   );
                 })}
+                {!user && boostedPosts.length > 5 && <GuestWall variant="page" />}
               </div>
             )}
           </div>

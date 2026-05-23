@@ -36,6 +36,7 @@ import { SharePostModal } from '@/components/share-post-modal';
 import { AnnouncementBanner } from '@/components/announcement-banner';
 import { usePageTracking } from '@/lib/hooks/use-page-tracking';
 import { useGuestGate } from '@/lib/contexts/guest-gate-context';
+import { GuestWall } from '@/components/guest-wall';
 import { formatDistanceToNow } from 'date-fns';
 
 export const revalidate = 0;
@@ -595,6 +596,7 @@ function FeedContent() {
             {filteredPosts.map((post, postIndex) => (
               <React.Fragment key={post.id}>
                 {renderCard(post, postIndex)}
+                {!user && postIndex === 3 && <GuestWall variant="feed" />}
               </React.Fragment>
             ))}
 
