@@ -271,7 +271,7 @@ export default {
   'time.yearsAgo': 'vor {count} Jahren',
 
   // Home page
-  'home.hero.badge': 'Plattform für Fachleute & Kunden',
+  'home.hero.badge': 'Plattform für Fachleute, Freelancer & Kunden',
   'home.hero.title1': 'Jobs oder Kunden',
   'home.hero.title2': 'in Minuten finden.',
   'home.hero.subtitle': 'Verbinde dich mit verifizierten Handwerkern, Ärzten, IT-Experten und mehr. Poste einen Auftrag oder biete deine Dienste an — alles an einem Ort.',
@@ -289,6 +289,7 @@ export default {
   'home.hero.trust3': 'Echte Bewertungen',
   'home.fomo.jobs': '🔥 Täglich neue Jobs',
   'home.fomo.pros': '🔥 Aktive Fachleute bereit zu arbeiten',
+  'home.fomo.freelance': '🚀 Ideal für Freelancer',
   'home.socialProof': 'Nutzer bereits auf der Plattform',
   'home.browseFeed': 'Feed durchsuchen',
   'home.browseJobs': 'Stellenanzeigen',

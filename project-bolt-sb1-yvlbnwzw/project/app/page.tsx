@@ -90,6 +90,9 @@ export default function Home() {
               <span className="bg-orange-500/10 border border-orange-500/20 text-orange-300 text-xs px-3 py-1 rounded-full">
                 {t('home.fomo.pros')}
               </span>
+              <span className="bg-orange-500/10 border border-orange-500/20 text-orange-300 text-xs px-3 py-1 rounded-full">
+                {t('home.fomo.freelance')}
+              </span>
             </div>
 
             {/* Social proof */}

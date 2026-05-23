@@ -270,7 +270,7 @@ export default {
   'time.yearsAgo': '{count} years ago',
 
   // Home page
-  'home.hero.badge': 'Platform for professionals & clients',
+  'home.hero.badge': 'Platform for professionals, freelancers & clients',
   'home.hero.title1': 'Find jobs or',
   'home.hero.title2': 'clients in minutes.',
   'home.hero.subtitle': 'Connect with verified tradesmen, doctors, IT experts and more. Post a job or offer your services — all in one place.',
@@ -288,6 +288,7 @@ export default {
   'home.hero.trust3': 'Real reviews',
   'home.fomo.jobs': '🔥 New jobs posted daily',
   'home.fomo.pros': '🔥 Active professionals ready to work',
+  'home.fomo.freelance': '🚀 Perfect for freelancers',
   'home.socialProof': 'users already on the platform',
   'home.browseFeed': 'Browse feed',
   'home.browseJobs': 'Job listings',

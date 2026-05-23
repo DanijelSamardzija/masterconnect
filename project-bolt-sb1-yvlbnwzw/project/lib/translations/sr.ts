@@ -270,7 +270,7 @@ export default {
   'time.yearsAgo': 'pre {count} godina',
 
   // Home page
-  'home.hero.badge': 'Platforma za profesionalce i klijente',
+  'home.hero.badge': 'Platforma za profesionalce, freelancere i klijente',
   'home.hero.title1': 'Pronađi posao ili',
   'home.hero.title2': 'klijente za minut.',
   'home.hero.subtitle': 'Poveži se sa proverenim majstorima, doktorima, IT stručnjacima i još mnogo toga. Objavi posao ili ponudi usluge — sve na jednom mestu.',
@@ -288,6 +288,7 @@ export default {
   'home.hero.trust3': 'Prave recenzije',
   'home.fomo.jobs': '🔥 Novi poslovi svaki dan',
   'home.fomo.pros': '🔥 Aktivni profesionalci spremni za rad',
+  'home.fomo.freelance': '🚀 Idealno za freelancere',
   'home.socialProof': 'korisnika već na platformi',
   'home.browseFeed': 'Pregledaj feed',
   'home.browseJobs': 'Oglasi za posao',
