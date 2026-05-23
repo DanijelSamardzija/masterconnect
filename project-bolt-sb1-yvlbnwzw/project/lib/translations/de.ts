@@ -617,6 +617,13 @@ export default {
   'profile.editSaving': 'Wird gespeichert...',
   'profile.editCancel': 'Abbrechen',
 
+  'guestWall.title': 'Kostenlos registrieren',
+  'guestWall.subtitle': 'Schließ dich {count}+ Profis und Kunden an',
+  'guestWall.subtitleNoCount': 'Tritt unserer Community bei',
+  'guestWall.google': 'Mit Google fortfahren',
+  'guestWall.email': 'Mit E-Mail registrieren',
+  'guestWall.login': 'Ich habe bereits ein Konto → Anmelden',
+
   // Common
   'common.loading': 'Wird geladen...',
   'common.search': 'Suchen',

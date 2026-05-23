@@ -619,6 +619,13 @@ export default {
   'profile.editSaving': 'Čuvanje...',
   'profile.editCancel': 'Otkaži',
 
+  'guestWall.title': 'Registruj se besplatno',
+  'guestWall.subtitle': 'Pridruži se {count}+ profesionalaca i klijenata',
+  'guestWall.subtitleNoCount': 'Pridruži se našoj zajednici',
+  'guestWall.google': 'Nastavi sa Google',
+  'guestWall.email': 'Registruj se emailom',
+  'guestWall.login': 'Već imam nalog → Prijavi se',
+
   // Common
   'common.loading': 'Učitavanje...',
   'common.search': 'Pretraži',

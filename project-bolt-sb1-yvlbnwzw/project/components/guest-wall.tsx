@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase/client';
 import { Lock, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { saveAnonymousId } from '@/lib/analytics';
+import { useLanguage } from '@/lib/contexts/language-context';
 
 interface GuestWallProps {
   variant?: 'feed' | 'page';
@@ -15,6 +16,7 @@ export function GuestWall({ variant = 'page' }: GuestWallProps) {
   const [userCount, setUserCount] = useState<number | null>(null);
   const [googleLoading, setGoogleLoading] = useState(false);
   const router = useRouter();
+  const { t } = useLanguage();
 
   useEffect(() => {
     supabase.from('profiles').select('id', { count: 'exact', head: true }).then(({ count }) => {
@@ -40,13 +42,11 @@ export function GuestWall({ variant = 'page' }: GuestWallProps) {
       </div>
 
       <div>
-        <p className="text-xl font-black text-foreground mb-1">Registruj se besplatno</p>
+        <p className="text-xl font-black text-foreground mb-1">{t('guestWall.title')}</p>
         <p className="text-sm text-muted-foreground">
-          {userCount ? (
-            <>Pridruži se <span className="font-bold text-orange-500">{userCount}+</span> profesionalaca i klijenata</>
-          ) : (
-            'Pridruži se našoj zajednici'
-          )}
+          {userCount
+            ? t('guestWall.subtitle').replace('{count}', String(userCount))
+            : t('guestWall.subtitleNoCount')}
         </p>
       </div>
 
@@ -66,21 +66,21 @@ export function GuestWall({ variant = 'page' }: GuestWallProps) {
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
           )}
-          Nastavi sa Google
+          {t('guestWall.google')}
         </Button>
 
         <Button
           onClick={() => { localStorage.setItem('signup_source', 'guest_wall'); router.push('/login?tab=register'); }}
           className="w-full h-11 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-xl shadow-lg shadow-orange-600/30"
         >
-          Registruj se emailom
+          {t('guestWall.email')}
         </Button>
 
         <button
           onClick={() => router.push('/login')}
           className="text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          Već imam nalog → Prijavi se
+          {t('guestWall.login')}
         </button>
       </div>
     </div>

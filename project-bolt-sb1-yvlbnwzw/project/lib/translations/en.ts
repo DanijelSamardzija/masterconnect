@@ -619,6 +619,13 @@ export default {
   'profile.editSaving': 'Saving...',
   'profile.editCancel': 'Cancel',
 
+  'guestWall.title': 'Sign up for free',
+  'guestWall.subtitle': 'Join {count}+ professionals and clients',
+  'guestWall.subtitleNoCount': 'Join our community',
+  'guestWall.google': 'Continue with Google',
+  'guestWall.email': 'Sign up with email',
+  'guestWall.login': 'Already have an account → Sign in',
+
   // Common
   'common.loading': 'Loading...',
   'common.search': 'Search',
