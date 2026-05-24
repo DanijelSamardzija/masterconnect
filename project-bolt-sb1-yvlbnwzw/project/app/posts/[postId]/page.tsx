@@ -82,6 +82,7 @@ function SinglePostContent() {
   const [commentsModalOpen, setCommentsModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
 
@@ -220,6 +221,24 @@ function SinglePostContent() {
       toast.error('Greška pri kreiranju razgovora');
     } finally {
       setContactLoading(false);
+    }
+  };
+
+  const handleLike = async () => {
+    if (!user || !post || likeLoading) return;
+    setLikeLoading(true);
+    const isLiked = post.user_has_reacted;
+    setPost(p => p ? { ...p, user_has_reacted: !isLiked, reactions_count: isLiked ? p.reactions_count - 1 : p.reactions_count + 1 } : p);
+    try {
+      if (isLiked) {
+        await supabase.from('post_reactions').delete().eq('post_id', post.id).eq('user_id', user.id);
+      } else {
+        await supabase.from('post_reactions').upsert({ post_id: post.id, user_id: user.id, reaction_type: 'like', emoji: '❤️' }, { onConflict: 'post_id,user_id' });
+      }
+    } catch {
+      setPost(p => p ? { ...p, user_has_reacted: isLiked, reactions_count: post.reactions_count } : p);
+    } finally {
+      setLikeLoading(false);
     }
   };
 
@@ -380,17 +399,17 @@ function SinglePostContent() {
 
           {/* Actions + text */}
           <div className="px-4 py-3 space-y-2">
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1.5">
-                <Heart className="h-4 w-4" />
+            <div className="flex items-center gap-3 text-sm">
+              <button onClick={handleLike} disabled={!user} className="flex items-center gap-1.5 text-muted-foreground hover:text-red-500 transition-colors disabled:opacity-50">
+                <Heart className={`h-4 w-4 ${post.user_has_reacted ? 'fill-red-500 text-red-500' : ''}`} />
                 {post.reactions_count}
-              </span>
-            </div>
-            {post.text && <p className="text-sm text-foreground whitespace-pre-wrap">{post.text}</p>}
-            <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              </button>
+              <button onClick={() => setCommentsModalOpen(true)} className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
                 <MessageSquare className="h-4 w-4" />
                 {post.comments_count}
-              </span>
+              </button>
+            </div>
+            {post.text && <p className="text-sm text-foreground whitespace-pre-wrap">{post.text}</p>}
           </div>
         </div>
 
