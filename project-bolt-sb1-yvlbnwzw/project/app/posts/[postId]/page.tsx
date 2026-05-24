@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
-import { PostCommentsButton } from '@/components/post-comments-button';
 import { ReportModal } from '@/components/report-modal';
 import { CommentsSheet } from '@/components/comments-sheet';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -423,16 +422,18 @@ function SinglePostContent() {
         <Card>
           <CardHeader>
             <div className="flex items-start gap-3">
-              <Avatar className="h-10 w-10">
-                <AvatarFallback className="bg-blue-600 text-white">
-                  {post.user.name.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              <button onClick={() => router.push(`/profile/${post.user_id}`)}>
+                <Avatar className="h-10 w-10 hover:opacity-80 transition-opacity">
+                  <AvatarFallback className="bg-blue-600 text-white">
+                    {post.user.name.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
               <div className="flex-1">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="font-semibold">{post.user.name}</p>
+                      <button onClick={() => router.push(`/profile/${post.user_id}`)} className="font-semibold hover:text-orange-500 transition-colors">{post.user.name}</button>
                       {post.is_pinned && (
                         <Badge variant="secondary" className="text-xs gap-1">
                           <Pin className="h-3 w-3" />
@@ -600,15 +601,6 @@ function SinglePostContent() {
             </CardContent>
           )}
 
-          <CardContent className="pt-0 space-y-4">
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1.5">
-                <Heart className="h-4 w-4" />
-                {post.reactions_count}
-              </span>
-            </div>
-            <PostCommentsButton postId={post.id} commentsCount={post.comments_count || 0} />
-          </CardContent>
         </Card>
 
         <SendOfferModal
