@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
-import { PostReactions } from '@/components/post-reactions';
 import { PostCommentsButton } from '@/components/post-comments-button';
 import { ReportModal } from '@/components/report-modal';
 import { CommentsSheet } from '@/components/comments-sheet';
@@ -15,7 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Pin, AlertCircle, MessageSquare, ChevronLeft, ChevronRight, DollarSign, Briefcase } from 'lucide-react';
+import { ArrowLeft, Pin, AlertCircle, MessageSquare, ChevronLeft, ChevronRight, DollarSign, Briefcase, Heart } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import { SendOfferModal } from '@/components/send-offer-modal-v2';
@@ -379,7 +378,12 @@ function SinglePostContent() {
 
           {/* Actions + text */}
           <div className="px-4 py-3 space-y-2">
-            <PostReactions postId={post.id} />
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <Heart className="h-4 w-4" />
+                {post.reactions_count}
+              </span>
+            </div>
             {post.text && <p className="text-sm text-foreground whitespace-pre-wrap">{post.text}</p>}
             <PostCommentsButton postId={post.id} commentsCount={post.comments_count || 0} />
           </div>
@@ -597,7 +601,12 @@ function SinglePostContent() {
           )}
 
           <CardContent className="pt-0 space-y-4">
-            <PostReactions postId={post.id} />
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <Heart className="h-4 w-4" />
+                {post.reactions_count}
+              </span>
+            </div>
             <PostCommentsButton postId={post.id} commentsCount={post.comments_count || 0} />
           </CardContent>
         </Card>
