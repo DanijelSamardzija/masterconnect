@@ -310,10 +310,6 @@ function SinglePostContent() {
     }
   };
 
-  const handleLike = () => {
-    fetchPost();
-  };
-
   const handleBack = () => {
     if (window.history.length > 1) {
       router.back();
