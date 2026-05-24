@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
-import { FeedMedia } from '@/components/FeedMedia';
 import { PostReactions } from '@/components/post-reactions';
 import { PostCommentsButton } from '@/components/post-comments-button';
 import { ReportModal } from '@/components/report-modal';
@@ -304,20 +303,28 @@ function SinglePostContent() {
   };
 
   if (post?.post_type === 'social_post' && post.media.length > 0) {
-    console.log('[PostDetail] Rendering social_post with FeedMedia');
+    const currentMedia = post.media[currentMediaIndex];
     return (
-      <div className="min-h-screen bg-black">
-        <div className="max-w-5xl mx-auto px-4 pt-6">
-          <Button
-            variant="ghost"
-            onClick={() => handleBack()}
-            className="mb-4 flex items-center gap-2 text-white hover:bg-white/10"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
+      <div className="min-h-screen bg-background">
+        <div className="max-w-lg mx-auto">
+          {/* Header */}
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
+            <button onClick={() => handleBack()} className="text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <Avatar className="h-8 w-8">
+              <AvatarFallback className="bg-orange-500 text-white text-xs">
+                {post.user.name.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm truncate">{post.user.name}</p>
+            </div>
+          </div>
 
-          <div className="w-full max-w-lg mx-auto h-[calc(100vh-14rem)] relative bg-black rounded-lg overflow-hidden"
+          {/* Media */}
+          <div
+            className="relative bg-black"
             onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
             onTouchMove={(e) => { touchEndX.current = e.touches[0].clientX; }}
             onTouchEnd={() => {
@@ -331,101 +338,65 @@ function SinglePostContent() {
               touchEndX.current = null;
             }}
           >
-            {post.media && post.media.length > 0 ? (
-              <>
-                <FeedMedia
-                  type={post.media[currentMediaIndex].type}
-                  src={post.media[currentMediaIndex].url}
-                  alt="Post media"
-                />
+            {currentMedia.type === 'video' ? (
+              <video
+                src={currentMedia.url}
+                controls
+                playsInline
+                className="w-full max-h-[80vh] object-contain"
+              />
+            ) : (
+              <img
+                src={currentMedia.url}
+                alt="Post media"
+                className="w-full h-auto max-h-[80vh] object-contain"
+              />
+            )}
 
-                {/* Prev/Next arrows */}
+            {post.media.length > 1 && (
+              <>
                 {currentMediaIndex > 0 && (
-                  <button
-                    onClick={() => setCurrentMediaIndex(p => p - 1)}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1.5 z-10"
-                  >
-                    <ChevronLeft className="h-6 w-6" />
+                  <button onClick={() => setCurrentMediaIndex(p => p - 1)} className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1.5 z-10">
+                    <ChevronLeft className="h-5 w-5" />
                   </button>
                 )}
                 {currentMediaIndex < post.media.length - 1 && (
-                  <button
-                    onClick={() => setCurrentMediaIndex(p => p + 1)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1.5 z-10"
-                  >
-                    <ChevronRight className="h-6 w-6" />
+                  <button onClick={() => setCurrentMediaIndex(p => p + 1)} className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1.5 z-10">
+                    <ChevronRight className="h-5 w-5" />
                   </button>
                 )}
-
-                {/* Indicator dots */}
-                {post.media.length > 1 && (
-                  <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 z-10">
-                    {post.media.map((_, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setCurrentMediaIndex(i)}
-                        className={`h-2 rounded-full transition-all ${i === currentMediaIndex ? 'w-6 bg-white' : 'w-2 bg-white/50'}`}
-                      />
-                    ))}
-                  </div>
-                )}
-
-                {/* Counter */}
-                {post.media.length > 1 && (
-                  <div className="absolute top-4 right-4 bg-black/50 text-white text-sm px-3 py-1 rounded-full z-10">
-                    {currentMediaIndex + 1} / {post.media.length}
-                  </div>
-                )}
+                <div className="absolute top-3 right-3 bg-black/50 text-white text-xs px-2 py-1 rounded-full z-10">
+                  {currentMediaIndex + 1} / {post.media.length}
+                </div>
+                <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10">
+                  {post.media.map((_, i) => (
+                    <button key={i} onClick={() => setCurrentMediaIndex(i)} className={`h-1.5 rounded-full transition-all ${i === currentMediaIndex ? 'w-5 bg-white' : 'w-1.5 bg-white/50'}`} />
+                  ))}
+                </div>
               </>
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center p-8 bg-black">
-                <p className="text-white text-xl text-center">{post.text || 'No content'}</p>
-              </div>
             )}
+          </div>
+
+          {/* Actions + text */}
+          <div className="px-4 py-3 space-y-2">
+            <PostReactions postId={post.id} />
+            {post.text && <p className="text-sm text-foreground whitespace-pre-wrap">{post.text}</p>}
+            <PostCommentsButton postId={post.id} commentsCount={post.comments_count || 0} />
           </div>
         </div>
 
-        <CommentsSheet
-          open={commentsModalOpen}
-          onOpenChange={setCommentsModalOpen}
-          postId={post.id}
-          commentsCount={post.comments_count || 0}
-          onCommentAdded={fetchPost}
-        />
-
-        <ReportModal
-          open={reportModalOpen}
-          onOpenChange={setReportModalOpen}
-          targetType={reportType}
-          targetId={reportTargetId}
-          targetOwnerUserId={reportTargetUserId}
-        />
-
-        <EditPostModal
-          open={editModalOpen}
-          onOpenChange={setEditModalOpen}
-          postId={post.id}
-          postType={post.post_type as any}
-          initialText={post.text}
-          media={post.media}
-          onSave={async () => {
-            await fetchPost();
-          }}
-        />
-
+        <CommentsSheet open={commentsModalOpen} onOpenChange={setCommentsModalOpen} postId={post.id} commentsCount={post.comments_count || 0} onCommentAdded={fetchPost} />
+        <ReportModal open={reportModalOpen} onOpenChange={setReportModalOpen} targetType={reportType} targetId={reportTargetId} targetOwnerUserId={reportTargetUserId} />
+        <EditPostModal open={editModalOpen} onOpenChange={setEditModalOpen} postId={post.id} postType={post.post_type as any} initialText={post.text} media={post.media} onSave={async () => { await fetchPost(); }} />
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>{t('posts.deleteConfirmTitle')}</AlertDialogTitle>
-              <AlertDialogDescription>
-                {t('posts.deleteConfirmDescription')}
-              </AlertDialogDescription>
+              <AlertDialogDescription>{t('posts.deleteConfirmDescription')}</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>{t('posts.cancel')}</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
-                {t('posts.confirmDelete')}
-              </AlertDialogAction>
+              <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">{t('posts.confirmDelete')}</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
