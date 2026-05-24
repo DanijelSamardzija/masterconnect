@@ -311,14 +311,14 @@ function SinglePostContent() {
             <button onClick={() => handleBack()} className="text-muted-foreground hover:text-foreground">
               <ArrowLeft className="h-5 w-5" />
             </button>
-            <Avatar className="h-8 w-8">
-              <AvatarFallback className="bg-orange-500 text-white text-xs">
-                {post.user.name.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm truncate">{post.user.name}</p>
-            </div>
+            <button onClick={() => router.push(`/profile/${post.user_id}`)} className="flex items-center gap-2 flex-1 min-w-0">
+              <Avatar className="h-8 w-8 shrink-0">
+                <AvatarFallback className="bg-orange-500 text-white text-xs">
+                  {post.user.name.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <p className="font-semibold text-sm truncate hover:text-orange-500 transition-colors">{post.user.name}</p>
+            </button>
           </div>
 
           {/* Media */}
