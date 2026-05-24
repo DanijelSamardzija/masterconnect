@@ -442,12 +442,14 @@ export default function ServiceDetailPage({ params }: { params: { serviceId: str
 
               {/* Provider Info */}
               <div className="flex items-center gap-3 pb-4 border-b border-gray-200 dark:border-gray-700">
-                <Avatar className="h-12 w-12 ring-2 ring-gray-200 dark:ring-gray-700 flex-shrink-0">
-                  <AvatarImage src={service.profiles.avatar_url} alt={service.profiles.name} />
-                  <AvatarFallback className="bg-orange-500 text-white text-base">
-                    {service.profiles.name.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <button onClick={() => router.push(`/profile/${service.user_id}`)}>
+                  <Avatar className="h-12 w-12 ring-2 ring-gray-200 dark:ring-gray-700 flex-shrink-0 hover:opacity-80 transition-opacity">
+                    <AvatarImage src={service.profiles.avatar_url} alt={service.profiles.name} />
+                    <AvatarFallback className="bg-orange-500 text-white text-base">
+                      {service.profiles.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </button>
 
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
