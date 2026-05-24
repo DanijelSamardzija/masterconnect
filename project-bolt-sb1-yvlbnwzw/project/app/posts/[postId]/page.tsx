@@ -387,7 +387,10 @@ function SinglePostContent() {
               </span>
             </div>
             {post.text && <p className="text-sm text-foreground whitespace-pre-wrap">{post.text}</p>}
-            <PostCommentsButton postId={post.id} commentsCount={post.comments_count || 0} />
+            <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <MessageSquare className="h-4 w-4" />
+                {post.comments_count}
+              </span>
           </div>
         </div>
 
