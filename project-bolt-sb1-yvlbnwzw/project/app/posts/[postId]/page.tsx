@@ -197,24 +197,27 @@ function SinglePostContent() {
     setContactLoading(true);
 
     try {
-      const response = await fetch(`/api/posts/${postId}/get-or-create-thread`, {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) return;
+
+      const response = await fetch('/api/messages/create-direct-thread', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
-        credentials: 'same-origin',
+        body: JSON.stringify({ targetUserId: post.user_id }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create conversation');
+      const data = await response.json();
+      if (response.ok && data.threadId) {
+        router.push(`/messages/${data.threadId}`);
+      } else {
+        toast.error(data.error || 'Greška pri kreiranju razgovora');
       }
-
-      const { threadId } = await response.json();
-      router.push(`/messages/${threadId}`);
     } catch (error: any) {
       console.error('Error creating conversation:', error);
-      toast.error(error.message || 'Greška pri kreiranju razgovora');
+      toast.error('Greška pri kreiranju razgovora');
     } finally {
       setContactLoading(false);
     }
