@@ -425,8 +425,8 @@ function AdminContent() {
         supabase.from('profiles').select('id').gte('created_at', chosenYearStart.toISOString()).lt('created_at', chosenYearEnd.toISOString()),
         supabase.from('profiles').select('city').not('city', 'is', null),
         supabase.from('profiles').select('country').not('country', 'is', null),
-        // Daily 7 always current
-        supabase.from('page_views').select('user_id, created_at').gte('created_at', weekStart.toISOString()).limit(100000),
+        // Daily 7 via RPC — avoids row limit truncation
+        supabase.rpc('get_daily_active_users', { week_start: weekStart.toISOString() }),
         // Monthly active users via RPC — avoids row limit truncation
         supabase.rpc('get_monthly_active_users', {
           year_start: chosenYearStart.toISOString(),
@@ -559,22 +559,19 @@ function AdminContent() {
         .map(([country, count]) => ({ country, count }))
         .sort((a, b) => b.count - a.count);
 
-      // Daily active users (last 7 days)
-      const dailyMap: Record<string, Set<string>> = {};
-      // Fill last 7 days with empty sets
+      // Daily active users (last 7 days) — from RPC, already aggregated
+      const dailyRpcMap: Record<string, number> = {};
       for (let i = 6; i >= 0; i--) {
         const d = new Date(now);
         d.setDate(d.getDate() - i);
-        const key = d.toISOString().slice(0, 10);
-        dailyMap[key] = new Set();
+        dailyRpcMap[d.toISOString().slice(0, 10)] = 0;
       }
-      // Count unique user_ids per day
-      for (const r of daily7 || []) {
-        const date = (r.created_at as string).slice(0, 10);
-        if (dailyMap[date]) dailyMap[date].add(r.user_id);
+      for (const r of (daily7 as any[] || [])) {
+        const key = (r.date as string).slice(0, 10);
+        if (key in dailyRpcMap) dailyRpcMap[key] = Number(r.count);
       }
-      const dailyActiveUsers: DailyActiveUsers[] = Object.entries(dailyMap)
-        .map(([date, set]) => ({ date, count: set.size }))
+      const dailyActiveUsers: DailyActiveUsers[] = Object.entries(dailyRpcMap)
+        .map(([date, count]) => ({ date, count }))
         .sort((a, b) => a.date.localeCompare(b.date));
 
       setAnalytics({
