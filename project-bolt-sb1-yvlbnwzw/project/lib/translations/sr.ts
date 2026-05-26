@@ -1517,7 +1517,7 @@ export default {
   'help.features.profile.desc': 'Tvoja vizit karta na platformi. Dodaj sliku, opis, veštine, kontakt i portfolio radove.',
   'help.faq.title': 'Česta pitanja',
   'help.faq.q1': 'Mogu li promeniti tip naloga sa klijenta na profesionalca?',
-  'help.faq.a1': 'Klijenti koji aktiviraju Creator Premium automatski dobijaju profesionalni nalog. Za ostale promene, kontaktirajte podršku.',
+  'help.faq.a1': 'Da, tip naloga možeš promeniti u Edit profilu. Creator Premium aktiviraš klikom na dugme Aktiviraj na svom profilu — klijenti time automatski dobijaju i profesionalni nalog.',
   'help.faq.q2': 'Kako zarađujem GigZone kredite?',
   'help.faq.a2': 'Kredite zarađuješ registracijom, popunjavanjem profila, objavljivanjem sadržaja sa slikama i videom, i pozivanjem prijatelja putem referral linka.',
   'help.faq.q3': 'Šta je Creator Premium?',

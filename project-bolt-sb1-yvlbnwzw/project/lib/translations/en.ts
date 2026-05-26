@@ -1517,7 +1517,7 @@ export default {
   'help.features.profile.desc': 'Your business card on the platform. Add photo, bio, skills, contact info and portfolio work.',
   'help.faq.title': 'Frequently Asked Questions',
   'help.faq.q1': 'Can I change my account type from customer to professional?',
-  'help.faq.a1': 'Customers who activate Creator Premium automatically receive a professional account. For other changes, contact support.',
+  'help.faq.a1': 'Yes, you can change your account type in Edit Profile. Creator Premium is activated by clicking the Activate button on your profile — customers doing so automatically receive a professional account as well.',
   'help.faq.q2': 'How do I earn GigZone credits?',
   'help.faq.a2': 'Earn credits by registering, completing your profile, publishing content with photos and videos, and inviting friends via your referral link.',
   'help.faq.q3': 'What is Creator Premium?',

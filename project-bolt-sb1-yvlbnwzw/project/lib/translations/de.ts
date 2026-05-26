@@ -1513,7 +1513,7 @@ export default {
   'help.features.profile.desc': 'Deine Visitenkarte auf der Plattform. Füge Foto, Biografie, Fähigkeiten, Kontaktinfo und Portfolio hinzu.',
   'help.faq.title': 'Häufig gestellte Fragen',
   'help.faq.q1': 'Kann ich meinen Kontotyp von Kunde zu Fachmann ändern?',
-  'help.faq.a1': 'Kunden, die Creator Premium aktivieren, erhalten automatisch ein professionelles Konto. Für andere Änderungen kontaktiere den Support.',
+  'help.faq.a1': 'Ja, du kannst deinen Kontotyp in Profil bearbeiten ändern. Creator Premium aktivierst du per Klick auf den Aktivieren-Button in deinem Profil — Kunden erhalten dabei automatisch auch ein professionelles Konto.',
   'help.faq.q2': 'Wie verdiene ich GigZone-Credits?',
   'help.faq.a2': 'Verdiene Credits durch Registrierung, Vervollständigung deines Profils, Veröffentlichung von Inhalten mit Fotos und Videos und Einladen von Freunden.',
   'help.faq.q3': 'Was ist Creator Premium?',
