@@ -39,6 +39,9 @@ import {
   Copy,
   Check,
   Users,
+  Info,
+  TrendingUp,
+  ShoppingBag,
 } from 'lucide-react';
 import { CommentsSheet } from '@/components/comments-sheet';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -189,6 +192,7 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
   const [balance, setBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [upgrading, setUpgrading] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
   const isCreatorPremium = (profile as any).is_creator_premium ?? false;
 
   useEffect(() => {
@@ -226,46 +230,122 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
   };
 
   return (
-    <div className="mt-3 rounded-xl border border-orange-300/30 bg-gradient-to-r from-orange-500/8 to-amber-500/5 overflow-hidden">
-      {/* Balance row */}
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-2">
-          <Coins className="h-4 w-4 text-orange-500 shrink-0" />
-          <div>
-            <p className="text-xs font-semibold text-foreground">{t('credits.balance.title')}</p>
-            <p className="text-[11px] text-muted-foreground">Demo • Test Mode</p>
+    <>
+      <div className="mt-3 rounded-xl border border-orange-300/30 bg-gradient-to-r from-orange-500/8 to-amber-500/5 overflow-hidden">
+        {/* Balance row — clickable to open info */}
+        <button
+          onClick={() => setInfoOpen(true)}
+          className="w-full flex items-center justify-between px-4 py-3 hover:bg-orange-500/5 transition-colors text-left"
+        >
+          <div className="flex items-center gap-2">
+            <Coins className="h-4 w-4 text-orange-500 shrink-0" />
+            <div>
+              <p className="text-xs font-semibold text-foreground">{t('credits.balance.title')}</p>
+              <p className="text-[11px] text-muted-foreground">Kako zaraditi i trošiti? →</p>
+            </div>
           </div>
-        </div>
-        <span className="text-lg font-bold text-orange-500">
-          {loading ? '—' : balance ?? 0}
-          <span className="text-xs font-normal text-muted-foreground ml-1">{t('credits.unit')}</span>
-        </span>
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold text-orange-500">
+              {loading ? '—' : balance ?? 0}
+              <span className="text-xs font-normal text-muted-foreground ml-1">{t('credits.unit')}</span>
+            </span>
+            <Info className="h-3.5 w-3.5 text-orange-400 shrink-0" />
+          </div>
+        </button>
+
+        {/* Creator Premium upgrade CTA */}
+        {!isCreatorPremium && (
+          <div className="border-t border-orange-300/20 px-4 py-2.5 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold text-foreground">⭐ Creator Premium</p>
+              <p className="text-[11px] text-muted-foreground">200 kredita • prima podršku</p>
+            </div>
+            <button
+              onClick={handleUpgrade}
+              disabled={upgrading || (balance !== null && balance < 200)}
+              className="text-xs font-bold px-3 py-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 text-white disabled:opacity-40 hover:from-orange-600 hover:to-amber-600 transition-all shrink-0"
+            >
+              {upgrading ? '...' : 'Aktiviraj'}
+            </button>
+          </div>
+        )}
+
+        {isCreatorPremium && (
+          <div className="border-t border-orange-300/20 px-4 py-2 flex items-center gap-2">
+            <span className="text-xs">🧡</span>
+            <p className="text-[11px] text-muted-foreground">Možete primati podršku od pratilaca</p>
+          </div>
+        )}
       </div>
 
-      {/* Creator Premium upgrade CTA */}
-      {!isCreatorPremium && (
-        <div className="border-t border-orange-300/20 px-4 py-2.5 flex items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold text-foreground">⭐ Creator Premium</p>
-            <p className="text-[11px] text-muted-foreground">200 kredita • prima podršku</p>
-          </div>
-          <button
-            onClick={handleUpgrade}
-            disabled={upgrading || (balance !== null && balance < 200)}
-            className="text-xs font-bold px-3 py-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 text-white disabled:opacity-40 hover:from-orange-600 hover:to-amber-600 transition-all shrink-0"
-          >
-            {upgrading ? '...' : 'Aktiviraj'}
-          </button>
-        </div>
-      )}
+      {/* Credits info modal */}
+      <Dialog open={infoOpen} onOpenChange={setInfoOpen}>
+        <DialogContent className="max-w-sm max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <Coins className="h-5 w-5 text-orange-500" />
+              GigZone Krediti
+            </DialogTitle>
+          </DialogHeader>
 
-      {isCreatorPremium && (
-        <div className="border-t border-orange-300/20 px-4 py-2 flex items-center gap-2">
-          <span className="text-xs">🧡</span>
-          <p className="text-[11px] text-muted-foreground">Možete primati podršku od pratilaca</p>
-        </div>
-      )}
-    </div>
+          {/* Earn section */}
+          <div className="mt-1">
+            <div className="flex items-center gap-1.5 mb-2">
+              <TrendingUp className="h-4 w-4 text-green-500" />
+              <p className="text-sm font-semibold text-foreground">Kako zaraditi kredite</p>
+            </div>
+            <div className="space-y-1.5">
+              {[
+                { label: 'Registracija', amount: '+10' },
+                { label: 'Popunjen profil', amount: '+10' },
+                { label: 'Prva objava', amount: '+15' },
+                { label: 'Prva usluga', amount: '+20' },
+                { label: 'Privi oglas za posao', amount: '+20' },
+                { label: 'Objava sa slikom', amount: '+5', note: 'max 2/dan' },
+                { label: 'Objava sa videom', amount: '+10', note: 'max 1/dan' },
+                { label: 'Preporuka prijatelja', amount: '+25', note: 'referral link' },
+              ].map((item) => (
+                <div key={item.label} className="flex items-center justify-between rounded-lg bg-green-500/8 px-3 py-1.5">
+                  <div>
+                    <span className="text-xs text-foreground">{item.label}</span>
+                    {item.note && <span className="text-[10px] text-muted-foreground ml-1.5">({item.note})</span>}
+                  </div>
+                  <span className="text-xs font-bold text-green-600 dark:text-green-400">{item.amount} kr</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Spend section */}
+          <div className="mt-3">
+            <div className="flex items-center gap-1.5 mb-2">
+              <ShoppingBag className="h-4 w-4 text-orange-500" />
+              <p className="text-sm font-semibold text-foreground">Kako trošiti kredite</p>
+            </div>
+            <div className="space-y-1.5">
+              {[
+                { label: 'Boost objave u feedu', amount: '15', note: '3 dana' },
+                { label: 'Boost usluge / posla', amount: '25', note: '7 dana' },
+                { label: 'Creator Premium', amount: '200', note: 'jednom' },
+                { label: 'Podrži kreator (malo)', amount: '5', note: 'po podršci' },
+                { label: 'Podrži kreator (srednje)', amount: '10', note: 'po podršci' },
+                { label: 'Podrži kreator (veliko)', amount: '20', note: 'po podršci' },
+              ].map((item) => (
+                <div key={item.label} className="flex items-center justify-between rounded-lg bg-orange-500/8 px-3 py-1.5">
+                  <div>
+                    <span className="text-xs text-foreground">{item.label}</span>
+                    {item.note && <span className="text-[10px] text-muted-foreground ml-1.5">({item.note})</span>}
+                  </div>
+                  <span className="text-xs font-bold text-orange-600 dark:text-orange-400">−{item.amount} kr</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <p className="text-[10px] text-muted-foreground text-center mt-2">Demo sistem • Krediti nemaju novčanu vrednost</p>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

@@ -5,7 +5,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Coins, X, Star, Sparkles, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useAuth } from '@/lib/contexts/auth-context';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 
 interface SupportModalProps {
   open: boolean;
@@ -27,7 +27,6 @@ export function SupportModal({
 }: SupportModalProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
-  const supabase = createClient();
 
   const [selected, setSelected] = useState<number>(10);
   const [balance, setBalance] = useState<number | null>(null);
