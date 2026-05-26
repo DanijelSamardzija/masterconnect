@@ -44,6 +44,7 @@ import {
   ShoppingBag,
   Sparkles,
   Zap,
+  Loader2,
 } from 'lucide-react';
 import { CommentsSheet } from '@/components/comments-sheet';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
