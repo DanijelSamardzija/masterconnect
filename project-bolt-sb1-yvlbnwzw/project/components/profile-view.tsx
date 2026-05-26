@@ -241,7 +241,7 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
             <Coins className="h-4 w-4 text-orange-500 shrink-0" />
             <div>
               <p className="text-xs font-semibold text-foreground">{t('credits.balance.title')}</p>
-              <p className="text-[11px] text-muted-foreground">Kako zaraditi i trošiti? →</p>
+              <p className="text-[11px] text-muted-foreground">{t('credits.info.howToEarnSpend')}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -292,25 +292,25 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
           <div className="mt-1">
             <div className="flex items-center gap-1.5 mb-2">
               <TrendingUp className="h-4 w-4 text-green-500" />
-              <p className="text-sm font-semibold text-foreground">Kako zaraditi kredite</p>
+              <p className="text-sm font-semibold text-foreground">{t('credits.info.earn.title')}</p>
             </div>
             <div className="space-y-1.5">
-              {[
-                { label: 'Registracija', amount: '+10' },
-                { label: 'Popunjen profil', amount: '+10' },
-                { label: 'Prva objava', amount: '+15' },
-                { label: 'Prva usluga', amount: '+20' },
-                { label: 'Privi oglas za posao', amount: '+20' },
-                { label: 'Objava sa slikom', amount: '+5', note: 'max 2/dan' },
-                { label: 'Objava sa videom', amount: '+10', note: 'max 1/dan' },
-                { label: 'Preporuka prijatelja', amount: '+25', note: 'referral link' },
-              ].map((item) => (
-                <div key={item.label} className="flex items-center justify-between rounded-lg bg-green-500/8 px-3 py-1.5">
+              {([
+                { key: 'registration', amount: '+10' },
+                { key: 'profile', amount: '+10' },
+                { key: 'firstPost', amount: '+15' },
+                { key: 'firstService', amount: '+20' },
+                { key: 'firstJob', amount: '+20' },
+                { key: 'imagePost', amount: '+5', noteKey: 'imagePostNote' },
+                { key: 'videoPost', amount: '+10', noteKey: 'videoPostNote' },
+                { key: 'referral', amount: '+25', noteKey: 'referralNote' },
+              ] as { key: string; amount: string; noteKey?: string }[]).map((item) => (
+                <div key={item.key} className="flex items-center justify-between rounded-lg bg-green-500/8 px-3 py-1.5">
                   <div>
-                    <span className="text-xs text-foreground">{item.label}</span>
-                    {item.note && <span className="text-[10px] text-muted-foreground ml-1.5">({item.note})</span>}
+                    <span className="text-xs text-foreground">{t(`credits.info.earn.${item.key}` as any)}</span>
+                    {item.noteKey && <span className="text-[10px] text-muted-foreground ml-1.5">({t(`credits.info.earn.${item.noteKey}` as any)})</span>}
                   </div>
-                  <span className="text-xs font-bold text-green-600 dark:text-green-400">{item.amount} kr</span>
+                  <span className="text-xs font-bold text-green-600 dark:text-green-400">{item.amount} {t('credits.unit')}</span>
                 </div>
               ))}
             </div>
@@ -320,29 +320,29 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
           <div className="mt-3">
             <div className="flex items-center gap-1.5 mb-2">
               <ShoppingBag className="h-4 w-4 text-orange-500" />
-              <p className="text-sm font-semibold text-foreground">Kako trošiti kredite</p>
+              <p className="text-sm font-semibold text-foreground">{t('credits.info.spend.title')}</p>
             </div>
             <div className="space-y-1.5">
-              {[
-                { label: 'Boost objave u feedu', amount: '15', note: '3 dana' },
-                { label: 'Boost usluge / posla', amount: '25', note: '7 dana' },
-                { label: 'Creator Premium', amount: '200', note: 'jednom' },
-                { label: 'Podrži kreator (malo)', amount: '5', note: 'po podršci' },
-                { label: 'Podrži kreator (srednje)', amount: '10', note: 'po podršci' },
-                { label: 'Podrži kreator (veliko)', amount: '20', note: 'po podršci' },
-              ].map((item) => (
-                <div key={item.label} className="flex items-center justify-between rounded-lg bg-orange-500/8 px-3 py-1.5">
+              {([
+                { key: 'boostFeed', amount: '15', noteKey: 'boostFeedNote' },
+                { key: 'boostListing', amount: '25', noteKey: 'boostListingNote' },
+                { key: 'creatorPremium', amount: '200', noteKey: 'creatorPremiumNote' },
+                { key: 'supportSmall', amount: '5', noteKey: 'perSupport' },
+                { key: 'supportMedium', amount: '10', noteKey: 'perSupport' },
+                { key: 'supportLarge', amount: '20', noteKey: 'perSupport' },
+              ] as { key: string; amount: string; noteKey: string }[]).map((item) => (
+                <div key={item.key} className="flex items-center justify-between rounded-lg bg-orange-500/8 px-3 py-1.5">
                   <div>
-                    <span className="text-xs text-foreground">{item.label}</span>
-                    {item.note && <span className="text-[10px] text-muted-foreground ml-1.5">({item.note})</span>}
+                    <span className="text-xs text-foreground">{t(`credits.info.spend.${item.key}` as any)}</span>
+                    <span className="text-[10px] text-muted-foreground ml-1.5">({t(`credits.info.spend.${item.noteKey}` as any)})</span>
                   </div>
-                  <span className="text-xs font-bold text-orange-600 dark:text-orange-400">−{item.amount} kr</span>
+                  <span className="text-xs font-bold text-orange-600 dark:text-orange-400">−{item.amount} {t('credits.unit')}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <p className="text-[10px] text-muted-foreground text-center mt-2">Demo sistem • Krediti nemaju novčanu vrednost</p>
+          <p className="text-[10px] text-muted-foreground text-center mt-2">{t('credits.info.footer')}</p>
         </DialogContent>
       </Dialog>
     </>
