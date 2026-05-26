@@ -214,7 +214,7 @@ export function ProfileHeader({
                     {phone}
                   </a>
                   {isOwnProfile && !showPhone && (
-                    <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground">privatno</span>
+                    <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground">{t('profile.private')}</span>
                   )}
                 </div>
               )}
@@ -227,7 +227,7 @@ export function ProfileHeader({
                     {email}
                   </a>
                   {isOwnProfile && !showEmail && (
-                    <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground">privatno</span>
+                    <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground">{t('profile.private')}</span>
                   )}
                 </div>
               )}

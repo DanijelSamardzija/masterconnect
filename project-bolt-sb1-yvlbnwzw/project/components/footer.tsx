@@ -12,6 +12,13 @@ export function Footer() {
         <div className="flex flex-col items-center gap-6">
           <div className="flex flex-col md:flex-row items-center gap-4 md:gap-1 text-sm md:text-base">
             <Link
+              href="/help"
+              className="text-foreground hover:text-primary transition-colors"
+            >
+              {t('footer.help')}
+            </Link>
+            <span className="hidden md:inline text-muted-foreground mx-3">|</span>
+            <Link
               href="/privacy"
               className="text-foreground hover:text-primary transition-colors"
             >
