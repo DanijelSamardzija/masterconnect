@@ -1429,4 +1429,11 @@ export default {
   'credits.info.spend.perSupport': 'pro Unterstützung',
   'credits.info.footer': 'Demo-System • Credits haben keinen Geldwert',
   'credits.info.howToEarnSpend': 'Wie verdienen und ausgeben? →',
+  'credits.creatorPremium.subtitle': '200 Credits • Unterstützung erhalten',
+  'credits.creatorPremium.activate': 'Aktivieren',
+  'credits.creatorPremium.canReceive': 'Sie können Unterstützung von Followern erhalten',
+  'referral.title': 'Freunde einladen',
+  'referral.subtitle': '+25 Credits pro Registrierung • {count} eingeladen',
+  'referral.copy': 'Kopieren',
+  'referral.copied': 'Kopiert!',
 } as const;

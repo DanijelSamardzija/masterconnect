@@ -1433,4 +1433,11 @@ export default {
   'credits.info.spend.perSupport': 'po podršci',
   'credits.info.footer': 'Demo sistem • Krediti nemaju novčanu vrednost',
   'credits.info.howToEarnSpend': 'Kako zaraditi i trošiti? →',
+  'credits.creatorPremium.subtitle': '200 kredita • prima podršku',
+  'credits.creatorPremium.activate': 'Aktiviraj',
+  'credits.creatorPremium.canReceive': 'Možete primati podršku od pratilaca',
+  'referral.title': 'Pozovi prijatelje',
+  'referral.subtitle': '+25 kredita po registraciji • {count} pozvanih',
+  'referral.copy': 'Kopiraj',
+  'referral.copied': 'Kopirano!',
 } as const;

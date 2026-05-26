@@ -141,7 +141,7 @@ type ProfileViewProps = {
   reviewAction?: React.ReactNode;
 };
 
-function ReferralWidget({ profile }: { profile: UserProfile }) {
+function ReferralWidget({ profile, t }: { profile: UserProfile; t: (k: string) => string }) {
   const [copied, setCopied] = useState(false);
   const [referralCount, setReferralCount] = useState<number | null>(null);
   const referralCode = (profile as any).referral_code;
@@ -167,8 +167,10 @@ function ReferralWidget({ profile }: { profile: UserProfile }) {
         <div className="flex items-center gap-2">
           <Users className="h-4 w-4 text-blue-500 shrink-0" />
           <div>
-            <p className="text-xs font-semibold text-foreground">Pozovi prijatelje</p>
-            <p className="text-[11px] text-muted-foreground">+25 kredita po registraciji • {referralCount ?? '—'} pozvanih</p>
+            <p className="text-xs font-semibold text-foreground">{t('referral.title')}</p>
+            <p className="text-[11px] text-muted-foreground">
+              {t('referral.subtitle').replace('{count}', String(referralCount ?? '—'))}
+            </p>
           </div>
         </div>
       </div>
@@ -180,7 +182,7 @@ function ReferralWidget({ profile }: { profile: UserProfile }) {
             className="shrink-0 flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors"
           >
             {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-            {copied ? 'Kopirano!' : 'Kopiraj'}
+            {copied ? t('referral.copied') : t('referral.copy')}
           </button>
         </div>
       )}
@@ -258,14 +260,14 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
           <div className="border-t border-orange-300/20 px-4 py-2.5 flex items-center justify-between gap-3">
             <div>
               <p className="text-xs font-semibold text-foreground">⭐ Creator Premium</p>
-              <p className="text-[11px] text-muted-foreground">200 kredita • prima podršku</p>
+              <p className="text-[11px] text-muted-foreground">{t('credits.creatorPremium.subtitle')}</p>
             </div>
             <button
               onClick={handleUpgrade}
               disabled={upgrading || (balance !== null && balance < 200)}
               className="text-xs font-bold px-3 py-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 text-white disabled:opacity-40 hover:from-orange-600 hover:to-amber-600 transition-all shrink-0"
             >
-              {upgrading ? '...' : 'Aktiviraj'}
+              {upgrading ? '...' : t('credits.creatorPremium.activate')}
             </button>
           </div>
         )}
@@ -273,7 +275,7 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
         {isCreatorPremium && (
           <div className="border-t border-orange-300/20 px-4 py-2 flex items-center gap-2">
             <span className="text-xs">🧡</span>
-            <p className="text-[11px] text-muted-foreground">Možete primati podršku od pratilaca</p>
+            <p className="text-[11px] text-muted-foreground">{t('credits.creatorPremium.canReceive')}</p>
           </div>
         )}
       </div>
@@ -1073,7 +1075,7 @@ export function ProfileView({
         {isOwnProfile && (
           <>
             <CreditsWidget profile={profile} t={t} />
-            <ReferralWidget profile={profile} />
+            <ReferralWidget profile={profile} t={t} />
           </>
         )}
 

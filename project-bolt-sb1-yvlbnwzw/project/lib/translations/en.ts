@@ -1433,4 +1433,11 @@ export default {
   'credits.info.spend.perSupport': 'per support',
   'credits.info.footer': 'Demo system • Credits have no monetary value',
   'credits.info.howToEarnSpend': 'How to earn and spend? →',
+  'credits.creatorPremium.subtitle': '200 credits • receive support',
+  'credits.creatorPremium.activate': 'Activate',
+  'credits.creatorPremium.canReceive': 'You can receive support from followers',
+  'referral.title': 'Invite friends',
+  'referral.subtitle': '+25 credits per registration • {count} invited',
+  'referral.copy': 'Copy',
+  'referral.copied': 'Copied!',
 } as const;
