@@ -13,9 +13,10 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { EmptyState } from '@/components/empty-state';
 import { SharePostModal } from '@/components/share-post-modal';
-import { Loader2, Search, Filter, X, Bookmark, Share2, ArrowUpDown, Star, Clock, TrendingUp, Plus, Sparkles } from 'lucide-react';
+import { Loader2, Search, Filter, X, Bookmark, Share2, ArrowUpDown, Star, Clock, TrendingUp, Plus, Sparkles, Zap } from 'lucide-react';
 import { GuestWall } from '@/components/guest-wall';
 import { CreateMarketplacePostModal } from '@/components/create-marketplace-post-modal';
+import { toast } from 'sonner';
 
 export const revalidate = 0;
 
@@ -60,6 +61,7 @@ export default function ServicesPage() {
   const [shareModalPostId, setShareModalPostId] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [sortBy, setSortBy] = useState<'rating' | 'newest' | 'price_asc' | 'price_desc'>('rating');
+  const [boostingId, setBoostingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadCategories();
@@ -111,6 +113,7 @@ export default function ServicesPage() {
           link_count,
           hashtag_count,
           is_promoted,
+          promoted_until,
           profiles (
             name,
             avatar_url,
@@ -282,6 +285,31 @@ export default function ServicesPage() {
     setSavedSet(new Set((data || []).map((r: any) => r.post_id)));
   };
 
+  const handleBoostListing = async (e: React.MouseEvent, listingId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) return;
+    setBoostingId(listingId);
+    try {
+      const { data, error } = await (supabase.rpc as any)('boost_post', { p_user_id: user.id, p_post_id: listingId });
+      if (error || !data?.ok) {
+        const err = data?.error || error?.message;
+        if (err === 'insufficient_balance') {
+          toast.error(`Nedovoljno kredita. Trebaš ${data?.cost} kredita, a imaš ${data?.balance}.`);
+        } else {
+          toast.error('Greška pri boostu.');
+        }
+      } else {
+        toast.success('🚀 Oglas je boostan! Aktivan 7 dana.');
+        setListings(prev => prev.map(l => l.id === listingId ? { ...l, promoted_until: data.promoted_until } : l));
+      }
+    } catch {
+      toast.error('Greška pri boostu.');
+    } finally {
+      setBoostingId(null);
+    }
+  };
+
   const handleSaveListing = async (e: React.MouseEvent, listingId: string) => {
     e.preventDefault();
     e.stopPropagation();
@@ -407,14 +435,29 @@ export default function ServicesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {(user ? listings : listings.slice(0, 6)).map((listing, idx) => (
             <React.Fragment key={listing.id}>
-              <div className="relative transition-all duration-200 hover:scale-[1.02] hover:-translate-y-1">
+              <div className={`relative transition-all duration-200 hover:scale-[1.02] hover:-translate-y-1 ${(listing as any).promoted_until && new Date((listing as any).promoted_until) > new Date() ? 'ring-2 ring-orange-400 rounded-2xl' : ''}`}>
                 <ProfessionalCard listing={listing} />
                 {(listing as any).is_promoted && (
                   <div className="absolute top-3 left-3 z-10">
                     <span className="bg-yellow-400 text-yellow-900 text-[10px] font-bold px-2 py-0.5 rounded-full shadow">Sponzorisano</span>
                   </div>
                 )}
+                {(listing as any).promoted_until && new Date((listing as any).promoted_until) > new Date() && !(listing as any).is_promoted && (
+                  <div className="absolute top-3 left-3 z-10">
+                    <span className="bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow">🚀 Boost</span>
+                  </div>
+                )}
                 <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
+                  {user?.id === listing.user_id && (
+                    <button
+                      onClick={(e) => handleBoostListing(e, listing.id)}
+                      disabled={boostingId === listing.id || ((listing as any).promoted_until && new Date((listing as any).promoted_until) > new Date())}
+                      className="p-1.5 rounded-full bg-orange-500/90 backdrop-blur-sm hover:bg-orange-600 transition-colors disabled:opacity-50"
+                      title={(listing as any).promoted_until && new Date((listing as any).promoted_until) > new Date() ? 'Boost aktivan' : 'Boost oglas (25 kredita, 7 dana)'}
+                    >
+                      {boostingId === listing.id ? <Loader2 className="h-4 w-4 text-white animate-spin" /> : <Zap className="h-4 w-4 text-white" />}
+                    </button>
+                  )}
                   <button
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShareModalPostId(listing.id); }}
                     className="p-1.5 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors"

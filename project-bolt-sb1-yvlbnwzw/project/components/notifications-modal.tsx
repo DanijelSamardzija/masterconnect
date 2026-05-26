@@ -66,6 +66,8 @@ export function NotificationsModal({
         return '✅';
       case 'review':
         return '⭐';
+      case 'credit':
+        return '🪙';
       default:
         return '🔔';
     }

@@ -285,6 +285,21 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
         console.log(`[Client ${requestId}] 🔍 ANTI-SPAM DEBUG:`, result.antiSpamDebug);
       }
 
+      // First post reward
+      if (postData) {
+        try {
+          const { data: firstPostReward } = await supabase.rpc('earn_reward', {
+            p_user_id: user!.id,
+            p_reward_type: 'first_post',
+          });
+          if (firstPostReward && firstPostReward > 0) {
+            setTimeout(() => {
+              toast.success(`🪙 +${firstPostReward} ${t('credits.unit')} ${t('credits.reward.earned')}`, { duration: 4000 });
+            }, 400);
+          }
+        } catch { /* silent */ }
+      }
+
       if (mediaFiles.length > 0 && postData) {
         console.log(`[Client ${requestId}] Uploading ${mediaFiles.length} media files...`);
         const mediaItems = [];
@@ -385,6 +400,23 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
             return;
           } else {
             console.log(`[Client ${requestId}] Media saved successfully`);
+
+            // Earn credits for posting with media
+            const hasVideo = mediaItems.some(m => m.type === 'video');
+            const mediaRewardType = hasVideo ? 'video' : 'image';
+            try {
+              const { data: rewardData } = await supabase.rpc('earn_post_reward', {
+                p_user_id: user!.id,
+                p_media_type: mediaRewardType,
+              });
+              if (rewardData && rewardData > 0) {
+                setTimeout(() => {
+                  toast.success(`🪙 +${rewardData} ${t('credits.unit')} ${t('credits.reward.earned')}`, { duration: 4000 });
+                }, 800);
+              }
+            } catch {
+              // Silent — reward failure should not block post creation
+            }
           }
         }
       }

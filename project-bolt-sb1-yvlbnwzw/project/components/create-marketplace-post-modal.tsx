@@ -422,6 +422,24 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
 
       toast.success(t('marketplace.postCreated'));
 
+      // Onboarding rewards for first service or first job
+      const rewardType = postType === 'service_listing' ? 'first_service'
+        : postType === 'hiring_post' ? 'first_job'
+        : null;
+      if (rewardType && postResult) {
+        try {
+          const { data: rewardEarned } = await supabase.rpc('earn_reward', {
+            p_user_id: user!.id,
+            p_reward_type: rewardType,
+          });
+          if (rewardEarned && rewardEarned > 0) {
+            setTimeout(() => {
+              toast.success(`🪙 +${rewardEarned} ${t('credits.unit')} ${t('credits.reward.earned')}`, { duration: 4000 });
+            }, 600);
+          }
+        } catch { /* silent */ }
+      }
+
       // Show warnings if detected
       if (result.warnings) {
         if (result.warnings.includes('TOO_MANY_LINKS_WARNING')) {

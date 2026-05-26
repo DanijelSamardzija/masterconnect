@@ -55,6 +55,7 @@ type Post = {
   hashtag_count?: number;
   feed_score?: number;
   is_promoted?: boolean;
+  promoted_until?: string | null;
   user: {
     name: string;
     email: string;
@@ -135,6 +136,8 @@ function FeedContent() {
   const [contactingUserId, setContactingUserId] = useState<string | null>(null);
   const [notificationUnreadCount, setNotificationUnreadCount] = useState(0);
   const [supportModalOpen, setSupportModalOpen] = useState(false);
+  const [supportTarget, setSupportTarget] = useState<{ userId: string; name: string; isCreatorPremium: boolean } | null>(null);
+  const [boostingPostId, setBoostingPostId] = useState<string | null>(null);
   const newestPostTimestamp = useRef<string | null>(null);
   const viewedPostIds = useRef<Set<string>>(new Set());
 
@@ -189,8 +192,12 @@ function FeedContent() {
       .subscribe();
 
     const notifChannel = supabase.channel('feed-notifications')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, () => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, (payload) => {
         setNotificationUnreadCount(prev => prev + 1);
+        // Show toast for credit received
+        if ((payload.new as any)?.type === 'credit') {
+          toast.success(`🪙 ${(payload.new as any).title}`, { duration: 5000 });
+        }
       })
       .subscribe();
 
@@ -429,6 +436,29 @@ function FeedContent() {
     finally { setDeleteDialogOpen(false); setPostToDelete(null); }
   };
 
+  const handleBoostPost = async (postId: string) => {
+    if (!user) return;
+    setBoostingPostId(postId);
+    try {
+      const { data, error } = await (supabase.rpc as any)('boost_post', { p_user_id: user.id, p_post_id: postId });
+      if (error || !data?.ok) {
+        const err = data?.error || error?.message;
+        if (err === 'insufficient_balance') {
+          toast.error(`Nedovoljno kredita. Trebaš ${data?.cost} kredita, a imaš ${data?.balance}.`);
+        } else {
+          toast.error('Greška pri boostu. Pokušaj ponovo.');
+        }
+      } else {
+        toast.success(`🚀 Post je boostan! Aktivan ${data?.cost === 25 ? '7' : '3'} dana.`);
+        setPosts(prev => prev.map(p => p.id === postId ? { ...p, promoted_until: data.promoted_until } : p));
+      }
+    } catch {
+      toast.error('Greška pri boostu.');
+    } finally {
+      setBoostingPostId(null);
+    }
+  };
+
   const handleContact = async (targetUserId: string) => {
     if (!user) { openGuestGate('message', targetUserId); return; }
     setContactingUserId(targetUserId);
@@ -620,7 +650,13 @@ function FeedContent() {
       )}
 
       <CreatePostModal open={createPostOpen} onOpenChange={setCreatePostOpen} onSuccess={handlePostCreated} />
-      <SupportModal open={supportModalOpen} onOpenChange={setSupportModalOpen} />
+      <SupportModal
+        open={supportModalOpen}
+        onOpenChange={(v) => { setSupportModalOpen(v); if (!v) setSupportTarget(null); }}
+        targetUserId={supportTarget?.userId}
+        targetUserName={supportTarget?.name}
+        targetIsCreatorPremium={supportTarget?.isCreatorPremium}
+      />
 
       {reportTarget && <ReportModal open={reportModalOpen} onOpenChange={setReportModalOpen} targetType={reportTarget.type} targetId={reportTarget.id} targetOwnerUserId={reportTarget.userId} />}
 
@@ -711,8 +747,14 @@ function FeedContent() {
                   ? <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 text-[10px] px-1.5 py-0 h-4 shrink-0">PRO</Badge>
                   : <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-[10px] px-1.5 py-0 h-4 shrink-0">Klijent</Badge>
                 }
+                {(post.user as any).is_creator_premium && (
+                  <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] px-1.5 py-0 h-4 shrink-0">⭐ Creator</Badge>
+                )}
                 {post.is_promoted && (
                   <Badge className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 text-[10px] px-1.5 py-0 h-4 shrink-0">Sponzorisano</Badge>
+                )}
+                {post.promoted_until && new Date(post.promoted_until) > new Date() && (
+                  <Badge className="bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 text-[10px] px-1.5 py-0 h-4 shrink-0">🚀 Boost</Badge>
                 )}
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -946,12 +988,30 @@ function FeedContent() {
             </button>
             {isPro && !isOwn && (
               <button
-                onClick={() => setSupportModalOpen(true)}
+                onClick={() => {
+                  setSupportTarget({
+                    userId: post.user_id,
+                    name: post.user.name || '',
+                    isCreatorPremium: (post.user as any).is_creator_premium ?? false,
+                  });
+                  setSupportModalOpen(true);
+                }}
                 className="relative flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-amber-500 hover:text-amber-600"
                 title={t('credits.support.button')}
               >
                 <span className="absolute inset-0 rounded-lg animate-ping bg-amber-400 opacity-25" />
                 <Coins className="relative h-4 w-4" />
+              </button>
+            )}
+            {isOwn && (
+              <button
+                onClick={() => handleBoostPost(post.id)}
+                disabled={boostingPostId === post.id || (!!post.promoted_until && new Date(post.promoted_until) > new Date())}
+                className="flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg transition-colors disabled:opacity-50 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600"
+                title={post.promoted_until && new Date(post.promoted_until) > new Date() ? 'Boost aktivan' : 'Boost post (15 kredita, 3 dana)'}
+              >
+                {boostingPostId === post.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                {post.promoted_until && new Date(post.promoted_until) > new Date() ? 'Boostan' : 'Boost'}
               </button>
             )}
             {isPro && !isOwn && user && (

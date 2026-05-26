@@ -201,6 +201,35 @@ export async function GET(request: NextRequest) {
       return acc;
     }, {} as Record<string, { average_rating: number; review_count: number }>);
 
+    // Fetch is_creator_premium for all post authors
+    const allUserIds = [...new Set([
+      ...(postsData?.map(p => p.user_id) || []),
+      ...promotedPostsData.map(p => p.user_id),
+    ])];
+    const creatorPremiumMap: Record<string, boolean> = {};
+    if (allUserIds.length > 0) {
+      const { data: premiumData } = await supabase
+        .from('profiles')
+        .select('id, is_creator_premium')
+        .in('id', allUserIds);
+      for (const row of (premiumData || [])) {
+        creatorPremiumMap[row.id] = row.is_creator_premium ?? false;
+      }
+    }
+
+    // Fetch promoted_until for user self-boosted posts
+    const promotedUntilMap: Record<string, string | null> = {};
+    if (postIds.length > 0) {
+      const { data: puData } = await supabase
+        .from('posts')
+        .select('id, promoted_until')
+        .in('id', postIds)
+        .gt('promoted_until', new Date().toISOString());
+      for (const row of (puData || [])) {
+        promotedUntilMap[row.id] = row.promoted_until;
+      }
+    }
+
     const postsWithMedia = (postsData?.map(post => ({
       id: post.id,
       user_id: post.user_id,
@@ -224,6 +253,7 @@ export async function GET(request: NextRequest) {
       hashtags: post.hashtags || [],
       feed_score: post.feed_score,
       is_promoted: post.is_promoted || false,
+      promoted_until: promotedUntilMap[post.id] || null,
       media: mediaData.filter(m => m.post_id === post.id),
       user: {
         name: post.user_name,
@@ -231,6 +261,7 @@ export async function GET(request: NextRequest) {
         account_type: post.user_account_type,
         avatar_url: post.user_avatar_url,
         country: post.user_country || null,
+        is_creator_premium: creatorPremiumMap[post.user_id] ?? false,
         ...(reviewStats[post.user_id] || {})
       }
     })) || []).filter(post =>
@@ -275,6 +306,7 @@ export async function GET(request: NextRequest) {
           hashtags: p.hashtags || [],
           feed_score: 0,
           is_promoted: true,
+          promoted_until: null,
           media: mediaData.filter(m => m.post_id === p.id),
           user: {
             name: prof?.name,

@@ -135,6 +135,90 @@ type ProfileViewProps = {
   reviewAction?: React.ReactNode;
 };
 
+function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) => string }) {
+  const [balance, setBalance] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [upgrading, setUpgrading] = useState(false);
+  const isCreatorPremium = (profile as any).is_creator_premium ?? false;
+
+  useEffect(() => {
+    supabase
+      .from('credits_balance')
+      .select('balance')
+      .eq('user_id', profile.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setBalance(data?.balance ?? 0);
+        setLoading(false);
+      });
+  }, [profile.id]);
+
+  const handleUpgrade = async () => {
+    if (upgrading || isCreatorPremium) return;
+    setUpgrading(true);
+    try {
+      const { data } = await supabase.rpc('become_creator_premium', { p_user_id: profile.id });
+      if (data?.ok) {
+        toast.success('⭐ Creator Premium aktiviran! Osvježite stranicu.');
+        setBalance(prev => (prev !== null ? prev - 200 : prev));
+      } else if (data?.error === 'insufficient_balance') {
+        toast.error(`Nedovoljno kredita. Potrebno 200, imate ${data.balance}.`);
+      } else if (data?.error === 'already_creator_premium') {
+        toast.info('Već ste Creator Premium!');
+      } else {
+        toast.error('Greška pri aktivaciji.');
+      }
+    } catch {
+      toast.error('Greška pri aktivaciji.');
+    } finally {
+      setUpgrading(false);
+    }
+  };
+
+  return (
+    <div className="mt-3 rounded-xl border border-orange-300/30 bg-gradient-to-r from-orange-500/8 to-amber-500/5 overflow-hidden">
+      {/* Balance row */}
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center gap-2">
+          <Coins className="h-4 w-4 text-orange-500 shrink-0" />
+          <div>
+            <p className="text-xs font-semibold text-foreground">{t('credits.balance.title')}</p>
+            <p className="text-[11px] text-muted-foreground">Demo • Test Mode</p>
+          </div>
+        </div>
+        <span className="text-lg font-bold text-orange-500">
+          {loading ? '—' : balance ?? 0}
+          <span className="text-xs font-normal text-muted-foreground ml-1">{t('credits.unit')}</span>
+        </span>
+      </div>
+
+      {/* Creator Premium upgrade CTA */}
+      {!isCreatorPremium && (
+        <div className="border-t border-orange-300/20 px-4 py-2.5 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold text-foreground">⭐ Creator Premium</p>
+            <p className="text-[11px] text-muted-foreground">200 kredita • prima podršku</p>
+          </div>
+          <button
+            onClick={handleUpgrade}
+            disabled={upgrading || (balance !== null && balance < 200)}
+            className="text-xs font-bold px-3 py-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 text-white disabled:opacity-40 hover:from-orange-600 hover:to-amber-600 transition-all shrink-0"
+          >
+            {upgrading ? '...' : 'Aktiviraj'}
+          </button>
+        </div>
+      )}
+
+      {isCreatorPremium && (
+        <div className="border-t border-orange-300/20 px-4 py-2 flex items-center gap-2">
+          <span className="text-xs">🧡</span>
+          <p className="text-[11px] text-muted-foreground">Možete primati podršku od pratilaca</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ProfileView({
   profile,
   currentUserId,
@@ -846,20 +930,18 @@ export function ProfileView({
           </div>
         )}
 
+        {/* Creator Premium badge */}
+        {(profile as any).is_creator_premium && (
+          <div className="mt-3 flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500/10 to-amber-500/5 border border-orange-400/30 px-3 py-2">
+            <span className="text-base leading-none">⭐</span>
+            <span className="text-xs font-semibold text-orange-600 dark:text-orange-400">{t('credits.creatorPremiumBadge')}</span>
+            <span className="ml-auto text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">Demo</span>
+          </div>
+        )}
+
         {/* GigZone Krediti — own profile only */}
         {isOwnProfile && (
-          <div className="mt-3 flex items-center justify-between rounded-xl bg-gradient-to-r from-orange-500/8 to-amber-500/5 border border-orange-300/30 px-4 py-3">
-            <div className="flex items-center gap-2">
-              <Coins className="h-4 w-4 text-orange-500 shrink-0" />
-              <div>
-                <p className="text-xs font-semibold text-foreground">{t('credits.balance.title')}</p>
-                <p className="text-[11px] text-muted-foreground">{t('credits.balance.comingSoon')}</p>
-              </div>
-            </div>
-            <span className="text-[10px] font-bold text-orange-500 bg-orange-100 dark:bg-orange-900/30 px-2 py-0.5 rounded-full">
-              {t('credits.modal.badge')}
-            </span>
-          </div>
+          <CreditsWidget profile={profile} t={t} />
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">

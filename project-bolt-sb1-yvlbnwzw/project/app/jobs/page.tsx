@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Briefcase, Users, UserCircle, MessageCircle, Plus, MoreVertical, Trash2, Send, X, Bookmark, Share2, MapPin, Star, Clock, Sparkles } from 'lucide-react';
+import { Briefcase, Users, UserCircle, MessageCircle, Plus, MoreVertical, Trash2, Send, X, Bookmark, Share2, MapPin, Star, Clock, Sparkles, Zap, Loader2 as Loader } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -58,6 +58,7 @@ type Post = {
   price_value?: number | null;
   currency?: string | null;
   created_at: string;
+  promoted_until?: string | null;
   user: {
     name: string;
     email: string;
@@ -949,6 +950,7 @@ function JobsMarketplaceContent() {
   const [contactingPostId, setContactingPostId] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [deleteConfirmPostId, setDeleteConfirmPostId] = useState<string | null>(null);
+  const [boostingJobId, setBoostingJobId] = useState<string | null>(null);
   const [cityFilter, setCityFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
@@ -1004,6 +1006,31 @@ function JobsMarketplaceContent() {
       .select('post_id')
       .eq('user_id', user.id);
     setSavedSet(new Set((data || []).map((r: any) => r.post_id)));
+  };
+
+  const handleBoostJob = async (e: React.MouseEvent, postId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) return;
+    setBoostingJobId(postId);
+    try {
+      const { data, error } = await (supabase.rpc as any)('boost_post', { p_user_id: user.id, p_post_id: postId });
+      if (error || !data?.ok) {
+        const err = data?.error || error?.message;
+        if (err === 'insufficient_balance') {
+          toast.error(`Nedovoljno kredita. Trebaš ${data?.cost} kredita, a imaš ${data?.balance}.`);
+        } else {
+          toast.error('Greška pri boostu.');
+        }
+      } else {
+        toast.success('🚀 Oglas je boostan! Aktivan 7 dana.');
+        setPosts(prev => prev.map(p => p.id === postId ? { ...p, promoted_until: data.promoted_until } : p));
+      }
+    } catch {
+      toast.error('Greška pri boostu.');
+    } finally {
+      setBoostingJobId(null);
+    }
   };
 
   const handleSaveJob = async (e: React.MouseEvent, postId: string) => {
@@ -1076,6 +1103,7 @@ function JobsMarketplaceContent() {
             currency,
             created_at,
             status,
+            promoted_until,
             user:profiles!posts_user_id_fkey(name, email, account_type, avatar_url, country)
           `)
           .in('post_type', ['hiring_post', 'service_request', 'job_seeker_post'])
@@ -1118,6 +1146,7 @@ function JobsMarketplaceContent() {
           price_value: post.price_value,
           currency: post.currency,
           created_at: post.created_at,
+          promoted_until: post.promoted_until || null,
           user: post.user_data,
         })) || [];
 
@@ -1490,7 +1519,7 @@ function JobsMarketplaceContent() {
                   return (
                     <React.Fragment key={post.id}>
                     <Card
-                      className="bg-card text-card-foreground border border-border rounded-2xl shadow-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 hover:border-orange-400/40"
+                      className={`bg-card text-card-foreground border border-border rounded-2xl shadow-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 hover:border-orange-400/40 ${post.promoted_until && new Date(post.promoted_until) > new Date() ? 'ring-2 ring-orange-400' : ''}`}
                       style={{ touchAction: 'manipulation' }}
                     >
                       <CardContent className={isServiceRequest ? 'p-5' : 'p-5'}>
@@ -1551,6 +1580,11 @@ function JobsMarketplaceContent() {
                                     {t('jobs.badgeJobSeeker')}
                                   </span>
                                 )}
+                                {post.promoted_until && new Date(post.promoted_until) > new Date() && (
+                                  <span className="px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider bg-orange-500 text-white rounded">
+                                    🚀 Boost
+                                  </span>
+                                )}
                               </div>
                             </div>
 
@@ -1574,6 +1608,18 @@ function JobsMarketplaceContent() {
                                       savedSet.has(post.id) ? 'fill-orange-500 text-orange-500' : 'text-muted-foreground'
                                     }`}
                                   />
+                                </button>
+                              )}
+
+                              {user?.id === post.user_id && (
+                                <button
+                                  onClick={(e) => handleBoostJob(e, post.id)}
+                                  disabled={boostingJobId === post.id || (post.promoted_until && new Date(post.promoted_until) > new Date())}
+                                  className="h-7 px-2 flex items-center gap-1 rounded-lg text-xs font-medium transition-colors text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 disabled:opacity-50"
+                                  title={post.promoted_until && new Date(post.promoted_until) > new Date() ? 'Boost aktivan' : 'Boost oglas (25 kredita, 7 dana)'}
+                                >
+                                  {boostingJobId === post.id ? <Loader className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
+                                  {post.promoted_until && new Date(post.promoted_until) > new Date() ? 'Boostan' : 'Boost'}
                                 </button>
                               )}
 

@@ -320,6 +320,10 @@ function AdminContent() {
   const [investStats, setInvestStats] = useState<InvestStats | null>(null);
   const [investLoading, setInvestLoading] = useState(false);
 
+  // Credits analytics state
+  const [creditsStats, setCreditsStats] = useState<any>(null);
+  const [creditsLoading, setCreditsLoading] = useState(false);
+
   // Send notification state
   const [notifTarget, setNotifTarget] = useState<{ id: string; name: string } | null>(null);
   const [notifTitle, setNotifTitle] = useState('');
@@ -624,6 +628,55 @@ function AdminContent() {
       });
     } finally {
       setInvestLoading(false);
+    }
+  };
+
+  // ── Credits analytics ────────────────────────────────────────────────────
+  const fetchCreditsStats = async () => {
+    setCreditsLoading(true);
+    try {
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+
+      const [txRes, balanceRes, premiumRes, recentRes] = await Promise.all([
+        supabase.from('credit_transactions').select('amount, description, created_at').gte('created_at', thirtyDaysAgo),
+        supabase.from('credits_balance').select('balance'),
+        supabase.from('profiles').select('id, name, avatar_url, is_creator_premium').eq('is_creator_premium', true),
+        supabase.from('credit_transactions')
+          .select('user_id, amount, description, created_at, profiles!credit_transactions_user_id_fkey(name, avatar_url)')
+          .order('created_at', { ascending: false })
+          .limit(30),
+      ]);
+
+      const txData = txRes.data || [];
+      const totalBalance = (balanceRes.data || []).reduce((sum: number, r: any) => sum + (r.balance || 0), 0);
+
+      // breakdown by type
+      const breakdown: Record<string, { count: number; total: number }> = {};
+      for (const tx of txData) {
+        const key = tx.description?.startsWith('boost_post') ? 'boost'
+          : tx.description === 'become_creator_premium' ? 'creator_premium'
+          : tx.description === 'send_credits' ? 'podrzi'
+          : tx.description?.startsWith('earn_reward') || tx.description?.startsWith('registration') || tx.description?.startsWith('first_') || tx.description?.startsWith('profile_') ? 'nagrada'
+          : tx.description?.startsWith('post_media') || tx.description?.startsWith('image') || tx.description?.startsWith('video') ? 'media_nagrada'
+          : 'ostalo';
+        if (!breakdown[key]) breakdown[key] = { count: 0, total: 0 };
+        breakdown[key].count++;
+        breakdown[key].total += Math.abs(tx.amount);
+      }
+
+      setCreditsStats({
+        totalBalance,
+        premiumCount: (premiumRes.data || []).length,
+        premiumUsers: premiumRes.data || [],
+        txLast30d: txData.length,
+        breakdown,
+        recent: (recentRes.data || []).map((r: any) => ({
+          ...r,
+          profile: Array.isArray(r.profiles) ? r.profiles[0] : r.profiles,
+        })),
+      });
+    } finally {
+      setCreditsLoading(false);
     }
   };
 
@@ -1018,6 +1071,9 @@ function AdminContent() {
                   if (key === 'analytics') {
                     if (!analytics) fetchAnalytics(selectedYear);
                     if (!investStats) fetchInvestStats();
+                  }
+                  if (key === 'credits') {
+                    if (!creditsStats) fetchCreditsStats();
                   }
                 }}
                 className={`px-3 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px whitespace-nowrap ${
@@ -1760,63 +1816,138 @@ function AdminContent() {
           </div>
         )}
 
-        {/* ── ANALYTICS TAB ── */}
         {/* ── CREDITS TAB ── */}
         {activeTab === 'credits' && (
           <div className="space-y-6 py-4">
-            {/* Coming soon header */}
-            <div className="rounded-2xl bg-gradient-to-br from-orange-500/10 to-amber-500/5 border border-orange-300/30 p-6 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-100 dark:bg-orange-900/30 mx-auto mb-3">
-                <Coins className="h-7 w-7 text-orange-500" />
-              </div>
-              <h2 className="text-lg font-bold text-foreground mb-1">GigZone Credits & Premium</h2>
-              <p className="text-sm text-muted-foreground mb-3">Sistem upravljanja kreditima i pretplatama — dolazi uskoro</p>
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-orange-600 bg-orange-100 dark:bg-orange-900/30 px-3 py-1 rounded-full">
-                <Sparkles className="h-3.5 w-3.5" /> Coming soon
-              </span>
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-bold text-foreground">Krediti & Creator Premium</h2>
+              <button onClick={fetchCreditsStats} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                <RefreshCw className={`h-3.5 w-3.5 ${creditsLoading ? 'animate-spin' : ''}`} />
+                Osvježi
+              </button>
             </div>
 
-            {/* Placeholder stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { label: 'Ukupno kredita', value: '—', icon: <Coins className="h-4 w-4 text-orange-500" /> },
-                { label: 'Premium korisnici', value: '—', icon: <Crown className="h-4 w-4 text-amber-500" /> },
-                { label: 'Transakcije (30d)', value: '—', icon: <TrendingUp className="h-4 w-4 text-blue-500" /> },
-                { label: 'Prihod (30d)', value: '—', icon: <BarChart2 className="h-4 w-4 text-emerald-500" /> },
-              ].map(({ label, value, icon }) => (
-                <div key={label} className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-2">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    {icon}
-                    <span className="text-xs font-medium">{label}</span>
-                  </div>
-                  <p className="text-2xl font-bold text-foreground">{value}</p>
+            {creditsLoading && !creditsStats ? (
+              <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-orange-500" /></div>
+            ) : creditsStats ? (
+              <>
+                {/* Summary cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[
+                    { label: 'Ukupno kredita u opticaju', value: creditsStats.totalBalance, icon: <Coins className="h-4 w-4 text-orange-500" />, color: 'text-orange-500' },
+                    { label: 'Creator Premium korisnika', value: creditsStats.premiumCount, icon: <Crown className="h-4 w-4 text-amber-500" />, color: 'text-amber-500' },
+                    { label: 'Transakcija (30 dana)', value: creditsStats.txLast30d, icon: <TrendingUp className="h-4 w-4 text-blue-500" />, color: 'text-blue-500' },
+                    { label: 'Boost kupovina (30d)', value: creditsStats.breakdown?.boost?.count || 0, icon: <Sparkles className="h-4 w-4 text-purple-500" />, color: 'text-purple-500' },
+                  ].map(({ label, value, icon, color }) => (
+                    <div key={label} className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-2">
+                      <div className="flex items-center gap-2 text-muted-foreground">{icon}<span className="text-xs font-medium">{label}</span></div>
+                      <p className={`text-2xl font-bold ${color}`}>{value}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
 
-            {/* Placeholder table */}
-            <div className="bg-card border border-border rounded-2xl p-4">
-              <div className="flex items-center gap-2 mb-4">
-                <Activity className="h-4 w-4 text-orange-500" />
-                <h3 className="font-semibold text-sm">Posljednje transakcije</h3>
-              </div>
-              <div className="flex flex-col items-center justify-center py-10 text-muted-foreground gap-2">
-                <Coins className="h-8 w-8 opacity-30" />
-                <p className="text-sm">Transakcije će biti prikazane ovdje</p>
-              </div>
-            </div>
+                {/* Breakdown po tipu */}
+                <div className="bg-card border border-border rounded-2xl p-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <BarChart2 className="h-4 w-4 text-orange-500" />
+                    <h3 className="font-semibold text-sm">Gdje korisnici troše/zarađuju (30 dana)</h3>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {[
+                      { key: 'podrzi', label: '🧡 Podrži dugme', color: 'bg-orange-100 text-orange-700' },
+                      { key: 'boost', label: '🚀 Boost postova', color: 'bg-purple-100 text-purple-700' },
+                      { key: 'creator_premium', label: '⭐ Creator Premium', color: 'bg-amber-100 text-amber-700' },
+                      { key: 'nagrada', label: '🎁 Nagrade (onboarding)', color: 'bg-green-100 text-green-700' },
+                      { key: 'media_nagrada', label: '📸 Media nagrade', color: 'bg-blue-100 text-blue-700' },
+                      { key: 'ostalo', label: '📦 Ostalo', color: 'bg-slate-100 text-slate-700' },
+                    ].map(({ key, label, color }) => {
+                      const d = creditsStats.breakdown?.[key] || { count: 0, total: 0 };
+                      return (
+                        <div key={key} className="rounded-xl border border-border p-3">
+                          <p className="text-xs font-medium text-muted-foreground mb-1">{label}</p>
+                          <p className="text-lg font-bold text-foreground">{d.count} <span className="text-xs font-normal text-muted-foreground">transakcija</span></p>
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${color}`}>{d.total} kredita</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
 
-            {/* Premium management placeholder */}
-            <div className="bg-card border border-border rounded-2xl p-4">
-              <div className="flex items-center gap-2 mb-4">
-                <Crown className="h-4 w-4 text-amber-500" />
-                <h3 className="font-semibold text-sm">Premium pretplatnici</h3>
-              </div>
-              <div className="flex flex-col items-center justify-center py-10 text-muted-foreground gap-2">
-                <Crown className="h-8 w-8 opacity-30" />
-                <p className="text-sm">Lista Premium korisnika — dolazi uskoro</p>
-              </div>
-            </div>
+                {/* Posljednje transakcije */}
+                <div className="bg-card border border-border rounded-2xl p-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Activity className="h-4 w-4 text-orange-500" />
+                    <h3 className="font-semibold text-sm">Posljednjih 30 transakcija</h3>
+                  </div>
+                  <div className="space-y-2">
+                    {creditsStats.recent.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-6">Nema transakcija</p>
+                    ) : creditsStats.recent.map((tx: any, i: number) => {
+                      const isPositive = tx.amount > 0;
+                      const typeLabel = tx.description?.startsWith('boost_post') ? '🚀 Boost'
+                        : tx.description === 'become_creator_premium' ? '⭐ Creator Premium'
+                        : tx.description === 'send_credits' ? '🧡 Podrži'
+                        : tx.description?.startsWith('registration') ? '🎁 Registracija'
+                        : tx.description?.startsWith('first_post') ? '🎁 Prvi post'
+                        : tx.description?.startsWith('first_service') ? '🎁 Prva usluga'
+                        : tx.description?.startsWith('first_job') ? '🎁 Posao'
+                        : tx.description?.startsWith('profile_completed') ? '🎁 Profil'
+                        : tx.description?.startsWith('referral') ? '🎁 Referral'
+                        : tx.description?.startsWith('post_image') || tx.description?.includes('image') ? '📸 Slika'
+                        : tx.description?.startsWith('post_video') || tx.description?.includes('video') ? '🎥 Video'
+                        : tx.description || '—';
+                      return (
+                        <div key={i} className="flex items-center gap-3 py-2 border-b border-border last:border-0">
+                          <Avatar className="h-7 w-7 shrink-0">
+                            <AvatarImage src={tx.profile?.avatar_url} />
+                            <AvatarFallback className="text-[10px]">{tx.profile?.name?.[0]}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold truncate">{tx.profile?.name || 'Nepoznat'}</p>
+                            <p className="text-[10px] text-muted-foreground">{typeLabel}</p>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className={`text-sm font-bold ${isPositive ? 'text-green-600' : 'text-red-500'}`}>
+                              {isPositive ? '+' : ''}{tx.amount}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground">{formatDistanceToNow(new Date(tx.created_at), { addSuffix: true })}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Creator Premium korisnici */}
+                <div className="bg-card border border-border rounded-2xl p-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Crown className="h-4 w-4 text-amber-500" />
+                    <h3 className="font-semibold text-sm">Creator Premium korisnici ({creditsStats.premiumCount})</h3>
+                  </div>
+                  {creditsStats.premiumUsers.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-6">Nema Premium korisnika</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {creditsStats.premiumUsers.map((u: any) => (
+                        <div key={u.id} className="flex items-center gap-3">
+                          <Avatar className="h-7 w-7 shrink-0">
+                            <AvatarImage src={u.avatar_url} />
+                            <AvatarFallback className="text-[10px]">{u.name?.[0]}</AvatarFallback>
+                          </Avatar>
+                          <p className="text-xs font-semibold flex-1">{u.name}</p>
+                          <span className="text-[10px] font-bold text-amber-600 bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 rounded-full">⭐ Creator</span>
+                          <button onClick={() => router.push(`/profile/${u.id}`)} className="text-[10px] text-muted-foreground hover:text-foreground transition-colors">
+                            <ExternalLink className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="flex justify-center py-16 text-muted-foreground text-sm">Klikni Osvježi za učitavanje podataka</div>
+            )}
           </div>
         )}
 

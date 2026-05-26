@@ -165,6 +165,23 @@ function EditProfileContent() {
       if (error) throw error;
 
       toast.success('Profile updated');
+
+      // Profile completed reward — requires name, bio, city, avatar and category
+      const isCompleted = !!(name.trim() && bio.trim() && city.trim() && avatarUrl && category.trim());
+      if (isCompleted) {
+        try {
+          const { data: rewardEarned } = await supabase.rpc('earn_reward', {
+            p_user_id: user!.id,
+            p_reward_type: 'profile_completed',
+          });
+          if (rewardEarned && rewardEarned > 0) {
+            setTimeout(() => {
+              toast.success(`🪙 +${rewardEarned} kredita zarađeno!`, { duration: 4000 });
+            }, 500);
+          }
+        } catch { /* silent */ }
+      }
+
       await refreshProfile();
       router.push('/profile');
     } catch (error: any) {
