@@ -194,6 +194,87 @@ function ReferralWidget({ profile, t }: { profile: UserProfile; t: (k: string) =
   );
 }
 
+function BoostModal({
+  open, onClose, onConfirm, isListing, balance, loading, t,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  isListing: boolean;
+  balance: number | null;
+  loading: boolean;
+  t: (k: string) => string;
+}) {
+  const cost = isListing ? 25 : 15;
+  const days = isListing ? 7 : 3;
+  const hasBalance = balance !== null && balance >= cost;
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-xs">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <Zap className="h-5 w-5 text-orange-500" />
+            {t('credits.boost.modal.title')}
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-3 mt-1">
+          {/* Plan card */}
+          <div className="rounded-xl border-2 border-orange-400 bg-orange-500/8 p-4 space-y-2.5">
+            <p className="text-sm font-semibold text-foreground">
+              {isListing ? t('credits.boost.modal.listingOption') : t('credits.boost.modal.feedOption')}
+            </p>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-lg bg-muted/50 px-3 py-2">
+                <p className="text-muted-foreground">{t('credits.boost.modal.cost')}</p>
+                <p className="font-bold text-orange-500 text-base mt-0.5">{cost} {t('credits.unit')}</p>
+              </div>
+              <div className="rounded-lg bg-muted/50 px-3 py-2">
+                <p className="text-muted-foreground">{t('credits.boost.modal.duration')}</p>
+                <p className="font-bold text-foreground text-base mt-0.5">{days} {isListing ? t('credits.boost.modal.days7').split(' ')[1] : t('credits.boost.modal.days3').split(' ')[1]}</p>
+              </div>
+            </div>
+            <div className="rounded-lg bg-muted/50 px-3 py-2 text-xs">
+              <p className="text-muted-foreground">{t('credits.boost.modal.effect')}</p>
+              <p className="font-medium text-foreground mt-0.5">{t('credits.boost.modal.effectDesc')}</p>
+            </div>
+          </div>
+
+          {/* Balance */}
+          <div className="flex items-center justify-between text-xs px-1">
+            <span className="text-muted-foreground">{t('credits.boost.modal.balance')}</span>
+            <span className={`font-semibold ${hasBalance ? 'text-foreground' : 'text-red-500'}`}>
+              {balance ?? '—'} {t('credits.unit')}
+            </span>
+          </div>
+
+          {!hasBalance && balance !== null && (
+            <p className="text-xs text-red-500 text-center">{t('credits.boost.modal.insufficient')} ({cost - balance} {t('credits.unit')} {t('credits.boost.modal.cost').toLowerCase()})</p>
+          )}
+
+          <div className="flex gap-2">
+            <button
+              onClick={onClose}
+              className="flex-1 rounded-xl border border-border py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted transition-colors"
+            >
+              {t('credits.boost.modal.cancel')}
+            </button>
+            <button
+              onClick={onConfirm}
+              disabled={loading || !hasBalance}
+              className="flex-1 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:opacity-40 text-white py-2.5 text-sm font-bold transition-all flex items-center justify-center gap-2"
+            >
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+              {t('credits.boost.modal.confirm')}
+            </button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) => string }) {
   const [balance, setBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -399,6 +480,8 @@ export function ProfileView({
   const [commentsSheetPostId, setCommentsSheetPostId] = useState<string | null>(null);
   const [postToDelete, setPostToDelete] = useState<string | null>(null);
   const [boostingPostId, setBoostingPostId] = useState<string | null>(null);
+  const [boostModal, setBoostModal] = useState<{ postId: string; isListing: boolean } | null>(null);
+  const [boostBalance, setBoostBalance] = useState<number | null>(null);
 
   useEffect(() => {
     if (tabsScrollRef.current) {
@@ -959,6 +1042,15 @@ export function ProfileView({
   const handleBoostPost = async (e: React.MouseEvent, postId: string, isListing: boolean) => {
     e.stopPropagation();
     if (!currentUserId || boostingPostId) return;
+    // Fetch current balance then open confirmation modal
+    const { data: balData } = await supabase.from('credits_balance').select('balance').eq('user_id', currentUserId).maybeSingle();
+    setBoostBalance(balData?.balance ?? 0);
+    setBoostModal({ postId, isListing });
+  };
+
+  const handleBoostConfirm = async () => {
+    if (!boostModal || !currentUserId) return;
+    const { postId, isListing } = boostModal;
     setBoostingPostId(postId);
     try {
       const { data, error } = await (supabase.rpc as any)('boost_post', { p_user_id: currentUserId, p_post_id: postId });
@@ -970,6 +1062,7 @@ export function ProfileView({
           toast.error(t('credits.boost.error'));
         }
       } else {
+        setBoostModal(null);
         toast.success(isListing ? t('credits.boost.listingSuccess') : t('credits.boost.feedSuccess'));
         const updater = (prev: Post[]) => prev.map(p => p.id === postId ? { ...p, promoted_until: data.promoted_until } : p);
         setPosts(updater);
@@ -1235,7 +1328,7 @@ export function ProfileView({
                           onClick={(e) => handleBoostPost(e, post.id, false)}
                           disabled={boostingPostId === post.id || (!!post.promoted_until && new Date(post.promoted_until) > new Date())}
                           className="h-8 w-8 flex items-center justify-center bg-black/50 hover:bg-orange-500/80 text-white backdrop-blur-sm rounded-xl transition-colors disabled:opacity-50"
-                          title={post.promoted_until && new Date(post.promoted_until) > new Date() ? 'Boost aktivan' : 'Boost (15 kr, 3 dana)'}
+                          title={post.promoted_until && new Date(post.promoted_until) > new Date() ? t('credits.boost.active') : 'Boost (15 kr, 3d)'}
                         >
                           {boostingPostId === post.id
                             ? <Loader2 className="h-4 w-4 animate-spin" />
@@ -1460,14 +1553,14 @@ export function ProfileView({
                                   onClick={(e) => handleBoostPost(e, post.id, true)}
                                   disabled={boostingPostId === post.id || (!!post.promoted_until && new Date(post.promoted_until) > new Date())}
                                   className="h-8 px-2 flex items-center gap-1 text-xs rounded-xl border border-orange-300 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-950 disabled:opacity-40 transition-colors"
-                                  title={post.promoted_until && new Date(post.promoted_until) > new Date() ? 'Boost aktivan' : 'Boost (25 kr, 7 dana)'}
+                                  title={post.promoted_until && new Date(post.promoted_until) > new Date() ? t('credits.boost.active') : 'Boost (25 kr, 7d)'}
                                 >
                                   {boostingPostId === post.id
                                     ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
                                     : post.promoted_until && new Date(post.promoted_until) > new Date()
                                       ? <Sparkles className="h-3.5 w-3.5 text-orange-400" />
                                       : <Zap className="h-3.5 w-3.5" />}
-                                  <span>{post.promoted_until && new Date(post.promoted_until) > new Date() ? 'Boostan' : 'Boost'}</span>
+                                  <span>{post.promoted_until && new Date(post.promoted_until) > new Date() ? t('credits.boost.active.label') : t('credits.boost.boost.label')}</span>
                                 </button>
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
@@ -1553,8 +1646,8 @@ export function ProfileView({
                                     ? <Sparkles className="h-3.5 w-3.5 text-orange-400" />
                                     : <Zap className="h-3.5 w-3.5" />}
                                 {post.promoted_until && new Date(post.promoted_until) > new Date()
-                                  ? 'Boostan (aktivan)'
-                                  : 'Boost oglas (25 kr, 7 dana)'}
+                                  ? t('credits.boost.active.label')
+                                  : 'Boost (25 kr, 7d)'}
                               </button>
                             </div>
                           )}
@@ -2231,6 +2324,16 @@ export function ProfileView({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <BoostModal
+        open={!!boostModal}
+        onClose={() => setBoostModal(null)}
+        onConfirm={handleBoostConfirm}
+        isListing={boostModal?.isListing ?? false}
+        balance={boostBalance}
+        loading={!!boostingPostId}
+        t={t}
+      />
     </div>
   );
 }
