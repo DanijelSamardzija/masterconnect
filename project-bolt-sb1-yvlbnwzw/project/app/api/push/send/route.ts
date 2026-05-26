@@ -116,7 +116,7 @@ async function processPush(body: any) {
         body: JSON.stringify({
           from: 'GigZone <hello@gigzone.app>',
           to: [recipientProfile.email],
-          reply_to: 'gigzoneapp@gmail.com',
+          reply_to: 'support@gigzone.app',
           subject: title || 'Nova poruka na GigZone',
           html: `
             <div style="font-family:sans-serif;max-width:480px;margin:0 auto">

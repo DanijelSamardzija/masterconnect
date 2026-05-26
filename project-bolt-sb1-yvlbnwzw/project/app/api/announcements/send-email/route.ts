@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
         return {
           from: 'GigZone <hello@gigzone.app>',
           to: [u.email],
-          reply_to: 'gigzoneapp@gmail.com',
+          reply_to: 'support@gigzone.app',
           subject: t,
           html: buildHtml(t, b, effectiveLang),
         };

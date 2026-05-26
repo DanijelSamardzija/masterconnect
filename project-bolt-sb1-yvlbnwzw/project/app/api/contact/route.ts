@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify({
           from: 'GigZone Support <support@gigzone.app>',
-          to: [process.env.ADMIN_EMAIL || 'gigzoneapp@gmail.com'],
+          to: [process.env.ADMIN_EMAIL || 'support@gigzone.app'],
           reply_to: email,
           subject: `Nova poruka od ${name}`,
           html: `

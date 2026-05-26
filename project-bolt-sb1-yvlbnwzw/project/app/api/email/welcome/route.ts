@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         from: 'GigZone <hello@gigzone.app>',
         to: [profile.email],
-        reply_to: 'gigzoneapp@gmail.com',
+        reply_to: 'support@gigzone.app',
         subject: c.subject,
         html: `
           <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1a1a1a">
