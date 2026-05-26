@@ -1525,7 +1525,7 @@ export default {
   'help.faq.q4': 'Kako da kontaktiram profesionalca?',
   'help.faq.a4': 'Pronađi korisnika na stranici Usluge ili Oglasi i pošalji mu poruku ili klikni kontakt dugme na njegovom profilu.',
   'help.faq.q5': 'Da li je GigZone besplatan?',
-  'help.faq.a5': 'Da! Osnovna upotreba je potpuno besplatna. Krediti se koriste za napredne funkcije kao što je boost objave.',
+  'help.faq.a5': 'Da! Osnovna upotreba je potpuno besplatna. Krediti se koriste za napredne funkcije kao što su boost objave, Creator Premium i podrška kreatorima.',
   'help.contact.title': 'Trebaš pomoć?',
   'help.contact.desc': 'Ako imaš pitanje koje nije obuhvaćeno ovim vodičem, tim za podršku ti je na raspolaganju.',
   'help.contact.cta': 'Kontaktiraj podršku',

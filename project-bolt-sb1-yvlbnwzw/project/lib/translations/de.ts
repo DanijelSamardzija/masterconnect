@@ -1521,7 +1521,7 @@ export default {
   'help.faq.q4': 'Wie kontaktiere ich einen Fachmann?',
   'help.faq.a4': 'Finde einen Benutzer auf der Seite Dienstleistungen oder Aufträge und schicke ihm eine Nachricht oder klicke den Kontakt-Button auf seinem Profil.',
   'help.faq.q5': 'Ist GigZone kostenlos?',
-  'help.faq.a5': 'Ja! Die Grundnutzung ist völlig kostenlos. Credits werden für Premium-Funktionen wie Post-Boosts verwendet.',
+  'help.faq.a5': 'Ja! Die Grundnutzung ist völlig kostenlos. Credits werden für Premium-Funktionen wie Post-Boosts, Creator Premium und das Unterstützen von Creatorn verwendet.',
   'help.contact.title': 'Brauchst du Hilfe?',
   'help.contact.desc': 'Wenn du eine Frage hast, die in diesem Leitfaden nicht beantwortet wird, steht dir unser Support-Team zur Verfügung.',
   'help.contact.cta': 'Support kontaktieren',

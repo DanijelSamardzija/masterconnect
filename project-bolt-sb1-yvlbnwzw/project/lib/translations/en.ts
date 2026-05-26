@@ -1525,7 +1525,7 @@ export default {
   'help.faq.q4': 'How do I contact a professional?',
   'help.faq.a4': 'Find a user on the Services or Jobs page and send them a message or click the contact button on their profile.',
   'help.faq.q5': 'Is GigZone free?',
-  'help.faq.a5': 'Yes! Basic usage is completely free. Credits are used for premium features like post boosts.',
+  'help.faq.a5': 'Yes! Basic usage is completely free. Credits are used for premium features like post boosts, Creator Premium and supporting creators.',
   'help.contact.title': 'Need help?',
   'help.contact.desc': 'If you have a question not covered in this guide, our support team is here for you.',
   'help.contact.cta': 'Contact Support',
