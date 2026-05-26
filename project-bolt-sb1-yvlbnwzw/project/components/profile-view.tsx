@@ -42,6 +42,8 @@ import {
   Info,
   TrendingUp,
   ShoppingBag,
+  Sparkles,
+  Zap,
 } from 'lucide-react';
 import { CommentsSheet } from '@/components/comments-sheet';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -92,6 +94,7 @@ type Post = {
   link_count?: number;
   phone_count?: number;
   hashtag_count?: number;
+  promoted_until?: string | null;
   media: PostMedia[];
   reactions_count?: number;
   comments_count?: number;
@@ -394,6 +397,7 @@ export function ProfileView({
   const [likedByLoading, setLikedByLoading] = useState(false);
   const [commentsSheetPostId, setCommentsSheetPostId] = useState<string | null>(null);
   const [postToDelete, setPostToDelete] = useState<string | null>(null);
+  const [boostingPostId, setBoostingPostId] = useState<string | null>(null);
 
   useEffect(() => {
     if (tabsScrollRef.current) {
@@ -488,6 +492,7 @@ export function ProfileView({
           phone_count,
           hashtag_count,
           views_count,
+          promoted_until,
           user:profiles!posts_user_id_fkey (
             name,
             email,
@@ -603,6 +608,7 @@ export function ProfileView({
           link_count,
           phone_count,
           hashtag_count,
+          promoted_until,
           user:profiles!posts_user_id_fkey (
             name,
             email,
@@ -669,6 +675,7 @@ export function ProfileView({
           link_count,
           phone_count,
           hashtag_count,
+          promoted_until,
           user:profiles!posts_user_id_fkey (
             name,
             email,
@@ -735,6 +742,7 @@ export function ProfileView({
           link_count,
           phone_count,
           hashtag_count,
+          promoted_until,
           user:profiles!posts_user_id_fkey (
             name,
             email,
@@ -797,6 +805,7 @@ export function ProfileView({
           link_count,
           phone_count,
           hashtag_count,
+          promoted_until,
           user:profiles!posts_user_id_fkey (
             name,
             email,
@@ -943,6 +952,35 @@ export function ProfileView({
     if (post) {
       setEditingPost(post);
       setEditModalOpen(true);
+    }
+  };
+
+  const handleBoostPost = async (e: React.MouseEvent, postId: string, isListing: boolean) => {
+    e.stopPropagation();
+    if (!currentUserId || boostingPostId) return;
+    setBoostingPostId(postId);
+    try {
+      const { data, error } = await (supabase.rpc as any)('boost_post', { p_user_id: currentUserId, p_post_id: postId });
+      if (error || !data?.ok) {
+        const err = data?.error || error?.message;
+        if (err === 'insufficient_balance') {
+          toast.error(`Nedovoljno kredita. Trebaš ${data?.cost} kr, imaš ${data?.balance} kr.`);
+        } else {
+          toast.error(t('credits.boost.error'));
+        }
+      } else {
+        toast.success(isListing ? t('credits.boost.listingSuccess') : t('credits.boost.feedSuccess'));
+        const updater = (prev: Post[]) => prev.map(p => p.id === postId ? { ...p, promoted_until: data.promoted_until } : p);
+        setPosts(updater);
+        setMarketplacePosts(updater);
+        setServicePosts(updater);
+        setHiringPosts(updater);
+        setPortfolioPosts(updater);
+      }
+    } catch {
+      toast.error(t('credits.boost.error'));
+    } finally {
+      setBoostingPostId(null);
     }
   };
 
@@ -1191,7 +1229,19 @@ export function ProfileView({
                     </div>
 
                     {isOwnProfile && (
-                      <div className="absolute top-3 right-3 z-10 opacity-100 transition-opacity">
+                      <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
+                        <button
+                          onClick={(e) => handleBoostPost(e, post.id, false)}
+                          disabled={boostingPostId === post.id || (!!post.promoted_until && new Date(post.promoted_until) > new Date())}
+                          className="h-8 w-8 flex items-center justify-center bg-black/50 hover:bg-orange-500/80 text-white backdrop-blur-sm rounded-xl transition-colors disabled:opacity-50"
+                          title={post.promoted_until && new Date(post.promoted_until) > new Date() ? 'Boost aktivan' : 'Boost (15 kr, 3 dana)'}
+                        >
+                          {boostingPostId === post.id
+                            ? <Loader2 className="h-4 w-4 animate-spin" />
+                            : post.promoted_until && new Date(post.promoted_until) > new Date()
+                              ? <Sparkles className="h-4 w-4 text-orange-400" />
+                              : <Zap className="h-4 w-4" />}
+                        </button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                             <Button
@@ -1404,27 +1454,42 @@ export function ProfileView({
                             </div>
 
                             {isOwnProfile && (
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-xl">
-                                    <MoreVertical className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="rounded-xl">
-                                  <DropdownMenuItem onClick={() => handleEditPost(post.id)}>
-                                    <Edit className="h-4 w-4 mr-2" />
-                                    {t('posts.edit')}
-                                  </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem
-                                    onClick={() => handleDeletePost(post.id)}
-                                    className="text-red-600 focus:text-red-700"
-                                  >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    {t('posts.delete')}
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={(e) => handleBoostPost(e, post.id, true)}
+                                  disabled={boostingPostId === post.id || (!!post.promoted_until && new Date(post.promoted_until) > new Date())}
+                                  className="h-8 px-2 flex items-center gap-1 text-xs rounded-xl border border-orange-300 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-950 disabled:opacity-40 transition-colors"
+                                  title={post.promoted_until && new Date(post.promoted_until) > new Date() ? 'Boost aktivan' : 'Boost (25 kr, 7 dana)'}
+                                >
+                                  {boostingPostId === post.id
+                                    ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    : post.promoted_until && new Date(post.promoted_until) > new Date()
+                                      ? <Sparkles className="h-3.5 w-3.5 text-orange-400" />
+                                      : <Zap className="h-3.5 w-3.5" />}
+                                  <span>{post.promoted_until && new Date(post.promoted_until) > new Date() ? 'Boostan' : 'Boost'}</span>
+                                </button>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-xl">
+                                      <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="rounded-xl">
+                                    <DropdownMenuItem onClick={() => handleEditPost(post.id)}>
+                                      <Edit className="h-4 w-4 mr-2" />
+                                      {t('posts.edit')}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      onClick={() => handleDeletePost(post.id)}
+                                      className="text-red-600 focus:text-red-700"
+                                    >
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      {t('posts.delete')}
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
                             )}
                           </div>
                         </div>
@@ -1467,13 +1532,32 @@ export function ProfileView({
                     )}
                     <div className="space-y-4">
                       {servicePosts.map((post: any) => (
-                        <ServiceListingCard
-                          key={post.id}
-                          post={post}
-                          currentUserId={currentUserId}
-                          onEdit={handleEditPost}
-                          onDelete={handleDeletePost}
-                        />
+                        <div key={post.id} className="relative">
+                          <ServiceListingCard
+                            post={post}
+                            currentUserId={currentUserId}
+                            onEdit={handleEditPost}
+                            onDelete={handleDeletePost}
+                          />
+                          {isOwnProfile && (
+                            <div className="mt-1 flex justify-end px-1">
+                              <button
+                                onClick={(e) => handleBoostPost(e, post.id, true)}
+                                disabled={boostingPostId === post.id || (!!post.promoted_until && new Date(post.promoted_until) > new Date())}
+                                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl border border-orange-300 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-950 disabled:opacity-40 transition-colors"
+                              >
+                                {boostingPostId === post.id
+                                  ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                  : post.promoted_until && new Date(post.promoted_until) > new Date()
+                                    ? <Sparkles className="h-3.5 w-3.5 text-orange-400" />
+                                    : <Zap className="h-3.5 w-3.5" />}
+                                {post.promoted_until && new Date(post.promoted_until) > new Date()
+                                  ? 'Boostan (aktivan)'
+                                  : 'Boost oglas (25 kr, 7 dana)'}
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       ))}
                     </div>
                   </>
