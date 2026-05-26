@@ -653,11 +653,12 @@ function AdminContent() {
       // breakdown by type
       const breakdown: Record<string, { count: number; total: number }> = {};
       for (const tx of txData) {
-        const key = tx.description?.startsWith('boost_post') ? 'boost'
-          : tx.description === 'become_creator_premium' ? 'creator_premium'
-          : tx.description === 'send_credits' ? 'podrzi'
-          : tx.description?.startsWith('earn_reward') || tx.description?.startsWith('registration') || tx.description?.startsWith('first_') || tx.description?.startsWith('profile_') ? 'nagrada'
-          : tx.description?.startsWith('post_media') || tx.description?.startsWith('image') || tx.description?.startsWith('video') ? 'media_nagrada'
+        const desc = tx.description || '';
+        const key = desc.startsWith('boost_post') ? 'boost'
+          : desc === 'become_creator_premium' ? 'creator_premium'
+          : desc === 'Podrška poslata' || desc === 'Primljena podrška' ? 'podrzi'
+          : desc.startsWith('Nagrada:') ? 'nagrada'
+          : desc.startsWith('Post nagrada:') ? 'media_nagrada'
           : 'ostalo';
         if (!breakdown[key]) breakdown[key] = { count: 0, total: 0 };
         breakdown[key].count++;
@@ -1884,18 +1885,20 @@ function AdminContent() {
                       <p className="text-sm text-muted-foreground text-center py-6">Nema transakcija</p>
                     ) : creditsStats.recent.map((tx: any, i: number) => {
                       const isPositive = tx.amount > 0;
-                      const typeLabel = tx.description?.startsWith('boost_post') ? '🚀 Boost'
-                        : tx.description === 'become_creator_premium' ? '⭐ Creator Premium'
-                        : tx.description === 'send_credits' ? '🧡 Podrži'
-                        : tx.description?.startsWith('registration') ? '🎁 Registracija'
-                        : tx.description?.startsWith('first_post') ? '🎁 Prvi post'
-                        : tx.description?.startsWith('first_service') ? '🎁 Prva usluga'
-                        : tx.description?.startsWith('first_job') ? '🎁 Posao'
-                        : tx.description?.startsWith('profile_completed') ? '🎁 Profil'
-                        : tx.description?.startsWith('referral') ? '🎁 Referral'
-                        : tx.description?.startsWith('post_image') || tx.description?.includes('image') ? '📸 Slika'
-                        : tx.description?.startsWith('post_video') || tx.description?.includes('video') ? '🎥 Video'
-                        : tx.description || '—';
+                      const desc = tx.description || '';
+                      const typeLabel = desc.startsWith('boost_post') ? '🚀 Boost'
+                        : desc === 'become_creator_premium' ? '⭐ Creator Premium'
+                        : desc === 'Podrška poslata' ? '🧡 Podrži (poslato)'
+                        : desc === 'Primljena podrška' ? '🧡 Podrži (primljeno)'
+                        : desc === 'Nagrada: registration' ? '🎁 Registracija'
+                        : desc === 'Nagrada: first_post' ? '🎁 Prvi post'
+                        : desc === 'Nagrada: first_service' ? '🎁 Prva usluga'
+                        : desc === 'Nagrada: first_job' ? '🎁 Posao'
+                        : desc === 'Nagrada: profile_completed' ? '🎁 Profil'
+                        : desc === 'Nagrada: referral' ? '🎁 Referral'
+                        : desc === 'Post nagrada: slika' ? '📸 Slika'
+                        : desc === 'Post nagrada: video' ? '🎥 Video'
+                        : desc || '—';
                       return (
                         <div key={i} className="flex items-center gap-3 py-2 border-b border-border last:border-0">
                           <Avatar className="h-7 w-7 shrink-0">
