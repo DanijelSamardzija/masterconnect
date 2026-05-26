@@ -18,6 +18,10 @@ export default function JoinPage() {
     supabase.from('profiles').select('id', { count: 'exact', head: true }).then(({ count }) => {
       if (count) setUserCount(count);
     });
+    // Save referral code from URL to localStorage
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref) localStorage.setItem('referral_code', ref);
   }, []);
 
   const handleGoogleSignup = async () => {

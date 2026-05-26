@@ -36,6 +36,9 @@ import {
   Eye,
   Crown,
   Coins,
+  Copy,
+  Check,
+  Users,
 } from 'lucide-react';
 import { CommentsSheet } from '@/components/comments-sheet';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -134,6 +137,53 @@ type ProfileViewProps = {
   callAction?: React.ReactNode;
   reviewAction?: React.ReactNode;
 };
+
+function ReferralWidget({ profile }: { profile: UserProfile }) {
+  const [copied, setCopied] = useState(false);
+  const [referralCount, setReferralCount] = useState<number | null>(null);
+  const referralCode = (profile as any).referral_code;
+  const referralUrl = referralCode ? `${typeof window !== 'undefined' ? window.location.origin : 'https://gigzone.app'}/join?ref=${referralCode}` : '';
+
+  useEffect(() => {
+    if (!profile.id) return;
+    supabase.from('referrals').select('id', { count: 'exact', head: true })
+      .eq('referrer_id', profile.id)
+      .then(({ count }) => setReferralCount(count ?? 0));
+  }, [profile.id]);
+
+  const handleCopy = () => {
+    if (!referralUrl) return;
+    navigator.clipboard.writeText(referralUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="mt-3 rounded-xl border border-blue-300/30 bg-gradient-to-r from-blue-500/8 to-indigo-500/5 overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center gap-2">
+          <Users className="h-4 w-4 text-blue-500 shrink-0" />
+          <div>
+            <p className="text-xs font-semibold text-foreground">Pozovi prijatelje</p>
+            <p className="text-[11px] text-muted-foreground">+25 kredita po registraciji • {referralCount ?? '—'} pozvanih</p>
+          </div>
+        </div>
+      </div>
+      {referralCode && (
+        <div className="border-t border-blue-300/20 px-4 py-2.5 flex items-center gap-2">
+          <p className="text-[11px] text-muted-foreground truncate flex-1">{referralUrl}</p>
+          <button
+            onClick={handleCopy}
+            className="shrink-0 flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors"
+          >
+            {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+            {copied ? 'Kopirano!' : 'Kopiraj'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) => string }) {
   const [balance, setBalance] = useState<number | null>(null);
@@ -941,7 +991,10 @@ export function ProfileView({
 
         {/* GigZone Krediti — own profile only */}
         {isOwnProfile && (
-          <CreditsWidget profile={profile} t={t} />
+          <>
+            <CreditsWidget profile={profile} t={t} />
+            <ReferralWidget profile={profile} />
+          </>
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">

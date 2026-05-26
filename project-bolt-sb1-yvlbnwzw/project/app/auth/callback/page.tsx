@@ -37,6 +37,18 @@ export default function AuthCallbackPage() {
         .eq('id', user.id)
         .maybeSingle();
 
+      // Apply referral if new user
+      if (!profile?.onboarding_completed) {
+        const referralCode = localStorage.getItem('referral_code');
+        if (referralCode) {
+          await (supabase.rpc as any)('apply_referral', {
+            p_referred_id: user.id,
+            p_referral_code: referralCode,
+          });
+          localStorage.removeItem('referral_code');
+        }
+      }
+
       if (profile?.onboarding_completed) {
         trackEvent('google_login_success', { returning: true });
         router.replace('/feed');

@@ -637,7 +637,7 @@ function AdminContent() {
     try {
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-      const [txRes, balanceRes, premiumRes, recentRes] = await Promise.all([
+      const [txRes, balanceRes, premiumRes, recentRes, referralsRes] = await Promise.all([
         supabase.from('credit_transactions').select('amount, description, created_at').gte('created_at', thirtyDaysAgo),
         supabase.from('credits_balance').select('balance'),
         supabase.from('profiles').select('id, name, avatar_url, is_creator_premium').eq('is_creator_premium', true),
@@ -645,6 +645,10 @@ function AdminContent() {
           .select('user_id, amount, description, created_at, profiles!credit_transactions_user_id_fkey(name, avatar_url)')
           .order('created_at', { ascending: false })
           .limit(30),
+        supabase.from('referrals')
+          .select('referrer_id, created_at, referrer:referrer_id(name, avatar_url), referred:referred_id(name, avatar_url, created_at)')
+          .order('created_at', { ascending: false })
+          .limit(50),
       ]);
 
       const txData = txRes.data || [];
@@ -665,6 +669,23 @@ function AdminContent() {
         breakdown[key].total += Math.abs(tx.amount);
       }
 
+      // Referral leaderboard
+      const referrals = (referralsRes.data || []).map((r: any) => ({
+        ...r,
+        referrer: Array.isArray(r.referrer) ? r.referrer[0] : r.referrer,
+        referred: Array.isArray(r.referred) ? r.referred[0] : r.referred,
+      }));
+      const referrerMap: Record<string, { name: string; avatar_url?: string; count: number }> = {};
+      for (const r of referrals) {
+        const id = r.referrer_id;
+        if (!referrerMap[id]) referrerMap[id] = { name: r.referrer?.name || '—', avatar_url: r.referrer?.avatar_url, count: 0 };
+        referrerMap[id].count++;
+      }
+      const topReferrers = Object.entries(referrerMap)
+        .map(([id, v]) => ({ id, ...v }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
+
       setCreditsStats({
         totalBalance,
         premiumCount: (premiumRes.data || []).length,
@@ -675,6 +696,9 @@ function AdminContent() {
           ...r,
           profile: Array.isArray(r.profiles) ? r.profiles[0] : r.profiles,
         })),
+        referrals,
+        topReferrers,
+        referralTotal: referrals.length,
       });
     } finally {
       setCreditsLoading(false);
@@ -1919,6 +1943,60 @@ function AdminContent() {
                       );
                     })}
                   </div>
+                </div>
+
+                {/* Referral statistike */}
+                <div className="bg-card border border-border rounded-2xl p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-blue-500" />
+                      <h3 className="font-semibold text-sm">Referral pozivi ({creditsStats.referralTotal})</h3>
+                    </div>
+                  </div>
+
+                  {/* Top pozivači */}
+                  {creditsStats.topReferrers?.length > 0 && (
+                    <div className="mb-4">
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">Top pozivači</p>
+                      <div className="space-y-2">
+                        {creditsStats.topReferrers.map((r: any, i: number) => (
+                          <div key={r.id} className="flex items-center gap-3">
+                            <span className="text-xs font-bold text-muted-foreground w-4">{i + 1}.</span>
+                            <Avatar className="h-7 w-7 shrink-0">
+                              <AvatarImage src={r.avatar_url} />
+                              <AvatarFallback className="text-[10px]">{r.name?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <p className="text-xs font-semibold flex-1">{r.name}</p>
+                            <span className="text-xs font-bold text-blue-600 bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 rounded-full">{r.count} poziva</span>
+                            <button onClick={() => router.push(`/profile/${r.id}`)} className="text-muted-foreground hover:text-foreground">
+                              <ExternalLink className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Posljednji referrali */}
+                  <p className="text-xs font-semibold text-muted-foreground mb-2">Posljednji pozivi</p>
+                  {creditsStats.referrals?.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">Nema referrala još</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {creditsStats.referrals?.slice(0, 10).map((r: any, i: number) => (
+                        <div key={i} className="flex items-center gap-3 py-1.5 border-b border-border last:border-0">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold truncate">
+                              <span className="text-blue-600">{r.referrer?.name || '—'}</span>
+                              <span className="text-muted-foreground mx-1">→</span>
+                              <span>{r.referred?.name || '—'}</span>
+                            </p>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground shrink-0">{formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Creator Premium korisnici */}
