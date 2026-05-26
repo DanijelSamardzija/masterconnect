@@ -300,17 +300,22 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
     try {
       const { data } = await supabase.rpc('become_creator_premium', { p_user_id: profile.id });
       if (data?.ok) {
-        toast.success('⭐ Creator Premium aktiviran! Osvježite stranicu.');
         setBalance(prev => (prev !== null ? prev - 200 : prev));
+        if (data.upgraded_to_professional) {
+          toast.success(t('credits.creatorPremium.upgradedToPro') + ' ' + t('credits.creatorPremium.reloadNote'));
+          setTimeout(() => window.location.reload(), 2500);
+        } else {
+          toast.success(t('credits.creatorPremium.activated'));
+        }
       } else if (data?.error === 'insufficient_balance') {
-        toast.error(`Nedovoljno kredita. Potrebno 200, imate ${data.balance}.`);
+        toast.error(t('credits.creatorPremium.insufficient').replace('{balance}', String(data.balance ?? data.have ?? 0)));
       } else if (data?.error === 'already_creator_premium') {
-        toast.info('Već ste Creator Premium!');
+        toast.info(t('credits.creatorPremium.alreadyPremium'));
       } else {
-        toast.error('Greška pri aktivaciji.');
+        toast.error(t('credits.creatorPremium.error'));
       }
     } catch {
-      toast.error('Greška pri aktivaciji.');
+      toast.error(t('credits.creatorPremium.error'));
     } finally {
       setUpgrading(false);
     }
@@ -345,7 +350,11 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
           <div className="border-t border-orange-300/20 px-4 py-2.5 flex items-center justify-between gap-3">
             <div>
               <p className="text-xs font-semibold text-foreground">⭐ Creator Premium</p>
-              <p className="text-[11px] text-muted-foreground">{t('credits.creatorPremium.subtitle')}</p>
+              <p className="text-[11px] text-muted-foreground">
+                {(profile as any).account_type === 'customer'
+                  ? t('credits.creatorPremium.subtitleCustomer')
+                  : t('credits.creatorPremium.subtitle')}
+              </p>
             </div>
             <button
               onClick={handleUpgrade}
