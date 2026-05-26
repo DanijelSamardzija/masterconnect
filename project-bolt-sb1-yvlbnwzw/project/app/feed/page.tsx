@@ -444,7 +444,7 @@ function FeedContent() {
       if (error || !data?.ok) {
         const err = data?.error || error?.message;
         if (err === 'insufficient_balance') {
-          toast.error(`Nedovoljno kredita. Trebaš ${data?.cost} kredita, a imaš ${data?.balance}.`);
+          toast.error(t('credits.boost.insufficient').replace('{cost}', String(data?.cost ?? '')).replace('{balance}', String(data?.balance ?? '')));
         } else {
           toast.error('Greška pri boostu. Pokušaj ponovo.');
         }

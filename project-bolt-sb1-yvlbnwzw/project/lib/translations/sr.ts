@@ -1408,6 +1408,7 @@ export default {
   'credits.boost.listingSuccess': '🚀 Oglas je boostan! Aktivan 7 dana.',
   'credits.boost.insufficientBalance': 'Nedovoljno kredita.',
   'credits.boost.error': 'Greška pri boostu. Pokušaj ponovo.',
+  'credits.boost.insufficient': 'Nedovoljno kredita. Trebaš {cost} kr, imaš {balance} kr.',
   'credits.info.earn.title': 'Kako zaraditi kredite',
   'credits.info.spend.title': 'Kako trošiti kredite',
   'credits.info.earn.registration': 'Registracija',

@@ -176,7 +176,7 @@ function EditProfileContent() {
           });
           if (rewardEarned && rewardEarned > 0) {
             setTimeout(() => {
-              toast.success(`🪙 +${rewardEarned} kredita zarađeno!`, { duration: 4000 });
+              toast.success(`🪙 +${rewardEarned} ${t('credits.unit')} ${t('credits.reward.earned')}`, { duration: 4000 });
             }, 500);
           }
         } catch { /* silent */ }

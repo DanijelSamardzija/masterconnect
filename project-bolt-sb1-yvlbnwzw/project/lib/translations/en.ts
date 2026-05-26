@@ -1408,6 +1408,7 @@ export default {
   'credits.boost.listingSuccess': '🚀 Listing boosted! Active for 7 days.',
   'credits.boost.insufficientBalance': 'Not enough credits.',
   'credits.boost.error': 'Boost failed. Please try again.',
+  'credits.boost.insufficient': 'Not enough credits. Need {cost} cr, you have {balance} cr.',
   'credits.info.earn.title': 'How to earn credits',
   'credits.info.spend.title': 'How to spend credits',
   'credits.info.earn.registration': 'Registration',

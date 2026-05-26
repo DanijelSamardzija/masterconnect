@@ -1404,6 +1404,7 @@ export default {
   'credits.boost.listingSuccess': '🚀 Inserat geboostet! 7 Tage aktiv.',
   'credits.boost.insufficientBalance': 'Nicht genug Credits.',
   'credits.boost.error': 'Boost fehlgeschlagen. Bitte erneut versuchen.',
+  'credits.boost.insufficient': 'Nicht genug Credits. Benötigt {cost} Cr, Sie haben {balance} Cr.',
   'credits.info.earn.title': 'Wie man Credits verdient',
   'credits.info.spend.title': 'Wie man Credits ausgibt',
   'credits.info.earn.registration': 'Registrierung',
