@@ -1535,7 +1535,7 @@ function AdminContent() {
                           <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400">
                             {post.post_type === 'social_post' ? 'Feed'
                               : post.post_type === 'service_listing' ? 'Usluga'
-                              : post.post_type === 'hiring_post' ? 'Zapošljavanje'
+                              : post.post_type === 'hiring_post' ? 'Tražim radnika'
                               : post.post_type === 'service_request' ? 'Tražim uslugu'
                               : post.post_type === 'job_seeker_post' ? 'Tražim posao'
                               : post.post_type}
