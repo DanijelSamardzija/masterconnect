@@ -283,6 +283,9 @@ function AdminContent() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [userSearch, setUserSearch] = useState('');
   const [userCountryFilter, setUserCountryFilter] = useState('');
+  const [editLocationId, setEditLocationId] = useState<string | null>(null);
+  const [editLocationCity, setEditLocationCity] = useState('');
+  const [editLocationCountry, setEditLocationCountry] = useState('');
   const [usersOffset, setUsersOffset] = useState(0);
   const [hasMoreUsers, setHasMoreUsers] = useState(false);
   const [loadingMoreUsers, setLoadingMoreUsers] = useState(false);
@@ -795,6 +798,17 @@ function AdminContent() {
     setLoadingMoreUsers(true);
     await loadUsers(userSearch, usersOffset, true, userCountryFilter);
     setLoadingMoreUsers(false);
+  };
+
+  const handleSaveLocation = async (userId: string) => {
+    const { error } = await supabase.from('profiles').update({
+      city: editLocationCity.trim() || null,
+      country: editLocationCountry.trim() || null,
+    }).eq('id', userId);
+    if (error) { toast.error('Greška pri čuvanju'); return; }
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, city: editLocationCity.trim(), country: editLocationCountry.trim() } : u));
+    setEditLocationId(null);
+    toast.success('Lokacija ažurirana');
   };
 
   const handleDeleteUser = async (userId: string, name: string) => {
@@ -1351,10 +1365,33 @@ function AdminContent() {
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground truncate">{u.email}</p>
-                        {(u.city || u.country) && (
-                          <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                        {editLocationId === u.id ? (
+                          <div className="flex items-center gap-1 mt-1">
+                            <input
+                              autoFocus
+                              value={editLocationCity}
+                              onChange={e => setEditLocationCity(e.target.value)}
+                              placeholder="Grad"
+                              className="text-xs bg-background border border-border rounded-lg px-2 py-1 w-24 outline-none focus:border-orange-500/50"
+                            />
+                            <input
+                              value={editLocationCountry}
+                              onChange={e => setEditLocationCountry(e.target.value)}
+                              placeholder="Zemlja"
+                              className="text-xs bg-background border border-border rounded-lg px-2 py-1 w-28 outline-none focus:border-orange-500/50"
+                            />
+                            <button onClick={() => handleSaveLocation(u.id)} className="text-xs text-green-600 font-semibold px-1.5 py-1 hover:text-green-700">✓</button>
+                            <button onClick={() => setEditLocationId(null)} className="text-xs text-muted-foreground px-1 py-1 hover:text-foreground">✕</button>
+                          </div>
+                        ) : (
+                          <p
+                            className="text-xs text-muted-foreground flex items-center gap-1 cursor-pointer hover:text-orange-500 transition-colors group w-fit"
+                            onClick={() => { setEditLocationId(u.id); setEditLocationCity(u.city || ''); setEditLocationCountry(u.country || ''); }}
+                            title="Klikni da urediš lokaciju"
+                          >
                             <MapPin className="h-3 w-3 shrink-0" />
-                            {[u.city, u.country].filter(Boolean).join(', ')}
+                            {[u.city, u.country].filter(Boolean).join(', ') || <span className="italic opacity-50">nema lokacije</span>}
+                            <span className="opacity-0 group-hover:opacity-100 text-[10px]">✏️</span>
                           </p>
                         )}
                       </div>
