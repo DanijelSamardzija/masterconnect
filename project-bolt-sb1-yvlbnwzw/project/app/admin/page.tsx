@@ -1576,6 +1576,17 @@ function AdminContent() {
                         >
                           {post.is_promoted ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
                         </Button>
+                        {post.author && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 rounded-xl text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950"
+                            title="Pošalji notifikaciju autoru"
+                            onClick={() => setNotifTarget({ id: post.author!.id, name: post.author!.name })}
+                          >
+                            <Bell className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Link href={`/posts/${post.id}`} target="_blank">
                           <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-xl" title="Pogledaj post">
                             <ExternalLink className="h-4 w-4" />
