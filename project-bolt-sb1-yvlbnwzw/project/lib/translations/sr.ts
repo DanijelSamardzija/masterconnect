@@ -1461,7 +1461,7 @@ export default {
   'credits.creatorPremium.insufficient': 'Nedovoljno kredita. Potrebno 200, imate {balance}.',
   'credits.creatorPremium.reloadNote': 'Osvježite stranicu da vidite promjene.',
   'referral.title': 'Pozovi prijatelje',
-  'referral.subtitle': '+25 kredita po registraciji • {count} pozvanih',
+  'referral.subtitle': '+20 kredita po registraciji • {count} pozvanih',
   'referral.copy': 'Kopiraj',
   'referral.copied': 'Kopirano!',
 

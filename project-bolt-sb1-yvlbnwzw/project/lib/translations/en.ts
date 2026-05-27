@@ -1461,7 +1461,7 @@ export default {
   'credits.creatorPremium.insufficient': 'Not enough credits. Need 200, you have {balance}.',
   'credits.creatorPremium.reloadNote': 'Reload the page to see changes.',
   'referral.title': 'Invite friends',
-  'referral.subtitle': '+25 credits per registration • {count} invited',
+  'referral.subtitle': '+20 credits per registration • {count} invited',
   'referral.copy': 'Copy',
   'referral.copied': 'Copied!',
 

@@ -392,14 +392,14 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
             </div>
             <div className="space-y-1.5">
               {([
-                { key: 'registration', amount: '+10' },
-                { key: 'profile', amount: '+10' },
-                { key: 'firstPost', amount: '+15' },
-                { key: 'firstService', amount: '+20' },
-                { key: 'firstJob', amount: '+20' },
+                { key: 'registration', amount: '+5' },
+                { key: 'profile', amount: '+5' },
+                { key: 'firstPost', amount: '+5' },
+                { key: 'firstService', amount: '+5' },
+                { key: 'firstJob', amount: '+5' },
                 { key: 'imagePost', amount: '+2', noteKey: 'imagePostNote' },
                 { key: 'videoPost', amount: '+4', noteKey: 'videoPostNote' },
-                { key: 'referral', amount: '+25', noteKey: 'referralNote' },
+                { key: 'referral', amount: '+20', noteKey: 'referralNote' },
               ] as { key: string; amount: string; noteKey?: string }[]).map((item) => (
                 <div key={item.key} className="flex items-center justify-between rounded-lg bg-green-500/8 px-3 py-1.5">
                   <div>
