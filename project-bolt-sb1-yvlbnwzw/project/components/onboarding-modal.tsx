@@ -17,7 +17,7 @@ export function OnboardingModal() {
   useEffect(() => {
     if (!profile) return;
     const key = `onboarding_done_${profile.id}`;
-    if (!localStorage.getItem(key)) {
+    if (!localStorage.getItem(key) || !profile.city) {
       setOpen(true);
     }
   }, [profile]);
@@ -28,9 +28,11 @@ export function OnboardingModal() {
     setOpen(false);
   };
 
+  const missingCity = !profile?.city;
+
   const handleGuide = () => {
     handleClose();
-    router.push('/help');
+    router.push(missingCity ? '/profile/edit' : '/help');
   };
 
   if (!profile) return null;
@@ -50,12 +52,14 @@ export function OnboardingModal() {
               <BookOpen className="h-12 w-12 text-white" />
             </div>
           </div>
-          <h2 className="text-xl font-bold text-white">{t('onboarding.welcome')}</h2>
+          <h2 className="text-xl font-bold text-white">
+            {missingCity ? t('onboarding.missingCityTitle') : t('onboarding.welcome')}
+          </h2>
         </div>
 
         <div className="p-6 space-y-5">
           <p className="text-muted-foreground text-center leading-relaxed">
-            {t('onboarding.guidePrompt')}
+            {missingCity ? t('onboarding.missingCityPrompt') : t('onboarding.guidePrompt')}
           </p>
 
           <div className="space-y-2">
@@ -63,7 +67,7 @@ export function OnboardingModal() {
               className="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-xl h-11"
               onClick={handleGuide}
             >
-              {t('onboarding.guideAction')}
+              {missingCity ? t('onboarding.missingCityAction') : t('onboarding.guideAction')}
               <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
             <Button
