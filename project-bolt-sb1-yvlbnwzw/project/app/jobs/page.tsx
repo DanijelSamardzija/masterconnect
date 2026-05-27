@@ -59,6 +59,7 @@ type Post = {
   currency?: string | null;
   created_at: string;
   promoted_until?: string | null;
+  is_promoted?: boolean;
   user: {
     name: string;
     email: string;
@@ -1104,6 +1105,7 @@ function JobsMarketplaceContent() {
             created_at,
             status,
             promoted_until,
+            is_promoted,
             user:profiles!posts_user_id_fkey(name, email, account_type, avatar_url, country)
           `)
           .in('post_type', ['hiring_post', 'service_request', 'job_seeker_post'])
@@ -1118,7 +1120,13 @@ function JobsMarketplaceContent() {
             user: Array.isArray(post.user) ? post.user[0] : post.user,
           })) || [];
 
-        setPosts([...postsWithData, ...DEMO_POSTS]);
+        const sorted = [...postsWithData].sort((a, b) => {
+          const aP = a.is_promoted || (a.promoted_until && new Date(a.promoted_until) > new Date()) ? 1 : 0;
+          const bP = b.is_promoted || (b.promoted_until && new Date(b.promoted_until) > new Date()) ? 1 : 0;
+          return bP - aP;
+        });
+
+        setPosts([...sorted, ...DEMO_POSTS]);
 
         const postIdsToCheck = postsWithData.map((p: any) => p.id);
         if (postIdsToCheck.length > 0) {
@@ -1147,10 +1155,29 @@ function JobsMarketplaceContent() {
           currency: post.currency,
           created_at: post.created_at,
           promoted_until: post.promoted_until || null,
+          is_promoted: false,
           user: post.user_data,
         })) || [];
 
-      setPosts([...postsWithData, ...DEMO_POSTS]);
+      if (postsWithData.length > 0) {
+        const ids = postsWithData.map((p: any) => p.id);
+        const { data: promoData } = await supabase
+          .from('posts')
+          .select('id, is_promoted')
+          .in('id', ids);
+        if (promoData) {
+          const promoMap = Object.fromEntries(promoData.map((p: any) => [p.id, p.is_promoted]));
+          postsWithData.forEach((p: any) => { p.is_promoted = promoMap[p.id] ?? false; });
+        }
+      }
+
+      const sorted = [...postsWithData].sort((a, b) => {
+        const aP = a.is_promoted || (a.promoted_until && new Date(a.promoted_until) > new Date()) ? 1 : 0;
+        const bP = b.is_promoted || (b.promoted_until && new Date(b.promoted_until) > new Date()) ? 1 : 0;
+        return bP - aP;
+      });
+
+      setPosts([...sorted, ...DEMO_POSTS]);
 
       const postIdsToCheck = postsWithData.map((p: any) => p.id);
       if (postIdsToCheck.length > 0) {
@@ -1519,7 +1546,7 @@ function JobsMarketplaceContent() {
                   return (
                     <React.Fragment key={post.id}>
                     <Card
-                      className={`bg-card text-card-foreground border border-border rounded-2xl shadow-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 hover:border-orange-400/40 ${post.promoted_until && new Date(post.promoted_until) > new Date() ? 'ring-2 ring-orange-400' : ''}`}
+                      className={`bg-card text-card-foreground border border-border rounded-2xl shadow-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 hover:border-orange-400/40 ${post.is_promoted || (post.promoted_until && new Date(post.promoted_until) > new Date()) ? 'ring-2 ring-orange-400' : ''}`}
                       style={{ touchAction: 'manipulation' }}
                     >
                       <CardContent className={isServiceRequest ? 'p-5' : 'p-5'}>
@@ -1580,7 +1607,12 @@ function JobsMarketplaceContent() {
                                     {t('jobs.badgeJobSeeker')}
                                   </span>
                                 )}
-                                {post.promoted_until && new Date(post.promoted_until) > new Date() && (
+                                {post.is_promoted && (
+                                  <span className="px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider bg-orange-500 text-white rounded">
+                                    ⭐ Sponzorisano
+                                  </span>
+                                )}
+                                {!post.is_promoted && post.promoted_until && new Date(post.promoted_until) > new Date() && (
                                   <span className="px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider bg-orange-500 text-white rounded">
                                     🚀 Boost
                                   </span>
