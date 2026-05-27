@@ -282,6 +282,7 @@ function AdminContent() {
   // Users state
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [userSearch, setUserSearch] = useState('');
+  const [userCountryFilter, setUserCountryFilter] = useState('');
   const [usersOffset, setUsersOffset] = useState(0);
   const [hasMoreUsers, setHasMoreUsers] = useState(false);
   const [loadingMoreUsers, setLoadingMoreUsers] = useState(false);
@@ -753,14 +754,17 @@ function AdminContent() {
   };
 
   // ── Users ─────────────────────────────────────────────────────────────────
-  const loadUsers = useCallback(async (search: string, offset: number, append: boolean) => {
+  const loadUsers = useCallback(async (search: string, offset: number, append: boolean, countryFilter = '') => {
     let query = supabase
       .from('profiles')
       .select('id, name, email, account_type, avatar_url, is_admin, is_banned, created_at, city, country')
       .order('created_at', { ascending: false })
       .range(offset, offset + PAGE_SIZE - 1);
     if (search.trim()) {
-      query = (query as any).or(`name.ilike.%${search}%,email.ilike.%${search}%`);
+      query = (query as any).or(`name.ilike.%${search}%,email.ilike.%${search}%,city.ilike.%${search}%`);
+    }
+    if (countryFilter.trim()) {
+      query = (query as any).ilike('country', `%${countryFilter}%`);
     }
     const { data } = await query;
     const items = (data || []) as UserProfile[];
@@ -774,13 +778,22 @@ function AdminContent() {
     if (userSearchTimeout.current) clearTimeout(userSearchTimeout.current);
     userSearchTimeout.current = setTimeout(() => {
       setUsers([]);
-      loadUsers(value, 0, false);
+      loadUsers(value, 0, false, userCountryFilter);
+    }, 300);
+  };
+
+  const handleUserCountryFilterChange = (value: string) => {
+    setUserCountryFilter(value);
+    if (userSearchTimeout.current) clearTimeout(userSearchTimeout.current);
+    userSearchTimeout.current = setTimeout(() => {
+      setUsers([]);
+      loadUsers(userSearch, 0, false, value);
     }, 300);
   };
 
   const loadMoreUsers = async () => {
     setLoadingMoreUsers(true);
-    await loadUsers(userSearch, usersOffset, true);
+    await loadUsers(userSearch, usersOffset, true, userCountryFilter);
     setLoadingMoreUsers(false);
   };
 
@@ -1283,15 +1296,27 @@ function AdminContent() {
         {activeTab === 'users' && (
           <div className="space-y-4">
             {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-              <input
-                type="text"
-                value={userSearch}
-                onChange={(e) => handleUserSearchChange(e.target.value)}
-                placeholder="Pretraži po imenu ili emailu..."
-                className="w-full bg-card border border-border rounded-xl pl-9 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-orange-500/50 transition-colors"
-              />
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                <input
+                  type="text"
+                  value={userSearch}
+                  onChange={(e) => handleUserSearchChange(e.target.value)}
+                  placeholder="Pretraži po imenu, emailu, gradu..."
+                  className="w-full bg-card border border-border rounded-xl pl-9 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-orange-500/50 transition-colors"
+                />
+              </div>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                <input
+                  type="text"
+                  value={userCountryFilter}
+                  onChange={(e) => handleUserCountryFilterChange(e.target.value)}
+                  placeholder="Zemlja..."
+                  className="w-36 bg-card border border-border rounded-xl pl-9 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-orange-500/50 transition-colors"
+                />
+              </div>
             </div>
 
             {loading ? (
