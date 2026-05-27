@@ -6,17 +6,13 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
-import {
-  UserCircle, Briefcase, Search,
-  Star, ChevronRight, X, Wrench
-} from 'lucide-react';
+import { BookOpen, X, ChevronRight } from 'lucide-react';
 
 export function OnboardingModal() {
   const { profile } = useAuth();
   const { t } = useLanguage();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [step, setStep] = useState(0);
 
   useEffect(() => {
     if (!profile) return;
@@ -32,69 +28,16 @@ export function OnboardingModal() {
     setOpen(false);
   };
 
-  const handleAction = (path: string) => {
+  const handleGuide = () => {
     handleClose();
-    router.push(path);
+    router.push('/help');
   };
 
   if (!profile) return null;
 
-  const isPro = profile.account_type === 'professional';
-
-  const proSteps = [
-    {
-      icon: <UserCircle className="h-12 w-12 text-orange-500" />,
-      title: t('onboarding.welcome'),
-      desc: t('onboarding.proDesc'),
-    },
-    {
-      icon: <Briefcase className="h-12 w-12 text-blue-500" />,
-      title: t('onboarding.proStep2Title'),
-      desc: t('onboarding.proStep2Desc'),
-      action: { label: t('onboarding.proStep2Action'), path: `/profile/${profile.id}` },
-    },
-    {
-      icon: <Wrench className="h-12 w-12 text-orange-500" />,
-      title: t('onboarding.proStep3Title'),
-      desc: t('onboarding.proStep3Desc'),
-      action: { label: t('onboarding.proStep3Action'), path: '/services/new' },
-    },
-    {
-      icon: <Search className="h-12 w-12 text-purple-500" />,
-      title: t('onboarding.proStep4Title'),
-      desc: t('onboarding.proStep4Desc'),
-      action: { label: t('onboarding.proStep4Action'), path: '/jobs' },
-    },
-  ];
-
-  const customerSteps = [
-    {
-      icon: <Star className="h-12 w-12 text-orange-500" />,
-      title: t('onboarding.welcome'),
-      desc: t('onboarding.customerDesc'),
-    },
-    {
-      icon: <Briefcase className="h-12 w-12 text-blue-500" />,
-      title: t('onboarding.customerStep2Title'),
-      desc: t('onboarding.customerStep2Desc'),
-      action: { label: t('onboarding.customerStep2Action'), path: '/jobs' },
-    },
-    {
-      icon: <Search className="h-12 w-12 text-green-500" />,
-      title: t('onboarding.customerStep3Title'),
-      desc: t('onboarding.customerStep3Desc'),
-      action: { label: t('onboarding.customerStep3Action'), path: '/services' },
-    },
-  ];
-
-  const steps = isPro ? proSteps : customerSteps;
-  const current = steps[step];
-  const isLast = step === steps.length - 1;
-
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md p-0 overflow-hidden">
-        {/* Header gradient */}
+      <DialogContent className="sm:max-w-sm p-0 overflow-hidden">
         <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-8 text-center relative">
           <button
             onClick={handleClose}
@@ -104,50 +47,31 @@ export function OnboardingModal() {
           </button>
           <div className="flex justify-center mb-4">
             <div className="p-4 bg-white/20 rounded-2xl">
-              {current.icon}
+              <BookOpen className="h-12 w-12 text-white" />
             </div>
           </div>
-          <h2 className="text-xl font-bold text-white">{current.title}</h2>
+          <h2 className="text-xl font-bold text-white">{t('onboarding.welcome')}</h2>
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-5">
           <p className="text-muted-foreground text-center leading-relaxed">
-            {current.desc}
+            {t('onboarding.guidePrompt')}
           </p>
 
-          {/* Step dots */}
-          <div className="flex justify-center gap-2">
-            {steps.map((_, i) => (
-              <div
-                key={i}
-                className={`h-2 rounded-full transition-all ${
-                  i === step ? 'w-6 bg-orange-500' : 'w-2 bg-muted'
-                }`}
-              />
-            ))}
-          </div>
-
-          {/* Buttons */}
           <div className="space-y-2">
-            {current.action && (
-              <Button
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-xl h-11"
-                onClick={() => handleAction(current.action!.path)}
-              >
-                {current.action.label}
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
-            )}
             <Button
-              variant={current.action ? 'ghost' : 'default'}
-              className={`w-full rounded-xl h-11 ${!current.action ? 'bg-orange-500 hover:bg-orange-600 text-white' : ''}`}
-              onClick={() => {
-                if (isLast) handleClose();
-                else setStep(s => s + 1);
-              }}
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-xl h-11"
+              onClick={handleGuide}
             >
-              {isLast ? t('onboarding.done') : t('onboarding.next')}
+              {t('onboarding.guideAction')}
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full rounded-xl h-11 text-muted-foreground"
+              onClick={handleClose}
+            >
+              {t('onboarding.guideLater')}
             </Button>
           </div>
         </div>
