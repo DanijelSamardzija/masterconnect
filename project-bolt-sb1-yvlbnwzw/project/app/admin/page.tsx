@@ -930,6 +930,13 @@ function AdminContent() {
     toast.success(!current ? 'Post označen kao sponzorisan' : 'Sponzorstvo uklonjeno');
   };
 
+  const handleLiftShadow = async (postId: string) => {
+    const { error } = await supabase.from('posts').update({ status: 'published' }).eq('id', postId);
+    if (error) { toast.error('Greška'); return; }
+    setPosts(prev => prev.map(p => p.id === postId ? { ...p, status: 'published' } : p));
+    toast.success('Shadow ban uklonjen');
+  };
+
   // ── Support ───────────────────────────────────────────────────────────────
   const fetchTickets = async () => {
     const { data, error } = await supabase
@@ -1549,6 +1556,17 @@ function AdminContent() {
                         </p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
+                        {post.status === 'shadow_limited' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 rounded-xl text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950"
+                            title="Ukloni shadow ban"
+                            onClick={() => handleLiftShadow(post.id)}
+                          >
+                            <UserCheck className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"
