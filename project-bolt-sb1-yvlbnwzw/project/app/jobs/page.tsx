@@ -1616,7 +1616,7 @@ function JobsMarketplaceContent() {
                                   onClick={(e) => handleBoostJob(e, post.id)}
                                   disabled={boostingJobId === post.id || (post.promoted_until && new Date(post.promoted_until) > new Date())}
                                   className="h-7 px-2 flex items-center gap-1 rounded-lg text-xs font-medium transition-colors text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 disabled:opacity-50"
-                                  title={post.promoted_until && new Date(post.promoted_until) > new Date() ? 'Boost aktivan' : 'Boost oglas (25 kredita, 7 dana)'}
+                                  title={post.promoted_until && new Date(post.promoted_until) > new Date() ? 'Boost aktivan' : 'Boost oglas (140 kredita, 7 dana)'}
                                 >
                                   {boostingJobId === post.id ? <Loader className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
                                   {post.promoted_until && new Date(post.promoted_until) > new Date() ? 'Boostan' : 'Boost'}

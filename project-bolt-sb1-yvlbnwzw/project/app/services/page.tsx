@@ -453,7 +453,7 @@ export default function ServicesPage() {
                       onClick={(e) => handleBoostListing(e, listing.id)}
                       disabled={boostingId === listing.id || ((listing as any).promoted_until && new Date((listing as any).promoted_until) > new Date())}
                       className="p-1.5 rounded-full bg-orange-500/90 backdrop-blur-sm hover:bg-orange-600 transition-colors disabled:opacity-50"
-                      title={(listing as any).promoted_until && new Date((listing as any).promoted_until) > new Date() ? 'Boost aktivan' : 'Boost oglas (25 kredita, 7 dana)'}
+                      title={(listing as any).promoted_until && new Date((listing as any).promoted_until) > new Date() ? 'Boost aktivan' : 'Boost oglas (140 kredita, 7 dana)'}
                     >
                       {boostingId === listing.id ? <Loader2 className="h-4 w-4 text-white animate-spin" /> : <Zap className="h-4 w-4 text-white" />}
                     </button>

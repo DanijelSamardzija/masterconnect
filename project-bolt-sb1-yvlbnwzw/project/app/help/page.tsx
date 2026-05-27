@@ -275,8 +275,8 @@ export default function HelpPage() {
                     { key: 'firstPost', amount: '+15' },
                     { key: 'firstService', amount: '+20' },
                     { key: 'firstJob', amount: '+20' },
-                    { key: 'imagePost', amount: '+5', noteKey: 'imagePostNote' },
-                    { key: 'videoPost', amount: '+10', noteKey: 'videoPostNote' },
+                    { key: 'imagePost', amount: '+2', noteKey: 'imagePostNote' },
+                    { key: 'videoPost', amount: '+4', noteKey: 'videoPostNote' },
                     { key: 'referral', amount: '+25', noteKey: 'referralNote' },
                   ] as { key: string; amount: string; noteKey?: string }[]).map((item) => (
                     <div key={item.key} className="flex items-center justify-between rounded-lg bg-green-500/8 px-3 py-2">
@@ -304,8 +304,8 @@ export default function HelpPage() {
                 </div>
                 <div className="space-y-2">
                   {([
-                    { key: 'boostFeed', amount: '15', noteKey: 'boostFeedNote' },
-                    { key: 'boostListing', amount: '25', noteKey: 'boostListingNote' },
+                    { key: 'boostFeed', amount: '75', noteKey: 'boostFeedNote' },
+                    { key: 'boostListing', amount: '140', noteKey: 'boostListingNote' },
                     { key: 'creatorPremium', amount: '200', noteKey: 'creatorPremiumNote' },
                     { key: 'supportSmall', amount: '5', noteKey: 'perSupport' },
                     { key: 'supportMedium', amount: '10', noteKey: 'perSupport' },

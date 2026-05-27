@@ -449,7 +449,7 @@ function FeedContent() {
           toast.error('Greška pri boostu. Pokušaj ponovo.');
         }
       } else {
-        toast.success(`🚀 Post je boostan! Aktivan ${data?.cost === 25 ? '7' : '3'} dana.`);
+        toast.success(`🚀 Post je boostan! Aktivan ${data?.cost === 140 ? '7' : '3'} dana.`);
         setPosts(prev => prev.map(p => p.id === postId ? { ...p, promoted_until: data.promoted_until } : p));
       }
     } catch {
@@ -1008,7 +1008,7 @@ function FeedContent() {
                 onClick={() => handleBoostPost(post.id)}
                 disabled={boostingPostId === post.id || (!!post.promoted_until && new Date(post.promoted_until) > new Date())}
                 className="flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg transition-colors disabled:opacity-50 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600"
-                title={post.promoted_until && new Date(post.promoted_until) > new Date() ? 'Boost aktivan' : 'Boost post (15 kredita, 3 dana)'}
+                title={post.promoted_until && new Date(post.promoted_until) > new Date() ? 'Boost aktivan' : 'Boost post (75 kredita, 3 dana)'}
               >
                 {boostingPostId === post.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                 {post.promoted_until && new Date(post.promoted_until) > new Date() ? 'Boostan' : 'Boost'}
