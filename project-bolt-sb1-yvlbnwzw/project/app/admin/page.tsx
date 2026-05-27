@@ -801,11 +801,14 @@ function AdminContent() {
   };
 
   const handleSaveLocation = async (userId: string) => {
-    const { error } = await supabase.from('profiles').update({
-      city: editLocationCity.trim() || null,
-      country: editLocationCountry.trim() || null,
-    }).eq('id', userId);
-    if (error) { toast.error('Greška pri čuvanju'); return; }
+    const { data: { session } } = await supabase.auth.getSession();
+    const res = await fetch('/api/admin/update-user-location', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token ?? ''}` },
+      body: JSON.stringify({ userId, city: editLocationCity.trim(), country: editLocationCountry.trim() }),
+    });
+    const json = await res.json();
+    if (!res.ok) { toast.error(json.error || 'Greška pri čuvanju'); return; }
     setUsers(prev => prev.map(u => u.id === userId ? { ...u, city: editLocationCity.trim(), country: editLocationCountry.trim() } : u));
     setEditLocationId(null);
     toast.success('Lokacija ažurirana');
