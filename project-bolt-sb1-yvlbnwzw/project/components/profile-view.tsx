@@ -145,51 +145,6 @@ type ProfileViewProps = {
   reviewAction?: React.ReactNode;
 };
 
-function ReferralWidget({ profile, t }: { profile: UserProfile; t: (k: string) => string }) {
-  const [copied, setCopied] = useState(false);
-  const [referralCount, setReferralCount] = useState<number | null>(null);
-  const referralCode = (profile as any).referral_code;
-  const referralUrl = referralCode ? `${typeof window !== 'undefined' ? window.location.origin : 'https://gigzone.app'}/join?ref=${referralCode}` : '';
-
-  useEffect(() => {
-    if (!profile.id) return;
-    supabase.from('referrals').select('id', { count: 'exact', head: true })
-      .eq('referrer_id', profile.id)
-      .then(({ count }) => setReferralCount(count ?? 0));
-  }, [profile.id]);
-
-  const handleCopy = () => {
-    if (!referralUrl) return;
-    navigator.clipboard.writeText(referralUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <div className="mt-3 rounded-xl overflow-hidden border border-orange-400/30 bg-gradient-to-r from-orange-500/10 to-orange-400/5">
-      <div className="flex items-center gap-3 px-4 py-3">
-        <div className="shrink-0 w-9 h-9 rounded-xl bg-orange-500/15 flex items-center justify-center">
-          <Users className="h-4 w-4 text-orange-500" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-bold text-foreground">{t('referral.title')}</p>
-          <p className="text-[11px] text-muted-foreground">
-            {t('referral.subtitle').replace('{count}', String(referralCount ?? '—'))}
-          </p>
-        </div>
-        {referralCode && (
-          <button
-            onClick={handleCopy}
-            className="shrink-0 flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white transition-colors"
-          >
-            {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-            {copied ? t('referral.copied') : t('referral.copy')}
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
 
 function BoostModal({
   open, onClose, onConfirm, isListing, balance, loading, t,
@@ -277,7 +232,25 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
   const [loading, setLoading] = useState(true);
   const [upgrading, setUpgrading] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [referralCount, setReferralCount] = useState<number | null>(null);
   const isCreatorPremium = (profile as any).is_creator_premium ?? false;
+  const referralCode = (profile as any).referral_code;
+  const referralUrl = referralCode ? `${typeof window !== 'undefined' ? window.location.origin : 'https://gigzone.app'}/join?ref=${referralCode}` : '';
+
+  useEffect(() => {
+    if (!profile.id) return;
+    supabase.from('referrals').select('id', { count: 'exact', head: true })
+      .eq('referrer_id', profile.id)
+      .then(({ count }) => setReferralCount(count ?? 0));
+  }, [profile.id]);
+
+  const handleCopy = () => {
+    if (!referralUrl) return;
+    navigator.clipboard.writeText(referralUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   useEffect(() => {
     supabase
@@ -341,6 +314,28 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
             <Info className="h-3.5 w-3.5 text-orange-400 shrink-0" />
           </div>
         </button>
+
+        {/* Referral row */}
+        <div className="border-t border-orange-300/20 px-4 py-2.5 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-orange-500 shrink-0" />
+            <div>
+              <p className="text-xs font-semibold text-foreground">{t('referral.title')}</p>
+              <p className="text-[11px] text-muted-foreground">
+                {t('referral.subtitle').replace('{count}', String(referralCount ?? '—'))}
+              </p>
+            </div>
+          </div>
+          {referralCode && (
+            <button
+              onClick={handleCopy}
+              className="shrink-0 flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white transition-colors"
+            >
+              {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+              {copied ? t('referral.copied') : t('referral.copy')}
+            </button>
+          )}
+        </div>
 
         {/* Creator Premium upgrade CTA */}
         {!isCreatorPremium && (
@@ -1213,7 +1208,6 @@ export function ProfileView({
         {isOwnProfile && (
           <>
             <CreditsWidget profile={profile} t={t} />
-            <ReferralWidget profile={profile} t={t} />
           </>
         )}
 
