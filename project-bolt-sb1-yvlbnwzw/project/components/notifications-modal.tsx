@@ -122,7 +122,7 @@ export function NotificationsModal({
           </div>
         </DialogHeader>
 
-        <div className="flex flex-col max-h-[400px] overflow-y-auto">
+        <div className="flex flex-col max-h-[60vh] overflow-y-auto">
           {notifications.length > 0 ? (
             notifications.map((notification, index) => (
               <div key={notification.id}>
