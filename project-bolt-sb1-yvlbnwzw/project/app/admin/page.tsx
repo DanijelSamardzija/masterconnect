@@ -665,6 +665,7 @@ function AdminContent() {
         const key = desc.startsWith('boost_post') ? 'boost'
           : desc === 'become_creator_premium' ? 'creator_premium'
           : desc === 'Podrška poslata' || desc === 'Primljena podrška' ? 'podrzi'
+          : desc === 'Nagrada: referral' ? 'referral'
           : desc.startsWith('Nagrada:') ? 'nagrada'
           : desc.startsWith('Post nagrada:') ? 'media_nagrada'
           : 'ostalo';
@@ -1978,6 +1979,7 @@ function AdminContent() {
                       { key: 'creator_premium', label: '⭐ Creator Premium', color: 'bg-amber-100 text-amber-700' },
                       { key: 'nagrada', label: '🎁 Nagrade (onboarding)', color: 'bg-green-100 text-green-700' },
                       { key: 'media_nagrada', label: '📸 Media nagrade', color: 'bg-blue-100 text-blue-700' },
+                      { key: 'referral', label: '🔗 Referral nagrade', color: 'bg-pink-100 text-pink-700' },
                       { key: 'ostalo', label: '📦 Ostalo', color: 'bg-slate-100 text-slate-700' },
                     ].map(({ key, label, color }) => {
                       const d = creditsStats.breakdown?.[key] || { count: 0, total: 0 };
