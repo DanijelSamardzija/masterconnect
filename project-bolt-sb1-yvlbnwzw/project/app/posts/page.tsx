@@ -250,7 +250,7 @@ function PostsContent() {
     for (const file of files) {
       const validation = validateFile(file);
       if (!validation.valid) {
-        toast.error(validation.error || `${file.name} is not valid`);
+        toast.error(t(validation.error as any));
         continue;
       }
       setSelectedFiles(prev => [...prev, file]);

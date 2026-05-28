@@ -726,7 +726,7 @@ function MessagesContent() {
     for (const file of files) {
       const validation = validateFile(file);
       if (!validation.valid) {
-        toast.error(validation.error);
+        toast.error(t(validation.error as any));
       } else {
         validFiles.push(file);
       }

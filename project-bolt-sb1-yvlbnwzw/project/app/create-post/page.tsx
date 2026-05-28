@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth-context';
+import { useLanguage } from '@/lib/contexts/language-context';
 import { supabase } from '@/lib/supabase/client';
 import { ProtectedRoute } from '@/components/protected-route';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ import { uploadFile as uploadFileUtil, uploadVideoToCloudinary, validateFile } f
 function CreatePostContent() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [postText, setPostText] = useState('');
   const [postCategory, setPostCategory] = useState<string>('');
   const [postCity, setPostCity] = useState<string>('');
@@ -47,7 +49,7 @@ function CreatePostContent() {
     for (const file of files) {
       const validation = validateFile(file);
       if (!validation.valid) {
-        toast.error(validation.error || `${file.name} is not valid`);
+        toast.error(t(validation.error as any));
         continue;
       }
       setSelectedFiles(prev => [...prev, file]);

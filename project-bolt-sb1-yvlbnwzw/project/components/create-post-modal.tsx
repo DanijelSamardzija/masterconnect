@@ -126,7 +126,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
     for (const file of files) {
       const validation = validateFile(file);
       if (!validation.valid) {
-        toast.error(validation.error);
+        toast.error(t(validation.error as any));
       } else {
         newMediaFiles.push({
           file,

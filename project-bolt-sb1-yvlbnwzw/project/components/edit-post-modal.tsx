@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, X, ImageIcon, Video } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
+import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
 import { uploadFile, deleteFile, extractStoragePathFromUrl, validateFile } from '@/lib/attachment-utils';
 import { normalizeImageForFeed } from '@/lib/image-utils';
@@ -65,6 +66,7 @@ export function EditPostModal({
   onSave,
 }: EditPostModalProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [text, setText] = useState(initialText || '');
   const [category, setCategory] = useState(initialCategory || '');
   const [city, setCity] = useState(initialCity || '');
@@ -129,7 +131,7 @@ export function EditPostModal({
     const toAdd: { file: File; preview: string }[] = [];
     for (const file of files) {
       const validation = validateFile(file);
-      if (!validation.valid) { toast.error(validation.error); continue; }
+      if (!validation.valid) { toast.error(t(validation.error as any)); continue; }
       toAdd.push({ file, preview: URL.createObjectURL(file) });
     }
     setNewFiles(prev => [...prev, ...toAdd]);

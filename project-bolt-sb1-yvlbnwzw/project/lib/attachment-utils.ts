@@ -7,7 +7,7 @@ export const ALLOWED_FILE_TYPES = {
 };
 
 export const MAX_FILE_SIZE = 10 * 1024 * 1024;
-export const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB, Cloudinary will compress
+export const MAX_VIDEO_SIZE = 30 * 1024 * 1024; // 30MB
 
 export type AttachmentType = 'image' | 'video' | 'document';
 
@@ -36,17 +36,16 @@ export const validateFile = (file: File): FileValidationResult => {
   if (!fileType) {
     return {
       valid: false,
-      error: 'File type not supported. Please upload images, videos (MP4/WebM), or documents (PDF/DOC/TXT).',
+      error: 'upload.errorFileType',
     };
   }
 
   const maxSize = fileType === 'video' ? MAX_VIDEO_SIZE : MAX_FILE_SIZE;
 
   if (file.size > maxSize) {
-    const maxSizeMB = maxSize / (1024 * 1024);
     return {
       valid: false,
-      error: `File size exceeds ${maxSizeMB}MB limit.`,
+      error: fileType === 'video' ? 'upload.errorVideoTooLarge' : 'upload.errorFileTooLarge',
     };
   }
 

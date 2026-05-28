@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
       folder: folder || 'gigzone/posts',
       timestamp,
       format: 'mp4',
+      duration: '60',
     };
 
     const signature = cloudinary.utils.api_sign_request(params, process.env.CLOUDINARY_API_SECRET!);
