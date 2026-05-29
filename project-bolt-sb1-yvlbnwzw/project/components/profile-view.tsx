@@ -329,7 +329,7 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
           {referralCode && (
             <button
               onClick={handleCopy}
-              className="shrink-0 flex items-center justify-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white transition-all min-w-[82px]"
+              className="shrink-0 flex items-center justify-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white transition-colors min-w-[82px]"
             >
               {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
               {copied ? t('referral.copied') : t('referral.copy')}
