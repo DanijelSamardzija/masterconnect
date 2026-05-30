@@ -111,6 +111,11 @@ body {
   }
 }
 
+/* Remove browser blue focus outline on scroll containers for mouse/touch users */
+*:focus:not(:focus-visible) {
+  outline: none !important;
+}
+
 img.emoji {
   height: 1.2em;
   width: 1.2em;
