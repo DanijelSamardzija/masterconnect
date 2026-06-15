@@ -129,6 +129,58 @@ export const deleteFile = async (
   return true;
 };
 
+const needsTranscode = async (file: File): Promise<boolean> => {
+  if (file.type === 'video/quicktime') return true;
+  if (!file.type.includes('mp4')) return false;
+  try {
+    const buf = await file.slice(0, 512).arrayBuffer();
+    const text = new TextDecoder('ascii', { fatal: false }).decode(buf);
+    return text.includes('hvc1') || text.includes('hev1');
+  } catch {
+    return false;
+  }
+};
+
+const transcodeToH264 = async (
+  file: File,
+  onProgress?: (p: number) => void
+): Promise<File> => {
+  const { FFmpeg } = await import('@ffmpeg/ffmpeg');
+  const { fetchFile, toBlobURL } = await import('@ffmpeg/util');
+
+  const ffmpeg = new FFmpeg();
+  onProgress?.(5);
+
+  const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+  await ffmpeg.load({
+    coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+    wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+  });
+  onProgress?.(15);
+
+  const ext = file.name.split('.').pop() || 'mp4';
+  const inputName = `input.${ext}`;
+  await ffmpeg.writeFile(inputName, await fetchFile(file));
+
+  (ffmpeg as any).on('progress', ({ progress }: { progress: number }) => {
+    onProgress?.(15 + Math.round(progress * 65));
+  });
+
+  await ffmpeg.exec([
+    '-i', inputName,
+    '-c:v', 'libx264',
+    '-preset', 'fast',
+    '-crf', '28',
+    '-c:a', 'aac',
+    '-b:a', '128k',
+    '-movflags', '+faststart',
+    'output.mp4',
+  ]);
+
+  const data = await ffmpeg.readFile('output.mp4');
+  return new File([data as Uint8Array], 'video.mp4', { type: 'video/mp4' });
+};
+
 export const uploadVideoToCloudinary = async (
   file: File,
   folder: string = 'gigzone/posts',
@@ -140,22 +192,27 @@ export const uploadVideoToCloudinary = async (
       ? 'message-attachments'
       : 'post-media';
 
-    const fileExt = file.name.split('.').pop() ?? 'mp4';
+    let uploadFile = file;
+    if (await needsTranscode(file)) {
+      uploadFile = await transcodeToH264(file, (p) => onProgress?.(Math.round(p * 0.8)));
+    } else {
+      onProgress?.(10);
+    }
+
+    const fileExt = uploadFile.name.split('.').pop() ?? 'mp4';
     const pathPrefix = userId ?? 'shared';
     const fileName = `${pathPrefix}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-    onProgress?.(10);
-
     const { data, error } = await supabase.storage
       .from(bucketName)
-      .upload(fileName, file, { cacheControl: '3600', upsert: false });
+      .upload(fileName, uploadFile, { cacheControl: '3600', upsert: false });
 
     if (error) {
       console.error('[Video Upload] Supabase error:', error);
       return null;
     }
 
-    onProgress?.(90);
+    onProgress?.(95);
 
     const { data: { publicUrl } } = supabase.storage
       .from(bucketName)
