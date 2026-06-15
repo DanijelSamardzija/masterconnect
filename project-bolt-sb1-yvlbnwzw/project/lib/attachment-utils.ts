@@ -136,35 +136,59 @@ export const uploadVideoToCloudinary = async (
   onProgress?: (progress: number) => void
 ): Promise<{ url: string; public_id: string } | null> => {
   try {
-    const bucketName: 'message-attachments' | 'post-media' = folder.includes('messages')
-      ? 'message-attachments'
-      : 'post-media';
-
-    onProgress?.(10);
-    const fileExt = file.name.split('.').pop() ?? 'mp4';
-    const pathPrefix = userId ?? 'shared';
-    const fileName = `${pathPrefix}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-
-    const { data, error } = await supabase.storage
-      .from(bucketName)
-      .upload(fileName, file, { cacheControl: '3600', upsert: false });
-
-    if (error) {
-      console.error('[Video Upload] Supabase error:', error);
+    onProgress?.(5);
+    const signRes = await fetch('/api/cloudinary/sign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ folder }),
+    });
+    if (!signRes.ok) {
+      console.error('[Cloudinary] Failed to get signature');
       return null;
     }
+    const { signature, timestamp, api_key, cloud_name, format } = await signRes.json();
 
-    onProgress?.(95);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('api_key', api_key);
+    formData.append('timestamp', String(timestamp));
+    formData.append('signature', signature);
+    formData.append('folder', folder);
+    if (format) formData.append('format', format);
 
-    const { data: { publicUrl } } = supabase.storage
-      .from(bucketName)
-      .getPublicUrl(data.path);
+    onProgress?.(10);
 
-    onProgress?.(100);
+    return await new Promise((resolve) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloud_name}/video/upload`);
 
-    return { url: publicUrl, public_id: data.path };
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const pct = Math.round((e.loaded / e.total) * 90) + 10;
+          onProgress?.(pct);
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status === 200) {
+          const data = JSON.parse(xhr.responseText);
+          onProgress?.(100);
+          resolve({ url: data.secure_url, public_id: data.public_id });
+        } else {
+          console.error('[Cloudinary] Upload failed:', xhr.responseText);
+          resolve(null);
+        }
+      };
+
+      xhr.onerror = () => {
+        console.error('[Cloudinary] XHR error');
+        resolve(null);
+      };
+
+      xhr.send(formData);
+    });
   } catch (error) {
-    console.error('[Video Upload Error]', error);
+    console.error('[Cloudinary Upload Error]', error);
     return null;
   }
 };
