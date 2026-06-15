@@ -398,7 +398,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
           let url: string | null = null;
 
           if (isVideo) {
-            const result = await uploadVideoToCloudinary(file, 'gigzone/services');
+            const result = await uploadVideoToCloudinary(file, 'gigzone/services', user!.id);
             url = result?.url ?? null;
           } else {
             url = await uploadFile(file);

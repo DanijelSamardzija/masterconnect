@@ -845,7 +845,7 @@ function MessagesContent() {
           let fileUrl: string | null = null;
 
           if (isVideo) {
-            const result = await uploadVideoToCloudinary(file, 'gigzone/messages');
+            const result = await uploadVideoToCloudinary(file, 'gigzone/messages', user.id);
             fileUrl = result?.url ?? null;
           } else {
             const result = await uploadFile(file, user.id);

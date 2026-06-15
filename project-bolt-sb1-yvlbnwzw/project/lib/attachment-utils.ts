@@ -132,6 +132,7 @@ export const deleteFile = async (
 export const uploadVideoToCloudinary = async (
   file: File,
   folder: string = 'gigzone/posts',
+  userId?: string,
   onProgress?: (progress: number) => void
 ): Promise<{ url: string; public_id: string } | null> => {
   try {
@@ -140,7 +141,8 @@ export const uploadVideoToCloudinary = async (
       : 'post-media';
 
     const fileExt = file.name.split('.').pop() ?? 'mp4';
-    const fileName = `videos/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const pathPrefix = userId ?? 'shared';
+    const fileName = `${pathPrefix}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
     onProgress?.(10);
 

@@ -123,7 +123,7 @@ function CreatePostContent() {
 
           if (isVideo) {
             // Videos go through Cloudinary for proper streaming support
-            const cloudResult = await uploadVideoToCloudinary(file, 'gigzone/posts');
+            const cloudResult = await uploadVideoToCloudinary(file, 'gigzone/posts', session.user.id);
             uploadedUrl = cloudResult?.url ?? null;
           } else {
             const storageResult = await uploadFileUtil(file, session.user.id, undefined, 'post-media');

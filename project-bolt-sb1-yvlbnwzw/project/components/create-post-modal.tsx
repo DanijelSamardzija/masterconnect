@@ -341,7 +341,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
           }
 
           if (isVideo) {
-            uploadResult = await uploadVideoToCloudinary(fileToUpload, 'gigzone/feed');
+            uploadResult = await uploadVideoToCloudinary(fileToUpload, 'gigzone/feed', user!.id);
           } else {
             uploadResult = await uploadFile(fileToUpload, user!.id, undefined, 'post-media');
           }
