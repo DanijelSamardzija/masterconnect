@@ -129,18 +129,6 @@ export const deleteFile = async (
   return true;
 };
 
-const needsTranscode = async (file: File): Promise<boolean> => {
-  if (file.type === 'video/quicktime') return true;
-  if (!file.type.includes('mp4')) return false;
-  try {
-    const buf = await file.slice(0, 512).arrayBuffer();
-    const text = new TextDecoder('ascii', { fatal: false }).decode(buf);
-    return text.includes('hvc1') || text.includes('hev1');
-  } catch {
-    return false;
-  }
-};
-
 const transcodeToH264 = async (
   file: File,
   onProgress?: (p: number) => void
@@ -192,12 +180,7 @@ export const uploadVideoToCloudinary = async (
       ? 'message-attachments'
       : 'post-media';
 
-    let uploadFile = file;
-    if (await needsTranscode(file)) {
-      uploadFile = await transcodeToH264(file, (p) => onProgress?.(Math.round(p * 0.8)));
-    } else {
-      onProgress?.(10);
-    }
+    const uploadFile = await transcodeToH264(file, (p) => onProgress?.(Math.round(p * 0.8)));
 
     const fileExt = uploadFile.name.split('.').pop() ?? 'mp4';
     const pathPrefix = userId ?? 'shared';
