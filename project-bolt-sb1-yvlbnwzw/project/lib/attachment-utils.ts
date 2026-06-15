@@ -135,61 +135,35 @@ export const uploadVideoToCloudinary = async (
   onProgress?: (progress: number) => void
 ): Promise<{ url: string; public_id: string } | null> => {
   try {
-    // Step 1: get upload signature from server (tiny request, no file data)
-    onProgress?.(5);
-    const signRes = await fetch('/api/cloudinary/sign', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ folder }),
-    });
-    if (!signRes.ok) {
-      console.error('[Cloudinary] Failed to get signature');
-      return null;
-    }
-    const { signature, timestamp, api_key, cloud_name, format } = await signRes.json();
+    const bucketName: 'message-attachments' | 'post-media' = folder.includes('messages')
+      ? 'message-attachments'
+      : 'post-media';
 
-    // Step 2: upload directly from browser to Cloudinary (bypasses Vercel 4.5MB limit)
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('api_key', api_key);
-    formData.append('timestamp', String(timestamp));
-    formData.append('signature', signature);
-    formData.append('folder', folder);
-    if (format) formData.append('format', format);
+    const fileExt = file.name.split('.').pop() ?? 'mp4';
+    const fileName = `videos/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
     onProgress?.(10);
 
-    return await new Promise((resolve) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloud_name}/video/upload`);
+    const { data, error } = await supabase.storage
+      .from(bucketName)
+      .upload(fileName, file, { cacheControl: '3600', upsert: false });
 
-      xhr.upload.onprogress = (e) => {
-        if (e.lengthComputable) {
-          const pct = Math.round((e.loaded / e.total) * 90) + 10;
-          onProgress?.(pct);
-        }
-      };
+    if (error) {
+      console.error('[Video Upload] Supabase error:', error);
+      return null;
+    }
 
-      xhr.onload = () => {
-        if (xhr.status === 200) {
-          const data = JSON.parse(xhr.responseText);
-          onProgress?.(100);
-          resolve({ url: data.secure_url, public_id: data.public_id });
-        } else {
-          console.error('[Cloudinary] Upload failed:', xhr.responseText);
-          resolve(null);
-        }
-      };
+    onProgress?.(90);
 
-      xhr.onerror = () => {
-        console.error('[Cloudinary] XHR error');
-        resolve(null);
-      };
+    const { data: { publicUrl } } = supabase.storage
+      .from(bucketName)
+      .getPublicUrl(data.path);
 
-      xhr.send(formData);
-    });
+    onProgress?.(100);
+
+    return { url: publicUrl, public_id: data.path };
   } catch (error) {
-    console.error('[Cloudinary Upload Error]', error);
+    console.error('[Video Upload Error]', error);
     return null;
   }
 };
