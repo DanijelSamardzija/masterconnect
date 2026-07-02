@@ -836,8 +836,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Notify subscribers when a new published service listing is created
-    if (data.post_type === 'service_listing' && data.status === 'published') {
+    // Notify subscribers when a new published listing is created
+    const notifiableTypes = ['service_listing', 'hiring_post', 'service_request', 'job_seeker_post'];
+    if (notifiableTypes.includes(data.post_type) && data.status === 'published') {
       notifySubscribers(
         data.category || null,
         data.city || null,

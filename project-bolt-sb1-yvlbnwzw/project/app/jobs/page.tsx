@@ -41,6 +41,7 @@ import { CategoryCombobox } from '@/components/category-combobox';
 import { OfferServiceModal } from '@/components/offer-service-modal';
 import { SendOfferModal } from '@/components/send-offer-modal-v2';
 import { JobApplicationModal } from '@/components/job-application-modal';
+import { NotifyMeButton } from '@/components/notify-me-button';
 
 type Post = {
   id: string;
@@ -1511,6 +1512,9 @@ function JobsMarketplaceContent() {
                     {t('jobs.resetFilters')}
                   </Button>
                 </div>
+              </div>
+              <div className="mt-4 flex justify-end">
+                <NotifyMeButton category={categoryFilter} city={cityFilter} />
               </div>
             </CardContent>
           </Card>
