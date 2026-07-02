@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .from('posts')
     .select('id, job_title, text, city, post_media(url, order, type), profiles(name, avatar_url)')
     .eq('id', params.serviceId)
-    .eq('post_type', 'service')
+    .eq('post_type', 'service_listing')
     .single();
 
   if (!data) {
