@@ -22,13 +22,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .from('posts')
       .select('id, updated_at')
       .eq('post_type', 'service_listing')
-      .eq('status', 'published')
+      .eq('is_active', true)
       .limit(1000),
     supabase
       .from('posts')
       .select('id, updated_at')
-      .in('post_type', ['hiring_post', 'job_seeker_post'])
-      .eq('status', 'published')
+      .in('post_type', ['hiring_post', 'job_seeker_post', 'service_request'])
+      .eq('is_active', true)
       .limit(1000),
   ]);
 
