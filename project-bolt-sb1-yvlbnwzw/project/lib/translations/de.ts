@@ -1554,4 +1554,14 @@ export default {
   'help.invest.waitlist.desc': 'Die Plattform befindet sich in der Entwicklung. Trage dich in die Warteliste ein und sei einer der Ersten beim Launch.',
   'help.invest.waitlist.cta': 'Warteliste beitreten',
   'help.invest.disclaimer': 'Investieren birgt das Risiko von Verlusten. Die Plattform befindet sich in der Beta-Phase und garantiert keine Renditen.',
+
+  // Notify Me
+  'notify.button': 'Benachrichtige mich',
+  'notify.active': 'Benachrichtigungen aktiviert',
+  'notify.success': 'Fertig! Sie erhalten eine E-Mail, wenn neue Anzeigen erscheinen.',
+  'notify.error': 'Fehler. Bitte versuchen Sie es erneut.',
+  'notify.dialog.title': 'Suche speichern',
+  'notify.dialog.desc': 'E-Mail-Benachrichtigungen erhalten, wenn neue Anzeigen erscheinen für:',
+  'notify.dialog.email': 'E-Mail-Adresse',
+  'notify.dialog.confirm': 'Abonnieren',
 } as const;

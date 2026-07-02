@@ -1558,4 +1558,14 @@ export default {
   'help.invest.waitlist.desc': 'Platforma je u fazi razvoja. Prijavi se na listu cekanja i budi medu prvima kada se otvori.',
   'help.invest.waitlist.cta': 'Prijavi se na listu',
   'help.invest.disclaimer': 'Investiranje nosi rizik gubitka. Platforma je u beta fazi i ne garantuje prinose.',
+
+  // Notify Me
+  'notify.button': 'Obavijesti me',
+  'notify.active': 'Pretplaćen na obavještenja',
+  'notify.success': 'Uspješno! Primićeš email kada se pojave novi oglasi.',
+  'notify.error': 'Greška. Pokušaj ponovo.',
+  'notify.dialog.title': 'Sačuvaj pretragu',
+  'notify.dialog.desc': 'Primaj email obavještenja kada se pojave novi oglasi za:',
+  'notify.dialog.email': 'Email adresa',
+  'notify.dialog.confirm': 'Pretplati se',
 } as const;

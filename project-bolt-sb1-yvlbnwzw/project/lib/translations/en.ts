@@ -1558,4 +1558,14 @@ export default {
   'help.invest.waitlist.desc': 'The platform is under development. Join the waitlist and be among the first when it launches.',
   'help.invest.waitlist.cta': 'Join the waitlist',
   'help.invest.disclaimer': 'Investing carries risk of loss. The platform is in beta and does not guarantee returns.',
+
+  // Notify Me
+  'notify.button': 'Notify me',
+  'notify.active': 'Subscribed to notifications',
+  'notify.success': 'Done! You will receive an email when new listings appear.',
+  'notify.error': 'Error. Please try again.',
+  'notify.dialog.title': 'Save search',
+  'notify.dialog.desc': 'Receive email notifications when new listings appear for:',
+  'notify.dialog.email': 'Email address',
+  'notify.dialog.confirm': 'Subscribe',
 } as const;

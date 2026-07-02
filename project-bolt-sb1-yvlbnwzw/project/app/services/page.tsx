@@ -16,6 +16,7 @@ import { EmptyState } from '@/components/empty-state';
 import { SharePostModal } from '@/components/share-post-modal';
 import { Loader2, Search, Filter, X, Bookmark, Share2, ArrowUpDown, Star, Clock, TrendingUp, Plus, Sparkles, Zap } from 'lucide-react';
 import { CreateMarketplacePostModal } from '@/components/create-marketplace-post-modal';
+import { NotifyMeButton } from '@/components/notify-me-button';
 import { toast } from 'sonner';
 
 export const revalidate = 0;
@@ -412,11 +413,12 @@ export default function ServicesPage() {
           {hasFilters && (
             <button
               onClick={clearFilters}
-              className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-muted text-muted-foreground hover:bg-accent transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-muted text-muted-foreground hover:bg-accent transition-colors"
             >
               <X className="h-3 w-3" /> {t('discover.clearFilters')}
             </button>
           )}
+          <NotifyMeButton category={selectedCategory} city={cityFilter} />
         </div>
       </div>
 

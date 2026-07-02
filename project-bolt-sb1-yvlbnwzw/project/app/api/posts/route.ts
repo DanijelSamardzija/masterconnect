@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { computeSpamScore, type UserProfile, type PostingStats } from '@/lib/antiSpam';
+import { notifySubscribers } from '@/lib/notify-subscribers';
 
 export const runtime = 'nodejs';
 
@@ -833,6 +834,16 @@ export async function POST(request: NextRequest) {
         spam_score: data.spam_score,
         rank_penalty: data.rank_penalty
       });
+    }
+
+    // Notify subscribers when a new published service listing is created
+    if (data.post_type === 'service_listing' && data.status === 'published') {
+      notifySubscribers(
+        data.category || null,
+        data.city || null,
+        data.id,
+        insertData.job_title || data.text?.slice(0, 60) || 'Novi oglas',
+      ).catch(() => {});
     }
 
     const isDev = process.env.NODE_ENV !== 'production';
