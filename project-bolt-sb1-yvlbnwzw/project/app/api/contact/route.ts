@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendEmail } from '@/lib/brevo';
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,55 +28,41 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to save message' }, { status: 500 });
     }
 
-    if (process.env.RESEND_API_KEY) {
+    if (process.env.BREVO_API_KEY) {
       // 1. Notify admin
-      await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: 'GigZone Support <support@gigzone.app>',
-          to: [process.env.ADMIN_EMAIL || 'support@gigzone.app'],
-          reply_to: email,
-          subject: `Nova poruka od ${name}`,
-          html: `
-            <h2>Nova kontakt poruka</h2>
-            <p><strong>Ime:</strong> ${name}</p>
-            <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
-            <hr />
-            <p>${message.replace(/\n/g, '<br/>')}</p>
-            <hr />
-            <p style="color:#888;font-size:12px">GigZone Support — support@gigzone.app</p>
-          `,
-        }),
+      await sendEmail({
+        to: process.env.ADMIN_EMAIL || 'support@gigzone.app',
+        replyTo: email,
+        subject: `Nova poruka od ${name}`,
+        html: `
+          <h2>Nova kontakt poruka</h2>
+          <p><strong>Ime:</strong> ${name}</p>
+          <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+          <hr />
+          <p>${message.replace(/\n/g, '<br/>')}</p>
+          <hr />
+          <p style="color:#888;font-size:12px">GigZone Support — support@gigzone.app</p>
+        `,
+        from: { name: 'GigZone Support', email: 'support@gigzone.app' },
       });
 
       // 2. Send confirmation to the user on the email they entered in the form
-      await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: 'GigZone Support <support@gigzone.app>',
-          to: [email],
-          reply_to: 'support@gigzone.app',
-          subject: 'Primili smo vašu poruku — GigZone',
-          html: `
-            <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
-              <h2 style="color:#ea580c">Hvala, ${name}!</h2>
-              <p>Primili smo vašu poruku i odgovorićemo vam u najkraćem roku.</p>
-              <div style="background:#f9f9f9;border-left:4px solid #ea580c;padding:12px 16px;margin:16px 0;border-radius:4px">
-                <p style="margin:0;color:#555">${message.replace(/\n/g, '<br/>')}</p>
-              </div>
-              <p>Ako imate dodatnih pitanja, možete nas kontaktirati na <a href="mailto:support@gigzone.app">support@gigzone.app</a>.</p>
-              <p style="color:#888;font-size:12px;margin-top:24px">GigZone — gigzone.app</p>
+      await sendEmail({
+        to: email,
+        replyTo: 'support@gigzone.app',
+        subject: 'Primili smo vašu poruku — GigZone',
+        html: `
+          <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+            <h2 style="color:#ea580c">Hvala, ${name}!</h2>
+            <p>Primili smo vašu poruku i odgovorićemo vam u najkraćem roku.</p>
+            <div style="background:#f9f9f9;border-left:4px solid #ea580c;padding:12px 16px;margin:16px 0;border-radius:4px">
+              <p style="margin:0;color:#555">${message.replace(/\n/g, '<br/>')}</p>
             </div>
-          `,
-        }),
+            <p>Ako imate dodatnih pitanja, možete nas kontaktirati na <a href="mailto:support@gigzone.app">support@gigzone.app</a>.</p>
+            <p style="color:#888;font-size:12px;margin-top:24px">GigZone — gigzone.app</p>
+          </div>
+        `,
+        from: { name: 'GigZone Support', email: 'support@gigzone.app' },
       });
     }
 

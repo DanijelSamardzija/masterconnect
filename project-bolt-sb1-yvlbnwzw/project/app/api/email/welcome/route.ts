@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendEmail } from '@/lib/brevo';
 
 const BALKAN_COUNTRIES = ['Serbia', 'Srbija', 'Croatia', 'Hrvatska', 'Bosnia and Herzegovina', 'Bosna i Hercegovina', 'Montenegro', 'Crna Gora', 'Slovenia', 'Slovenija', 'North Macedonia', 'Sjeverna Makedonija'];
 const GERMAN_COUNTRIES = ['Germany', 'Deutschland', 'Austria', 'Österreich', 'Switzerland', 'Schweiz'];
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
     const { userId } = await request.json();
     if (!userId) return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
 
-    if (!process.env.RESEND_API_KEY) return NextResponse.json({ ok: true });
+    if (!process.env.BREVO_API_KEY) return NextResponse.json({ ok: true });
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -100,18 +101,11 @@ export async function POST(request: NextRequest) {
     const c = getContent(isPro, lang, firstName);
     const ctaUrl = isPro ? 'https://gigzone.app/create-post' : 'https://gigzone.app/feed';
 
-    await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'GigZone <hello@gigzone.app>',
-        to: [profile.email],
-        reply_to: 'support@gigzone.app',
-        subject: c.subject,
-        html: `
+    await sendEmail({
+      to: profile.email,
+      replyTo: 'support@gigzone.app',
+      subject: c.subject,
+      html: `
           <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1a1a1a">
             <div style="text-align:center;padding:32px 0 16px">
               <span style="font-size:24px;font-weight:900;letter-spacing:-0.5px">
@@ -149,7 +143,6 @@ export async function POST(request: NextRequest) {
             </p>
           </div>
         `,
-      }),
     });
 
     return NextResponse.json({ ok: true });

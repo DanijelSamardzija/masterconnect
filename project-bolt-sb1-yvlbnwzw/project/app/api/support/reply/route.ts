@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendEmail } from '@/lib/brevo';
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,31 +31,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
     }
 
-    // Send email via Resend
-    if (process.env.RESEND_API_KEY) {
-      const res = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: 'GigZone Support <support@gigzone.app>',
-          to: [toEmail],
-          reply_to: 'support@gigzone.app',
-          subject: `Re: ${subject}`,
-          html: `
-            <p>Zdravo ${toName},</p>
-            <p>${replyText.replace(/\n/g, '<br/>')}</p>
-            <hr />
-            <p style="color:#888;font-size:12px">GigZone Support — support@gigzone.app</p>
-          `,
-        }),
+    // Send email via Brevo
+    if (process.env.BREVO_API_KEY) {
+      const ok = await sendEmail({
+        to: toEmail,
+        replyTo: 'support@gigzone.app',
+        subject: `Re: ${subject}`,
+        html: `
+          <p>Zdravo ${toName},</p>
+          <p>${replyText.replace(/\n/g, '<br/>')}</p>
+          <hr />
+          <p style="color:#888;font-size:12px">GigZone Support — support@gigzone.app</p>
+        `,
+        from: { name: 'GigZone Support', email: 'support@gigzone.app' },
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        console.error('Resend error:', err);
+      if (!ok) {
+        console.error('Brevo: failed to send support reply to', toEmail);
         return NextResponse.json({ error: 'Failed to send email' }, { status: 500 });
       }
     }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendEmail } from '@/lib/brevo';
 
 type Lang = 'sr' | 'en' | 'de';
 
@@ -45,71 +46,52 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing Serbian content' }, { status: 400 });
     }
 
-    if (!process.env.RESEND_API_KEY) {
-      return NextResponse.json({ error: 'Missing RESEND_API_KEY' }, { status: 500 });
+    if (!process.env.BREVO_API_KEY) {
+      return NextResponse.json({ error: 'Missing BREVO_API_KEY' }, { status: 500 });
     }
+
+    const { offset = 0, limit = 280 } = body;
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    const { data: users } = await supabase
+    const { data: users, count } = await supabase
       .from('profiles')
-      .select('email, preferred_language')
-      .not('email', 'is', null);
+      .select('email, preferred_language', { count: 'exact' })
+      .not('email', 'is', null)
+      .range(offset, offset + limit - 1);
 
     if (!users || users.length === 0) {
-      return NextResponse.json({ sent: 0 });
+      return NextResponse.json({ sent: 0, total: count ?? 0, done: true });
     }
 
-    // Build batches per language (max 100 per Resend batch)
-    const emails = users
-      .filter((u: any) => !!u.email)
-      .map((u: any) => {
-        const lang: Lang = (u.preferred_language as Lang) || 'sr';
-        const t =
-          (lang === 'de' && title_de) ? title_de :
-          (lang === 'en' && title_en) ? title_en :
-          (lang === 'sr') ? title_sr :
-          title_en || title_sr;
-        const b =
-          (lang === 'de' && body_de) ? body_de :
-          (lang === 'en' && body_en) ? body_en :
-          (lang === 'sr') ? body_sr :
-          body_en || body_sr;
-        const effectiveLang: Lang = lang === 'de' && title_de ? 'de' : lang === 'en' && title_en ? 'en' : title_en ? 'en' : 'sr';
-        return {
-          from: 'GigZone <hello@gigzone.app>',
-          to: [u.email],
-          reply_to: 'support@gigzone.app',
-          subject: t,
-          html: buildHtml(t, b, effectiveLang),
-        };
-      });
-
-    // Send in batches of 100 (Resend limit)
     let sent = 0;
-    for (let i = 0; i < emails.length; i += 100) {
-      const batch = emails.slice(i, i + 100);
-      const res = await fetch('https://api.resend.com/emails/batch', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(batch),
-      });
+    for (const u of users.filter((u: any) => !!u.email)) {
+      const lang: Lang = (u.preferred_language as Lang) || 'sr';
+      const t =
+        (lang === 'de' && title_de) ? title_de :
+        (lang === 'en' && title_en) ? title_en :
+        title_sr;
+      const b =
+        (lang === 'de' && body_de) ? body_de :
+        (lang === 'en' && body_en) ? body_en :
+        body_sr;
+      const effectiveLang: Lang = lang === 'de' && title_de ? 'de' : lang === 'en' && title_en ? 'en' : 'sr';
 
-      if (res.ok) {
-        sent += batch.length;
-      } else {
-        const err = await res.text();
-        console.error('Resend batch error:', err);
-      }
+      const ok = await sendEmail({
+        to: u.email,
+        replyTo: 'support@gigzone.app',
+        subject: t,
+        html: buildHtml(t, b, effectiveLang),
+      });
+      if (ok) sent++;
     }
 
-    return NextResponse.json({ sent });
+    const nextOffset = offset + limit;
+    const total = count ?? 0;
+    return NextResponse.json({ sent, total, nextOffset, done: nextOffset >= total });
   } catch (err) {
     console.error('Announcement email error:', err);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
