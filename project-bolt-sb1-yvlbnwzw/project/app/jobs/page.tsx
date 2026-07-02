@@ -1963,7 +1963,7 @@ function JobsMarketplaceContent() {
                     </React.Fragment>
                   );
                 })}
-                {!user && boostedPosts.length > 5 && <GuestWall variant="page" />}
+                {!user && boostedPosts.length > 6 && <GuestWall variant="page" />}
               </div>
             )}
           </div>

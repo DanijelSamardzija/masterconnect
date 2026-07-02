@@ -140,6 +140,7 @@ function FeedContent() {
   const [boostingPostId, setBoostingPostId] = useState<string | null>(null);
   const newestPostTimestamp = useRef<string | null>(null);
   const viewedPostIds = useRef<Set<string>>(new Set());
+  const justCreatedRef = useRef(false);
 
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
@@ -382,16 +383,27 @@ function FeedContent() {
           return map[parts[0].toLowerCase()] || '';
         })();
 
+        let finalPosts: typeof postsWithData;
         if (userCity || userCountry) {
-          const sorted = [...postsWithData].sort((a: any, b: any) => {
+          finalPosts = [...postsWithData].sort((a: any, b: any) => {
             const sa = locationScore(userCity, userCountry, a.city || '', a.user?.country || a.user?.city || '');
             const sb = locationScore(userCity, userCountry, b.city || '', b.user?.country || b.user?.city || '');
             return sa - sb;
           });
-          setPosts(sorted);
         } else {
-          setPosts(postsWithData);
+          finalPosts = postsWithData;
         }
+
+        // After post creation, bubble the user's newest post to position 0
+        if (justCreatedRef.current && user) {
+          const myIdx = finalPosts.findIndex((p: any) => p.user_id === user.id);
+          if (myIdx > 0) {
+            const [myPost] = finalPosts.splice(myIdx, 1);
+            finalPosts.unshift(myPost);
+          }
+        }
+
+        setPosts(finalPosts);
       } else {
         setPosts(prev => [...prev, ...postsWithData]);
       }
@@ -497,7 +509,18 @@ function FeedContent() {
     video.muted = muted;
   };
 
-  const handlePostCreated = () => { setCreatePostOpen(false); router.refresh(); loadPosts(true); };
+  useEffect(() => {
+    if (!loading && justCreatedRef.current) {
+      justCreatedRef.current = false;
+      setTimeout(() => scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+    }
+  }, [loading]);
+
+  const handlePostCreated = () => {
+    setCreatePostOpen(false);
+    justCreatedRef.current = true;
+    loadPosts(true);
+  };
 
   if (loading) {
     return (
@@ -620,10 +643,10 @@ function FeedContent() {
           </div>
         ) : (
           <>
-            {(user ? filteredPosts : filteredPosts.slice(0, 4)).map((post, postIndex) => (
+            {(user ? filteredPosts : filteredPosts.slice(0, 5)).map((post, postIndex) => (
               <React.Fragment key={post.id}>
                 {renderCard(post, postIndex)}
-                {!user && postIndex === 3 && <GuestWall variant="feed" />}
+                {!user && postIndex === 4 && <GuestWall variant="feed" />}
               </React.Fragment>
             ))}
 

@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { usePageTracking } from '@/lib/hooks/use-page-tracking';
 import { ProfessionalCard } from '@/components/professional-card';
+import { GuestWall } from '@/components/guest-wall';
 import { CategoryCombobox } from '@/components/category-combobox';
 import { CityAutocomplete, cyrillicToLatin } from '@/components/city-autocomplete';
 import { locationScore } from '@/lib/location-sort';
@@ -14,7 +15,6 @@ import { Label } from '@/components/ui/label';
 import { EmptyState } from '@/components/empty-state';
 import { SharePostModal } from '@/components/share-post-modal';
 import { Loader2, Search, Filter, X, Bookmark, Share2, ArrowUpDown, Star, Clock, TrendingUp, Plus, Sparkles, Zap } from 'lucide-react';
-import { GuestWall } from '@/components/guest-wall';
 import { CreateMarketplacePostModal } from '@/components/create-marketplace-post-modal';
 import { toast } from 'sonner';
 
@@ -433,7 +433,7 @@ export default function ServicesPage() {
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {(user ? listings : listings.slice(0, 6)).map((listing, idx) => (
+          {(user ? listings : listings.slice(0, 7)).map((listing, idx) => (
             <React.Fragment key={listing.id}>
               <div className={`relative transition-all duration-200 hover:scale-[1.02] hover:-translate-y-1 ${(listing as any).promoted_until && new Date((listing as any).promoted_until) > new Date() ? 'ring-2 ring-orange-400 rounded-2xl' : ''}`}>
                 <ProfessionalCard listing={listing} />
@@ -482,7 +482,7 @@ export default function ServicesPage() {
               </div>
             </React.Fragment>
           ))}
-          {!user && listings.length > 6 && <GuestWall variant="page" />}
+          {!user && listings.length > 7 && <GuestWall variant="page" />}
         </div>
       )}
 

@@ -612,40 +612,38 @@ export function Navigation() {
 
                   <Separator />
 
-                  {(!isLandingPage || user) && (
-                    <>
-                      <Link href="/services" onClick={closeMobileMenu}>
-                        <Button variant="ghost" className={mobileNavClass('/services')}>
-                          <Search className="h-4 w-4" />
-                          {t('nav.discover')}
-                        </Button>
-                      </Link>
+                  <>
+                    <Link href="/services" onClick={closeMobileMenu}>
+                      <Button variant="ghost" className={mobileNavClass('/services')}>
+                        <Search className="h-4 w-4" />
+                        {t('nav.discover')}
+                      </Button>
+                    </Link>
 
-                      <Link href="/feed" onClick={closeMobileMenu}>
-                        <Button variant="ghost" className={mobileNavClass('/feed')}>
-                          <FileText className="h-4 w-4" />
-                          {t('nav.feed')}
-                        </Button>
-                      </Link>
+                    <Link href="/feed" onClick={closeMobileMenu}>
+                      <Button variant="ghost" className={mobileNavClass('/feed')}>
+                        <FileText className="h-4 w-4" />
+                        {t('nav.feed')}
+                      </Button>
+                    </Link>
 
-                      <Link href="/jobs" onClick={closeMobileMenu}>
-                        <Button variant="ghost" className={mobileNavClass('/jobs')}>
-                          <Briefcase className="h-4 w-4" />
-                          {t('nav.jobs')}
-                        </Button>
-                      </Link>
+                    <Link href="/jobs" onClick={closeMobileMenu}>
+                      <Button variant="ghost" className={mobileNavClass('/jobs')}>
+                        <Briefcase className="h-4 w-4" />
+                        {t('nav.jobs')}
+                      </Button>
+                    </Link>
 
-                      <Link href="/invest" onClick={closeMobileMenu}>
-                        <Button variant="ghost" className={`${mobileNavClass('/invest')} justify-between`}>
-                          <span className="flex items-center gap-2">
-                            <TrendingUp className="h-4 w-4" />
-                            {t('nav.invest')}
-                          </span>
-                          <span className="text-[9px] font-bold bg-orange-500 text-white px-1.5 py-0.5 rounded-full leading-none">{t('nav.soon')}</span>
-                        </Button>
-                      </Link>
-                    </>
-                  )}
+                    <Link href="/invest" onClick={closeMobileMenu}>
+                      <Button variant="ghost" className={`${mobileNavClass('/invest')} justify-between`}>
+                        <span className="flex items-center gap-2">
+                          <TrendingUp className="h-4 w-4" />
+                          {t('nav.invest')}
+                        </span>
+                        <span className="text-[9px] font-bold bg-orange-500 text-white px-1.5 py-0.5 rounded-full leading-none">{t('nav.soon')}</span>
+                      </Button>
+                    </Link>
+                  </>
 
                   {user && profile ? (
                     <>
