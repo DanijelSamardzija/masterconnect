@@ -385,11 +385,18 @@ function FeedContent() {
 
         let finalPosts: typeof postsWithData;
         if (userCity || userCountry) {
-          finalPosts = [...postsWithData].sort((a: any, b: any) => {
+          const promoted = postsWithData.filter((p: any) => p.is_promoted);
+          const nonPromoted = postsWithData.filter((p: any) => !p.is_promoted);
+          const sortedNonPromoted = [...nonPromoted].sort((a: any, b: any) => {
             const sa = locationScore(userCity, userCountry, a.city || '', a.user?.country || a.user?.city || '');
             const sb = locationScore(userCity, userCountry, b.city || '', b.user?.country || b.user?.city || '');
             return sa - sb;
           });
+          if (promoted.length > 0 && sortedNonPromoted.length > 0) {
+            finalPosts = [sortedNonPromoted[0], ...promoted, ...sortedNonPromoted.slice(1)];
+          } else {
+            finalPosts = [...promoted, ...sortedNonPromoted];
+          }
         } else {
           finalPosts = postsWithData;
         }
