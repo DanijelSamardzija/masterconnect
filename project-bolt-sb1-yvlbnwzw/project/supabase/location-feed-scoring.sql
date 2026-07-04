@@ -64,7 +64,7 @@ BEGIN
     SELECT
       p.id AS post_id,
       COALESCE(COUNT(DISTINCT pr.id), 0) AS reactions_count,
-      COALESCE(COUNT(DISTINCT pc.id) FILTER (WHERE pc.parent_id IS NULL), 0) AS comments_count
+      COALESCE(COUNT(DISTINCT pc.id), 0) AS comments_count
     FROM posts p
     LEFT JOIN post_reactions pr ON pr.post_id = p.id
     LEFT JOIN post_comments pc ON pc.post_id = p.id
@@ -99,7 +99,7 @@ BEGIN
       p.city,
       p.category,
       COALESCE(p.hashtags, ARRAY[]::text[]) AS hashtags,
-      COALESCE(p.views_count, 0) AS views_count,
+      COALESCE(p.views_count, 0)::bigint AS views_count,
       pc.reactions_count,
       pc.comments_count,
       p.is_promoted,
