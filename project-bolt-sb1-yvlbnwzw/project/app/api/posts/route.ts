@@ -158,7 +158,7 @@ export async function GET(request: NextRequest) {
         .select(`
           id, user_id, text, post_type, created_at, updated_at, is_pinned, pinned_at,
           status, spam_score, rank_penalty, phone_count, link_count, hashtag_count,
-          city, category, hashtags, views_count, reactions_count, comments_count,
+          city, category, hashtags, views_count,
           profiles!inner(name, email, account_type, avatar_url)
         `)
         .eq('is_promoted', true)
