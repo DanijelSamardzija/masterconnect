@@ -347,8 +347,6 @@ export async function GET(request: NextRequest) {
         totalAvailablePosts: publishedPostsCount,
         returnedCount: postsWithMedia.length,
         rpcFetchedCount: totalRpcFetched,
-        promotedCount: promotedPostsData.length,
-        promotedError: promotedQueryError,
         limit,
         offset
       }
