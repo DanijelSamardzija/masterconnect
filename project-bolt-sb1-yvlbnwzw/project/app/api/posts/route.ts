@@ -145,10 +145,14 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Fetch promoted posts separately (they may not be in top N by score)
+    // Fetch promoted posts separately using service role to bypass RLS
     let promotedPostsData: any[] = [];
     if (offset === 0) {
-      const { data: promoted } = await supabase
+      const serviceSupabase = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
+      const { data: promoted } = await serviceSupabase
         .from('posts')
         .select(`
           id, user_id, text, post_type, created_at, updated_at, is_pinned, pinned_at,
