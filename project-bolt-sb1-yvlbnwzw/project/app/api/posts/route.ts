@@ -277,12 +277,15 @@ export async function GET(request: NextRequest) {
     const combined = [...postsWithMedia];
 
     // Inject promoted posts at position 2 on first page
+    // Use is_promoted from organic combined (sourced from RPC which bypasses RLS)
+    // supplemented by any separately fetched promoted posts not in top N
     let postsWithMediaSorted = combined;
-    if (offset === 0 && promotedPostsData.length > 0) {
-      const promotedIds = new Set(promotedPostsData.map(p => p.id));
-
-      // Build promoted post objects (same shape as postsWithMedia)
-      const promotedMapped = promotedPostsData.filter(p => !p.user_id.startsWith('b1000000-') && !p.user_id.startsWith('aaaaaaaa-')).map(p => {
+    if (offset === 0) {
+      const promotedFromOrganic = combined.filter(p => p.is_promoted);
+      const promotedFromSeparate = promotedPostsData.filter(
+        p => !p.user_id.startsWith('b1000000-') && !p.user_id.startsWith('aaaaaaaa-') &&
+             !combined.some(c => c.id === p.id)
+      ).map(p => {
         const prof: any = p.profiles;
         return {
           id: p.id,
@@ -319,13 +322,16 @@ export async function GET(request: NextRequest) {
         };
       });
 
-      // Remove promoted from organic feed (avoid duplicates) then inject at position 2
-      const organic = combined.filter(p => !promotedIds.has(p.id));
-      postsWithMediaSorted = [
-        ...organic.slice(0, 1),
-        ...promotedMapped,
-        ...organic.slice(1),
-      ];
+      const allPromoted = [...promotedFromOrganic, ...promotedFromSeparate];
+      if (allPromoted.length > 0) {
+        const promotedIds = new Set(allPromoted.map(p => p.id));
+        const organic = combined.filter(p => !promotedIds.has(p.id));
+        postsWithMediaSorted = [
+          ...organic.slice(0, 1),
+          ...allPromoted,
+          ...organic.slice(1),
+        ];
+      }
     }
 
     return NextResponse.json({
