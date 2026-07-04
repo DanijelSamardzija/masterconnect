@@ -147,12 +147,13 @@ export async function GET(request: NextRequest) {
 
     // Fetch promoted posts separately using service role to bypass RLS
     let promotedPostsData: any[] = [];
+    let promotedQueryError: string | null = null;
     if (offset === 0) {
       const serviceSupabase = createSupabaseClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
       );
-      const { data: promoted } = await serviceSupabase
+      const { data: promoted, error: promotedError } = await serviceSupabase
         .from('posts')
         .select(`
           id, user_id, text, post_type, created_at, updated_at, is_pinned, pinned_at,
@@ -164,6 +165,7 @@ export async function GET(request: NextRequest) {
         .eq('post_type', 'social_post')
         .eq('status', 'published');
       promotedPostsData = promoted || [];
+      promotedQueryError = promotedError?.message || null;
     }
 
     const allPostIds = [
@@ -346,6 +348,7 @@ export async function GET(request: NextRequest) {
         returnedCount: postsWithMedia.length,
         rpcFetchedCount: totalRpcFetched,
         promotedCount: promotedPostsData.length,
+        promotedError: promotedQueryError,
         limit,
         offset
       }
