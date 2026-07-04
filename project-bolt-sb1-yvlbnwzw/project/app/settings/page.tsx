@@ -330,6 +330,7 @@ function SettingsContent() {
                   {([
                     { code: 'sr', label: 'Srpski', flag: '🇷🇸' },
                     { code: 'en', label: 'English', flag: '🇬🇧' },
+                    { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
                   ] as const).map(({ code, label, flag }) => (
                     <button
                       key={code}
