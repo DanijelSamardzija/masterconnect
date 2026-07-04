@@ -47,6 +47,8 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '15');
     const offset = parseInt(searchParams.get('offset') || '0');
     const asOf = searchParams.get('as_of');
+    const userCity = searchParams.get('user_city') || null;
+    const userCountry = searchParams.get('user_country') || null;
 
     // Get total count without filters
     const { count: totalPostsCount } = await supabase
@@ -103,6 +105,8 @@ export async function GET(request: NextRequest) {
         p_as_of: asOf || new Date().toISOString(),
         p_post_type: 'social_post',
         p_hashtag: hashtag || null,
+        p_user_city: userCity,
+        p_user_country: userCountry,
       });
 
       if (error) {

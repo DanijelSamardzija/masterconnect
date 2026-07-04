@@ -335,7 +335,9 @@ function FeedContent() {
 
       const currentOffset = reset ? 0 : offset;
       const hashtagParam = activeHashtag ? `&hashtag=${encodeURIComponent(activeHashtag)}` : '';
-      const responseData = await fetchJSON<{ data: any[]; meta: any }>(`/api/posts?limit=${POSTS_LIMIT}&offset=${currentOffset}${hashtagParam}`);
+      const locCity = profile?.city ? `&user_city=${encodeURIComponent(profile.city)}` : '';
+      const locCountry = profile?.country ? `&user_country=${encodeURIComponent(profile.country)}` : '';
+      const responseData = await fetchJSON<{ data: any[]; meta: any }>(`/api/posts?limit=${POSTS_LIMIT}&offset=${currentOffset}${hashtagParam}${locCity}${locCountry}`);
       const newPosts = responseData.data;
       const meta = responseData.meta;
 
@@ -373,30 +375,13 @@ function FeedContent() {
       }));
 
       if (reset) {
-        const userCity = profile?.city || '';
-        const userCountry = profile?.country || (() => {
-          if (typeof navigator === 'undefined') return '';
-          const lang = navigator.language || '';
-          const parts = lang.split('-');
-          if (parts.length >= 2) return parts[1].toLowerCase();
-          const map: Record<string, string> = { hr: 'hr', sr: 'rs', bs: 'ba', de: 'de', sl: 'si', sk: 'sk', hu: 'hu' };
-          return map[parts[0].toLowerCase()] || '';
-        })();
-
+        // Server handles location sorting via p_user_city/p_user_country params
+        // Only inject promoted posts at position 2 client-side
         let finalPosts: typeof postsWithData;
-        if (userCity || userCountry) {
-          const promoted = postsWithData.filter((p: any) => p.is_promoted);
-          const nonPromoted = postsWithData.filter((p: any) => !p.is_promoted);
-          const sortedNonPromoted = [...nonPromoted].sort((a: any, b: any) => {
-            const sa = locationScore(userCity, userCountry, a.city || '', a.user?.country || a.user?.city || '');
-            const sb = locationScore(userCity, userCountry, b.city || '', b.user?.country || b.user?.city || '');
-            return sa - sb;
-          });
-          if (promoted.length > 0 && sortedNonPromoted.length > 0) {
-            finalPosts = [sortedNonPromoted[0], ...promoted, ...sortedNonPromoted.slice(1)];
-          } else {
-            finalPosts = [...promoted, ...sortedNonPromoted];
-          }
+        const promoted = postsWithData.filter((p: any) => p.is_promoted);
+        const nonPromoted = postsWithData.filter((p: any) => !p.is_promoted);
+        if (promoted.length > 0 && nonPromoted.length > 0) {
+          finalPosts = [nonPromoted[0], ...promoted, ...nonPromoted.slice(1)];
         } else {
           finalPosts = postsWithData;
         }
