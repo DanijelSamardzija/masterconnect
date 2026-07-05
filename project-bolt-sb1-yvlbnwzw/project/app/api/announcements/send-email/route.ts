@@ -61,6 +61,8 @@ export async function POST(request: NextRequest) {
       .from('profiles')
       .select('email, preferred_language', { count: 'exact' })
       .not('email', 'is', null)
+      .not('email', 'ilike', '%@demo%')
+      .not('email', 'ilike', '%masterconnect%')
       .range(offset, offset + limit - 1);
 
     if (!users || users.length === 0) {
