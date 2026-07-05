@@ -883,7 +883,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
                   multiple
                   onChange={handleFileSelect}
                   className="hidden"
-                  disabled={selectedFiles.length >= 5}
+                  disabled={selectedFiles.length >= 10}
                 />
                 <Button
                   type="button"
@@ -908,7 +908,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
                       accept="video/*"
                       onChange={handleFileSelect}
                       className="hidden"
-                      disabled={selectedFiles.length >= 5}
+                      disabled={selectedFiles.length >= 10}
                     />
                     <Button
                       type="button"
