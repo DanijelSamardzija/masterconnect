@@ -367,6 +367,11 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
           }
         }
 
+        if (mediaItems.length > MAX_FEED_FILES) {
+          toast.error(t('createPost.mediaMaxError'));
+          return;
+        }
+
         if (mediaItems.length > 0) {
           console.log(`[Client ${requestId}] Saving ${mediaItems.length} media items to database...`);
 

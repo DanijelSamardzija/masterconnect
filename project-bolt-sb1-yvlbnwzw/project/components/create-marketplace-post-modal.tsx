@@ -419,6 +419,11 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
           }
         }
 
+        if (mediaItems.length > 10) {
+          toast.error(t('marketplace.serviceListingLimitReached'));
+          return;
+        }
+
         if (mediaItems.length > 0) {
           await supabase.from('post_media').insert(mediaItems);
         }
