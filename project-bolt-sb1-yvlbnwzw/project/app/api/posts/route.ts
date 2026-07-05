@@ -771,6 +771,22 @@ export async function POST(request: NextRequest) {
     const trimmedCategory = category?.trim().replace(/\s+/g, ' ') || null;
     const trimmedCity = city?.trim().replace(/\s+/g, ' ') || null;
 
+    // Limit service_listing to 2 per user
+    if ((post_type || 'social_post') === 'service_listing') {
+      const { count } = await supabase
+        .from('posts')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('post_type', 'service_listing')
+        .neq('status', 'deleted');
+      if ((count ?? 0) >= 2) {
+        return NextResponse.json(
+          { error: 'Možete imati najviše 2 oglasa u sekciji Usluge.' },
+          { status: 429 }
+        );
+      }
+    }
+
     const insertData: any = {
       user_id: user.id,
       text: postText || null,
