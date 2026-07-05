@@ -116,7 +116,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const MAX_FEED_FILES = 6;
+  const MAX_FEED_FILES = 5;
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     isPickerOpenRef.current = false;
