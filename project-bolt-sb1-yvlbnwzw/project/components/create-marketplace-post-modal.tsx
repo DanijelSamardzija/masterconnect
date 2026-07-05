@@ -120,7 +120,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
         break;
       }
 
-      if ((postType === 'service_listing' || postType === 'portfolio_post') && file.type.startsWith('image/')) {
+      if (postType === 'portfolio_post' && file.type.startsWith('image/')) {
         try {
           const processedFile = await processImageForUpload(file, true);
           const imageUrl = URL.createObjectURL(processedFile);
