@@ -373,6 +373,10 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
           if (errorJson.debug) {
             console.error('[Marketplace Post] Server debug info:', errorJson.debug);
           }
+          if (createPostResponse.status === 429 && errorJson.error === 'SERVICE_LISTING_LIMIT') {
+            toast.error(t('marketplace.serviceListingLimitReached'));
+            return;
+          }
         } catch (e) {
           // Not JSON, ignore
         }

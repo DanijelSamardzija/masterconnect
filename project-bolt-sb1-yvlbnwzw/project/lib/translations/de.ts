@@ -894,7 +894,7 @@ export default {
   'marketplace.createButton': 'Beitrag erstellen',
   'marketplace.creating': 'Wird erstellt...',
   'marketplace.portfolioLimitReached': 'Du kannst nur 1 aktiven Portfolio-Beitrag haben. Bitte lösche deinen bestehenden Portfolio-Beitrag, um einen neuen zu erstellen.',
-  'marketplace.serviceListingLimitReached': 'Du kannst nur 10 aktive Dienstleistungsangebote haben. Bitte lösche eines deiner bestehenden Angebote, um ein neues zu erstellen.',
+  'marketplace.serviceListingLimitReached': 'Du kannst nur 2 Dienstleistungsangebote haben. Bitte lösche eines deiner bestehenden Angebote, um ein neues zu erstellen.',
   'marketplace.proTipTitle': 'Profi-Tipp:',
   'marketplace.proTipText': 'Dienstleistungen mit Profilfoto und Arbeitsbildern erhalten deutlich mehr Anfragen.',
   'marketplace.proTipCta': 'Profilfoto hinzufügen →',

@@ -898,7 +898,7 @@ export default {
   'marketplace.createButton': 'Kreiraj oglas',
   'marketplace.creating': 'Kreiranje...',
   'marketplace.portfolioLimitReached': 'Možete imati samo 1 aktivan portfolio oglas. Obrišite postojeći portfolio oglas da biste kreirali novi.',
-  'marketplace.serviceListingLimitReached': 'Možete imati samo 10 aktivnih ponuda usluga. Obrišite jednu od postojećih ponuda da biste kreirali novu.',
+  'marketplace.serviceListingLimitReached': 'Možete imati najviše 2 oglasa u sekciji Usluge. Obrišite jedan od postojećih oglasa da biste kreirali novi.',
   'marketplace.proTipTitle': 'Pro savet:',
   'marketplace.proTipText': 'Usluge sa profilnom fotografijom i slikama radova dobijaju mnogo više upita.',
   'marketplace.proTipCta': 'Dodaj profilnu →',

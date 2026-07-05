@@ -781,7 +781,7 @@ export async function POST(request: NextRequest) {
         .neq('status', 'deleted');
       if ((count ?? 0) >= 2) {
         return NextResponse.json(
-          { error: 'Možete imati najviše 2 oglasa u sekciji Usluge.' },
+          { error: 'SERVICE_LISTING_LIMIT' },
           { status: 429 }
         );
       }

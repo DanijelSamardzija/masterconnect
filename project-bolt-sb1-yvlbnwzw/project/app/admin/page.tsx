@@ -308,6 +308,7 @@ function AdminContent() {
   const [newBodyDe, setNewBodyDe] = useState('');
   const [savingAnnouncement, setSavingAnnouncement] = useState(false);
   const [sendEmail, setSendEmail] = useState(true);
+  const [emailOffset, setEmailOffset] = useState(0);
   const [langStats, setLangStats] = useState<{ lang: string; count: number; emails: string[] }[]>([]);
 
   // Support state
@@ -1038,6 +1039,7 @@ function AdminContent() {
           body_en: newBodyEn.trim() || undefined,
           title_de: newTitleDe.trim() || undefined,
           body_de: newBodyDe.trim() || undefined,
+          offset: emailOffset,
         }),
       });
       const json = await res.json();
@@ -1823,6 +1825,20 @@ function AdminContent() {
                 </div>
                 <span className="text-sm text-muted-foreground">Pošalji i mejl svim korisnicima</span>
               </label>
+
+              {sendEmail && (
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-muted-foreground whitespace-nowrap">Počni od korisnika #</span>
+                  <input
+                    type="number"
+                    min={0}
+                    value={emailOffset}
+                    onChange={e => setEmailOffset(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="w-24 bg-muted border border-border rounded-xl px-3 py-2 text-sm text-foreground outline-none focus:border-orange-500/50 transition-colors"
+                  />
+                  <span className="text-xs text-muted-foreground">(0 = od početka, 560 = treća tura)</span>
+                </div>
+              )}
 
               <button
                 onClick={handlePublishAnnouncement}
