@@ -1223,11 +1223,9 @@ export function ProfileView({
               <TabsList className="flex w-max min-w-full bg-transparent h-auto p-0 gap-0">
                 {[
                   { value: 'activity', label: t('profile.activity'), icon: <FileText className="h-4 w-4" /> },
-                  ...(profile.is_pro ? [
-                    { value: 'services', label: t('profile.services'), icon: <Briefcase className="h-4 w-4" /> },
-                    { value: 'portfolio', label: 'Portfolio', icon: <Star className="h-4 w-4" /> },
-                    { value: 'reviews', label: t('profile.reviews'), icon: <StarIcon className="h-4 w-4" /> },
-                  ] : []),
+                  { value: 'services', label: t('profile.services'), icon: <Briefcase className="h-4 w-4" /> },
+                  { value: 'portfolio', label: 'Portfolio', icon: <Star className="h-4 w-4" /> },
+                  { value: 'reviews', label: t('profile.reviews'), icon: <StarIcon className="h-4 w-4" /> },
                   { value: 'listings', label: t('profile.myListings'), icon: <Briefcase className="h-4 w-4" /> },
                   ...(isOwnProfile ? [{ value: 'saved', label: t('profile.saved'), icon: <Bookmark className="h-4 w-4" /> }] : []),
                 ].map((tab) => (
@@ -1600,8 +1598,7 @@ export function ProfileView({
             )}
           </TabsContent>
 
-          {(profile.account_type === 'professional' || profile.is_pro) && (
-            <>
+          <>
               <TabsContent value="services">
                 {servicePosts.length === 0 ? (
                   <div className="rounded-2xl border border-border bg-gradient-to-br from-card to-accent/20 py-16 text-center">
@@ -2007,8 +2004,7 @@ export function ProfileView({
                   </>
                 )}
               </TabsContent>
-            </>
-          )}
+          </>
 
           {isOwnProfile && (
             <TabsContent value="saved">
