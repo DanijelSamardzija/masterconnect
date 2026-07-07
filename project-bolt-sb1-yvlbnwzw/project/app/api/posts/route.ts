@@ -290,8 +290,8 @@ export async function GET(request: NextRequest) {
     let postsWithMediaSorted = combined;
     if (offset === 0) {
       const promotedIds = new Set(promotedPostsData.map((p: any) => p.id));
-      // Get promoted posts from organic (has reactions_count) or from separate fetch
-      const promotedFromOrganic = combined.filter(p => promotedIds.has(p.id));
+      // Get promoted from organic (is_promoted from RPC) OR from separate fetch
+      const promotedFromOrganic = combined.filter(p => p.is_promoted || promotedIds.has(p.id));
       const promotedFromSeparate = promotedPostsData.filter(
         p => !p.user_id.startsWith('b1000000-') && !p.user_id.startsWith('aaaaaaaa-') &&
              !combined.some(c => c.id === p.id)
