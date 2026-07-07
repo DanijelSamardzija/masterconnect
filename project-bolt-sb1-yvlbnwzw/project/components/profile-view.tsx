@@ -1201,9 +1201,11 @@ export function ProfileView({
             {!isOwnProfile && (
               <button
                 onClick={() => setSupportModalOpen(true)}
-                className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-orange-500 hover:bg-orange-600 text-white transition-all shrink-0"
+                className="relative flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-amber-500 hover:text-amber-600 shrink-0"
+                title={t('credits.support.button')}
               >
-                🧡 {t('credits.support.button')}
+                <span className="absolute inset-0 rounded-lg animate-ping bg-amber-400 opacity-25" />
+                <Coins className="relative h-4 w-4" />
               </button>
             )}
           </div>
