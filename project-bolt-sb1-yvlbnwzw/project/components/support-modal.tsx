@@ -29,15 +29,21 @@ export function SupportModal({
   const { user } = useAuth();
 
   const [selected, setSelected] = useState<number>(10);
+  const [customInput, setCustomInput] = useState('');
+  const [isCustom, setIsCustom] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [state, setState] = useState<'idle' | 'success' | 'error' | 'no_balance'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
+  const effectiveAmount = isCustom ? (parseInt(customInput) || 0) : selected;
+
   useEffect(() => {
     if (!open || !user) return;
     setState('idle');
     setSelected(10);
+    setCustomInput('');
+    setIsCustom(false);
     fetchBalance();
   }, [open, user]);
 
@@ -51,17 +57,17 @@ export function SupportModal({
     setBalance(data?.balance ?? 0);
   };
 
-  const fee = Math.max(1, Math.round(selected * PLATFORM_FEE));
-  const net = selected - fee;
+  const fee = effectiveAmount > 0 ? Math.max(1, Math.round(effectiveAmount * PLATFORM_FEE)) : 0;
+  const net = effectiveAmount - fee;
 
   const handleSend = async () => {
-    if (!user || !targetUserId || loading) return;
+    if (!user || !targetUserId || loading || effectiveAmount < 1) return;
     setLoading(true);
     try {
       const { data, error } = await supabase.rpc('send_credits', {
         p_sender_id: user.id,
         p_receiver_id: targetUserId,
-        p_amount: selected,
+        p_amount: effectiveAmount,
       });
 
       if (error) throw error;
@@ -198,13 +204,13 @@ export function SupportModal({
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
             {t('credits.support.chooseAmount')}
           </p>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-4 gap-2">
             {AMOUNTS.map(amount => (
               <button
                 key={amount}
-                onClick={() => setSelected(amount)}
+                onClick={() => { setSelected(amount); setIsCustom(false); setCustomInput(''); }}
                 className={`relative flex flex-col items-center justify-center rounded-xl border-2 py-3 px-2 transition-all ${
-                  selected === amount
+                  !isCustom && selected === amount
                     ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20'
                     : 'border-border bg-muted/30 hover:border-orange-300'
                 }`}
@@ -214,11 +220,33 @@ export function SupportModal({
                     {t('credits.support.popular')}
                   </span>
                 )}
-                <Coins className={`h-4 w-4 mb-1 ${selected === amount ? 'text-orange-500' : 'text-muted-foreground'}`} />
-                <span className={`text-base font-bold ${selected === amount ? 'text-orange-500' : 'text-foreground'}`}>{amount}</span>
+                <Coins className={`h-4 w-4 mb-1 ${!isCustom && selected === amount ? 'text-orange-500' : 'text-muted-foreground'}`} />
+                <span className={`text-base font-bold ${!isCustom && selected === amount ? 'text-orange-500' : 'text-foreground'}`}>{amount}</span>
                 <span className="text-[10px] text-muted-foreground">{t('credits.unit')}</span>
               </button>
             ))}
+            {/* Custom amount */}
+            <div
+              onClick={() => setIsCustom(true)}
+              className={`relative flex flex-col items-center justify-center rounded-xl border-2 py-3 px-2 transition-all cursor-text ${
+                isCustom
+                  ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20'
+                  : 'border-border bg-muted/30 hover:border-orange-300'
+              }`}
+            >
+              <Coins className={`h-4 w-4 mb-1 ${isCustom ? 'text-orange-500' : 'text-muted-foreground'}`} />
+              <input
+                type="number"
+                min={1}
+                max={balance ?? 9999}
+                value={customInput}
+                onClick={(e) => e.stopPropagation()}
+                onChange={(e) => { setIsCustom(true); setCustomInput(e.target.value.replace(/\D/g, '')); }}
+                placeholder="?"
+                className={`w-full text-center text-base font-bold bg-transparent outline-none leading-none ${isCustom && customInput ? 'text-orange-500' : 'text-foreground'} [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
+              />
+              <span className="text-[10px] text-muted-foreground">{t('credits.unit')}</span>
+            </div>
           </div>
         </div>
 
@@ -243,17 +271,17 @@ export function SupportModal({
         {/* Send button */}
         <button
           onClick={handleSend}
-          disabled={loading || balance === null || balance < selected}
+          disabled={loading || balance === null || balance < effectiveAmount || effectiveAmount < 1}
           className="w-full rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 text-sm transition-all shadow-md hover:shadow-lg active:scale-[0.98] flex items-center justify-center gap-2"
         >
           {loading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            <>🧡 {t('credits.support.sendButton').replace('{amount}', String(selected))}</>
+            <>🧡 {t('credits.support.sendButton').replace('{amount}', String(effectiveAmount))}</>
           )}
         </button>
 
-        {balance !== null && balance < selected && (
+        {balance !== null && effectiveAmount > 0 && balance < effectiveAmount && (
           <p className="text-center text-xs text-red-500">{t('credits.support.insufficientBalance')}</p>
         )}
       </div>
