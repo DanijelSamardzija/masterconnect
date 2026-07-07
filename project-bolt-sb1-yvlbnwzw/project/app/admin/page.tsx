@@ -1956,7 +1956,7 @@ function AdminContent() {
         {activeTab === 'credits' && (
           <div className="space-y-6 py-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-bold text-foreground">Krediti & Creator Premium</h2>
+              <h2 className="text-base font-bold text-foreground">Krediti & Pro Premium</h2>
               <button onClick={fetchCreditsStats} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
                 <RefreshCw className={`h-3.5 w-3.5 ${creditsLoading ? 'animate-spin' : ''}`} />
                 Osvježi
@@ -1971,7 +1971,7 @@ function AdminContent() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {[
                     { label: 'Ukupno kredita u opticaju', value: creditsStats.totalBalance, icon: <Coins className="h-4 w-4 text-orange-500" />, color: 'text-orange-500' },
-                    { label: 'Creator Premium korisnika', value: creditsStats.premiumCount, icon: <Crown className="h-4 w-4 text-amber-500" />, color: 'text-amber-500' },
+                    { label: 'Pro Premium korisnika', value: creditsStats.premiumCount, icon: <Crown className="h-4 w-4 text-amber-500" />, color: 'text-amber-500' },
                     { label: 'Transakcija (30 dana)', value: creditsStats.txLast30d, icon: <TrendingUp className="h-4 w-4 text-blue-500" />, color: 'text-blue-500' },
                     { label: 'Boost kupovina (30d)', value: creditsStats.breakdown?.boost?.count || 0, icon: <Sparkles className="h-4 w-4 text-purple-500" />, color: 'text-purple-500' },
                   ].map(({ label, value, icon, color }) => (
@@ -1992,7 +1992,7 @@ function AdminContent() {
                     {[
                       { key: 'podrzi', label: '🧡 Podrži dugme', color: 'bg-orange-100 text-orange-700' },
                       { key: 'boost', label: '🚀 Boost postova', color: 'bg-purple-100 text-purple-700' },
-                      { key: 'creator_premium', label: '⭐ Creator Premium', color: 'bg-amber-100 text-amber-700' },
+                      { key: 'creator_premium', label: '⭐ Pro Premium', color: 'bg-amber-100 text-amber-700' },
                       { key: 'nagrada', label: '🎁 Nagrade (onboarding)', color: 'bg-green-100 text-green-700' },
                       { key: 'media_nagrada', label: '📸 Media nagrade', color: 'bg-blue-100 text-blue-700' },
                       { key: 'referral', label: '🔗 Referral nagrade', color: 'bg-pink-100 text-pink-700' },
@@ -2023,7 +2023,7 @@ function AdminContent() {
                       const isPositive = tx.amount > 0;
                       const desc = tx.description || '';
                       const typeLabel = desc.startsWith('boost_post') ? '🚀 Boost'
-                        : desc === 'become_creator_premium' ? '⭐ Creator Premium'
+                        : desc === 'become_creator_premium' ? '⭐ Pro Premium'
                         : desc === 'Podrška poslata' ? '🧡 Podrži (poslato)'
                         : desc === 'Primljena podrška' ? '🧡 Podrži (primljeno)'
                         : desc === 'Nagrada: registration' ? '🎁 Registracija'
@@ -2111,11 +2111,11 @@ function AdminContent() {
                   )}
                 </div>
 
-                {/* Creator Premium korisnici */}
+                {/* Pro Premium korisnici */}
                 <div className="bg-card border border-border rounded-2xl p-4">
                   <div className="flex items-center gap-2 mb-4">
                     <Crown className="h-4 w-4 text-amber-500" />
-                    <h3 className="font-semibold text-sm">Creator Premium korisnici ({creditsStats.premiumCount})</h3>
+                    <h3 className="font-semibold text-sm">Pro Premium korisnici ({creditsStats.premiumCount})</h3>
                   </div>
                   {creditsStats.premiumUsers.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-6">Nema Premium korisnika</p>
