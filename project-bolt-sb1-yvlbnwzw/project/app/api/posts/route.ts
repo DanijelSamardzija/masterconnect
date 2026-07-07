@@ -162,7 +162,7 @@ export async function GET(request: NextRequest) {
         .select(`
           id, user_id, text, post_type, created_at, updated_at, is_pinned, pinned_at,
           status, spam_score, rank_penalty, phone_count, link_count, hashtag_count,
-          city, category, hashtags, views_count, reactions_count, comments_count,
+          city, category, hashtags, views_count,
           profiles!inner(name, email, account_type, avatar_url)
         `)
         .eq('is_promoted', true)
@@ -170,7 +170,28 @@ export async function GET(request: NextRequest) {
         .eq('status', 'published');
       promotedPostsData = promoted || [];
       promotedQueryError = promotedError?.message || null;
-      console.log('[Promoted] query error:', promotedError?.message, 'count:', promotedPostsData.length, 'ids:', promotedPostsData.map(p => p.id));
+
+      // Fetch reactions/comments counts separately (not columns on posts table)
+      if (promotedPostsData.length > 0) {
+        const promotedIds = promotedPostsData.map(p => p.id);
+        const { data: reactionsData } = await serviceSupabase
+          .from('post_reactions')
+          .select('post_id')
+          .in('post_id', promotedIds);
+        const { data: commentsData } = await serviceSupabase
+          .from('post_comments')
+          .select('post_id')
+          .in('post_id', promotedIds);
+        const reactionsCount: Record<string, number> = {};
+        const commentsCount: Record<string, number> = {};
+        for (const r of (reactionsData || [])) reactionsCount[r.post_id] = (reactionsCount[r.post_id] || 0) + 1;
+        for (const c of (commentsData || [])) commentsCount[c.post_id] = (commentsCount[c.post_id] || 0) + 1;
+        promotedPostsData = promotedPostsData.map(p => ({
+          ...p,
+          reactions_count: reactionsCount[p.id] || 0,
+          comments_count: commentsCount[p.id] || 0,
+        }));
+      }
     }
 
     const allPostIds = [
@@ -334,7 +355,6 @@ export async function GET(request: NextRequest) {
       });
 
       const allPromoted = [...promotedFromOrganic, ...promotedFromSeparate];
-      console.log('[Promoted] fromOrganic:', promotedFromOrganic.length, 'fromSeparate:', promotedFromSeparate.length, 'allPromoted:', allPromoted.length);
       if (allPromoted.length > 0) {
         const allPromotedIds = new Set(allPromoted.map(p => p.id));
         const organic = combined.filter(p => !allPromotedIds.has(p.id));
