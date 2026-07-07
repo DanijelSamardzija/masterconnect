@@ -397,7 +397,10 @@ function FeedContent() {
 
         setPosts(finalPosts);
       } else {
-        setPosts(prev => [...prev, ...postsWithData]);
+        setPosts(prev => {
+          const existingIds = new Set(prev.map(p => p.id));
+          return [...prev, ...postsWithData.filter((p: any) => !existingIds.has(p.id))];
+        });
       }
       setOffset(nextOffset);
     } catch (error: any) {

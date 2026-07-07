@@ -150,9 +150,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch promoted posts separately using service role to bypass RLS
+    // Always fetch so we can filter them from organic on all pages
     let promotedPostsData: any[] = [];
     let promotedQueryError: string | null = null;
-    if (offset === 0) {
+    {
       const serviceSupabase = createSupabaseClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -284,17 +285,17 @@ export async function GET(request: NextRequest) {
       if (a.media.length === 0 && b.media.length > 0) return 1;
       return 0;
     });
-    const combined = [...postsWithMedia];
+    // Always remove promoted posts from organic to prevent duplicates on scroll
+    const promotedIds = new Set(promotedPostsData.map((p: any) => p.id));
+    const combined = postsWithMedia.filter(p => !promotedIds.has(p.id) || p.is_promoted === false);
 
-    // Inject promoted posts at position 2 on first page
-    // Use is_promoted from organic combined (sourced from RPC which bypasses RLS)
-    // supplemented by any separately fetched promoted posts not in top N
+    // Inject promoted posts at position 2 on first page only
     let postsWithMediaSorted = combined;
     if (offset === 0) {
-      const promotedFromOrganic = combined.filter(p => p.is_promoted);
+      const promotedFromOrganic = postsWithMedia.filter(p => p.is_promoted);
       const promotedFromSeparate = promotedPostsData.filter(
         p => !p.user_id.startsWith('b1000000-') && !p.user_id.startsWith('aaaaaaaa-') &&
-             !combined.some(c => c.id === p.id)
+             !postsWithMedia.some((c: any) => c.id === p.id)
       ).map(p => {
         const prof: any = p.profiles;
         return {
@@ -334,8 +335,8 @@ export async function GET(request: NextRequest) {
 
       const allPromoted = [...promotedFromOrganic, ...promotedFromSeparate];
       if (allPromoted.length > 0) {
-        const promotedIds = new Set(allPromoted.map(p => p.id));
-        const organic = combined.filter(p => !promotedIds.has(p.id));
+        const allPromotedIds = new Set(allPromoted.map(p => p.id));
+        const organic = combined.filter(p => !allPromotedIds.has(p.id));
         postsWithMediaSorted = [
           ...organic.slice(0, 1),
           ...allPromoted,
