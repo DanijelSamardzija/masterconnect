@@ -272,12 +272,12 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
           <div className="grid grid-cols-1 lg:grid-cols-[45%_55%] gap-8">
             {/* LEFT COLUMN - Image gallery */}
             <div className="w-full max-w-[480px] mx-auto lg:mx-0">
-              <div className="relative bg-gray-200 dark:bg-gray-800 rounded-xl overflow-hidden aspect-square w-full">
+              <div className="relative bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden aspect-square w-full">
                 {images.length > 0 ? (
                   <img
                     src={images[selectedImageIndex].url}
                     alt={`${service.job_title} - ${selectedImageIndex + 1}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                   />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100 dark:from-gray-800 dark:to-gray-700 gap-3">
