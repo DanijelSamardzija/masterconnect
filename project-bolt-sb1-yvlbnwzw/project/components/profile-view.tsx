@@ -60,6 +60,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { FollowButton } from '@/components/follow-button';
 import { FollowListSheet } from '@/components/follow-list-sheet';
+import { SupportModal } from '@/components/support-modal';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -475,6 +476,7 @@ export function ProfileView({
   const [boostingPostId, setBoostingPostId] = useState<string | null>(null);
   const [boostModal, setBoostModal] = useState<{ postId: string; isListing: boolean } | null>(null);
   const [boostBalance, setBoostBalance] = useState<number | null>(null);
+  const [supportModalOpen, setSupportModalOpen] = useState(false);
 
   useEffect(() => {
     if (tabsScrollRef.current) {
@@ -1191,9 +1193,19 @@ export function ProfileView({
 
         {/* PRO Premium badge */}
         {(profile as any).is_pro && (
-          <div className="mt-3 flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500/10 to-amber-500/5 border border-orange-400/30 px-3 py-2">
-            <span className="text-base leading-none">🔶</span>
-            <span className="text-xs font-semibold text-orange-600 dark:text-orange-400">{t('credits.creatorPremiumBadge')}</span>
+          <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-gradient-to-r from-orange-500/10 to-amber-500/5 border border-orange-400/30 px-3 py-2">
+            <div className="flex items-center gap-2">
+              <span className="text-base leading-none">🔶</span>
+              <span className="text-xs font-semibold text-orange-600 dark:text-orange-400">{t('credits.creatorPremiumBadge')}</span>
+            </div>
+            {!isOwnProfile && (
+              <button
+                onClick={() => setSupportModalOpen(true)}
+                className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-orange-500 hover:bg-orange-600 text-white transition-all shrink-0"
+              >
+                🧡 {t('credits.support.button')}
+              </button>
+            )}
           </div>
         )}
 
@@ -2326,6 +2338,14 @@ export function ProfileView({
         balance={boostBalance}
         loading={!!boostingPostId}
         t={t}
+      />
+
+      <SupportModal
+        open={supportModalOpen}
+        onOpenChange={setSupportModalOpen}
+        targetUserId={profile.id}
+        targetUserName={profile.name}
+        targetIsCreatorPremium={(profile as any).is_pro ?? false}
       />
     </div>
   );
