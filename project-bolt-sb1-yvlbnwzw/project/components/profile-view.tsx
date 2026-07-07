@@ -408,9 +408,7 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
                 { key: 'boostFeed', amount: '75', noteKey: 'boostFeedNote' },
                 { key: 'boostListing', amount: '140', noteKey: 'boostListingNote' },
                 { key: 'creatorPremium', amount: '200', noteKey: 'creatorPremiumNote' },
-                { key: 'supportSmall', amount: '5', noteKey: 'perSupport' },
-                { key: 'supportMedium', amount: '10', noteKey: 'perSupport' },
-                { key: 'supportLarge', amount: '20', noteKey: 'perSupport' },
+                { key: 'support', amount: '1+', noteKey: 'supportNote' },
               ] as { key: string; amount: string; noteKey: string }[]).map((item) => (
                 <div key={item.key} className="flex items-center justify-between rounded-lg bg-orange-500/8 px-3 py-1.5">
                   <div>
