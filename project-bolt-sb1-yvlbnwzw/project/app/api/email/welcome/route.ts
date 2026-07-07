@@ -17,7 +17,8 @@ function getContent(isPro: boolean, lang: 'sr' | 'de' | 'en', firstName: string)
            <li>📱 <strong>Feed</strong> — Podeli slike svojih radova i projekata. Gradi reputaciju i privuci klijente organskim putem.</li>
            <li>🖼️ <strong>Dodaj profilnu sliku</strong> — Profili sa slikom dobijaju 3× više pažnje.</li>`
         : `<li>🔍 <strong>Stranica Poslovi → Tražim uslugu</strong> — Objavi šta ti treba i čekaj ponude majstora.<br/><span style="color:#888;font-size:13px">Npr. "Trebam molera za stan 60m², Novi Sad"</span></li>
-           <li>💼 <strong>Stranica Poslovi → Tražim posao</strong> — Traži posao ili objavi da tražiš radnika.<br/><span style="color:#888;font-size:13px">Npr. "Tražim konobara za restoran, Beograd"</span></li>
+           <li>💼 <strong>Stranica Poslovi → Tražim posao</strong> — Oglasi se ako tražiš posao za sebe.<br/><span style="color:#888;font-size:13px">Npr. "Tražim posao konobara, Beograd"</span></li>
+           <li>👷 <strong>Stranica Poslovi → Tražim radnika</strong> — Trebaš nekoga za posao? Objavi oglas i čekaj prijave.<br/><span style="color:#888;font-size:13px">Npr. "Tražim konobara za restoran, Beograd"</span></li>
            <li>🛠️ <strong>Stranica Usluge</strong> — Pregledaj profesionalce, čitaj recenzije i kontaktiraj direktno.</li>
            <li>📱 <strong>Feed</strong> — Objavljuj projekte, pitaj za savete, prati profesionalce.</li>
            <li>🖼️ <strong>Dodaj profilnu sliku</strong> — Profili sa slikom dobijaju 3× više pažnje.</li>`,
@@ -39,7 +40,8 @@ function getContent(isPro: boolean, lang: 'sr' | 'de' | 'en', firstName: string)
            <li>📱 <strong>Feed</strong> — Teile Fotos deiner Projekte. Baue deinen Ruf auf und gewinne Kunden.</li>
            <li>🖼️ <strong>Profilbild hinzufügen</strong> — Profile mit Foto erhalten 3× mehr Aufmerksamkeit.</li>`
         : `<li>🔍 <strong>Jobs → Dienstleistung suchen</strong> — Beschreibe, was du brauchst, und warte auf Angebote.<br/><span style="color:#888;font-size:13px">Bsp. "Suche Maler für 60m² Wohnung, Wien"</span></li>
-           <li>💼 <strong>Jobs → Arbeit suchen</strong> — Suche einen Job oder stelle einen Mitarbeiter ein.<br/><span style="color:#888;font-size:13px">Bsp. "Suche Kellner für Restaurant, Berlin"</span></li>
+           <li>💼 <strong>Jobs → Arbeit suchen</strong> — Melde dich, wenn du eine Stelle für dich suchst.<br/><span style="color:#888;font-size:13px">Bsp. "Suche Kellnerstelle, Berlin"</span></li>
+           <li>👷 <strong>Jobs → Mitarbeiter suchen</strong> — Brauchst du jemanden für eine Stelle? Schalte eine Anzeige.<br/><span style="color:#888;font-size:13px">Bsp. "Suche Kellner für Restaurant, Berlin"</span></li>
            <li>🛠️ <strong>Seite Dienstleistungen</strong> — Durchsuche Profile, lies Bewertungen und kontaktiere direkt.</li>
            <li>📱 <strong>Feed</strong> — Teile Projekte, frage um Rat, folge Profis.</li>
            <li>🖼️ <strong>Profilbild hinzufügen</strong> — Profile mit Foto erhalten 3× mehr Aufmerksamkeit.</li>`,
@@ -60,7 +62,8 @@ function getContent(isPro: boolean, lang: 'sr' | 'de' | 'en', firstName: string)
          <li>📱 <strong>Feed</strong> — Share photos of your work and projects. Build your reputation and attract clients.</li>
          <li>🖼️ <strong>Add a profile photo</strong> — Profiles with photos get 3× more attention.</li>`
       : `<li>🔍 <strong>Jobs → Looking for a service</strong> — Post what you need and wait for offers from professionals.<br/><span style="color:#888;font-size:13px">E.g. "Need a painter for 60m² apartment, Novi Sad"</span></li>
-         <li>💼 <strong>Jobs → Looking for work</strong> — Search for a job or post that you're looking for an employee.<br/><span style="color:#888;font-size:13px">E.g. "Looking for a waiter for restaurant, Belgrade"</span></li>
+         <li>💼 <strong>Jobs → Looking for work</strong> — Post that you're looking for a job for yourself.<br/><span style="color:#888;font-size:13px">E.g. "Looking for waiter position, Belgrade"</span></li>
+         <li>👷 <strong>Jobs → Hiring</strong> — Need someone for a role? Post a listing and wait for applications.<br/><span style="color:#888;font-size:13px">E.g. "Looking for a waiter for restaurant, Belgrade"</span></li>
          <li>🛠️ <strong>Services page</strong> — Browse professionals, read reviews and contact them directly.</li>
          <li>📱 <strong>Feed</strong> — Share projects, ask for advice, follow professionals.</li>
          <li>🖼️ <strong>Add a profile photo</strong> — Profiles with photos get 3× more attention.</li>`,
@@ -85,14 +88,14 @@ export async function POST(request: NextRequest) {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('name, email, account_type, country')
+      .select('name, email, account_type, is_pro, country')
       .eq('id', userId)
       .single();
 
     if (!profile?.email) return NextResponse.json({ ok: true });
 
     const firstName = profile.name?.split(' ')[0] || profile.name || 'there';
-    const isPro = profile.account_type === 'professional';
+    const isPro = profile.is_pro || profile.account_type === 'professional';
 
     let lang: 'sr' | 'de' | 'en' = 'en';
     if (BALKAN_COUNTRIES.includes(profile.country)) lang = 'sr';
