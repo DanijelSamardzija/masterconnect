@@ -21,6 +21,7 @@ type ProfileHeaderProps = {
   category?: string | null;
   bio?: string | null;
   accountType: 'professional' | 'customer';
+  isPro?: boolean;
   skills?: string[] | null;
   averageRating?: number | null;
   reviewCount?: number;
@@ -49,6 +50,7 @@ export function ProfileHeader({
   category,
   bio,
   accountType,
+  isPro: isProOverride,
   skills,
   averageRating,
   reviewCount,
@@ -62,7 +64,7 @@ export function ProfileHeader({
   isLoggedIn = true,
 }: ProfileHeaderProps) {
   const { t } = useLanguage();
-  const isPro = accountType === 'professional';
+  const isPro = isProOverride !== undefined ? isProOverride : accountType === 'professional';
 
   return (
     <div className="rounded-2xl overflow-hidden shadow-sm border border-border bg-card">

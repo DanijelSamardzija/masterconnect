@@ -53,8 +53,10 @@ export function computeSpamScore(
   postText: string,
   user: UserProfile,
   postingStats: PostingStats,
-  isDuplicate: boolean
+  isDuplicate: boolean,
+  postType?: string
 ): SpamAnalysis {
+  const isBusinessListing = postType === 'service_listing' || postType === 'job_post';
   const normalized = normalizeText(postText);
   const link_count = countLinks(postText);
   const phone_count = countPhones(postText);
@@ -111,7 +113,8 @@ export function computeSpamScore(
   let new_account_penalty = 0;
   const accountAge = Date.now() - new Date(user.created_at).getTime();
   const daysOld = accountAge / (1000 * 60 * 60 * 24);
-  if (daysOld < ANTI_SPAM_CONFIG.THRESHOLDS.NEW_ACCOUNT_DAYS) {
+  // Business listings: new firms legitimately create accounts to post services/jobs
+  if (!isBusinessListing && daysOld < ANTI_SPAM_CONFIG.THRESHOLDS.NEW_ACCOUNT_DAYS) {
     new_account_penalty = ANTI_SPAM_CONFIG.PENALTIES.NEW_ACCOUNT;
   }
   score += new_account_penalty;
@@ -146,9 +149,17 @@ export function computeSpamScore(
     score = Math.max(score, 60);
   }
 
-  if (phone_count >= ANTI_SPAM_CONFIG.THRESHOLDS.AUTO_SHADOW_HIDDEN_PHONES) {
+  // Business listings may legitimately list multiple contact numbers
+  const autoLimitedPhonesThreshold = isBusinessListing
+    ? ANTI_SPAM_CONFIG.THRESHOLDS.AUTO_SHADOW_LIMITED_PHONES + 2
+    : ANTI_SPAM_CONFIG.THRESHOLDS.AUTO_SHADOW_LIMITED_PHONES;
+  const autoHiddenPhonesThreshold = isBusinessListing
+    ? ANTI_SPAM_CONFIG.THRESHOLDS.AUTO_SHADOW_HIDDEN_PHONES + 2
+    : ANTI_SPAM_CONFIG.THRESHOLDS.AUTO_SHADOW_HIDDEN_PHONES;
+
+  if (phone_count >= autoHiddenPhonesThreshold) {
     score = Math.max(score, 80);
-  } else if (phone_count >= ANTI_SPAM_CONFIG.THRESHOLDS.AUTO_SHADOW_LIMITED_PHONES) {
+  } else if (phone_count >= autoLimitedPhonesThreshold) {
     score = Math.max(score, 60);
   }
 

@@ -742,11 +742,11 @@ export async function POST(request: NextRequest) {
 
     const existingHashes = new Set((existingPostsWithHash || []).map(p => p.duplicate_hash));
 
-    const spamAnalysis = computeSpamScore(combinedText, userProfileData, postingStats, false);
+    const spamAnalysis = computeSpamScore(combinedText, userProfileData, postingStats, false, post_type);
 
     const isDuplicate = existingHashes.has(spamAnalysis.duplicate_hash);
     if (isDuplicate) {
-      const updatedAnalysis = computeSpamScore(combinedText, userProfileData, postingStats, true);
+      const updatedAnalysis = computeSpamScore(combinedText, userProfileData, postingStats, true, post_type);
       spamAnalysis.spam_score = updatedAnalysis.spam_score;
       spamAnalysis.status = updatedAnalysis.status;
       spamAnalysis.rank_penalty = updatedAnalysis.rank_penalty;

@@ -23,8 +23,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Briefcase, Users, UserCircle, MessageCircle, Plus, MoreVertical, Trash2, Send, X, Bookmark, Share2, MapPin, Star, Clock, Sparkles, Zap, Loader2 as Loader } from 'lucide-react';
+import { Briefcase, Users, UserCircle, MessageCircle, Plus, MoreVertical, Trash2, Send, X, Bookmark, Share2, MapPin, Star, Clock, Sparkles, Zap, Loader2 as Loader, Search, Wrench } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -951,6 +957,8 @@ function JobsMarketplaceContent() {
   const [activeTab, setActiveTab] = useState('hiring');
   const [contactingPostId, setContactingPostId] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showTypePicker, setShowTypePicker] = useState(false);
+  const [selectedJobType, setSelectedJobType] = useState<'service_request' | 'job_seeker_post' | 'hiring_post' | null>(null);
   const [deleteConfirmPostId, setDeleteConfirmPostId] = useState<string | null>(null);
   const [boostingJobId, setBoostingJobId] = useState<string | null>(null);
   const [cityFilter, setCityFilter] = useState('');
@@ -1398,7 +1406,7 @@ function JobsMarketplaceContent() {
           {profile && (
             <Button
               className="bg-orange-600 hover:bg-orange-500 dark:bg-orange-600 dark:hover:bg-orange-500 text-white shadow-lg transition-colors rounded-xl"
-              onClick={() => setShowCreateModal(true)}
+              onClick={() => setShowTypePicker(true)}
             >
               <Plus className="h-4 w-4 mr-2" />
               {t('jobs.createPost')}
@@ -1406,11 +1414,59 @@ function JobsMarketplaceContent() {
           )}
         </div>
 
+        <Dialog open={showTypePicker} onOpenChange={setShowTypePicker}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Šta želiš da objaviš?</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 pt-2">
+              {[
+                {
+                  type: 'service_request' as const,
+                  icon: <Search className="h-5 w-5 text-orange-400" />,
+                  title: 'Tražim uslugu',
+                  desc: 'Potrebna ti je neka usluga? Objavi zahtev i čekaj ponude.',
+                },
+                {
+                  type: 'job_seeker_post' as const,
+                  icon: <UserCircle className="h-5 w-5 text-orange-400" />,
+                  title: 'Tražim posao',
+                  desc: 'Tražiš zaposlenje? Objavi oglas i neka te poslodavci nađu.',
+                },
+                {
+                  type: 'hiring_post' as const,
+                  icon: <Briefcase className="h-5 w-5 text-orange-400" />,
+                  title: 'Tražim radnika',
+                  desc: 'Zapošljavaš nekoga? Objavi oglas za posao.',
+                },
+              ].map(({ type, icon, title, desc }) => (
+                <button
+                  key={type}
+                  onClick={() => {
+                    setSelectedJobType(type);
+                    setShowTypePicker(false);
+                    setShowCreateModal(true);
+                  }}
+                  className="w-full flex items-start gap-4 p-4 rounded-xl border border-border hover:border-orange-500 hover:bg-orange-500/5 transition-all text-left"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center flex-shrink-0">
+                    {icon}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground text-sm">{title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
+
         <CreateMarketplacePostModal
           open={showCreateModal}
-          onOpenChange={setShowCreateModal}
+          onOpenChange={(open) => { setShowCreateModal(open); if (!open) setSelectedJobType(null); }}
           onPostCreated={loadPosts}
-          initialPostType={profile?.account_type === 'professional' ? 'hiring_post' : undefined}
+          initialPostType={selectedJobType || undefined}
           allowedTypes={['hiring_post', 'job_seeker_post', 'service_request']}
         />
 

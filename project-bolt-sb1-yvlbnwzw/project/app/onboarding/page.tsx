@@ -6,14 +6,13 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { UserCircle, Wrench, ArrowRight, Loader2, MapPin } from 'lucide-react';
+import { ArrowRight, Loader2, MapPin } from 'lucide-react';
 import { CityAutocomplete } from '@/components/city-autocomplete';
 import { trackEvent } from '@/lib/analytics';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { resumeAfterAuth } from '@/lib/guest-intent';
 
 type Step = 1 | 2;
-type UserRole = 'customer' | 'professional';
 
 export default function OnboardingPage() {
   const { user, loading, refreshProfile } = useAuth();
@@ -24,7 +23,6 @@ export default function OnboardingPage() {
   const [name, setName] = useState('');
   const [hasGoogleName, setHasGoogleName] = useState(false);
   const [city, setCity] = useState('');
-  const [role, setRole] = useState<UserRole | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -62,16 +60,16 @@ export default function OnboardingPage() {
     setStep(2);
   };
 
-  const handleFinish = async (selectedRole: UserRole) => {
+  const handleFinish = async () => {
     if (!city.trim()) {
       setError(t('onboarding.cityError'));
       return;
     }
     setSaving(true);
     setError('');
-    trackEvent('onboarding_step_2_completed', { role: selectedRole });
+    trackEvent('onboarding_step_2_completed', { role: 'customer' });
     try {
-      await supabase.auth.updateUser({ data: { full_name: name, account_type: selectedRole } });
+      await supabase.auth.updateUser({ data: { full_name: name, account_type: 'customer' } });
 
       const signupSource = localStorage.getItem('signup_source') || 'direct';
       localStorage.removeItem('signup_source');
@@ -86,7 +84,7 @@ export default function OnboardingPage() {
         .from('profiles')
         .update({
           name: name.trim(),
-          account_type: selectedRole,
+          account_type: 'customer',
           signup_source: signupSource,
           onboarding_completed: true,
           city: city.trim(),
@@ -96,7 +94,7 @@ export default function OnboardingPage() {
 
       if (profileError) throw profileError;
 
-      trackEvent('onboarding_complete', { role: selectedRole });
+      trackEvent('onboarding_complete', { role: 'customer' });
       trackEvent('register_success', { source: 'google' });
       fetch('/api/email/welcome', {
         method: 'POST',
@@ -186,47 +184,15 @@ export default function OnboardingPage() {
               className="mb-6 [&_input]:h-14 [&_input]:text-base [&_input]:bg-white/5 [&_input]:border-white/10 [&_input]:text-white [&_input]:placeholder:text-slate-500 [&_input]:rounded-xl [&_input]:focus-visible:ring-orange-500"
             />
 
-            <p className="text-slate-400 text-sm mb-4">{t('onboarding.roleTitle')}</p>
-
             {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
 
-            <div className="space-y-3">
-              <button
-                onClick={() => !saving && handleFinish('customer')}
-                disabled={saving}
-                className="w-full flex items-center gap-4 p-5 rounded-2xl border-2 border-white/10 hover:border-orange-500 hover:bg-orange-500/5 transition-all text-left group disabled:opacity-50"
-              >
-                <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-orange-500/20 transition-colors">
-                  {saving && role === 'customer' ? (
-                    <Loader2 className="h-6 w-6 text-orange-400 animate-spin" />
-                  ) : (
-                    <UserCircle className="h-6 w-6 text-orange-400" />
-                  )}
-                </div>
-                <div>
-                  <p className="text-white font-bold text-base">Klijent</p>
-                  <p className="text-slate-400 text-sm">Tražim usluge i majstore</p>
-                </div>
-              </button>
-
-              <button
-                onClick={() => !saving && handleFinish('professional')}
-                disabled={saving}
-                className="w-full flex items-center gap-4 p-5 rounded-2xl border-2 border-white/10 hover:border-orange-500 hover:bg-orange-500/5 transition-all text-left group disabled:opacity-50"
-              >
-                <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-orange-500/20 transition-colors">
-                  {saving && role === 'professional' ? (
-                    <Loader2 className="h-6 w-6 text-orange-400 animate-spin" />
-                  ) : (
-                    <Wrench className="h-6 w-6 text-orange-400" />
-                  )}
-                </div>
-                <div>
-                  <p className="text-white font-bold text-base">Profesionalac</p>
-                  <p className="text-slate-400 text-sm">Nudim usluge i tražim posao</p>
-                </div>
-              </button>
-            </div>
+            <Button
+              onClick={handleFinish}
+              disabled={saving}
+              className="w-full h-14 text-base font-bold bg-orange-600 hover:bg-orange-500 rounded-2xl shadow-lg shadow-orange-600/30 disabled:opacity-50"
+            >
+              {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <>Nastavi <ArrowRight className="ml-2 h-5 w-5" /></>}
+            </Button>
 
             {!hasGoogleName && (
               <button

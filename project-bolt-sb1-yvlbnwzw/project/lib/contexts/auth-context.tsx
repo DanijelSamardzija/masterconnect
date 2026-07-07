@@ -12,6 +12,7 @@ type Profile = {
   name: string;
   email: string;
   account_type: 'professional' | 'customer';
+  is_pro?: boolean;
   is_admin: boolean;
   is_banned?: boolean;
   created_at: string;

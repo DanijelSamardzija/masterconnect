@@ -32,10 +32,7 @@ type MarketplacePostModalProps = {
 export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, initialPostType, allowedTypes }: MarketplacePostModalProps) {
   const { user, profile } = useAuth();
   const { t } = useLanguage();
-  const isCustomer = profile?.account_type === 'customer';
-  const isProfessional = profile?.account_type === 'professional';
-
-  const defaultPostType = initialPostType || (isCustomer ? 'service_request' : 'service_listing');
+  const defaultPostType = initialPostType || (allowedTypes?.[0]) || 'service_listing';
   const [postType, setPostType] = useState<'service_request' | 'job_seeker_post' | 'hiring_post' | 'portfolio_post' | 'service_listing'>(defaultPostType);
   const [text, setText] = useState('');
   const [title, setTitle] = useState('');
@@ -252,19 +249,17 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
       return;
     }
 
-    if (isProfessional) {
-      if (postType === 'portfolio_post') {
-        const { count } = await supabase
-          .from('posts')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .eq('post_type', 'portfolio_post')
-          .eq('is_active', true);
+    if (postType === 'portfolio_post') {
+      const { count } = await supabase
+        .from('posts')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('post_type', 'portfolio_post')
+        .eq('is_active', true);
 
-        if (count && count >= 1) {
-          toast.error(t('marketplace.portfolioLimitReached'));
-          return;
-        }
+      if (count && count >= 1) {
+        toast.error(t('marketplace.portfolioLimitReached'));
+        return;
       }
 
       if (postType === 'service_listing') {
@@ -529,31 +524,20 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
                 <SelectValue />
               </SelectTrigger>
               <SelectContent side="bottom" align="start" sideOffset={4}>
-                {isCustomer && (
-                  <>
-                    {(!allowedTypes || allowedTypes.includes('service_request')) && (
-                      <SelectItem value="service_request">{t('marketplace.serviceRequest')}</SelectItem>
-                    )}
-                    {(!allowedTypes || allowedTypes.includes('job_seeker_post')) && (
-                      <SelectItem value="job_seeker_post">{t('marketplace.jobSeekerPost')}</SelectItem>
-                    )}
-                  </>
+                {(!allowedTypes || allowedTypes.includes('service_listing')) && (
+                  <SelectItem value="service_listing">{t('marketplace.serviceListing')}</SelectItem>
                 )}
-                {isProfessional && (
-                  <>
-                    {(!allowedTypes || allowedTypes.includes('service_listing')) && (
-                      <SelectItem value="service_listing">{t('marketplace.serviceListing')}</SelectItem>
-                    )}
-                    {(!allowedTypes || allowedTypes.includes('hiring_post')) && (
-                      <SelectItem value="hiring_post">{t('marketplace.hiringPost')}</SelectItem>
-                    )}
-                    {(!allowedTypes || allowedTypes.includes('portfolio_post')) && (
-                      <SelectItem value="portfolio_post">{t('marketplace.portfolioPost')}</SelectItem>
-                    )}
-                    {(!allowedTypes || allowedTypes.includes('service_request')) && (
-                      <SelectItem value="service_request">{t('marketplace.serviceRequest')}</SelectItem>
-                    )}
-                  </>
+                {(!allowedTypes || allowedTypes.includes('hiring_post')) && (
+                  <SelectItem value="hiring_post">{t('marketplace.hiringPost')}</SelectItem>
+                )}
+                {(!allowedTypes || allowedTypes.includes('job_seeker_post')) && (
+                  <SelectItem value="job_seeker_post">{t('marketplace.jobSeekerPost')}</SelectItem>
+                )}
+                {(!allowedTypes || allowedTypes.includes('service_request')) && (
+                  <SelectItem value="service_request">{t('marketplace.serviceRequest')}</SelectItem>
+                )}
+                {(!allowedTypes || allowedTypes.includes('portfolio_post')) && (
+                  <SelectItem value="portfolio_post">{t('marketplace.portfolioPost')}</SelectItem>
                 )}
               </SelectContent>
             </Select>
@@ -564,7 +548,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
               🔍 <strong>Tražim uslugu</strong> — objavi šta ti treba (npr. "Trebam molera za stan 60m²") i čekaj ponude od profesionalaca.
             </p>
           )}
-          {isCustomer && postType === 'job_seeker_post' && (
+          {postType === 'job_seeker_post' && (
             <p className="text-xs text-muted-foreground bg-muted/50 border border-border rounded-lg px-3 py-2">
               👤 <strong>{t('marketplace.jobSeekerPost')}</strong> — {t('marketplace.jobSeekerHint')}
             </p>

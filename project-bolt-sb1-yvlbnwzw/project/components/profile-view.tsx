@@ -499,7 +499,7 @@ export function ProfileView({
       fetchServicePosts();
       fetchFollowCounts();
       if (isOwnProfile) fetchSavedPosts();
-      if (profile.account_type === 'professional') {
+      if (profile.account_type === 'professional' || profile.is_pro) {
         fetchReviews();
       }
     }
@@ -1145,13 +1145,14 @@ export function ProfileView({
           category={profile.category}
           bio={profile.bio}
           accountType={profile.account_type}
+          isPro={profile.is_pro}
           skills={profile.skills}
           averageRating={
-            profile.account_type === 'professional'
+            (profile.account_type === 'professional' || profile.is_pro)
               ? profile.average_rating || (averageRating ? parseFloat(averageRating) : null)
               : null
           }
-          reviewCount={profile.account_type === 'professional' ? profile.review_count || reviews.length : 0}
+          reviewCount={(profile.account_type === 'professional' || profile.is_pro) ? profile.review_count || reviews.length : 0}
           viewerAccountType={profile.account_type}
           postsCount={postsCount}
           followersCount={followersCount}
@@ -1595,7 +1596,7 @@ export function ProfileView({
             )}
           </TabsContent>
 
-          {profile.account_type === 'professional' && (
+          {(profile.account_type === 'professional' || profile.is_pro) && (
             <>
               <TabsContent value="services">
                 {servicePosts.length === 0 ? (
