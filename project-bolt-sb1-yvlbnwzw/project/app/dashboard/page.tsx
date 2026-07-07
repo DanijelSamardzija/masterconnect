@@ -294,13 +294,11 @@ function DashboardContent() {
             <h1 className="text-xl font-bold text-foreground truncate">
               {t('dashboard.greeting')} {profile.name.split(' ')[0]}
             </h1>
-            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-              isPro
-                ? 'bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-400'
-                : 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400'
-            }`}>
-              {isPro ? t('dashboard.badgeProfessional') : t('dashboard.badgeCustomer')}
-            </span>
+            {isPro && (
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-400">
+                {t('dashboard.badgeProfessional')}
+              </span>
+            )}
           </div>
           <button
             onClick={handleOpenNotifications}
