@@ -170,6 +170,7 @@ export async function GET(request: NextRequest) {
         .eq('status', 'published');
       promotedPostsData = promoted || [];
       promotedQueryError = promotedError?.message || null;
+      console.log('[Promoted] query error:', promotedError?.message, 'count:', promotedPostsData.length, 'ids:', promotedPostsData.map(p => p.id));
     }
 
     const allPostIds = [
@@ -333,6 +334,7 @@ export async function GET(request: NextRequest) {
       });
 
       const allPromoted = [...promotedFromOrganic, ...promotedFromSeparate];
+      console.log('[Promoted] fromOrganic:', promotedFromOrganic.length, 'fromSeparate:', promotedFromSeparate.length, 'allPromoted:', allPromoted.length);
       if (allPromoted.length > 0) {
         const allPromotedIds = new Set(allPromoted.map(p => p.id));
         const organic = combined.filter(p => !allPromotedIds.has(p.id));
