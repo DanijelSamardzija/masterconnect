@@ -339,36 +339,6 @@ function EditProfileContent() {
               </div>
 
               <div className="space-y-2">
-                <Label>{t('login.accountTypeLabel')}</Label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setAccountType('customer')}
-                    disabled={saving}
-                    className={`p-3 rounded-xl border-2 text-sm font-medium transition-colors ${
-                      accountType === 'customer'
-                        ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600'
-                        : 'border-border bg-background text-muted-foreground hover:bg-accent'
-                    }`}
-                  >
-                    {t('login.customerLabel')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAccountType('professional')}
-                    disabled={saving}
-                    className={`p-3 rounded-xl border-2 text-sm font-medium transition-colors ${
-                      accountType === 'professional'
-                        ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600'
-                        : 'border-border bg-background text-muted-foreground hover:bg-accent'
-                    }`}
-                  >
-                    {t('login.professionalLabel')}
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="phone">{t('profile.editPhone')}</Label>
                 <Input
                   id="phone"
