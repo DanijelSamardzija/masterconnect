@@ -172,7 +172,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(currentSession.user);
           setSession(currentSession);
           setCachedData('session', { userId: currentSession.user.id });
-          await fetchProfile(currentSession.user.id);
+          const found = await fetchProfile(currentSession.user.id);
+          // Trigger may not have run yet for brand-new users — retry once after a short delay
+          if (!found) {
+            await new Promise(r => setTimeout(r, 1500));
+            if (mounted) await fetchProfile(currentSession.user.id, true);
+          }
           startTokenRefreshManager();
         } else {
           console.log('[AuthContext] No session found');

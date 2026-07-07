@@ -261,7 +261,16 @@ function DashboardContent() {
     setJobs((prev) => prev.filter((j) => j.id !== jobId));
   };
 
-  if (!profile) return null;
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500" />
+          <p className="text-sm text-muted-foreground">Učitavamo vaš profil...</p>
+        </div>
+      </div>
+    );
+  }
 
   const isPro = profile.is_pro === true;
 
