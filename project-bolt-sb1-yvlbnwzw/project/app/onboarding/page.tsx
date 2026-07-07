@@ -61,10 +61,6 @@ export default function OnboardingPage() {
   };
 
   const handleFinish = async () => {
-    if (!city.trim()) {
-      setError(t('onboarding.cityError'));
-      return;
-    }
     setSaving(true);
     setError('');
     trackEvent('onboarding_step_2_completed', { role: 'customer' });
@@ -181,8 +177,9 @@ export default function OnboardingPage() {
               value={city}
               onChange={(val) => { setCity(val); setError(''); }}
               placeholder={t('onboarding.cityPlaceholder')}
-              className="mb-6 [&_input]:h-14 [&_input]:text-base [&_input]:bg-white/5 [&_input]:border-white/10 [&_input]:text-white [&_input]:placeholder:text-slate-500 [&_input]:rounded-xl [&_input]:focus-visible:ring-orange-500"
+              className="mb-1 [&_input]:h-14 [&_input]:text-base [&_input]:bg-white/5 [&_input]:border-white/10 [&_input]:text-white [&_input]:placeholder:text-slate-500 [&_input]:rounded-xl [&_input]:focus-visible:ring-orange-500"
             />
+            <p className="text-slate-500 text-xs mb-5">Opciono — možeš dodati kasnije iz profila</p>
 
             {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
 

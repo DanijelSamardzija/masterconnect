@@ -15,6 +15,7 @@ type Profile = {
   is_pro?: boolean;
   is_admin: boolean;
   is_banned?: boolean;
+  onboarding_completed?: boolean;
   created_at: string;
   city?: string;
   category?: string;
