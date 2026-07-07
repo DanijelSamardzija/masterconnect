@@ -645,7 +645,7 @@ function AdminContent() {
       const [txRes, balanceRes, premiumRes, recentRes, referralsRes] = await Promise.all([
         supabase.from('credit_transactions').select('amount, description, created_at').gte('created_at', thirtyDaysAgo),
         supabase.from('credits_balance').select('balance'),
-        supabase.from('profiles').select('id, name, avatar_url, is_creator_premium').eq('is_creator_premium', true),
+        supabase.from('profiles').select('id, name, avatar_url, is_pro').eq('is_pro', true),
         supabase.from('credit_transactions')
           .select('user_id, amount, description, created_at, profiles!credit_transactions_user_id_fkey(name, avatar_url)')
           .order('created_at', { ascending: false })

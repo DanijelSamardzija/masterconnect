@@ -234,7 +234,7 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
   const [infoOpen, setInfoOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [referralCount, setReferralCount] = useState<number | null>(null);
-  const isCreatorPremium = (profile as any).is_creator_premium ?? false;
+  const isCreatorPremium = (profile as any).is_pro ?? false;
   const referralCode = (profile as any).referral_code;
   const referralUrl = referralCode ? `${typeof window !== 'undefined' ? window.location.origin : 'https://gigzone.app'}/join?ref=${referralCode}` : '';
 
@@ -1189,7 +1189,7 @@ export function ProfileView({
         )}
 
         {/* PRO Premium badge */}
-        {((profile as any).is_creator_premium || (profile as any).is_pro) && (
+        {(profile as any).is_pro && (
           <div className="mt-3 flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500/10 to-amber-500/5 border border-orange-400/30 px-3 py-2">
             <span className="text-base leading-none">🔶</span>
             <span className="text-xs font-semibold text-orange-600 dark:text-orange-400">{t('credits.creatorPremiumBadge')}</span>

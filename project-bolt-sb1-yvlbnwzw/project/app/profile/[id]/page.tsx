@@ -220,7 +220,7 @@ function UserProfileContent() {
     setLoading(true);
     const { data, error: fetchError } = await supabase
       .from('profiles')
-      .select('id, name, email, account_type, city, category, bio, skills, phone, avatar_url, average_rating, review_count, website_url, show_phone, show_email, is_creator_premium, referral_code')
+      .select('id, name, email, account_type, city, category, bio, skills, phone, avatar_url, average_rating, review_count, website_url, show_phone, show_email, is_pro, referral_code')
       .eq('id', userId)
       .maybeSingle();
 

@@ -1,21 +1,20 @@
 -- ============================================================
 -- FUNCTION: become_creator_premium (v3 — PRO Premium)
--- Renamed to PRO Premium. Sets is_pro = true instead of
--- changing account_type. Keeps is_creator_premium for backward
--- compatibility with existing users.
+-- Uses is_pro as the primary status flag.
+-- is_creator_premium column kept in DB but no longer used in logic.
 -- ============================================================
 CREATE OR REPLACE FUNCTION become_creator_premium(p_user_id uuid)
 RETURNS jsonb AS $$
 DECLARE
   v_balance         integer;
-  v_already_premium boolean;
+  v_already_pro     boolean;
   v_cost            integer := 200;
 BEGIN
-  SELECT is_creator_premium
-  INTO v_already_premium
+  SELECT is_pro
+  INTO v_already_pro
   FROM profiles WHERE id = p_user_id;
 
-  IF COALESCE(v_already_premium, false) THEN
+  IF COALESCE(v_already_pro, false) THEN
     RETURN jsonb_build_object('ok', false, 'error', 'already_creator_premium');
   END IF;
 
@@ -32,11 +31,8 @@ BEGIN
   SET balance = balance - v_cost, updated_at = now()
   WHERE user_id = p_user_id;
 
-  -- Grant PRO Premium: set is_pro = true, keep is_creator_premium for backward compat
   UPDATE profiles
-  SET
-    is_creator_premium = true,
-    is_pro = true
+  SET is_pro = true
   WHERE id = p_user_id;
 
   INSERT INTO credit_transactions (user_id, amount, type, description, status)
