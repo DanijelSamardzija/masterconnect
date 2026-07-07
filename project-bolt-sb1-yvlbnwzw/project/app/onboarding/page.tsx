@@ -78,15 +78,17 @@ export default function OnboardingPage() {
 
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({
+        .upsert({
+          id: user!.id,
+          email: user!.email ?? '',
           name: name.trim(),
           account_type: 'customer',
+          role: 'customer',
           signup_source: signupSource,
           onboarding_completed: true,
           city: city.trim(),
           ...(detectedCountry ? { country: detectedCountry } : {}),
-        })
-        .eq('id', user!.id);
+        }, { onConflict: 'id' });
 
       if (profileError) throw profileError;
 

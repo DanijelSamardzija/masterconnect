@@ -176,7 +176,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Trigger may not have run yet for brand-new users — retry once after a short delay
           if (!found) {
             await new Promise(r => setTimeout(r, 1500));
-            if (mounted) await fetchProfile(currentSession.user.id, true);
+            const found2 = mounted && await fetchProfile(currentSession.user.id, true);
+            // Last resort: create the profile if it still doesn't exist
+            if (!found2 && mounted) {
+              const u = currentSession.user;
+              await supabase.from('profiles').upsert({
+                id: u.id,
+                email: u.email ?? '',
+                name: u.user_metadata?.full_name || 'User',
+                account_type: 'customer',
+                role: 'customer',
+              }, { onConflict: 'id' });
+              if (mounted) await fetchProfile(u.id, true);
+            }
           }
           startTokenRefreshManager();
         } else {
