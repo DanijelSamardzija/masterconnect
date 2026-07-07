@@ -64,7 +64,7 @@ export function ProfileHeader({
   isLoggedIn = true,
 }: ProfileHeaderProps) {
   const { t } = useLanguage();
-  const isPro = isProOverride !== undefined ? isProOverride : accountType === 'professional';
+  const isPro = isProOverride === true;
 
   return (
     <div className="rounded-2xl overflow-hidden shadow-sm border border-border bg-card">

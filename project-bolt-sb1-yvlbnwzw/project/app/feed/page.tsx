@@ -706,7 +706,7 @@ function FeedContent() {
     const media = post.media[currentIndex];
     const hasMultipleMedia = post.media.length > 1;
     const isVideo = media?.type === 'video';
-    const isPro = post.user.account_type === 'professional' || (post.user as any).is_pro;
+    const isPro = (post.user as any).is_pro === true;
     const isOwn = user?.id === post.user_id;
     const isSaved = savedSet.has(post.id);
     const isFollowed = followedUserIds.has(post.user_id);

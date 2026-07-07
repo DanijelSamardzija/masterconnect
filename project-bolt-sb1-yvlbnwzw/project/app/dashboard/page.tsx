@@ -263,7 +263,7 @@ function DashboardContent() {
 
   if (!profile) return null;
 
-  const isPro = profile.account_type === 'professional';
+  const isPro = profile.is_pro === true;
 
   // Profile completeness
   const completenessFields = [

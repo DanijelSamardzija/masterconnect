@@ -491,7 +491,7 @@ export function ProfileView({
       fetchServicePosts();
       fetchFollowCounts();
       if (isOwnProfile) fetchSavedPosts();
-      if (profile.account_type === 'professional' || profile.is_pro) {
+      if (profile.is_pro) {
         fetchReviews();
       }
     }
@@ -1141,11 +1141,11 @@ export function ProfileView({
           isPro={profile.is_pro}
           skills={profile.skills}
           averageRating={
-            (profile.account_type === 'professional' || profile.is_pro)
+            profile.is_pro
               ? profile.average_rating || (averageRating ? parseFloat(averageRating) : null)
               : null
           }
-          reviewCount={(profile.account_type === 'professional' || profile.is_pro) ? profile.review_count || reviews.length : 0}
+          reviewCount={profile.is_pro ? profile.review_count || reviews.length : 0}
           viewerAccountType={profile.account_type}
           postsCount={postsCount}
           followersCount={followersCount}
@@ -1211,7 +1211,7 @@ export function ProfileView({
               <TabsList className="flex w-max min-w-full bg-transparent h-auto p-0 gap-0">
                 {[
                   { value: 'activity', label: t('profile.activity'), icon: <FileText className="h-4 w-4" /> },
-                  ...(profile.account_type === 'professional' ? [
+                  ...(profile.is_pro ? [
                     { value: 'services', label: t('profile.services'), icon: <Briefcase className="h-4 w-4" /> },
                     { value: 'portfolio', label: 'Portfolio', icon: <Star className="h-4 w-4" /> },
                     { value: 'reviews', label: t('profile.reviews'), icon: <StarIcon className="h-4 w-4" /> },
