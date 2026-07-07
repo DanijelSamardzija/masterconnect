@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Navigation } from '@/components/navigation';
 import { Footer } from '@/components/footer';
 import { useAuth } from '@/lib/contexts/auth-context';
+import { supabase } from '@/lib/supabase/client';
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -26,6 +27,28 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
       router.replace('/onboarding');
     }
   }, [loading, user, profile, isOnboardingPage]);
+
+  useEffect(() => {
+    if (!loading && user && profile && profile.onboarding_completed && !profile.city) {
+      supabase
+        .from('notifications')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('type', 'no_city_reminder')
+        .maybeSingle()
+        .then(({ data }) => {
+          if (!data) {
+            supabase.from('notifications').insert({
+              user_id: user.id,
+              type: 'no_city_reminder',
+              title: 'Dodaj grad na profil 📍',
+              body: 'Klijenti iz tvog mesta lakše te pronalaze kada dodaš grad. Dodaj ga za 10 sekundi!',
+              meta: { link: '/profile/edit' },
+            });
+          }
+        });
+    }
+  }, [loading, user, profile]);
 
   return (
     <>

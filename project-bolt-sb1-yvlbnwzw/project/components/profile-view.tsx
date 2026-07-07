@@ -1124,24 +1124,6 @@ export function ProfileView({
     <div className="bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-[#111827] dark:via-[#0f1419] dark:to-[#111827] py-6 pb-24 min-h-screen">
       <div className="container mx-auto px-4 max-w-4xl">
 
-        {/* Banner: own profile without city */}
-        {isOwnProfile && !profile.city && (
-          <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-orange-400/40 bg-orange-500/10 px-4 py-3">
-            <div className="flex items-center gap-2">
-              <span className="text-orange-400">📍</span>
-              <p className="text-sm text-orange-700 dark:text-orange-300 font-medium">
-                Dodaj grad — klijenti iz tvog mesta lakše te pronalaze
-              </p>
-            </div>
-            <button
-              onClick={() => router.push('/profile/edit')}
-              className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white transition-colors"
-            >
-              Dodaj grad
-            </button>
-          </div>
-        )}
-
         <ProfileHeader
           name={profile.name}
           avatarUrl={profile.avatar_url}
