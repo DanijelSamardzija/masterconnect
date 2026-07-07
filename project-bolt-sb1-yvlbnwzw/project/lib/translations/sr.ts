@@ -1437,7 +1437,7 @@ export default {
   'credits.info.spend.boostListing': 'Boost usluge / posla',
   'credits.info.spend.boostListingNote': 'aktivno 7 dana',
   'credits.info.spend.creatorPremium': 'PRO Premium',
-  'credits.info.spend.creatorPremiumNote': 'jednokratno • doživotni PRO status',
+  'credits.info.spend.creatorPremiumNote': 'jednokratno • doživotni PRO status • prima donacije',
   'credits.info.spend.supportSmall': 'Podrži kreatora (malo)',
   'credits.info.spend.supportMedium': 'Podrži kreatora (srednje)',
   'credits.info.spend.supportLarge': 'Podrži kreatora (veliko)',

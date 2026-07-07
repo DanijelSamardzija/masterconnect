@@ -1437,7 +1437,7 @@ export default {
   'credits.info.spend.boostListing': 'Boost service / job',
   'credits.info.spend.boostListingNote': 'active 7 days',
   'credits.info.spend.creatorPremium': 'PRO Premium',
-  'credits.info.spend.creatorPremiumNote': 'one-time • lifetime PRO status',
+  'credits.info.spend.creatorPremiumNote': 'one-time • lifetime PRO status • receive donations',
   'credits.info.spend.supportSmall': 'Support a creator (small)',
   'credits.info.spend.supportMedium': 'Support a creator (medium)',
   'credits.info.spend.supportLarge': 'Support a creator (large)',

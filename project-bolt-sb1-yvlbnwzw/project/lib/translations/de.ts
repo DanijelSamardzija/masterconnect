@@ -1433,7 +1433,7 @@ export default {
   'credits.info.spend.boostListing': 'Service / Job boosten',
   'credits.info.spend.boostListingNote': 'aktiv 7 Tage',
   'credits.info.spend.creatorPremium': 'PRO Premium',
-  'credits.info.spend.creatorPremiumNote': 'einmalig • lebenslanger PRO-Status',
+  'credits.info.spend.creatorPremiumNote': 'einmalig • lebenslanger PRO-Status • Spenden empfangen',
   'credits.info.spend.supportSmall': 'Creator unterstützen (klein)',
   'credits.info.spend.supportMedium': 'Creator unterstützen (mittel)',
   'credits.info.spend.supportLarge': 'Creator unterstützen (groß)',
