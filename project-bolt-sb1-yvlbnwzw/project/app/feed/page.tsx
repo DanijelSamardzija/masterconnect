@@ -1007,7 +1007,7 @@ function FeedContent() {
                   setSupportTarget({
                     userId: post.user_id,
                     name: post.user.name || '',
-                    isCreatorPremium: (post.user as any).is_creator_premium ?? false,
+                    isCreatorPremium: (post.user as any).is_pro ?? false,
                   });
                   setSupportModalOpen(true);
                 }}
