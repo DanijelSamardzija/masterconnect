@@ -286,13 +286,15 @@ export async function GET(request: NextRequest) {
       return 0;
     });
     // Always remove promoted posts from organic to prevent duplicates on scroll
+    // Use promotedIds as sole source of truth (RPC may not set is_promoted correctly)
     const promotedIds = new Set(promotedPostsData.map((p: any) => p.id));
-    const combined = postsWithMedia.filter(p => !promotedIds.has(p.id) || p.is_promoted === false);
+    const combined = postsWithMedia.filter(p => !promotedIds.has(p.id));
 
     // Inject promoted posts at position 2 on first page only
     let postsWithMediaSorted = combined;
     if (offset === 0) {
-      const promotedFromOrganic = postsWithMedia.filter(p => p.is_promoted);
+      // Get promoted posts from organic (with reactions_count) or from separate fetch
+      const promotedFromOrganic = postsWithMedia.filter(p => promotedIds.has(p.id));
       const promotedFromSeparate = promotedPostsData.filter(
         p => !p.user_id.startsWith('b1000000-') && !p.user_id.startsWith('aaaaaaaa-') &&
              !postsWithMedia.some((c: any) => c.id === p.id)
