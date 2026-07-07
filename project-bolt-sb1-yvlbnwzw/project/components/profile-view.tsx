@@ -271,12 +271,8 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
       const { data } = await supabase.rpc('become_creator_premium', { p_user_id: profile.id });
       if (data?.ok) {
         setBalance(prev => (prev !== null ? prev - 200 : prev));
-        if (data.upgraded_to_professional) {
-          toast.success(t('credits.creatorPremium.upgradedToPro') + ' ' + t('credits.creatorPremium.reloadNote'));
-          setTimeout(() => window.location.reload(), 2500);
-        } else {
-          toast.success(t('credits.creatorPremium.activated'));
-        }
+        toast.success(t('credits.creatorPremium.activated') + ' ' + t('credits.creatorPremium.reloadNote'));
+        setTimeout(() => window.location.reload(), 2500);
       } else if (data?.error === 'insufficient_balance') {
         toast.error(t('credits.creatorPremium.insufficient').replace('{balance}', String(data.balance ?? data.have ?? 0)));
       } else if (data?.error === 'already_creator_premium') {
@@ -337,16 +333,12 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
           )}
         </div>
 
-        {/* Creator Premium upgrade CTA */}
+        {/* PRO Premium upgrade CTA */}
         {!isCreatorPremium && (
           <div className="border-t border-orange-300/20 px-4 py-2.5 flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold text-foreground">⭐ Creator Premium</p>
-              <p className="text-[11px] text-muted-foreground">
-                {(profile as any).account_type === 'customer'
-                  ? t('credits.creatorPremium.subtitleCustomer')
-                  : t('credits.creatorPremium.subtitle')}
-              </p>
+              <p className="text-xs font-semibold text-foreground">🔶 PRO Premium</p>
+              <p className="text-[11px] text-muted-foreground">{t('credits.creatorPremium.subtitle')}</p>
             </div>
             <button
               onClick={handleUpgrade}
@@ -1196,12 +1188,11 @@ export function ProfileView({
           </div>
         )}
 
-        {/* Creator Premium badge */}
-        {(profile as any).is_creator_premium && (
+        {/* PRO Premium badge */}
+        {((profile as any).is_creator_premium || (profile as any).is_pro) && (
           <div className="mt-3 flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500/10 to-amber-500/5 border border-orange-400/30 px-3 py-2">
-            <span className="text-base leading-none">⭐</span>
+            <span className="text-base leading-none">🔶</span>
             <span className="text-xs font-semibold text-orange-600 dark:text-orange-400">{t('credits.creatorPremiumBadge')}</span>
-            <span className="ml-auto text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">Demo</span>
           </div>
         )}
 

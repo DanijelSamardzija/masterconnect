@@ -706,7 +706,7 @@ function FeedContent() {
     const media = post.media[currentIndex];
     const hasMultipleMedia = post.media.length > 1;
     const isVideo = media?.type === 'video';
-    const isPro = post.user.account_type === 'professional';
+    const isPro = post.user.account_type === 'professional' || (post.user as any).is_pro;
     const isOwn = user?.id === post.user_id;
     const isSaved = savedSet.has(post.id);
     const isFollowed = followedUserIds.has(post.user_id);
@@ -762,8 +762,8 @@ function FeedContent() {
                   ? <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 text-[10px] px-1.5 py-0 h-4 shrink-0">PRO</Badge>
                   : <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-[10px] px-1.5 py-0 h-4 shrink-0">Klijent</Badge>
                 }
-                {(post.user as any).is_creator_premium && (
-                  <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] px-1.5 py-0 h-4 shrink-0">⭐ Creator</Badge>
+                {((post.user as any).is_creator_premium || (post.user as any).is_pro) && !isPro && (
+                  <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 text-[10px] px-1.5 py-0 h-4 shrink-0">🔶 PRO</Badge>
                 )}
                 {post.is_promoted && (
                   <Badge className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 text-[10px] px-1.5 py-0 h-4 shrink-0">Sponzorisano</Badge>
