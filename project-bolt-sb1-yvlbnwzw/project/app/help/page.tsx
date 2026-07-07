@@ -41,42 +41,42 @@ export default function HelpPage() {
   const postTypes = [
     {
       key: 'serviceListing',
-      who: 'professional',
+      who: 'everyone',
       icon: Wrench,
       color: 'orange',
       href: '/create-post',
     },
     {
       key: 'hiring',
-      who: 'professional',
+      who: 'everyone',
       icon: Briefcase,
       color: 'orange',
       href: '/jobs/new',
     },
     {
       key: 'serviceRequest',
-      who: 'professional',
+      who: 'everyone',
       icon: Search,
       color: 'orange',
       href: '/jobs/new',
     },
     {
       key: 'portfolio',
-      who: 'professional',
+      who: 'everyone',
       icon: FileText,
       color: 'orange',
       href: '/create-post',
     },
     {
       key: 'jobSeeker',
-      who: 'customer',
+      who: 'everyone',
       icon: User,
       color: 'blue',
       href: '/create-post',
     },
     {
       key: 'serviceRequestCustomer',
-      who: 'customer',
+      who: 'everyone',
       icon: Search,
       color: 'blue',
       href: '/jobs/new',
@@ -162,20 +162,20 @@ export default function HelpPage() {
                   <div className="p-2 rounded-xl bg-orange-100 dark:bg-orange-900/50">
                     <Wrench className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                   </div>
-                  <h3 className="text-xl font-bold text-orange-800 dark:text-orange-300">{t('help.professional.title')}</h3>
+                  <h3 className="text-xl font-bold text-orange-800 dark:text-orange-300">{t('help.offer.title')}</h3>
                 </div>
-                <p className="text-orange-700 dark:text-orange-400 text-sm leading-relaxed">{t('help.professional.desc')}</p>
+                <p className="text-orange-700 dark:text-orange-400 text-sm leading-relaxed">{t('help.offer.desc')}</p>
               </CardContent>
             </Card>
             <Card className="border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="p-2 rounded-xl bg-blue-100 dark:bg-blue-900/50">
-                    <User className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                    <Search className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <h3 className="text-xl font-bold text-blue-800 dark:text-blue-300">{t('help.customer.title')}</h3>
+                  <h3 className="text-xl font-bold text-blue-800 dark:text-blue-300">{t('help.seek.title')}</h3>
                 </div>
-                <p className="text-blue-700 dark:text-blue-400 text-sm leading-relaxed">{t('help.customer.desc')}</p>
+                <p className="text-blue-700 dark:text-blue-400 text-sm leading-relaxed">{t('help.seek.desc')}</p>
               </CardContent>
             </Card>
           </div>
@@ -335,7 +335,7 @@ export default function HelpPage() {
                   <Sparkles className="h-6 w-6 text-orange-500" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-orange-800 dark:text-orange-300 mb-1">Creator Premium</h3>
+                  <h3 className="text-lg font-bold text-orange-800 dark:text-orange-300 mb-1">🔶 PRO Premium</h3>
                   <p className="text-orange-700 dark:text-orange-400 text-sm leading-relaxed mb-3">
                     {t('help.faq.a3')}
                   </p>
