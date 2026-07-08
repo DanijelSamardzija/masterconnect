@@ -159,7 +159,6 @@ export function ReviewModal({ open, onClose, jobId, proId, proName, threadId, on
           .update({
             rating,
             comment: comment.trim() || '',
-            updated_at: new Date().toISOString(),
           })
           .eq('id', existingReviewId);
 
