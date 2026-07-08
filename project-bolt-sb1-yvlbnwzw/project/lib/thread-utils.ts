@@ -75,7 +75,12 @@ export async function findOrCreateThread(params: {
       return { threadId: null, error: createError.message };
     }
 
-    await ensureThreadParticipants(newThread.id, customerId, proId);
+    try {
+      await ensureThreadParticipants(newThread.id, customerId, proId);
+    } catch (participantErr) {
+      // Trigger may have already added participants — not fatal
+      console.warn('ensureThreadParticipants failed (trigger may have handled it):', participantErr);
+    }
 
     return { threadId: newThread.id, error: null, isNewThread: true };
   } catch (err: any) {
