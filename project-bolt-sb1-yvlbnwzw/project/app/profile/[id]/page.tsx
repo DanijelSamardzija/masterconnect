@@ -334,7 +334,7 @@ function UserProfileContent() {
     )
   ) : undefined;
 
-  const reviewAction = profile.account_type === 'professional' && !isOwnProfile ? (
+  const reviewAction = !isOwnProfile ? (
     <Button
       onClick={handleLeaveReview}
       variant="outline"
