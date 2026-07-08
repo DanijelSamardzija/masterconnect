@@ -108,7 +108,7 @@ export function ProfileHeader({
         )}
 
         {/* ── Rating ── */}
-        {isPro && averageRating && reviewCount && reviewCount > 0 && (
+        {averageRating && reviewCount && reviewCount > 0 && (
           <div className="flex items-center gap-1.5 mb-2">
             {[1, 2, 3, 4, 5].map((s) => (
               <Star
