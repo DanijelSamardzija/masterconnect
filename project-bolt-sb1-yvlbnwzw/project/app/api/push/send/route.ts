@@ -16,7 +16,7 @@ async function processPush(body: any) {
   );
 
   const record = body.record ?? body;
-  const { user_id, title, body: notifBody, meta } = record;
+  const { user_id, title, body: notifBody, meta, type: notifType } = record;
   if (!user_id) return;
 
   const supabase = createClient(
@@ -163,6 +163,68 @@ async function processPush(body: any) {
                  style="display:inline-block;background:#ea580c;color:#fff;padding:12px 28px;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px">
                 Pogledaj recenziju
               </a>
+            </div>
+            <p style="text-align:center;color:#aaa;font-size:11px;margin-top:20px">GigZone · gigzone.app</p>
+          </div>
+        `,
+      }).catch(() => {});
+    }
+  }
+
+  // Email for new follower
+  if (notifType === 'follow' && meta?.follower_id) {
+    const { data: recipientProfile } = await supabase
+      .from('profiles').select('name, email').eq('id', user_id).maybeSingle();
+
+    if (recipientProfile?.email) {
+      const followerName = meta.actor_name || 'Neko';
+      const followerUrl = `https://www.gigzone.app/profile/${meta.follower_id}`;
+      await sendEmail({
+        to: recipientProfile.email,
+        replyTo: 'support@gigzone.app',
+        subject: `${followerName} te prati na GigZone`,
+        html: `
+          <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+            <div style="text-align:center;padding:24px 0 12px">
+              <span style="font-size:22px;font-weight:900;letter-spacing:-0.5px">Gig<span style="color:#ea580c">Zone</span></span>
+            </div>
+            <div style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:28px">
+              <h2 style="margin:0 0 8px;color:#1a1a1a">Novi pratilac 👤</h2>
+              <p style="color:#555;margin:0 0 20px"><strong>${followerName}</strong> je počeo/la da te prati.</p>
+              <a href="${followerUrl}" style="display:inline-block;background:#ea580c;color:#fff;padding:12px 28px;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px">Pogledaj profil</a>
+            </div>
+            <p style="text-align:center;color:#aaa;font-size:11px;margin-top:20px">GigZone · gigzone.app</p>
+          </div>
+        `,
+      }).catch(() => {});
+    }
+  }
+
+  // Email for new comment or reply
+  if ((notifType === 'comment' || notifType === 'reply') && meta?.post_id) {
+    const { data: recipientProfile } = await supabase
+      .from('profiles').select('name, email').eq('id', user_id).maybeSingle();
+
+    if (recipientProfile?.email) {
+      const commenterName = meta.actor_name || 'Neko';
+      const isReply = notifType === 'reply';
+      const postUrl = `https://www.gigzone.app/posts/${meta.post_id}`;
+      await sendEmail({
+        to: recipientProfile.email,
+        replyTo: 'support@gigzone.app',
+        subject: isReply
+          ? `${commenterName} je odgovorio/la na tvoj komentar`
+          : `${commenterName} je komentarisao/la tvoj post`,
+        html: `
+          <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+            <div style="text-align:center;padding:24px 0 12px">
+              <span style="font-size:22px;font-weight:900;letter-spacing:-0.5px">Gig<span style="color:#ea580c">Zone</span></span>
+            </div>
+            <div style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:28px">
+              <h2 style="margin:0 0 8px;color:#1a1a1a">${isReply ? 'Novi odgovor na komentar 💬' : 'Novi komentar 💬'}</h2>
+              <p style="color:#555;margin:0 0 8px"><strong>${commenterName}</strong> ${isReply ? 'je odgovorio/la na tvoj komentar' : 'je komentarisao/la tvoj post'}.</p>
+              ${notifBody ? `<p style="color:#333;background:#f9fafb;border-left:3px solid #ea580c;padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 20px;font-style:italic">"${notifBody}"</p>` : '<div style="margin-bottom:20px"></div>'}
+              <a href="${postUrl}" style="display:inline-block;background:#ea580c;color:#fff;padding:12px 28px;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px">Pogledaj post</a>
             </div>
             <p style="text-align:center;color:#aaa;font-size:11px;margin-top:20px">GigZone · gigzone.app</p>
           </div>
