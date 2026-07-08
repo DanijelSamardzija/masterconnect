@@ -22,19 +22,6 @@ async function processReview(supabase: any, user: any, pro_id: string, rating: n
     );
   }
 
-  const { data: proProfile } = await supabase
-    .from('profiles')
-    .select('account_type')
-    .eq('id', pro_id)
-    .maybeSingle();
-
-  if (!proProfile || proProfile.account_type !== 'professional') {
-    return NextResponse.json(
-      { error: 'You can only review professionals' },
-      { status: 400 }
-    );
-  }
-
   const { data: threadCheck } = await supabase
     .from('thread_participants')
     .select('thread_id, deleted_at')
