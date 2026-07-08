@@ -491,9 +491,7 @@ export function ProfileView({
       fetchServicePosts();
       fetchFollowCounts();
       if (isOwnProfile) fetchSavedPosts();
-      if (profile.is_pro) {
-        fetchReviews();
-      }
+      fetchReviews();
     }
   }, [profile?.id]);
 
@@ -1140,12 +1138,8 @@ export function ProfileView({
           accountType={profile.account_type}
           isPro={profile.is_pro}
           skills={profile.skills}
-          averageRating={
-            profile.is_pro
-              ? profile.average_rating || (averageRating ? parseFloat(averageRating) : null)
-              : null
-          }
-          reviewCount={profile.is_pro ? profile.review_count || reviews.length : 0}
+          averageRating={profile.average_rating || (averageRating ? parseFloat(averageRating) : null)}
+          reviewCount={profile.review_count || reviews.length}
           viewerAccountType={profile.account_type}
           postsCount={postsCount}
           followersCount={followersCount}
