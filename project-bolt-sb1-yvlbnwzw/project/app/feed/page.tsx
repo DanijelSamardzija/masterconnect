@@ -774,7 +774,7 @@ function FeedContent() {
                 )}
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                {isPro && post.user.average_rating && post.user.average_rating > 0 && (
+                {post.user.average_rating && post.user.average_rating > 0 && (
                   <span className="flex items-center gap-0.5">
                     <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                     {post.user.average_rating.toFixed(1)}
