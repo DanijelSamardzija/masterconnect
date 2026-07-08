@@ -86,17 +86,6 @@ export function ReviewModal({ open, onClose, jobId, proId, proName, threadId, on
         return;
       }
 
-      const { data: proProfile } = await supabase
-        .from('profiles')
-        .select('account_type')
-        .eq('id', proId)
-        .maybeSingle();
-
-      if (!proProfile || proProfile.account_type !== 'professional') {
-        setError('You can only review professionals');
-        return;
-      }
-
       const { data: threadCheck } = await supabase
         .from('thread_participants')
         .select('thread_id, deleted_at')
