@@ -199,7 +199,7 @@ export async function GET(request: NextRequest) {
       ...promotedPostsData.map(p => p.id),
     ];
     const postIds = [...new Set(allPostIds)];
-    const professionalUserIds = postsData?.filter(p => p.user_account_type === 'professional').map(p => p.user_id) || [];
+    const professionalUserIds = [...new Set(postsData?.map(p => p.user_id) || [])];
     let mediaData: any[] = [];
     let reviewsData: any[] = [];
 
