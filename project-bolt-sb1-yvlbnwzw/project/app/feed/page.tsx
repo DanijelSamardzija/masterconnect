@@ -785,7 +785,7 @@ function FeedContent() {
               </div>
             </div>
             <div className="flex items-center gap-1 shrink-0">
-              {!isOwn && isPro && (
+              {!isOwn && (
                 <FollowButton
                   targetUserId={post.user_id}
                   currentUserId={user?.id || ''}
