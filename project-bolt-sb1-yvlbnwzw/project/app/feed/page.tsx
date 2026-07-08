@@ -1030,7 +1030,7 @@ function FeedContent() {
                 {post.promoted_until && new Date(post.promoted_until) > new Date() ? 'Boostan' : 'Boost'}
               </button>
             )}
-            {isPro && !isOwn && user && (
+            {!isOwn && user && (
               <button
                 onClick={() => handleContact(post.user_id)}
                 disabled={contactingUserId === post.user_id}
@@ -1040,7 +1040,7 @@ function FeedContent() {
                 {t('feed.contact')}
               </button>
             )}
-            {isPro && !user && (
+            {!isOwn && !user && (
               <button
                 onClick={() => openGuestGate('contact', post.user_id)}
                 className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
