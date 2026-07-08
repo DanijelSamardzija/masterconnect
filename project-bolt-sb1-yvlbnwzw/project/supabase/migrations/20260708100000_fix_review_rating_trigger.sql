@@ -25,3 +25,10 @@ DROP TRIGGER IF EXISTS update_rating_after_review ON reviews;
 CREATE TRIGGER update_rating_after_review
   AFTER INSERT OR UPDATE OR DELETE ON reviews
   FOR EACH ROW EXECUTE FUNCTION update_profile_rating();
+
+-- Add missing UPDATE policy so users can edit their own reviews
+DROP POLICY IF EXISTS "Customers can update own reviews" ON reviews;
+CREATE POLICY "Customers can update own reviews" ON reviews
+  FOR UPDATE TO authenticated
+  USING (auth.uid() = customer_id)
+  WITH CHECK (auth.uid() = customer_id);
