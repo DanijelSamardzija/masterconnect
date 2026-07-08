@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { waitUntil } from '@vercel/functions';
 import webpush from 'web-push';
 import { createClient } from '@supabase/supabase-js';
+import { sendEmail } from '@/lib/brevo';
 
 export const runtime = 'nodejs';
 
@@ -102,41 +103,70 @@ async function processPush(body: any) {
     await supabase.from('push_subscriptions').delete().in('endpoint', expiredEndpoints);
   }
 
-  if (meta?.thread_id && process.env.RESEND_API_KEY) {
+  // Email for new message
+  if (meta?.thread_id) {
     const { data: recipientProfile } = await supabase
       .from('profiles').select('name, email').eq('id', user_id).maybeSingle();
 
     if (recipientProfile?.email) {
-      await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: 'GigZone <hello@gigzone.app>',
-          to: [recipientProfile.email],
-          reply_to: 'support@gigzone.app',
-          subject: title || 'Nova poruka na GigZone',
-          html: `
-            <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
-              <div style="text-align:center;padding:24px 0 12px">
-                <span style="font-size:22px;font-weight:900;letter-spacing:-0.5px">
-                  Gig<span style="color:#ea580c">Zone</span>
-                </span>
-              </div>
-              <div style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:28px">
-                <h2 style="margin:0 0 8px;color:#1a1a1a">${title || 'Nova poruka'}</h2>
-                <p style="color:#555;margin:0 0 20px">${notifBody || ''}</p>
-                <a href="https://www.gigzone.app/messages/${meta.thread_id}"
-                   style="display:inline-block;background:#ea580c;color:#fff;padding:12px 28px;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px">
-                  Otvori poruku
-                </a>
-              </div>
-              <p style="text-align:center;color:#aaa;font-size:11px;margin-top:20px">GigZone · gigzone.app</p>
+      await sendEmail({
+        to: recipientProfile.email,
+        replyTo: 'support@gigzone.app',
+        subject: title || 'Nova poruka na GigZone',
+        html: `
+          <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+            <div style="text-align:center;padding:24px 0 12px">
+              <span style="font-size:22px;font-weight:900;letter-spacing:-0.5px">
+                Gig<span style="color:#ea580c">Zone</span>
+              </span>
             </div>
-          `,
-        }),
+            <div style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:28px">
+              <h2 style="margin:0 0 8px;color:#1a1a1a">${title || 'Nova poruka'}</h2>
+              <p style="color:#555;margin:0 0 20px">${notifBody || ''}</p>
+              <a href="https://www.gigzone.app/messages/${meta.thread_id}"
+                 style="display:inline-block;background:#ea580c;color:#fff;padding:12px 28px;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px">
+                Otvori poruku
+              </a>
+            </div>
+            <p style="text-align:center;color:#aaa;font-size:11px;margin-top:20px">GigZone · gigzone.app</p>
+          </div>
+        `,
+      }).catch(() => {});
+    }
+  }
+
+  // Email for new review
+  if (meta?.reviewer_id) {
+    const { data: recipientProfile } = await supabase
+      .from('profiles').select('name, email').eq('id', user_id).maybeSingle();
+
+    if (recipientProfile?.email) {
+      const stars = '⭐'.repeat(meta.rating || 0);
+      const reviewerName = meta.actor_name || 'Neko';
+      const profileUrl = `https://www.gigzone.app/profile/${user_id}`;
+      await sendEmail({
+        to: recipientProfile.email,
+        replyTo: 'support@gigzone.app',
+        subject: `${reviewerName} ti je ostavio/la recenziju ${stars}`,
+        html: `
+          <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+            <div style="text-align:center;padding:24px 0 12px">
+              <span style="font-size:22px;font-weight:900;letter-spacing:-0.5px">
+                Gig<span style="color:#ea580c">Zone</span>
+              </span>
+            </div>
+            <div style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:28px">
+              <h2 style="margin:0 0 8px;color:#1a1a1a">Nova recenzija ${stars}</h2>
+              <p style="color:#555;margin:0 0 8px"><strong>${reviewerName}</strong> ti je ostavio/la recenziju.</p>
+              ${notifBody ? `<p style="color:#333;background:#f9fafb;border-left:3px solid #ea580c;padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 20px;font-style:italic">"${notifBody}"</p>` : '<div style="margin-bottom:20px"></div>'}
+              <a href="${profileUrl}"
+                 style="display:inline-block;background:#ea580c;color:#fff;padding:12px 28px;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px">
+                Pogledaj recenziju
+              </a>
+            </div>
+            <p style="text-align:center;color:#aaa;font-size:11px;margin-top:20px">GigZone · gigzone.app</p>
+          </div>
+        `,
       }).catch(() => {});
     }
   }
