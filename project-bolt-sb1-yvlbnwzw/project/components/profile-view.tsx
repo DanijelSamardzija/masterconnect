@@ -1137,6 +1137,7 @@ export function ProfileView({
           bio={profile.bio}
           accountType={profile.account_type}
           isPro={profile.is_pro}
+          isPremium={profile.is_premium}
           skills={profile.skills}
           averageRating={profile.average_rating || (averageRating ? parseFloat(averageRating) : null)}
           reviewCount={profile.review_count || reviews.length}

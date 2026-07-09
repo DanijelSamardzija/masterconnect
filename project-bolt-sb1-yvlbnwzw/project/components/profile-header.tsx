@@ -22,6 +22,7 @@ type ProfileHeaderProps = {
   bio?: string | null;
   accountType: 'professional' | 'customer';
   isPro?: boolean;
+  isPremium?: boolean;
   skills?: string[] | null;
   averageRating?: number | null;
   reviewCount?: number;
@@ -51,6 +52,7 @@ export function ProfileHeader({
   bio,
   accountType,
   isPro: isProOverride,
+  isPremium,
   skills,
   averageRating,
   reviewCount,
@@ -95,7 +97,10 @@ export function ProfileHeader({
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground leading-tight">
               {name}
             </h1>
-            {isPro && <ProfessionalBadge size="md" />}
+            {isPremium
+              ? <ProfessionalBadge size="md" variant="premium" />
+              : isPro && <ProfessionalBadge size="md" />
+            }
           </div>
           {actions && <div className="flex-shrink-0">{actions}</div>}
         </div>

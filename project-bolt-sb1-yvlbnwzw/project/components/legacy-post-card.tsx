@@ -39,6 +39,7 @@ type PostUser = {
   avatar_url?: string;
   average_rating?: number;
   review_count?: number;
+  is_premium?: boolean;
 };
 
 type Post = {
@@ -242,7 +243,9 @@ export function LegacyPostCard({
                     {post.user?.name || 'Unknown User'}
                   </p>
                   {post.user?.account_type === 'professional' && (
-                    <ProfessionalBadge size="sm" />
+                    post.user?.is_premium
+                      ? <ProfessionalBadge size="sm" variant="premium" />
+                      : <ProfessionalBadge size="sm" />
                   )}
                 </div>
                 {post.user?.account_type === 'professional' &&
@@ -334,7 +337,9 @@ export function LegacyPostCard({
                     {post.user?.name || 'Unknown User'}
                   </p>
                   {post.user?.account_type === 'professional' && (
-                    <ProfessionalBadge size="sm" />
+                    post.user?.is_premium
+                      ? <ProfessionalBadge size="sm" variant="premium" />
+                      : <ProfessionalBadge size="sm" />
                   )}
                   {post.user?.account_type === 'professional' &&
                    post.user?.average_rating &&
