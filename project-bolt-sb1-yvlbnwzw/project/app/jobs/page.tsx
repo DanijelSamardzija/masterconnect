@@ -959,7 +959,7 @@ function JobsMarketplaceContent() {
   const [contactingPostId, setContactingPostId] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showTypePicker, setShowTypePicker] = useState(false);
-  const [selectedJobType, setSelectedJobType] = useState<'service_request' | 'job_seeker_post' | 'hiring_post' | null>(null);
+  const [selectedJobType, setSelectedJobType] = useState<'service_request' | 'job_seeker_post' | 'hiring_post' | 'service_listing' | null>(null);
   const [deleteConfirmPostId, setDeleteConfirmPostId] = useState<string | null>(null);
   const [boostingJobId, setBoostingJobId] = useState<string | null>(null);
   const [cityFilter, setCityFilter] = useState('');
@@ -1439,22 +1439,28 @@ function JobsMarketplaceContent() {
             <div className="space-y-3 pt-2">
               {[
                 {
+                  type: 'service_listing' as const,
+                  icon: <Wrench className="h-5 w-5 text-orange-400" />,
+                  title: t('jobs.postTypeServiceListing'),
+                  desc: t('jobs.postTypeServiceListingDesc'),
+                },
+                {
                   type: 'service_request' as const,
                   icon: <Search className="h-5 w-5 text-orange-400" />,
-                  title: 'Tražim uslugu',
-                  desc: 'Potrebna ti je neka usluga? Objavi zahtev i čekaj ponude.',
+                  title: t('jobs.postTypeServiceRequest'),
+                  desc: t('jobs.postTypeServiceRequestDesc'),
                 },
                 {
                   type: 'job_seeker_post' as const,
                   icon: <UserCircle className="h-5 w-5 text-orange-400" />,
-                  title: 'Tražim posao',
-                  desc: 'Tražiš zaposlenje? Objavi oglas i neka te poslodavci nađu.',
+                  title: t('jobs.postTypeJobSeeker'),
+                  desc: t('jobs.postTypeJobSeekerDesc'),
                 },
                 {
                   type: 'hiring_post' as const,
                   icon: <Briefcase className="h-5 w-5 text-orange-400" />,
-                  title: 'Tražim radnika',
-                  desc: 'Zapošljavaš nekoga? Objavi oglas za posao.',
+                  title: t('jobs.postTypeHiring'),
+                  desc: t('jobs.postTypeHiringDesc'),
                 },
               ].map(({ type, icon, title, desc }) => (
                 <button
@@ -1484,7 +1490,7 @@ function JobsMarketplaceContent() {
           onOpenChange={(open) => { setShowCreateModal(open); if (!open) setSelectedJobType(null); }}
           onPostCreated={loadPosts}
           initialPostType={selectedJobType || undefined}
-          allowedTypes={['hiring_post', 'job_seeker_post', 'service_request']}
+          allowedTypes={['service_listing', 'hiring_post', 'job_seeker_post', 'service_request']}
         />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
