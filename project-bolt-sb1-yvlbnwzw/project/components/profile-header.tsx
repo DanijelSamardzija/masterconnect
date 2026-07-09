@@ -97,10 +97,7 @@ export function ProfileHeader({
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground leading-tight">
               {name}
             </h1>
-            {isPremium
-              ? <ProfessionalBadge size="md" variant="premium" />
-              : isPro && <ProfessionalBadge size="md" />
-            }
+            {isPremium && <ProfessionalBadge size="md" variant="premium" />}
           </div>
           {actions && <div className="flex-shrink-0">{actions}</div>}
         </div>

@@ -348,18 +348,11 @@ function DashboardContent() {
             <h1 className="text-xl font-bold text-foreground truncate">
               {t('dashboard.greeting')} {profile.name.split(' ')[0]}
             </h1>
-            <div className="flex items-center gap-2 flex-wrap mt-0.5">
-              {isPro && (
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-400">
-                  {t('dashboard.badgeProfessional')}
-                </span>
-              )}
-              {isPremium && (
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400 flex items-center gap-1">
-                  <Crown className="h-3 w-3" /> {t('dashboard.badgePremium')}
-                </span>
-              )}
-            </div>
+            {isPremium && (
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-400 flex items-center gap-1 mt-0.5">
+                <Crown className="h-3 w-3" /> {t('dashboard.badgePremium')}
+              </span>
+            )}
           </div>
           <button
             onClick={handleOpenNotifications}

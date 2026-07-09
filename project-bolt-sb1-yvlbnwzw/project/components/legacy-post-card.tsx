@@ -242,11 +242,7 @@ export function LegacyPostCard({
                   >
                     {post.user?.name || 'Unknown User'}
                   </p>
-                  {post.user?.account_type === 'professional' && (
-                    post.user?.is_premium
-                      ? <ProfessionalBadge size="sm" variant="premium" />
-                      : <ProfessionalBadge size="sm" />
-                  )}
+                  {post.user?.is_premium && <ProfessionalBadge size="sm" variant="premium" />}
                 </div>
                 {post.user?.account_type === 'professional' &&
                  post.user?.review_count &&
@@ -336,11 +332,7 @@ export function LegacyPostCard({
                   >
                     {post.user?.name || 'Unknown User'}
                   </p>
-                  {post.user?.account_type === 'professional' && (
-                    post.user?.is_premium
-                      ? <ProfessionalBadge size="sm" variant="premium" />
-                      : <ProfessionalBadge size="sm" />
-                  )}
+                  {post.user?.is_premium && <ProfessionalBadge size="sm" variant="premium" />}
                   {post.user?.account_type === 'professional' &&
                    post.user?.average_rating &&
                    post.user?.review_count &&
