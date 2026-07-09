@@ -745,7 +745,7 @@ function FeedContent() {
         className="snap-start flex justify-center px-2 py-1"
         style={{ height: `calc(100dvh - ${HEADER_H}px)` }}
       >
-        <div className={`w-full max-w-md h-full flex flex-col rounded-2xl overflow-hidden shadow-sm bg-card border border-border ${isPremium ? 'border-l-4 border-l-orange-500' : 'border-l-4 border-l-blue-500'}`}>
+        <div className={`w-full max-w-md h-full flex flex-col rounded-2xl overflow-hidden shadow-sm bg-card border border-border ${isPremium ? 'border-l-4 border-l-yellow-400' : 'border-l-4 border-l-orange-500'}`}>
 
           {/* Card header */}
           <div className="flex items-center gap-2.5 p-3 shrink-0">
