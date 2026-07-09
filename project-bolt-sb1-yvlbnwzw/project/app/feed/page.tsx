@@ -762,10 +762,7 @@ function FeedContent() {
                   {post.user.name}
                 </button>
                 {isPremium && (
-                  <>
-                    <CheckCircle className="h-3.5 w-3.5 text-orange-500 shrink-0" />
-                    <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 text-[10px] px-1.5 py-0 h-4 shrink-0">PRO</Badge>
-                  </>
+                  <Badge className="bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 h-auto shrink-0 rounded-full">PRO</Badge>
                 )}
                 {post.is_promoted && (
                   <Badge className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 text-[10px] px-1.5 py-0 h-4 shrink-0">Sponzorisano</Badge>
