@@ -471,6 +471,8 @@ export default {
   'dashboard.myJobs': 'My Jobs',
   'dashboard.myJobsDesc': 'Manage your service requests and find professionals',
   'dashboard.postJob': 'Post a Job',
+  'dashboard.postAd': 'Post an ad',
+  'dashboard.postAdDesc': 'Post a service, job or request',
   'dashboard.postNewJob': 'Post New Job',
   'dashboard.postNewJobDesc': 'Describe your project and connect with professionals',
   'dashboard.activeJobs': 'Active Jobs',

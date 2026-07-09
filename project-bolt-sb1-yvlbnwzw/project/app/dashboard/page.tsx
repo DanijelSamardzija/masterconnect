@@ -23,10 +23,12 @@ import {
 import {
   Briefcase, MessageSquare, Star, Plus,
   CheckCircle2, Clock, Bell, Trash2, Rss, UserCircle,
-  ChevronRight, AlertCircle, Eye, TrendingUp, Calendar, Coins, ShieldCheck
+  ChevronRight, AlertCircle, Eye, TrendingUp, Calendar, Coins, ShieldCheck,
+  Search, Wrench
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { NotificationsModal, Notification } from '@/components/notifications-modal';
+import { CreateMarketplacePostModal } from '@/components/create-marketplace-post-modal';
 import { ReviewModal } from '@/components/review-modal';
 import { OnboardingModal } from '@/components/onboarding-modal';
 import { toast } from 'sonner';
@@ -84,6 +86,9 @@ function DashboardContent() {
   const [creditBalance, setCreditBalance] = useState<number | null>(null);
   const [recentViewers, setRecentViewers] = useState<{ id: string; name: string; avatar_url: string | null; viewed_at: string }[]>([]);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
+  const [showTypePicker, setShowTypePicker] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedPostType, setSelectedPostType] = useState<'service_listing' | 'service_request' | 'job_seeker_post' | 'hiring_post' | null>(null);
 
   useEffect(() => {
     fetchDashboardData();
@@ -663,15 +668,15 @@ function DashboardContent() {
             ) : (
               <>
                 <button
-                  onClick={() => router.push('/jobs/new')}
+                  onClick={() => setShowTypePicker(true)}
                   className="bg-orange-500 hover:bg-orange-600 text-white rounded-2xl px-4 py-3.5 flex items-center gap-3 transition-colors text-left col-span-2"
                 >
                   <div className="p-2 bg-white/20 rounded-xl">
                     <Plus className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold">{t('dashboard.postJob')}</p>
-                    <p className="text-xs text-white/80">{t('dashboard.postJobShortDesc')}</p>
+                    <p className="text-sm font-semibold">{t('dashboard.postAd')}</p>
+                    <p className="text-xs text-white/80">{t('dashboard.postAdDesc')}</p>
                   </div>
                 </button>
                 <button
@@ -690,6 +695,45 @@ function DashboardContent() {
             )}
           </div>
         </div>
+
+        {/* Post type picker modal */}
+        <Dialog open={showTypePicker} onOpenChange={setShowTypePicker}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>{t('jobs.createPost')}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 pt-2">
+              {([
+                { type: 'service_listing' as const, icon: <Wrench className="h-5 w-5 text-orange-400" />, title: t('jobs.postTypeServiceListing'), desc: t('jobs.postTypeServiceListingDesc') },
+                { type: 'service_request' as const, icon: <Search className="h-5 w-5 text-orange-400" />, title: t('jobs.postTypeServiceRequest'), desc: t('jobs.postTypeServiceRequestDesc') },
+                { type: 'job_seeker_post' as const, icon: <UserCircle className="h-5 w-5 text-orange-400" />, title: t('jobs.postTypeJobSeeker'), desc: t('jobs.postTypeJobSeekerDesc') },
+                { type: 'hiring_post' as const, icon: <Briefcase className="h-5 w-5 text-orange-400" />, title: t('jobs.postTypeHiring'), desc: t('jobs.postTypeHiringDesc') },
+              ] as const).map(({ type, icon, title, desc }) => (
+                <button
+                  key={type}
+                  onClick={() => { setSelectedPostType(type); setShowTypePicker(false); setShowCreateModal(true); }}
+                  className="w-full flex items-start gap-4 p-4 rounded-xl border border-border hover:border-orange-500 hover:bg-orange-500/5 transition-all text-left"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center flex-shrink-0">
+                    {icon}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground text-sm">{title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <CreateMarketplacePostModal
+          open={showCreateModal}
+          onOpenChange={(open) => { setShowCreateModal(open); if (!open) setSelectedPostType(null); }}
+          onPostCreated={() => { setShowCreateModal(false); }}
+          initialPostType={selectedPostType || undefined}
+          allowedTypes={['service_listing', 'hiring_post', 'job_seeker_post', 'service_request']}
+        />
 
         {/* Recent content */}
         {loading ? (

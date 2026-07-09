@@ -471,6 +471,8 @@ export default {
   'dashboard.myJobs': 'Moji Poslovi',
   'dashboard.myJobsDesc': 'Upravljajte zahtjevima za usluge i pronađite profesionalce',
   'dashboard.postJob': 'Objavi Posao',
+  'dashboard.postAd': 'Objavi oglas',
+  'dashboard.postAdDesc': 'Objavi uslugu, posao ili zahtjev',
   'dashboard.postNewJob': 'Objavi Novi Posao',
   'dashboard.postNewJobDesc': 'Opišite projekat i povežite se s profesionalcima',
   'dashboard.activeJobs': 'Aktivni Poslovi',

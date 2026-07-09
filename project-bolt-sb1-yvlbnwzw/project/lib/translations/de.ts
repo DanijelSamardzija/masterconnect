@@ -471,6 +471,8 @@ export default {
   'dashboard.myJobs': 'Meine Jobs',
   'dashboard.myJobsDesc': 'Verwalte deine Serviceanfragen und finde Fachleute',
   'dashboard.postJob': 'Job posten',
+  'dashboard.postAd': 'Anzeige aufgeben',
+  'dashboard.postAdDesc': 'Dienstleistung, Job oder Anfrage veröffentlichen',
   'dashboard.postNewJob': 'Neuen Job posten',
   'dashboard.postNewJobDesc': 'Beschreibe dein Projekt und verbinde dich mit Fachleuten',
   'dashboard.activeJobs': 'Aktive Jobs',
