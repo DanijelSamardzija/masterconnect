@@ -1176,13 +1176,6 @@ export function ProfileView({
           reviewAction={reviewAction}
         />
 
-        {/* Premium badge */}
-        {profile.is_premium && (
-          <div className="mt-3 flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500/10 to-yellow-500/5 border border-amber-400/30 px-3 py-2">
-            <Crown className="h-4 w-4 text-amber-500 shrink-0" />
-            <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">{t('credits.premiumBadge')}</span>
-          </div>
-        )}
 
         {/* PRO Premium badge */}
         {(profile as any).is_pro && (
