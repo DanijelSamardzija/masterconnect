@@ -721,7 +721,7 @@ export default {
   'jobs.marketplaceTitle': 'Oglasi za poslove',
   'jobs.marketplaceSubtitle': 'Pregledajte mogućnosti i povežite se sa profesionalcima',
   'jobs.createPost': 'Kreiraj oglas',
-  'jobs.postTypeServiceListing': 'Nudim uslugu / Firma',
+  'jobs.postTypeServiceListing': 'Nudim uslugu',
   'jobs.postTypeServiceListingDesc': 'Imaš firmu ili pružaš usluge? Objavi oglas i neka te klijenti kontaktiraju.',
   'jobs.postTypeServiceRequest': 'Tražim uslugu',
   'jobs.postTypeServiceRequestDesc': 'Potrebna ti je neka usluga? Objavi zahtev i čekaj ponude.',

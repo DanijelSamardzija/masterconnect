@@ -719,7 +719,7 @@ export default {
   'jobs.marketplaceTitle': 'Job-Marktplatz',
   'jobs.marketplaceSubtitle': 'Möglichkeiten erkunden und mit Fachleuten verbinden',
   'jobs.createPost': 'Beitrag erstellen',
-  'jobs.postTypeServiceListing': 'Ich biete eine Dienstleistung an / Firma',
+  'jobs.postTypeServiceListing': 'Ich biete eine Dienstleistung an',
   'jobs.postTypeServiceListingDesc': 'Hast du ein Unternehmen oder bietest Dienstleistungen an? Veröffentliche eine Anzeige und lass Kunden dich kontaktieren.',
   'jobs.postTypeServiceRequest': 'Ich suche eine Dienstleistung',
   'jobs.postTypeServiceRequestDesc': 'Brauchst du eine Dienstleistung? Veröffentliche eine Anfrage und warte auf Angebote.',

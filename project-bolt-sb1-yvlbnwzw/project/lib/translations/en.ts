@@ -721,7 +721,7 @@ export default {
   'jobs.marketplaceTitle': 'Jobs Marketplace',
   'jobs.marketplaceSubtitle': 'Browse opportunities and connect with professionals',
   'jobs.createPost': 'Create Post',
-  'jobs.postTypeServiceListing': 'I offer a service / Business',
+  'jobs.postTypeServiceListing': 'I offer a service',
   'jobs.postTypeServiceListingDesc': 'Have a business or offer services? Post a listing and let clients contact you.',
   'jobs.postTypeServiceRequest': 'I need a service',
   'jobs.postTypeServiceRequestDesc': 'Need a service done? Post a request and wait for offers.',
