@@ -1046,8 +1046,15 @@ function AdminContent() {
       const notifs = allUsers.map((u: any) => ({
         user_id: u.id,
         type: 'announcement',
+        action_type: 'announcement',
         title: newTitle.trim(),
         body: newBody.trim(),
+        meta: {
+          title_en: newTitleEn.trim() || null,
+          body_en: newBodyEn.trim() || null,
+          title_de: newTitleDe.trim() || null,
+          body_de: newBodyDe.trim() || null,
+        },
       }));
       await supabase.from('notifications').insert(notifs);
     }
