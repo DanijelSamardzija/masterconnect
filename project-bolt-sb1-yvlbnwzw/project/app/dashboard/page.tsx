@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/protected-route';
+import { ProfessionalBadge } from '@/components/professional-badge';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { usePageTracking } from '@/lib/hooks/use-page-tracking';
 import { supabase } from '@/lib/supabase/client';
@@ -348,11 +349,7 @@ function DashboardContent() {
             <h1 className="text-xl font-bold text-foreground truncate">
               {t('dashboard.greeting')} {profile.name.split(' ')[0]}
             </h1>
-            {isPremium && (
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-400 flex items-center gap-1 mt-0.5">
-                <ShieldCheck className="h-3 w-3" /> PRO
-              </span>
-            )}
+            {isPremium && <ProfessionalBadge size="sm" variant="premium" />}
           </div>
           <button
             onClick={handleOpenNotifications}
