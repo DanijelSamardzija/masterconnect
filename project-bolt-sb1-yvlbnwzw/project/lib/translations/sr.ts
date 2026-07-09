@@ -1277,6 +1277,14 @@ export default {
   'analytics.today': 'Danas',
   'analytics.thisWeek': 'Ova sedmica',
   'analytics.total': 'Ukupno',
+  'analytics.whoViewed': 'Ko je gledao profil',
+  'analytics.visitors': 'posjetilaca',
+  'analytics.noViewsYet': 'Još niko nije gledao profil',
+  'dashboard.badgePremium': 'Premium',
+  'dashboard.credits': 'Krediti',
+  'dashboard.creditBalance': 'trenutni saldo',
+  'dashboard.rating': 'Ocjena',
+  'dashboard.noReviewsYet': 'nema recenzija još',
 
   // Navigation — Invest
   'nav.invest': 'Invest',

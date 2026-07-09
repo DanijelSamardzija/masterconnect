@@ -356,7 +356,7 @@ function DashboardContent() {
               )}
               {isPremium && (
                 <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400 flex items-center gap-1">
-                  <Crown className="h-3 w-3" /> Premium
+                  <Crown className="h-3 w-3" /> {t('dashboard.badgePremium')}
                 </span>
               )}
             </div>
@@ -510,7 +510,7 @@ function DashboardContent() {
               <p className="text-sm font-semibold text-foreground">{t('analytics.title')}</p>
               <span className="ml-auto text-xs text-muted-foreground flex items-center gap-1">
                 {isPremium && recentViewers.length > 0 && (
-                  <span className="text-orange-500 font-semibold">{recentViewers.length} posjetilaca ·</span>
+                  <span className="text-orange-500 font-semibold">{recentViewers.length} {t('analytics.visitors')} ·</span>
                 )}
                 {t('analytics.profileViews')}
                 <ChevronRight className="h-3.5 w-3.5" />
@@ -539,27 +539,27 @@ function DashboardContent() {
             <div className="bg-card border border-yellow-200 dark:border-yellow-900 rounded-2xl p-4 flex flex-col gap-1">
               <div className="flex items-center gap-1.5 mb-1">
                 <Coins className="h-4 w-4 text-yellow-500" />
-                <span className="text-xs font-semibold text-muted-foreground">Krediti</span>
+                <span className="text-xs font-semibold text-muted-foreground">{t('dashboard.credits')}</span>
               </div>
               <p className="text-3xl font-bold text-foreground">
                 {creditBalance !== null ? creditBalance : '—'}
               </p>
-              <p className="text-xs text-muted-foreground">trenutni saldo</p>
+              <p className="text-xs text-muted-foreground">{t('dashboard.creditBalance')}</p>
             </div>
             <div className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-1">
               <div className="flex items-center gap-1.5 mb-1">
                 <Star className="h-4 w-4 text-yellow-400" />
-                <span className="text-xs font-semibold text-muted-foreground">Ocjena</span>
+                <span className="text-xs font-semibold text-muted-foreground">{t('dashboard.rating')}</span>
               </div>
               {avgRating ? (
                 <>
                   <p className="text-3xl font-bold text-foreground">{avgRating}</p>
-                  <p className="text-xs text-muted-foreground">{reviews.length} recenzija</p>
+                  <p className="text-xs text-muted-foreground">{reviews.length} {t('dashboard.reviews')}</p>
                 </>
               ) : (
                 <>
                   <p className="text-3xl font-bold text-muted-foreground/30">—</p>
-                  <p className="text-xs text-muted-foreground">nema recenzija još</p>
+                  <p className="text-xs text-muted-foreground">{t('dashboard.noReviewsYet')}</p>
                 </>
               )}
             </div>
@@ -572,7 +572,7 @@ function DashboardContent() {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-orange-500" />
-                Analitika profila
+                {t('analytics.title')}
               </DialogTitle>
             </DialogHeader>
 
@@ -598,7 +598,7 @@ function DashboardContent() {
             {isPremium && recentViewers.length > 0 && (
               <div className="space-y-2 mt-2">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                  <Eye className="h-3.5 w-3.5" /> Ko je gledao profil ({recentViewers.length})
+                  <Eye className="h-3.5 w-3.5" /> {t('analytics.whoViewed')} ({recentViewers.length})
                 </p>
                 {recentViewers.map(viewer => (
                   <button
@@ -625,7 +625,7 @@ function DashboardContent() {
             )}
 
             {isPremium && recentViewers.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-4">Još niko nije gledao profil</p>
+              <p className="text-sm text-muted-foreground text-center py-4">{t('analytics.noViewsYet')}</p>
             )}
           </DialogContent>
         </Dialog>

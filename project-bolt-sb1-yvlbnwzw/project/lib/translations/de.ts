@@ -1273,6 +1273,14 @@ export default {
   'analytics.today': 'Heute',
   'analytics.thisWeek': 'Diese Woche',
   'analytics.total': 'Gesamt',
+  'analytics.whoViewed': 'Wer hat dein Profil angesehen',
+  'analytics.visitors': 'Besucher',
+  'analytics.noViewsYet': 'Noch niemand hat dein Profil angesehen',
+  'dashboard.badgePremium': 'Premium',
+  'dashboard.credits': 'Guthaben',
+  'dashboard.creditBalance': 'aktuelles Guthaben',
+  'dashboard.rating': 'Bewertung',
+  'dashboard.noReviewsYet': 'noch keine Bewertungen',
 
   // Navigation — Invest
   'nav.invest': 'Invest',

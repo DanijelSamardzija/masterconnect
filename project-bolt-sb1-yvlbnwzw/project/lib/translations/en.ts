@@ -1277,6 +1277,14 @@ export default {
   'analytics.today': 'Today',
   'analytics.thisWeek': 'This week',
   'analytics.total': 'All time',
+  'analytics.whoViewed': 'Who viewed your profile',
+  'analytics.visitors': 'visitors',
+  'analytics.noViewsYet': 'No one has viewed your profile yet',
+  'dashboard.badgePremium': 'Premium',
+  'dashboard.credits': 'Credits',
+  'dashboard.creditBalance': 'current balance',
+  'dashboard.rating': 'Rating',
+  'dashboard.noReviewsYet': 'no reviews yet',
 
   // Navigation — Invest
   'nav.invest': 'Invest',
