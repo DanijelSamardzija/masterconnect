@@ -235,7 +235,7 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
   const [infoOpen, setInfoOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [referralCount, setReferralCount] = useState<number | null>(null);
-  const isCreatorPremium = (profile as any).is_pro ?? false;
+  const isCreatorPremium = (profile as any).is_premium === true;
   const referralCode = (profile as any).referral_code;
   const referralUrl = referralCode ? `${typeof window !== 'undefined' ? window.location.origin : 'https://gigzone.app'}/join?ref=${referralCode}` : '';
 
