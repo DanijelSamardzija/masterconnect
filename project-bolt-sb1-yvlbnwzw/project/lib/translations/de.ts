@@ -1416,7 +1416,7 @@ export default {
   'credits.support.sendButton': '{amount} Credits senden',
   'credits.support.insufficientBalance': 'Nicht genug Credits. Verdienen Sie mehr durch Belohnungen!',
   'credits.support.notCreatorPremium': 'Dieser Nutzer nimmt keine Unterstützung an',
-  'credits.support.notCreatorPremiumDesc': 'Nur Creator Premium Nutzer können Credits von Followern empfangen.',
+  'credits.support.notCreatorPremiumDesc': 'Nur Pro Premium Nutzer können Credits von Followern empfangen.',
   'credits.support.successTitle': 'Unterstützung gesendet! 🎉',
   'credits.support.successDesc': 'Sie haben {name} erfolgreich mit {net} Credits unterstützt.',
   'credits.support.sent': 'Gesendet',

@@ -1420,7 +1420,7 @@ export default {
   'credits.support.sendButton': 'Pošalji {amount} kredita',
   'credits.support.insufficientBalance': 'Nedovoljno kredita. Zaradite više kroz nagrade!',
   'credits.support.notCreatorPremium': 'Ovaj korisnik ne prima podršku',
-  'credits.support.notCreatorPremiumDesc': 'Samo Creator Premium korisnici mogu primati kredite od pratilaca.',
+  'credits.support.notCreatorPremiumDesc': 'Samo Pro Premium korisnici mogu primati kredite od pratilaca.',
   'credits.support.successTitle': 'Podrška poslata! 🎉',
   'credits.support.successDesc': 'Uspešno ste podržali {name} sa {net} kredita.',
   'credits.support.sent': 'Poslato',
