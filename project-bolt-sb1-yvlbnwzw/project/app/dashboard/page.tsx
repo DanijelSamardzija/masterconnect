@@ -24,6 +24,7 @@ import {
   CheckCircle2, Clock, Bell, Trash2, Rss, UserCircle,
   ChevronRight, AlertCircle, Eye, TrendingUp, Calendar, Coins, Crown
 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { NotificationsModal, Notification } from '@/components/notifications-modal';
 import { ReviewModal } from '@/components/review-modal';
 import { OnboardingModal } from '@/components/onboarding-modal';
@@ -81,6 +82,7 @@ function DashboardContent() {
   const [profileViews, setProfileViews] = useState<{ total: number; week: number; today: number } | null>(null);
   const [creditBalance, setCreditBalance] = useState<number | null>(null);
   const [recentViewers, setRecentViewers] = useState<{ id: string; name: string; avatar_url: string | null; viewed_at: string }[]>([]);
+  const [analyticsOpen, setAnalyticsOpen] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -497,13 +499,22 @@ function DashboardContent() {
           )}
         </div>
 
-        {/* Analytics card — professionals + premium */}
+        {/* Analytics card — klikabilna, otvara modal s detaljima */}
         {(isPro || isPremium) && profileViews !== null && (
-          <div className="bg-card border border-border rounded-2xl p-4">
+          <button
+            onClick={() => setAnalyticsOpen(true)}
+            className="w-full bg-card border border-border rounded-2xl p-4 hover:border-orange-400/50 hover:bg-accent transition-colors text-left"
+          >
             <div className="flex items-center gap-2 mb-3">
               <TrendingUp className="h-4 w-4 text-orange-500" />
               <p className="text-sm font-semibold text-foreground">{t('analytics.title')}</p>
-              <span className="ml-auto text-xs text-muted-foreground">{t('analytics.profileViews')}</span>
+              <span className="ml-auto text-xs text-muted-foreground flex items-center gap-1">
+                {isPremium && recentViewers.length > 0 && (
+                  <span className="text-orange-500 font-semibold">{recentViewers.length} posjetilaca ·</span>
+                )}
+                {t('analytics.profileViews')}
+                <ChevronRight className="h-3.5 w-3.5" />
+              </span>
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-muted/50 rounded-xl p-3 text-center">
@@ -519,13 +530,12 @@ function DashboardContent() {
                 <p className="text-xs text-muted-foreground mt-0.5">{t('analytics.total')}</p>
               </div>
             </div>
-          </div>
+          </button>
         )}
 
         {/* Premium widgets: credit balance + rating */}
         {isPremium && (
           <div className="grid grid-cols-2 gap-3">
-            {/* Credit balance */}
             <div className="bg-card border border-yellow-200 dark:border-yellow-900 rounded-2xl p-4 flex flex-col gap-1">
               <div className="flex items-center gap-1.5 mb-1">
                 <Coins className="h-4 w-4 text-yellow-500" />
@@ -536,8 +546,6 @@ function DashboardContent() {
               </p>
               <p className="text-xs text-muted-foreground">trenutni saldo</p>
             </div>
-
-            {/* Rating summary */}
             <div className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-1">
               <div className="flex items-center gap-1.5 mb-1">
                 <Star className="h-4 w-4 text-yellow-400" />
@@ -558,39 +566,69 @@ function DashboardContent() {
           </div>
         )}
 
-        {/* Who viewed my profile — premium only */}
-        {isPremium && recentViewers.length > 0 && (
-          <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
-            <div className="flex items-center gap-2">
-              <Eye className="h-4 w-4 text-orange-500" />
-              <p className="text-sm font-semibold text-foreground">Ko je gledao profil</p>
-              <span className="ml-auto text-xs text-muted-foreground">{recentViewers.length} posjetilaca</span>
-            </div>
-            <div className="space-y-2">
-              {recentViewers.slice(0, 8).map(viewer => (
-                <button
-                  key={viewer.id}
-                  onClick={() => router.push(`/profile/${viewer.id}`)}
-                  className="w-full flex items-center gap-3 hover:bg-accent rounded-xl px-2 py-1.5 transition-colors text-left"
-                >
-                  <Avatar className="h-8 w-8 flex-shrink-0">
-                    <AvatarImage src={viewer.avatar_url || undefined} />
-                    <AvatarFallback className="bg-orange-100 text-orange-700 text-xs font-bold">
-                      {viewer.name.substring(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{viewer.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(viewer.viewed_at), { addSuffix: true })}
-                    </p>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Analytics modal */}
+        <Dialog open={analyticsOpen} onOpenChange={setAnalyticsOpen}>
+          <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-orange-500" />
+                Analitika profila
+              </DialogTitle>
+            </DialogHeader>
+
+            {/* Views breakdown */}
+            {profileViews && (
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-muted/50 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-bold">{profileViews.today}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{t('analytics.today')}</p>
+                </div>
+                <div className="bg-muted/50 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-bold">{profileViews.week}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{t('analytics.thisWeek')}</p>
+                </div>
+                <div className="bg-orange-50 dark:bg-orange-950/30 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{profileViews.total}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{t('analytics.total')}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Who viewed — premium only */}
+            {isPremium && recentViewers.length > 0 && (
+              <div className="space-y-2 mt-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                  <Eye className="h-3.5 w-3.5" /> Ko je gledao profil ({recentViewers.length})
+                </p>
+                {recentViewers.map(viewer => (
+                  <button
+                    key={viewer.id}
+                    onClick={() => { setAnalyticsOpen(false); router.push(`/profile/${viewer.id}`); }}
+                    className="w-full flex items-center gap-3 hover:bg-accent rounded-xl px-2 py-1.5 transition-colors text-left"
+                  >
+                    <Avatar className="h-8 w-8 flex-shrink-0">
+                      <AvatarImage src={viewer.avatar_url || undefined} />
+                      <AvatarFallback className="bg-orange-100 text-orange-700 text-xs font-bold">
+                        {viewer.name.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{viewer.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(viewer.viewed_at), { addSuffix: true })}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {isPremium && recentViewers.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">Još niko nije gledao profil</p>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Quick actions */}
         <div className="space-y-2">
