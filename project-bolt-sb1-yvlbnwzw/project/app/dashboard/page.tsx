@@ -846,31 +846,17 @@ function DashboardContent() {
         ) : (
           /* Customer: recent jobs */
           <div className="space-y-3">
-            <div className="flex items-center justify-between px-1">
+            <div className="flex items-center px-1">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 {t('dashboard.recentJobs')}
               </p>
-              <button
-                onClick={() => router.push('/jobs/new')}
-                className="text-xs text-orange-600 hover:text-orange-500 font-medium flex items-center gap-1"
-              >
-                <Plus className="h-3 w-3" />
-                {t('dashboard.newListing')}
-              </button>
             </div>
 
             {jobs.length === 0 ? (
               <div className="bg-card border border-border rounded-2xl px-5 py-10 text-center">
                 <Briefcase className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-40" />
                 <p className="font-semibold text-foreground mb-1">{t('dashboard.noJobsYet')}</p>
-                <p className="text-sm text-muted-foreground mb-4">{t('dashboard.noJobsDesc')}</p>
-                <button
-                  onClick={() => router.push('/jobs/new')}
-                  className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-xl transition-colors"
-                >
-                  <Plus className="h-4 w-4 inline mr-1.5" />
-                  {t('dashboard.postJob')}
-                </button>
+                <p className="text-sm text-muted-foreground">{t('dashboard.noJobsDesc')}</p>
               </div>
             ) : (
               jobs.map(job => (
