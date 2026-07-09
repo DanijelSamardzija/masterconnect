@@ -543,38 +543,6 @@ function DashboardContent() {
           </button>
         )}
 
-        {/* Donations received */}
-        {isPremium && donations.length > 0 && (
-          <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
-            <div className="flex items-center gap-2">
-              <Coins className="h-4 w-4 text-amber-500" />
-              <p className="text-sm font-semibold text-foreground">Primljene donacije</p>
-              <span className="ml-auto text-xs font-bold text-green-500">+{donations.reduce((s, d) => s + d.amount, 0)} kredita</span>
-            </div>
-            <div className="space-y-2">
-              {donations.map(d => (
-                <div key={d.id} className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-full bg-orange-100 dark:bg-orange-950 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    {d.anonymous || !d.sender_avatar
-                      ? <span className="text-sm">🎭</span>
-                      : <img src={d.sender_avatar} alt="" className="h-8 w-8 object-cover" />
-                    }
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-foreground truncate">
-                      {d.anonymous ? 'Anonimni korisnik' : (d.sender_name || 'Korisnik')}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {new Date(d.created_at).toLocaleDateString('sr-RS')}
-                    </p>
-                  </div>
-                  <span className="text-xs font-bold text-green-500 shrink-0">+{d.amount} kr</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Premium widgets: credit balance + rating */}
         {isPremium && (
           <div className="grid grid-cols-2 gap-3">
@@ -587,6 +555,25 @@ function DashboardContent() {
                 {creditBalance !== null ? creditBalance : '—'}
               </p>
               <p className="text-xs text-muted-foreground">{t('dashboard.creditBalance')}</p>
+              {donations.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-border space-y-2">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Donacije</p>
+                  {donations.slice(0, 3).map(d => (
+                    <div key={d.id} className="flex items-center gap-2">
+                      <div className="h-6 w-6 rounded-full bg-orange-100 dark:bg-orange-950 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        {d.anonymous || !d.sender_avatar
+                          ? <span className="text-xs">🎭</span>
+                          : <img src={d.sender_avatar} alt="" className="h-6 w-6 object-cover" />
+                        }
+                      </div>
+                      <p className="text-[10px] text-foreground truncate flex-1">
+                        {d.anonymous ? 'Anonimni' : (d.sender_name || 'Korisnik')}
+                      </p>
+                      <span className="text-[10px] font-bold text-green-500">+{d.amount}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-1">
               <div className="flex items-center gap-1.5 mb-1">
