@@ -883,6 +883,7 @@ export default {
   'marketplace.priceHourlyLabel': 'Satnica *',
   'marketplace.imagesRequired': 'Slike (obavezno, min 3, max 10) *',
   'marketplace.imagesMinError': 'Dodajte najmanje 3 slike za oglas usluge',
+  'marketplace.imagesUploadFailed': 'Greška pri otpremanju slika. Pokušajte ponovo.',
   'createPost.mediaMaxError': 'Maksimalno 5 fajlova po objavi na Feed-u',
   'marketplace.hiringAvailability': 'Početak posla *',
   'marketplace.hiringAvailabilityPlaceholder': 'Izaberite kada može početi',

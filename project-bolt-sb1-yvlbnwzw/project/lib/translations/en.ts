@@ -883,6 +883,7 @@ export default {
   'marketplace.priceHourlyLabel': 'Hourly Rate *',
   'marketplace.imagesRequired': 'Images (Required, min 3, max 10) *',
   'marketplace.imagesMinError': 'Please add at least 3 images for a service listing',
+  'marketplace.imagesUploadFailed': 'Image upload failed. Please try again.',
   'createPost.mediaMaxError': 'Maximum 5 files per post on Feed',
   'marketplace.hiringAvailability': 'Job Start *',
   'marketplace.hiringAvailabilityPlaceholder': 'Select when they can start',

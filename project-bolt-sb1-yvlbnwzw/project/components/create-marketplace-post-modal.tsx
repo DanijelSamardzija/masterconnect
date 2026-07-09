@@ -421,6 +421,11 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
 
         if (mediaItems.length > 0) {
           await supabase.from('post_media').insert(mediaItems);
+        } else if (postType === 'service_listing') {
+          // All image uploads failed — roll back the post so it doesn't appear without images
+          await supabase.from('posts').delete().eq('id', postResult.id);
+          toast.error(t('marketplace.imagesUploadFailed') || 'Greška pri otpremanju slika. Pokušajte ponovo.');
+          return;
         }
       }
 
