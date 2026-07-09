@@ -45,6 +45,9 @@ import {
   Sparkles,
   Zap,
   Loader2,
+  Wrench,
+  Search,
+  UserCircle,
 } from 'lucide-react';
 import { CommentsSheet } from '@/components/comments-sheet';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -462,6 +465,7 @@ export function ProfileView({
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [createMarketplaceModalOpen, setCreateMarketplaceModalOpen] = useState(false);
+  const [adTypePickerOpen, setAdTypePickerOpen] = useState(false);
   const [initialPostType, setInitialPostType] = useState<
     'service_request' | 'job_seeker_post' | 'hiring_post' | 'portfolio_post' | 'service_listing' | undefined
   >(undefined);
@@ -1387,7 +1391,7 @@ export function ProfileView({
               </div>
               {isOwnProfile && (
                 <Button
-                  onClick={() => setCreateMarketplaceModalOpen(true)}
+                  onClick={() => setAdTypePickerOpen(true)}
                   className="gap-1.5 bg-orange-600 hover:bg-orange-700 rounded-xl h-8"
                   size="sm"
                 >
@@ -1407,7 +1411,7 @@ export function ProfileView({
                   <>
                     <p className="text-sm text-muted-foreground mb-4">Post your first listing to attract clients</p>
                     <Button
-                      onClick={() => setCreateMarketplaceModalOpen(true)}
+                      onClick={() => setAdTypePickerOpen(true)}
                       className="gap-2 bg-orange-600 hover:bg-orange-700 rounded-xl"
                       size="sm"
                     >
@@ -2214,6 +2218,34 @@ export function ProfileView({
             onSave={handleSaveEdit}
           />
         )}
+
+        <Dialog open={adTypePickerOpen} onOpenChange={setAdTypePickerOpen}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>{t('jobs.createPost')}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 pt-2">
+              {([
+                { type: 'service_listing' as const, icon: <Wrench className="h-5 w-5 text-orange-400" />, title: t('jobs.postTypeServiceListing'), desc: t('jobs.postTypeServiceListingDesc') },
+                { type: 'service_request' as const, icon: <Search className="h-5 w-5 text-orange-400" />, title: t('jobs.postTypeServiceRequest'), desc: t('jobs.postTypeServiceRequestDesc') },
+                { type: 'job_seeker_post' as const, icon: <UserCircle className="h-5 w-5 text-orange-400" />, title: t('jobs.postTypeJobSeeker'), desc: t('jobs.postTypeJobSeekerDesc') },
+                { type: 'hiring_post' as const, icon: <Briefcase className="h-5 w-5 text-orange-400" />, title: t('jobs.postTypeHiring'), desc: t('jobs.postTypeHiringDesc') },
+              ] as const).map(({ type, icon, title, desc }) => (
+                <button
+                  key={type}
+                  onClick={() => { setInitialPostType(type); setAdTypePickerOpen(false); setCreateMarketplaceModalOpen(true); }}
+                  className="w-full flex items-start gap-4 p-4 rounded-xl border border-border hover:border-orange-500 hover:bg-orange-500/5 transition-all text-left"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center flex-shrink-0">{icon}</div>
+                  <div>
+                    <p className="font-semibold text-foreground text-sm">{title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {isOwnProfile && (
           <CreateMarketplacePostModal
