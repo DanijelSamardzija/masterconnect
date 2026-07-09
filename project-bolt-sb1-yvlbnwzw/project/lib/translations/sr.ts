@@ -480,6 +480,7 @@ export default {
   'dashboard.noUnreadMessages': 'Nema nepročitanih poruka',
   'dashboard.unread': 'nepročitano',
   'dashboard.notifications': 'Obavještenja',
+  'notifications.markAllRead': 'Sve pročitano',
   'dashboard.stayUpdated': 'Budite u toku',
   'dashboard.recentJobs': 'Nedavni Poslovi',
   'dashboard.statusOpen': 'Otvoreno',

@@ -5,6 +5,7 @@ import { Bell, CheckCheck, Trash2, Volume2, VolumeX } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { useSoundPreference } from '@/hooks/use-sound-preference';
+import { useLanguage } from '@/lib/contexts/language-context';
 
 export type Notification = {
   id: string;
@@ -45,6 +46,7 @@ export function NotificationsModal({
   onClearAll
 }: NotificationsModalProps) {
   const { soundEnabled, toggleNotificationsSound } = useSoundPreference();
+  const { t } = useLanguage();
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -107,16 +109,16 @@ export function NotificationsModal({
                     className="h-8 px-2 text-xs gap-1"
                   >
                     <CheckCheck className="h-3.5 w-3.5" />
-                    Pročitano
+                    {t('notifications.markAllRead')}
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={onClearAll}
-                    className="h-8 px-2 text-xs gap-1"
+                    className="h-8 w-8 p-0"
+                    title="Obriši sve"
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    Briši
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </>
               )}

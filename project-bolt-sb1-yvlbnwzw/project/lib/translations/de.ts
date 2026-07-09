@@ -480,6 +480,7 @@ export default {
   'dashboard.noUnreadMessages': 'Keine ungelesenen Nachrichten',
   'dashboard.unread': 'ungelesen',
   'dashboard.notifications': 'Benachrichtigungen',
+  'notifications.markAllRead': 'Alle gelesen',
   'dashboard.stayUpdated': 'Bleib auf dem Laufenden',
   'dashboard.recentJobs': 'Letzte Jobs',
   'dashboard.statusOpen': 'Offen',
