@@ -22,7 +22,7 @@ import {
 import {
   Briefcase, MessageSquare, Star, Plus,
   CheckCircle2, Clock, Bell, Trash2, Rss, UserCircle,
-  ChevronRight, AlertCircle, Eye, TrendingUp, Calendar
+  ChevronRight, AlertCircle, Eye, TrendingUp, Calendar, Coins, Crown
 } from 'lucide-react';
 import { NotificationsModal, Notification } from '@/components/notifications-modal';
 import { ReviewModal } from '@/components/review-modal';
@@ -79,13 +79,15 @@ function DashboardContent() {
   const [pendingReviewPro, setPendingReviewPro] = useState<{ id: string; name: string } | null>(null);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [profileViews, setProfileViews] = useState<{ total: number; week: number; today: number } | null>(null);
+  const [creditBalance, setCreditBalance] = useState<number | null>(null);
 
   useEffect(() => {
     fetchDashboardData();
     fetchUnreadCount();
     fetchNotifications();
     if (profile?.account_type === 'customer') fetchPendingReview();
-    if (profile?.account_type === 'professional') fetchProfileViews();
+    if (profile?.account_type === 'professional' || (profile as any)?.is_premium) fetchProfileViews();
+    if ((profile as any)?.is_premium) fetchCreditBalance();
 
     const handleUnreadCountChanged = () => {
       fetchUnreadCount();
@@ -190,6 +192,16 @@ function DashboardContent() {
     setProfileViews({ total: total || 0, week: week || 0, today: today || 0 });
   };
 
+  const fetchCreditBalance = async () => {
+    if (!profile) return;
+    const { data } = await supabase
+      .from('credits_balance')
+      .select('balance')
+      .eq('user_id', profile.id)
+      .maybeSingle();
+    setCreditBalance(data?.balance ?? 0);
+  };
+
   const fetchNotifications = async () => {
     if (!profile) return;
     const { data } = await supabase.from('notifications').select('*')
@@ -273,6 +285,7 @@ function DashboardContent() {
   }
 
   const isPro = profile.is_pro === true;
+  const isPremium = (profile as any).is_premium === true;
 
   // Profile completeness
   const completenessFields = [
@@ -303,11 +316,18 @@ function DashboardContent() {
             <h1 className="text-xl font-bold text-foreground truncate">
               {t('dashboard.greeting')} {profile.name.split(' ')[0]}
             </h1>
-            {isPro && (
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-400">
-                {t('dashboard.badgeProfessional')}
-              </span>
-            )}
+            <div className="flex items-center gap-2 flex-wrap mt-0.5">
+              {isPro && (
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-400">
+                  {t('dashboard.badgeProfessional')}
+                </span>
+              )}
+              {isPremium && (
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400 flex items-center gap-1">
+                  <Crown className="h-3 w-3" /> Premium
+                </span>
+              )}
+            </div>
           </div>
           <button
             onClick={handleOpenNotifications}
@@ -447,8 +467,8 @@ function DashboardContent() {
           )}
         </div>
 
-        {/* Analytics card — professionals only */}
-        {isPro && profileViews !== null && (
+        {/* Analytics card — professionals + premium */}
+        {(isPro || isPremium) && profileViews !== null && (
           <div className="bg-card border border-border rounded-2xl p-4">
             <div className="flex items-center gap-2 mb-3">
               <TrendingUp className="h-4 w-4 text-orange-500" />
@@ -468,6 +488,42 @@ function DashboardContent() {
                 <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{profileViews.total}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{t('analytics.total')}</p>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Premium widgets: credit balance + rating */}
+        {isPremium && (
+          <div className="grid grid-cols-2 gap-3">
+            {/* Credit balance */}
+            <div className="bg-card border border-yellow-200 dark:border-yellow-900 rounded-2xl p-4 flex flex-col gap-1">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Coins className="h-4 w-4 text-yellow-500" />
+                <span className="text-xs font-semibold text-muted-foreground">Krediti</span>
+              </div>
+              <p className="text-3xl font-bold text-foreground">
+                {creditBalance !== null ? creditBalance : '—'}
+              </p>
+              <p className="text-xs text-muted-foreground">trenutni saldo</p>
+            </div>
+
+            {/* Rating summary */}
+            <div className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-1">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Star className="h-4 w-4 text-yellow-400" />
+                <span className="text-xs font-semibold text-muted-foreground">Ocjena</span>
+              </div>
+              {avgRating ? (
+                <>
+                  <p className="text-3xl font-bold text-foreground">{avgRating}</p>
+                  <p className="text-xs text-muted-foreground">{reviews.length} recenzija</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-3xl font-bold text-muted-foreground/30">—</p>
+                  <p className="text-xs text-muted-foreground">nema recenzija još</p>
+                </>
+              )}
             </div>
           </div>
         )}
