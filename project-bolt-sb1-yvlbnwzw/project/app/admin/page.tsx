@@ -329,6 +329,11 @@ function AdminContent() {
   const [creditsStats, setCreditsStats] = useState<any>(null);
   const [creditsLoading, setCreditsLoading] = useState(false);
 
+  // Grant credits state
+  const [creditTarget, setCreditTarget] = useState<{ id: string; name: string } | null>(null);
+  const [creditAmount, setCreditAmount] = useState('30');
+  const [grantingCredits, setGrantingCredits] = useState(false);
+
   // Send notification state
   const [notifTarget, setNotifTarget] = useState<{ id: string; name: string } | null>(null);
   const [notifTitle, setNotifTitle] = useState('');
@@ -859,6 +864,26 @@ function AdminContent() {
       toast.error('Greška: ' + e.message);
     } finally {
       setSendingNotif(false);
+    }
+  };
+
+  const handleGrantCredits = async () => {
+    if (!creditTarget) return;
+    const amount = parseInt(creditAmount);
+    if (!amount || amount <= 0) return;
+    setGrantingCredits(true);
+    const { data, error } = await supabase.rpc('admin_grant_credits', {
+      p_user_id: creditTarget.id,
+      p_amount: amount,
+      p_note: 'Admin dodjela',
+    });
+    setGrantingCredits(false);
+    if (error || !data?.ok) {
+      toast.error('Greška pri dodjeli kredita');
+    } else {
+      toast.success(`Dodijeljeno ${amount} kredita korisniku ${creditTarget.name}`);
+      setCreditTarget(null);
+      setCreditAmount('30');
     }
   };
 
@@ -1423,6 +1448,36 @@ function AdminContent() {
                         >
                           <Bell className="h-4 w-4" />
                         </Button>
+                        {creditTarget?.id === u.id ? (
+                          <div className="flex items-center gap-1">
+                            <input
+                              autoFocus
+                              type="number"
+                              min="1"
+                              value={creditAmount}
+                              onChange={e => setCreditAmount(e.target.value)}
+                              className="text-xs bg-background border border-border rounded-lg px-2 py-1 w-14 outline-none focus:border-orange-500/50"
+                            />
+                            <button
+                              onClick={handleGrantCredits}
+                              disabled={grantingCredits}
+                              className="text-xs text-green-600 font-semibold px-1.5 py-1 hover:text-green-700"
+                            >
+                              {grantingCredits ? '...' : '✓'}
+                            </button>
+                            <button onClick={() => setCreditTarget(null)} className="text-xs text-muted-foreground px-1 py-1 hover:text-foreground">✕</button>
+                          </div>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 rounded-xl text-orange-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950"
+                            title="Dodaj kredite"
+                            onClick={() => { setCreditTarget({ id: u.id, name: u.name }); setCreditAmount('30'); }}
+                          >
+                            <Coins className="h-4 w-4" />
+                          </Button>
+                        )}
                         {!u.is_admin && (
                           <>
                             <Button
