@@ -56,6 +56,8 @@ export function translateNotification(
       return { title: `${actorName} declined your application`, body: n.body || '' };
     case 'announcement':
       return { title: n.title, body: n.body || '' };
+    case 'missing_location':
+      return { title: 'Add your location', body: 'We couldn\'t find your city. Add your location to receive listings from your region.' };
     default:
       return { title: n.title, body: n.body || '' };
   }

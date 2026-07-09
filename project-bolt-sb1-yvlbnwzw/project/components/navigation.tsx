@@ -211,6 +211,7 @@ export function Navigation() {
         id: n.id, type: n.type, title: translated.title, body: translated.body,
         time: formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: language === 'sr' ? sr : undefined }),
         read: !!n.read_at, meta: { ...(n.meta || {}), post_id: n.post_id },
+        linkUrl: n.meta?.link_url || undefined,
       };
     });
     setNotificationsList(mapped);

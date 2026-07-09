@@ -68,6 +68,8 @@ export function NotificationsModal({
         return '⭐';
       case 'credit':
         return '🪙';
+      case 'system':
+        return '📍';
       default:
         return '🔔';
     }
