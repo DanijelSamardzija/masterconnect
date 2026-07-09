@@ -357,17 +357,6 @@ function DashboardContent() {
             </h1>
             {isPremium && <ProfessionalBadge size="sm" variant="premium" />}
           </div>
-          <button
-            onClick={handleOpenNotifications}
-            className="relative p-2.5 rounded-xl hover:bg-accent transition-colors"
-          >
-            <Bell className={`h-5 w-5 ${notificationsCount > 0 ? 'text-orange-500' : 'text-muted-foreground'}`} />
-            {notificationsCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-                {notificationsCount > 9 ? '9+' : notificationsCount}
-              </span>
-            )}
-          </button>
         </div>
 
         {error && (
@@ -670,20 +659,6 @@ function DashboardContent() {
                     <p className="text-xs text-muted-foreground">{t('dashboard.updateProfileShort')}</p>
                   </div>
                 </button>
-                <button
-                  onClick={() => router.push('/messages')}
-                  className="bg-card border border-border rounded-2xl px-4 py-3.5 flex items-center gap-3 hover:border-orange-400/50 hover:bg-accent transition-colors text-left"
-                >
-                  <div className="p-2 bg-green-100 dark:bg-green-950 rounded-xl">
-                    <MessageSquare className="h-4 w-4 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{t('dashboard.messages')}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {unreadCount > 0 ? t('dashboard.unreadCount').replace('{count}', String(unreadCount)) : t('dashboard.allConversations')}
-                    </p>
-                  </div>
-                </button>
               </>
             ) : (
               <>
@@ -709,20 +684,6 @@ function DashboardContent() {
                   <div>
                     <p className="text-sm font-semibold text-foreground">Feed</p>
                     <p className="text-xs text-muted-foreground">{t('dashboard.feedBrowseDesc')}</p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => router.push('/messages')}
-                  className="bg-card border border-border rounded-2xl px-4 py-3.5 flex items-center gap-3 hover:border-orange-400/50 hover:bg-accent transition-colors text-left"
-                >
-                  <div className="p-2 bg-green-100 dark:bg-green-950 rounded-xl">
-                    <MessageSquare className="h-4 w-4 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{t('dashboard.messages')}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {unreadCount > 0 ? t('dashboard.unreadCount').replace('{count}', String(unreadCount)) : t('dashboard.allConversations')}
-                    </p>
                   </div>
                 </button>
               </>
