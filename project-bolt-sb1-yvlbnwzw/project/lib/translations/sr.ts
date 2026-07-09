@@ -488,8 +488,8 @@ export default {
   'dashboard.deleteJobConfirm': 'Ova akcija se ne može poništiti. Trajno će biti obrisan oglas',
   'dashboard.cancel': 'Otkaži',
   'dashboard.delete': 'Obriši',
-  'dashboard.noJobsYet': 'Nema poslova još',
-  'dashboard.noJobsDesc': 'Objavite prvi posao da biste počeli',
+  'dashboard.noJobsYet': 'Nema oglasa još',
+  'dashboard.noJobsDesc': 'Objavite prvi oglas da biste počeli!',
   // Professional
   'dashboard.professionalDashboard': 'Profesionalna Kontrolna Tabla',
   'dashboard.professionalDesc': 'Pregledajte prilike za posao i upravljajte poslovanjem',

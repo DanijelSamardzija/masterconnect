@@ -488,8 +488,8 @@ export default {
   'dashboard.deleteJobConfirm': 'This action cannot be undone. This will permanently delete the job',
   'dashboard.cancel': 'Cancel',
   'dashboard.delete': 'Delete',
-  'dashboard.noJobsYet': 'No jobs yet',
-  'dashboard.noJobsDesc': 'Post your first job to get started',
+  'dashboard.noJobsYet': 'No ads yet',
+  'dashboard.noJobsDesc': 'Post your first ad to get started!',
   // Professional
   'dashboard.professionalDashboard': 'Professional Dashboard',
   'dashboard.professionalDesc': 'View job opportunities and manage your business',
