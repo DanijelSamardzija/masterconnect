@@ -669,7 +669,7 @@ function DashboardContent() {
               <>
                 <button
                   onClick={() => setShowTypePicker(true)}
-                  className="bg-orange-500 hover:bg-orange-600 text-white rounded-2xl px-4 py-3.5 flex items-center gap-3 transition-colors text-left col-span-2"
+                  className="bg-orange-500 hover:bg-orange-600 text-white rounded-2xl px-4 py-3.5 flex items-center gap-3 transition-colors text-left"
                 >
                   <div className="p-2 bg-white/20 rounded-xl">
                     <Plus className="h-4 w-4" />
