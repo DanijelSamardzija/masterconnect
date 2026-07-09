@@ -30,7 +30,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Briefcase, Users, UserCircle, MessageCircle, Plus, MoreVertical, Trash2, Send, X, Bookmark, Share2, MapPin, Star, Clock, Sparkles, Zap, Loader2 as Loader, Search, Wrench } from 'lucide-react';
+import { Briefcase, Users, UserCircle, MessageCircle, Plus, MoreVertical, Trash2, Send, X, Bookmark, Share2, MapPin, Star, Clock, Sparkles, Zap, Loader2 as Loader, Search, Wrench, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -72,6 +72,7 @@ type Post = {
     email: string;
     account_type: 'professional' | 'customer';
     avatar_url?: string | null;
+    is_premium?: boolean;
   };
 };
 
@@ -1129,6 +1130,15 @@ function JobsMarketplaceContent() {
             user: Array.isArray(post.user) ? post.user[0] : post.user,
           })) || [];
 
+        const fallbackUserIds = [...new Set(postsWithData.map((p: any) => p.user_id))];
+        if (fallbackUserIds.length > 0) {
+          const { data: premiumData } = await supabase.from('profiles').select('id, is_premium').in('id', fallbackUserIds);
+          if (premiumData) {
+            const premiumMap = Object.fromEntries(premiumData.map((p: any) => [p.id, p.is_premium]));
+            postsWithData.forEach((p: any) => { if (p.user) p.user.is_premium = premiumMap[p.user_id] ?? false; });
+          }
+        }
+
         const sorted = [...postsWithData].sort((a, b) => {
           const aP = a.is_promoted || (a.promoted_until && new Date(a.promoted_until) > new Date()) ? 1 : 0;
           const bP = b.is_promoted || (b.promoted_until && new Date(b.promoted_until) > new Date()) ? 1 : 0;
@@ -1177,6 +1187,13 @@ function JobsMarketplaceContent() {
         if (promoData) {
           const promoMap = Object.fromEntries(promoData.map((p: any) => [p.id, p.is_promoted]));
           postsWithData.forEach((p: any) => { p.is_promoted = promoMap[p.id] ?? false; });
+        }
+
+        const rpcUserIds = [...new Set(postsWithData.map((p: any) => p.user_id))];
+        const { data: premiumData } = await supabase.from('profiles').select('id, is_premium').in('id', rpcUserIds);
+        if (premiumData) {
+          const premiumMap = Object.fromEntries(premiumData.map((p: any) => [p.id, p.is_premium]));
+          postsWithData.forEach((p: any) => { if (p.user) p.user.is_premium = premiumMap[p.user_id] ?? false; });
         }
       }
 
@@ -1628,15 +1645,23 @@ function JobsMarketplaceContent() {
                                 </Avatar>
 
                                 <div className="flex-1 min-w-0">
-                                  <button
-                                    className="text-sm font-semibold text-slate-900 dark:text-white hover:text-orange-600 dark:hover:text-orange-400 transition-colors truncate block"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      router.push(`/profile/${post.user_id}`);
-                                    }}
-                                  >
-                                    {post.user?.name || 'Unknown User'}
-                                  </button>
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <button
+                                      className="text-sm font-semibold text-slate-900 dark:text-white hover:text-orange-600 dark:hover:text-orange-400 transition-colors truncate"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        router.push(`/profile/${post.user_id}`);
+                                      }}
+                                    >
+                                      {post.user?.name || 'Unknown User'}
+                                    </button>
+                                    {(post.user as any)?.is_premium && (
+                                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold shadow-sm text-[9px] shrink-0">
+                                        <CheckCircle className="h-2.5 w-2.5 shrink-0" />
+                                        PRO
+                                      </span>
+                                    )}
+                                  </div>
 
                                   <p className="text-xs text-slate-500 dark:text-gray-400">
                                     {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}

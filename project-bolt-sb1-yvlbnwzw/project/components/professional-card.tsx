@@ -28,6 +28,7 @@ type ProfessionalCardProps = {
       average_rating?: number;
       review_count?: number;
       last_seen?: string;
+      is_premium?: boolean;
     };
     post_media: Array<{
       id: string;
@@ -129,15 +130,18 @@ export function ProfessionalCard({ listing }: ProfessionalCardProps) {
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <button
-                className="text-sm font-semibold text-gray-900 dark:text-white hover:text-orange-600 dark:hover:text-orange-400 transition-colors truncate block"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  router.push(`/profile/${listing.user_id}`);
-                }}
-              >
-                {listing.profiles.name}
-              </button>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <button
+                  className="text-sm font-semibold text-gray-900 dark:text-white hover:text-orange-600 dark:hover:text-orange-400 transition-colors truncate"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push(`/profile/${listing.user_id}`);
+                  }}
+                >
+                  {listing.profiles.name}
+                </button>
+                {listing.profiles.is_premium && <ProfessionalBadge size="sm" variant="premium" />}
+              </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 {formatTimeAgo(listing.created_at)}
               </p>

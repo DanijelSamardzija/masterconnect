@@ -39,6 +39,7 @@ type ServiceListing = {
     average_rating?: number;
     review_count?: number;
     last_seen?: string;
+    is_premium?: boolean;
   };
   post_media: Array<{
     id: string;
@@ -122,6 +123,7 @@ export default function ServicesPage() {
             average_rating,
             review_count,
             last_seen,
+            is_premium,
             city,
             country
           ),
