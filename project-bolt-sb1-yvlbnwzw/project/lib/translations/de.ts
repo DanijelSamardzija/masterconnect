@@ -534,6 +534,7 @@ export default {
   'profile.portfolioPosts': 'Portfolio-Beiträge',
   'profile.serviceListings': 'Dienstleistungsangebote',
   'profile.noListings': 'Noch keine Marktplatzeinträge',
+  'profile.noListingsDesc': 'Veröffentlichen Sie Ihre erste Anzeige, um Kunden anzuziehen',
   'profile.noServices': 'Noch keine Dienstleistungsangebote',
   'profile.createFirstService': 'Erstes Dienstleistungsangebot erstellen',
   'profile.offerService': 'Dienst anbieten',

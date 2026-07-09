@@ -536,6 +536,7 @@ export default {
   'profile.portfolioPosts': 'Portfolio Objave',
   'profile.serviceListings': 'Ponude Usluga',
   'profile.noListings': 'Još nemate oglasa',
+  'profile.noListingsDesc': 'Objavite prvi oglas da privučete klijente',
   'profile.noServices': 'Još nemate ponuda usluga',
   'profile.createFirstService': 'Kreirajte Vašu Prvu Ponudu Usluge',
   'profile.offerService': 'Ponudi uslugu',

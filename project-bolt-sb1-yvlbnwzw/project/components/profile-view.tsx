@@ -1409,7 +1409,7 @@ export function ProfileView({
                 <p className="font-medium text-foreground mb-1">{t('profile.noListings')}</p>
                 {isOwnProfile && (
                   <>
-                    <p className="text-sm text-muted-foreground mb-4">Post your first listing to attract clients</p>
+                    <p className="text-sm text-muted-foreground mb-4">{t('profile.noListingsDesc')}</p>
                     <Button
                       onClick={() => setAdTypePickerOpen(true)}
                       className="gap-2 bg-orange-600 hover:bg-orange-700 rounded-xl"

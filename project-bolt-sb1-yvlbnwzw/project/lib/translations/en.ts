@@ -536,6 +536,7 @@ export default {
   'profile.portfolioPosts': 'Portfolio Posts',
   'profile.serviceListings': 'Service Listings',
   'profile.noListings': 'No marketplace listings yet',
+  'profile.noListingsDesc': 'Post your first listing to attract clients',
   'profile.noServices': 'No service listings yet',
   'profile.createFirstService': 'Create Your First Service Listing',
   'profile.offerService': 'Offer Service',
