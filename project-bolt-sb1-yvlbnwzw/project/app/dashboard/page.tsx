@@ -86,6 +86,7 @@ function DashboardContent() {
   const [creditBalance, setCreditBalance] = useState<number | null>(null);
   const [recentViewers, setRecentViewers] = useState<{ id: string; name: string; avatar_url: string | null; viewed_at: string }[]>([]);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
+  const [donations, setDonations] = useState<{ id: string; amount: number; anonymous: boolean; sender_name: string | null; sender_avatar: string | null; created_at: string }[]>([]);
   const [showTypePicker, setShowTypePicker] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedPostType, setSelectedPostType] = useState<'service_listing' | 'service_request' | 'job_seeker_post' | 'hiring_post' | null>(null);
@@ -96,7 +97,7 @@ function DashboardContent() {
     fetchNotifications();
     if (profile?.account_type === 'customer') fetchPendingReview();
     if (profile?.account_type === 'professional' || (profile as any)?.is_premium) fetchProfileViews();
-    if ((profile as any)?.is_premium) { fetchCreditBalance(); fetchRecentViewers(); }
+    if ((profile as any)?.is_premium) { fetchCreditBalance(); fetchRecentViewers(); fetchDonations(); }
 
     const handleUnreadCountChanged = () => {
       fetchUnreadCount();
@@ -244,6 +245,25 @@ function DashboardContent() {
       .eq('user_id', profile.id)
       .maybeSingle();
     setCreditBalance(data?.balance ?? 0);
+  };
+
+  const fetchDonations = async () => {
+    if (!profile) return;
+    const { data } = await supabase
+      .from('credit_transactions')
+      .select('id, amount, anonymous, created_at, sender_id, profiles!credit_transactions_sender_id_fkey(name, avatar_url)')
+      .eq('user_id', profile.id)
+      .eq('type', 'support')
+      .order('created_at', { ascending: false })
+      .limit(10);
+    setDonations((data || []).map((d: any) => ({
+      id: d.id,
+      amount: d.amount,
+      anonymous: d.anonymous,
+      sender_name: d.anonymous ? null : (d.profiles?.name ?? null),
+      sender_avatar: d.anonymous ? null : (d.profiles?.avatar_url ?? null),
+      created_at: d.created_at,
+    })));
   };
 
   const fetchNotifications = async () => {
@@ -521,6 +541,38 @@ function DashboardContent() {
               </div>
             </div>
           </button>
+        )}
+
+        {/* Donations received */}
+        {isPremium && donations.length > 0 && (
+          <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Coins className="h-4 w-4 text-amber-500" />
+              <p className="text-sm font-semibold text-foreground">Primljene donacije</p>
+              <span className="ml-auto text-xs font-bold text-green-500">+{donations.reduce((s, d) => s + d.amount, 0)} kredita</span>
+            </div>
+            <div className="space-y-2">
+              {donations.map(d => (
+                <div key={d.id} className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-full bg-orange-100 dark:bg-orange-950 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    {d.anonymous || !d.sender_avatar
+                      ? <span className="text-sm">🎭</span>
+                      : <img src={d.sender_avatar} alt="" className="h-8 w-8 object-cover" />
+                    }
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-foreground truncate">
+                      {d.anonymous ? 'Anonimni korisnik' : (d.sender_name || 'Korisnik')}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {new Date(d.created_at).toLocaleDateString('sr-RS')}
+                    </p>
+                  </div>
+                  <span className="text-xs font-bold text-green-500 shrink-0">+{d.amount} kr</span>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
 
         {/* Premium widgets: credit balance + rating */}

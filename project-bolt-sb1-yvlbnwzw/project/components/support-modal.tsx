@@ -35,6 +35,7 @@ export function SupportModal({
   const [loading, setLoading] = useState(false);
   const [state, setState] = useState<'idle' | 'success' | 'error' | 'no_balance'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
+  const [anonymous, setAnonymous] = useState(false);
 
   const effectiveAmount = isCustom ? (parseInt(customInput) || 0) : selected;
 
@@ -44,6 +45,7 @@ export function SupportModal({
     setSelected(10);
     setCustomInput('');
     setIsCustom(false);
+    setAnonymous(false);
     fetchBalance();
   }, [open, user]);
 
@@ -68,6 +70,7 @@ export function SupportModal({
         p_sender_id: user.id,
         p_receiver_id: targetUserId,
         p_amount: effectiveAmount,
+        p_anonymous: anonymous,
       });
 
       if (error) throw error;
@@ -267,6 +270,17 @@ export function SupportModal({
           <Sparkles className="h-3 w-3 text-amber-400" />
           <span>{t('credits.support.demoNote')}</span>
         </div>
+
+        {/* Anonymous toggle */}
+        <label className="flex items-center gap-3 cursor-pointer select-none">
+          <div
+            onClick={() => setAnonymous(v => !v)}
+            className={`relative w-9 h-5 rounded-full transition-colors ${anonymous ? 'bg-orange-500' : 'bg-muted-foreground/30'}`}
+          >
+            <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${anonymous ? 'translate-x-4' : 'translate-x-0'}`} />
+          </div>
+          <span className="text-xs text-muted-foreground">Doniraj anonimno</span>
+        </label>
 
         {/* Send button */}
         <button
