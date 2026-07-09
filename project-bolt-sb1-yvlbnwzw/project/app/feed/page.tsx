@@ -709,7 +709,7 @@ function FeedContent() {
     const media = post.media[currentIndex];
     const hasMultipleMedia = post.media.length > 1;
     const isVideo = media?.type === 'video';
-    const isPro = (post.user as any).is_pro === true;
+    const isPro = (post.user as any).is_premium === true;
     const isPremium = (post.user as any).is_premium === true;
     const isOwn = user?.id === post.user_id;
     const isSaved = savedSet.has(post.id);
