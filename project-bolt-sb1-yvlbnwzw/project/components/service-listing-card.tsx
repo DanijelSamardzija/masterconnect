@@ -191,19 +191,19 @@ export function ServiceListingCard({
                     </>
                   )}
 
-                  <div className="max-w-5xl max-h-[90vh] px-16" onClick={e => e.stopPropagation()}>
+                  <div className="w-full max-w-5xl max-h-[90vh] px-10 sm:px-16" onClick={e => e.stopPropagation()}>
                     {images[lightboxIndex].type === 'image' ? (
                       <img
                         src={images[lightboxIndex].url}
                         alt="Service media"
-                        className="max-h-[90vh] max-w-full object-contain rounded-lg"
+                        className="w-full max-h-[85vh] object-contain rounded-lg"
                       />
                     ) : (
                       <video
                         src={images[lightboxIndex].url}
                         controls
                         autoPlay
-                        className="max-h-[90vh] max-w-full rounded-lg"
+                        className="w-full max-h-[85vh] rounded-lg"
                       />
                     )}
                     {images.length > 1 && (
