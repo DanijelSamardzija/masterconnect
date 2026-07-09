@@ -1,10 +1,11 @@
 'use client';
 
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Edit, Trash2, MoreVertical, MapPin, Briefcase, DollarSign } from 'lucide-react';
+import { Edit, Trash2, MoreVertical, MapPin, Briefcase, DollarSign, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useLanguage } from '@/lib/contexts/language-context';
 
@@ -51,6 +52,25 @@ export function ServiceListingCard({
 }: ServiceListingCardProps) {
   const { t } = useLanguage();
   const isOwner = currentUserId === post.user_id;
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  const images = post.media || [];
+
+  const openLightbox = (index: number) => setLightboxIndex(index);
+  const closeLightbox = () => setLightboxIndex(null);
+  const prev = useCallback(() => setLightboxIndex(i => i !== null ? (i - 1 + images.length) % images.length : null), [images.length]);
+  const next = useCallback(() => setLightboxIndex(i => i !== null ? (i + 1) % images.length : null), [images.length]);
+
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') prev();
+      if (e.key === 'ArrowRight') next();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [lightboxIndex, prev, next]);
 
   const formatPrice = () => {
     if (!post.price_value) return null;
@@ -116,15 +136,19 @@ export function ServiceListingCard({
                 )}
               </div>
 
-              {post.media && post.media.length > 0 && (
+              {images.length > 0 && (
                 <div className="grid grid-cols-3 gap-2 mt-3">
-                  {post.media.map((media: PostMedia) => (
-                    <div key={media.id} className="relative aspect-[4/3] rounded overflow-hidden bg-slate-100">
+                  {images.map((media: PostMedia, index: number) => (
+                    <div
+                      key={media.id}
+                      className="relative aspect-[4/3] rounded overflow-hidden bg-slate-100 cursor-pointer group"
+                      onClick={() => openLightbox(index)}
+                    >
                       {media.type === 'image' ? (
                         <img
                           src={media.url}
                           alt="Service media"
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                         />
                       ) : (
                         <video
@@ -134,6 +158,60 @@ export function ServiceListingCard({
                       )}
                     </div>
                   ))}
+                </div>
+              )}
+
+              {/* Lightbox */}
+              {lightboxIndex !== null && (
+                <div
+                  className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+                  onClick={closeLightbox}
+                >
+                  <button
+                    className="absolute top-4 right-4 text-white bg-black/40 rounded-full p-2 hover:bg-black/60 transition"
+                    onClick={closeLightbox}
+                  >
+                    <X className="h-6 w-6" />
+                  </button>
+
+                  {images.length > 1 && (
+                    <>
+                      <button
+                        className="absolute left-4 text-white bg-black/40 rounded-full p-2 hover:bg-black/60 transition"
+                        onClick={e => { e.stopPropagation(); prev(); }}
+                      >
+                        <ChevronLeft className="h-6 w-6" />
+                      </button>
+                      <button
+                        className="absolute right-4 text-white bg-black/40 rounded-full p-2 hover:bg-black/60 transition"
+                        onClick={e => { e.stopPropagation(); next(); }}
+                      >
+                        <ChevronRight className="h-6 w-6" />
+                      </button>
+                    </>
+                  )}
+
+                  <div className="max-w-5xl max-h-[90vh] px-16" onClick={e => e.stopPropagation()}>
+                    {images[lightboxIndex].type === 'image' ? (
+                      <img
+                        src={images[lightboxIndex].url}
+                        alt="Service media"
+                        className="max-h-[90vh] max-w-full object-contain rounded-lg"
+                      />
+                    ) : (
+                      <video
+                        src={images[lightboxIndex].url}
+                        controls
+                        autoPlay
+                        className="max-h-[90vh] max-w-full rounded-lg"
+                      />
+                    )}
+                    {images.length > 1 && (
+                      <p className="text-center text-white/60 text-sm mt-3">
+                        {lightboxIndex + 1} / {images.length}
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
