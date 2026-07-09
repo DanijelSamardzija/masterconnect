@@ -146,7 +146,7 @@ export function NotificationsModal({
                   <div className="flex-1 min-w-0 overflow-hidden">
                     <p className="font-semibold text-sm leading-tight break-words">{notification.title}</p>
                     {notification.body && (
-                      <p className="text-xs text-foreground/70 mt-1 break-words line-clamp-3">{notification.body}</p>
+                      <p className="text-xs text-foreground/70 mt-1 break-words">{notification.body}</p>
                     )}
                     <p className="text-xs text-muted-foreground mt-1">{notification.time}</p>
                   </div>
