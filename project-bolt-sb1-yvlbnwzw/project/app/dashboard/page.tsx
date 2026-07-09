@@ -187,13 +187,19 @@ function DashboardContent() {
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
     const startOfWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    const [{ count: total }, { count: week }, { count: today }] = await Promise.all([
-      supabase.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', profile.id),
-      supabase.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', profile.id).gte('viewed_at', startOfWeek),
-      supabase.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', profile.id).gte('viewed_at', startOfToday),
-    ]);
+    const { data: allViews } = await supabase
+      .from('profile_views')
+      .select('viewer_id, viewed_at')
+      .eq('profile_id', profile.id);
 
-    setProfileViews({ total: total || 0, week: week || 0, today: today || 0 });
+    const rows = allViews || [];
+    const unique = (list: typeof rows) => new Set(list.map(r => r.viewer_id)).size;
+
+    const total = unique(rows);
+    const week = unique(rows.filter(r => r.viewed_at >= startOfWeek));
+    const today = unique(rows.filter(r => r.viewed_at >= startOfToday));
+
+    setProfileViews({ total, week, today });
   };
 
   const fetchRecentViewers = async () => {
