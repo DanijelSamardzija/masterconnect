@@ -77,7 +77,7 @@ export function NotificationsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-w-[calc(100vw-2rem)]">
+      <DialogContent className="w-[calc(100vw-2rem)] sm:w-auto sm:max-w-[500px]">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2">
