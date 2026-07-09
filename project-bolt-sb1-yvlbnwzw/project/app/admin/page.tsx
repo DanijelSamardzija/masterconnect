@@ -683,7 +683,7 @@ function AdminContent() {
         if (!breakdown[key]) breakdown[key] = { count: 0, total: 0 };
         breakdown[key].count++;
         breakdown[key].total += Math.abs(tx.amount);
-        if (tx.platform_fee) platformEarnings += tx.platform_fee;
+        if (tx.platform_fee && desc === 'Podrška poslata') platformEarnings += tx.platform_fee;
       }
 
       // Referral leaderboard
