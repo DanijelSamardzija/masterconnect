@@ -710,6 +710,7 @@ function FeedContent() {
     const hasMultipleMedia = post.media.length > 1;
     const isVideo = media?.type === 'video';
     const isPro = (post.user as any).is_pro === true;
+    const isPremium = (post.user as any).is_premium === true;
     const isOwn = user?.id === post.user_id;
     const isSaved = savedSet.has(post.id);
     const isFollowed = followedUserIds.has(post.user_id);
@@ -744,7 +745,7 @@ function FeedContent() {
         className="snap-start flex justify-center px-2 py-1"
         style={{ height: `calc(100dvh - ${HEADER_H}px)` }}
       >
-        <div className={`w-full max-w-md h-full flex flex-col rounded-2xl overflow-hidden shadow-sm bg-card border border-border ${isPro ? 'border-l-4 border-l-orange-500' : 'border-l-4 border-l-blue-500'}`}>
+        <div className={`w-full max-w-md h-full flex flex-col rounded-2xl overflow-hidden shadow-sm bg-card border border-border ${isPremium ? 'border-l-4 border-l-yellow-400' : isPro ? 'border-l-4 border-l-orange-500' : 'border-l-4 border-l-blue-500'}`}>
 
           {/* Card header */}
           <div className="flex items-center gap-2.5 p-3 shrink-0">
@@ -760,7 +761,12 @@ function FeedContent() {
                 <button className="font-semibold text-sm text-foreground hover:text-orange-500 transition-colors truncate max-w-[140px] sm:max-w-none" onClick={() => router.push(`/profile/${post.user_id}`)}>
                   {post.user.name}
                 </button>
-                {isPro && (
+                {isPremium ? (
+                  <>
+                    <CheckCircle className="h-3.5 w-3.5 text-yellow-500 shrink-0" />
+                    <Badge className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 text-[10px] px-1.5 py-0 h-4 shrink-0">Premium</Badge>
+                  </>
+                ) : isPro && (
                   <>
                     <CheckCircle className="h-3.5 w-3.5 text-orange-500 shrink-0" />
                     <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 text-[10px] px-1.5 py-0 h-4 shrink-0">PRO</Badge>
