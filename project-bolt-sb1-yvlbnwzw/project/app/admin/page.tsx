@@ -328,6 +328,7 @@ function AdminContent() {
   // Credits analytics state
   const [creditsStats, setCreditsStats] = useState<any>(null);
   const [creditsLoading, setCreditsLoading] = useState(false);
+  const [creditsPeriod, setCreditsPeriod] = useState(30);
 
   // Grant credits state
   const [creditTarget, setCreditTarget] = useState<{ id: string; name: string } | null>(null);
@@ -642,23 +643,26 @@ function AdminContent() {
   };
 
   // ── Credits analytics ────────────────────────────────────────────────────
-  const fetchCreditsStats = async () => {
+  const fetchCreditsStats = async (days: number = creditsPeriod) => {
     setCreditsLoading(true);
+    setCreditsPeriod(days);
     try {
-      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 
       const [txRes, balanceRes, premiumRes, recentRes, referralsRes] = await Promise.all([
-        supabase.from('credit_transactions').select('amount, description, created_at').gte('created_at', thirtyDaysAgo),
+        supabase.from('credit_transactions').select('amount, description, created_at').gte('created_at', cutoff),
         supabase.from('credits_balance').select('balance'),
         supabase.from('profiles').select('id, name, avatar_url, is_pro').eq('is_pro', true),
         supabase.from('credit_transactions')
           .select('user_id, amount, description, created_at, profiles!credit_transactions_user_id_fkey(name, avatar_url)')
-          .order('created_at', { ascending: false })
-          .limit(30),
-        supabase.from('referrals')
-          .select('referrer_id, created_at, referrer:referrer_id(name, avatar_url), referred:referred_id(name, avatar_url, created_at)')
+          .gte('created_at', cutoff)
           .order('created_at', { ascending: false })
           .limit(50),
+        supabase.from('referrals')
+          .select('referrer_id, created_at, referrer:referrer_id(name, avatar_url), referred:referred_id(name, avatar_url, created_at)')
+          .gte('created_at', cutoff)
+          .order('created_at', { ascending: false })
+          .limit(200),
       ]);
 
       const txData = txRes.data || [];
@@ -701,7 +705,7 @@ function AdminContent() {
         totalBalance,
         premiumCount: (premiumRes.data || []).length,
         premiumUsers: premiumRes.data || [],
-        txLast30d: txData.length,
+        txCount: txData.length,
         breakdown,
         recent: (recentRes.data || []).map((r: any) => ({
           ...r,
@@ -2017,12 +2021,25 @@ function AdminContent() {
         {/* ── CREDITS TAB ── */}
         {activeTab === 'credits' && (
           <div className="space-y-6 py-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
               <h2 className="text-base font-bold text-foreground">Krediti & Pro Premium</h2>
-              <button onClick={fetchCreditsStats} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                <RefreshCw className={`h-3.5 w-3.5 ${creditsLoading ? 'animate-spin' : ''}`} />
-                Osvježi
-              </button>
+              <div className="flex items-center gap-2">
+                <div className="flex rounded-xl border border-border overflow-hidden text-xs font-semibold">
+                  {[{ days: 7, label: '7d' }, { days: 30, label: '30d' }, { days: 90, label: '90d' }, { days: 365, label: '1g' }].map(({ days, label }) => (
+                    <button
+                      key={days}
+                      onClick={() => fetchCreditsStats(days)}
+                      className={`px-3 py-1.5 transition-colors ${creditsPeriod === days ? 'bg-orange-500 text-white' : 'text-muted-foreground hover:bg-muted'}`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <button onClick={() => fetchCreditsStats(creditsPeriod)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                  <RefreshCw className={`h-3.5 w-3.5 ${creditsLoading ? 'animate-spin' : ''}`} />
+                  Osvježi
+                </button>
+              </div>
             </div>
 
             {creditsLoading && !creditsStats ? (
@@ -2034,8 +2051,8 @@ function AdminContent() {
                   {[
                     { label: 'Ukupno kredita u opticaju', value: creditsStats.totalBalance, icon: <Coins className="h-4 w-4 text-orange-500" />, color: 'text-orange-500' },
                     { label: 'Pro Premium korisnika', value: creditsStats.premiumCount, icon: <Crown className="h-4 w-4 text-amber-500" />, color: 'text-amber-500' },
-                    { label: 'Transakcija (30 dana)', value: creditsStats.txLast30d, icon: <TrendingUp className="h-4 w-4 text-blue-500" />, color: 'text-blue-500' },
-                    { label: 'Boost kupovina (30d)', value: creditsStats.breakdown?.boost?.count || 0, icon: <Sparkles className="h-4 w-4 text-purple-500" />, color: 'text-purple-500' },
+                    { label: `Transakcija (${creditsPeriod === 365 ? '1g' : creditsPeriod + 'd'})`, value: creditsStats.txCount, icon: <TrendingUp className="h-4 w-4 text-blue-500" />, color: 'text-blue-500' },
+                    { label: `Boost kupovina (${creditsPeriod === 365 ? '1g' : creditsPeriod + 'd'})`, value: creditsStats.breakdown?.boost?.count || 0, icon: <Sparkles className="h-4 w-4 text-purple-500" />, color: 'text-purple-500' },
                   ].map(({ label, value, icon, color }) => (
                     <div key={label} className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-2">
                       <div className="flex items-center gap-2 text-muted-foreground">{icon}<span className="text-xs font-medium">{label}</span></div>
@@ -2048,7 +2065,7 @@ function AdminContent() {
                 <div className="bg-card border border-border rounded-2xl p-4">
                   <div className="flex items-center gap-2 mb-4">
                     <BarChart2 className="h-4 w-4 text-orange-500" />
-                    <h3 className="font-semibold text-sm">Gdje korisnici troše/zarađuju (30 dana)</h3>
+                    <h3 className="font-semibold text-sm">Gdje korisnici troše/zarađuju ({creditsPeriod === 365 ? '1 godina' : `${creditsPeriod} dana`})</h3>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {[
@@ -2076,7 +2093,7 @@ function AdminContent() {
                 <div className="bg-card border border-border rounded-2xl p-4">
                   <div className="flex items-center gap-2 mb-4">
                     <Activity className="h-4 w-4 text-orange-500" />
-                    <h3 className="font-semibold text-sm">Posljednjih 30 transakcija</h3>
+                    <h3 className="font-semibold text-sm">Transakcije ({creditsPeriod === 365 ? '1 godina' : `${creditsPeriod} dana`})</h3>
                   </div>
                   <div className="space-y-2">
                     {creditsStats.recent.length === 0 ? (
@@ -2124,7 +2141,7 @@ function AdminContent() {
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-blue-500" />
-                      <h3 className="font-semibold text-sm">Referral pozivi ({creditsStats.referralTotal})</h3>
+                      <h3 className="font-semibold text-sm">Referral pozivi — {creditsPeriod === 365 ? '1 godina' : `${creditsPeriod} dana`} ({creditsStats.referralTotal})</h3>
                     </div>
                   </div>
 
