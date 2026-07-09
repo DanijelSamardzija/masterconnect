@@ -79,17 +79,17 @@ export function NotificationsModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100vw-2rem)] sm:w-auto sm:max-w-[500px]">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center gap-2">
+          <div className="flex items-center justify-between gap-2">
+            <DialogTitle className="flex items-center gap-2 shrink-0">
               <Bell className="h-5 w-5" />
               Notifications
             </DialogTitle>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={toggleNotificationsSound}
-                className="h-8 px-2"
+                className="h-8 w-8 p-0"
                 title={soundEnabled ? 'Mute notifications' : 'Unmute notifications'}
               >
                 {soundEnabled ? (
@@ -104,19 +104,19 @@ export function NotificationsModal({
                     variant="ghost"
                     size="sm"
                     onClick={onMarkAllRead}
-                    className="h-8 text-xs"
+                    className="h-8 w-8 p-0"
+                    title="Mark all read"
                   >
-                    <CheckCheck className="h-3.5 w-3.5 mr-1" />
-                    Mark all read
+                    <CheckCheck className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={onClearAll}
-                    className="h-8 text-xs"
+                    className="h-8 w-8 p-0"
+                    title="Clear all"
                   >
-                    <Trash2 className="h-3.5 w-3.5 mr-1" />
-                    Clear all
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </>
               )}
