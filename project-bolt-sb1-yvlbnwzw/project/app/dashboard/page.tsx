@@ -80,6 +80,7 @@ function DashboardContent() {
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [profileViews, setProfileViews] = useState<{ total: number; week: number; today: number } | null>(null);
   const [creditBalance, setCreditBalance] = useState<number | null>(null);
+  const [recentViewers, setRecentViewers] = useState<{ id: string; name: string; avatar_url: string | null; viewed_at: string }[]>([]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -87,7 +88,7 @@ function DashboardContent() {
     fetchNotifications();
     if (profile?.account_type === 'customer') fetchPendingReview();
     if (profile?.account_type === 'professional' || (profile as any)?.is_premium) fetchProfileViews();
-    if ((profile as any)?.is_premium) fetchCreditBalance();
+    if ((profile as any)?.is_premium) { fetchCreditBalance(); fetchRecentViewers(); }
 
     const handleUnreadCountChanged = () => {
       fetchUnreadCount();
@@ -190,6 +191,35 @@ function DashboardContent() {
     ]);
 
     setProfileViews({ total: total || 0, week: week || 0, today: today || 0 });
+  };
+
+  const fetchRecentViewers = async () => {
+    if (!profile) return;
+    const { data } = await supabase
+      .from('profile_views')
+      .select('viewer_id, viewed_at, profiles!profile_views_viewer_id_fkey(id, name, avatar_url)')
+      .eq('profile_id', profile.id)
+      .not('viewer_id', 'is', null)
+      .neq('viewer_id', profile.id)
+      .order('viewed_at', { ascending: false })
+      .limit(20);
+
+    if (!data) return;
+
+    // Deduplicate — keep only latest view per viewer
+    const seen = new Set<string>();
+    const unique = data.filter((row: any) => {
+      if (seen.has(row.viewer_id)) return false;
+      seen.add(row.viewer_id);
+      return true;
+    });
+
+    setRecentViewers(unique.map((row: any) => ({
+      id: row.viewer_id,
+      name: row.profiles?.name || 'Nepoznat',
+      avatar_url: row.profiles?.avatar_url || null,
+      viewed_at: row.viewed_at,
+    })));
   };
 
   const fetchCreditBalance = async () => {
@@ -524,6 +554,40 @@ function DashboardContent() {
                   <p className="text-xs text-muted-foreground">nema recenzija još</p>
                 </>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Who viewed my profile — premium only */}
+        {isPremium && recentViewers.length > 0 && (
+          <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Eye className="h-4 w-4 text-orange-500" />
+              <p className="text-sm font-semibold text-foreground">Ko je gledao profil</p>
+              <span className="ml-auto text-xs text-muted-foreground">{recentViewers.length} posjetilaca</span>
+            </div>
+            <div className="space-y-2">
+              {recentViewers.slice(0, 8).map(viewer => (
+                <button
+                  key={viewer.id}
+                  onClick={() => router.push(`/profile/${viewer.id}`)}
+                  className="w-full flex items-center gap-3 hover:bg-accent rounded-xl px-2 py-1.5 transition-colors text-left"
+                >
+                  <Avatar className="h-8 w-8 flex-shrink-0">
+                    <AvatarImage src={viewer.avatar_url || undefined} />
+                    <AvatarFallback className="bg-orange-100 text-orange-700 text-xs font-bold">
+                      {viewer.name.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{viewer.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDistanceToNow(new Date(viewer.viewed_at), { addSuffix: true })}
+                    </p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                </button>
+              ))}
             </div>
           </div>
         )}
