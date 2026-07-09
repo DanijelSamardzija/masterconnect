@@ -670,7 +670,7 @@ function AdminContent() {
         const desc = tx.description || '';
         const key = desc.startsWith('boost_post') ? 'boost'
           : desc === 'become_creator_premium' ? 'creator_premium'
-          : desc === 'Podrška poslata' || desc === 'Primljena podrška' ? 'podrzi'
+          : desc === 'Podrška poslata' ? 'podrzi'
           : desc === 'Nagrada: referral' ? 'referral'
           : desc.startsWith('Nagrada:') ? 'nagrada'
           : desc.startsWith('Post nagrada:') ? 'media_nagrada'
