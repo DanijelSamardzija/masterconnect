@@ -650,7 +650,7 @@ function AdminContent() {
       const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 
       const [txRes, balanceRes, premiumRes, recentRes, referralsRes] = await Promise.all([
-        supabase.from('credit_transactions').select('amount, description, created_at').gte('created_at', cutoff),
+        supabase.from('credit_transactions').select('amount, platform_fee, description, created_at').gte('created_at', cutoff),
         supabase.from('credits_balance').select('balance'),
         supabase.from('profiles').select('id, name, avatar_url, is_pro').eq('is_pro', true),
         supabase.from('credit_transactions')
@@ -668,8 +668,9 @@ function AdminContent() {
       const txData = txRes.data || [];
       const totalBalance = (balanceRes.data || []).reduce((sum: number, r: any) => sum + (r.balance || 0), 0);
 
-      // breakdown by type
+      // breakdown by type + platform earnings
       const breakdown: Record<string, { count: number; total: number }> = {};
+      let platformEarnings = 0;
       for (const tx of txData) {
         const desc = tx.description || '';
         const key = desc.startsWith('boost_post') ? 'boost'
@@ -682,6 +683,7 @@ function AdminContent() {
         if (!breakdown[key]) breakdown[key] = { count: 0, total: 0 };
         breakdown[key].count++;
         breakdown[key].total += Math.abs(tx.amount);
+        if (tx.platform_fee) platformEarnings += tx.platform_fee;
       }
 
       // Referral leaderboard
@@ -706,6 +708,7 @@ function AdminContent() {
         premiumCount: (premiumRes.data || []).length,
         premiumUsers: premiumRes.data || [],
         txCount: txData.length,
+        platformEarnings,
         breakdown,
         recent: (recentRes.data || []).map((r: any) => ({
           ...r,
@@ -2052,7 +2055,7 @@ function AdminContent() {
                     { label: 'Ukupno kredita u opticaju', value: creditsStats.totalBalance, icon: <Coins className="h-4 w-4 text-orange-500" />, color: 'text-orange-500' },
                     { label: 'Pro Premium korisnika', value: creditsStats.premiumCount, icon: <Crown className="h-4 w-4 text-amber-500" />, color: 'text-amber-500' },
                     { label: `Transakcija (${creditsPeriod === 365 ? '1g' : creditsPeriod + 'd'})`, value: creditsStats.txCount, icon: <TrendingUp className="h-4 w-4 text-blue-500" />, color: 'text-blue-500' },
-                    { label: `Boost kupovina (${creditsPeriod === 365 ? '1g' : creditsPeriod + 'd'})`, value: creditsStats.breakdown?.boost?.count || 0, icon: <Sparkles className="h-4 w-4 text-purple-500" />, color: 'text-purple-500' },
+                    { label: `Zarada sajta (${creditsPeriod === 365 ? '1g' : creditsPeriod + 'd'})`, value: `${creditsStats.platformEarnings} kr`, icon: <Sparkles className="h-4 w-4 text-green-500" />, color: 'text-green-500' },
                   ].map(({ label, value, icon, color }) => (
                     <div key={label} className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-2">
                       <div className="flex items-center gap-2 text-muted-foreground">{icon}<span className="text-xs font-medium">{label}</span></div>
@@ -2087,6 +2090,17 @@ function AdminContent() {
                       );
                     })}
                   </div>
+
+                  {/* Platform earnings summary */}
+                  {creditsStats.platformEarnings > 0 && (
+                    <div className="mt-4 flex items-center gap-3 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 px-4 py-3">
+                      <Sparkles className="h-4 w-4 text-green-600 shrink-0" />
+                      <span className="text-xs text-green-800 dark:text-green-300">
+                        Sajt je zaradio <span className="font-bold">{creditsStats.platformEarnings} kredita</span> od provizija u ovom periodu
+                        {creditsStats.breakdown?.podrzi?.count > 0 && ` (${creditsStats.breakdown.podrzi.count} × 15% naknada)`}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Posljednje transakcije */}
