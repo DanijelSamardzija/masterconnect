@@ -104,19 +104,19 @@ export function NotificationsModal({
                     variant="ghost"
                     size="sm"
                     onClick={onMarkAllRead}
-                    className="h-8 w-8 p-0"
-                    title="Mark all read"
+                    className="h-8 px-2 text-xs gap-1"
                   >
-                    <CheckCheck className="h-4 w-4" />
+                    <CheckCheck className="h-3.5 w-3.5" />
+                    Pročitano
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={onClearAll}
-                    className="h-8 w-8 p-0"
-                    title="Clear all"
+                    className="h-8 px-2 text-xs gap-1"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Briši
                   </Button>
                 </>
               )}
