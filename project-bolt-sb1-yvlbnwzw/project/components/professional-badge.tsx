@@ -18,7 +18,7 @@ export function ProfessionalBadge({ size = 'md', className, variant = 'pro' }: P
     return (
       <div
         className={cn(
-          'inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-orange-500 text-white font-bold shadow-sm',
+          'inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold shadow-sm',
           size === 'sm' && 'text-[9px]',
           size === 'md' && 'text-[10px]',
           size === 'lg' && 'text-xs',
@@ -26,6 +26,7 @@ export function ProfessionalBadge({ size = 'md', className, variant = 'pro' }: P
         )}
         title="PRO Premium"
       >
+        <ShieldCheck className={sizeClasses[size]} />
         <span>PRO</span>
       </div>
     );
