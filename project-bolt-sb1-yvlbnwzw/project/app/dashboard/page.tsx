@@ -87,6 +87,7 @@ function DashboardContent() {
   const [recentViewers, setRecentViewers] = useState<{ id: string; name: string; avatar_url: string | null; viewed_at: string }[]>([]);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
   const [donations, setDonations] = useState<{ id: string; amount: number; anonymous: boolean; sender_name: string | null; sender_avatar: string | null; created_at: string }[]>([]);
+  const [donationsOpen, setDonationsOpen] = useState(false);
   const [showTypePicker, setShowTypePicker] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedPostType, setSelectedPostType] = useState<'service_listing' | 'service_request' | 'job_seeker_post' | 'hiring_post' | null>(null);
@@ -557,7 +558,10 @@ function DashboardContent() {
               <p className="text-xs text-muted-foreground">{t('dashboard.creditBalance')}</p>
               {donations.length > 0 && (
                 <div className="mt-3 pt-3 border-t border-border space-y-2">
-                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Donacije</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Donacije</p>
+                    <button onClick={() => setDonationsOpen(true)} className="text-[10px] text-orange-500 hover:text-orange-600 font-semibold">Pogledaj sve →</button>
+                  </div>
                   {donations.slice(0, 3).map(d => (
                     <div key={d.id} className="flex items-center gap-2">
                       <div className="h-6 w-6 rounded-full bg-orange-100 dark:bg-orange-950 flex items-center justify-center flex-shrink-0 overflow-hidden">
@@ -596,6 +600,93 @@ function DashboardContent() {
         )}
 
         {/* Analytics modal */}
+        {/* Donations dialog */}
+        <Dialog open={donationsOpen} onOpenChange={setDonationsOpen}>
+          <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Coins className="h-5 w-5 text-yellow-500" />
+                Analitika donacija
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-5 pt-1">
+              {/* Totals */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-muted/50 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-bold text-green-500">+{donations.reduce((s, d) => s + d.amount, 0)}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Ukupno primljeno</p>
+                </div>
+                <div className="bg-muted/50 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-bold text-foreground">{donations.length}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Broj donatora</p>
+                </div>
+              </div>
+
+              {/* Bar chart — last 7 days */}
+              {(() => {
+                const days = Array.from({ length: 7 }, (_, i) => {
+                  const d = new Date();
+                  d.setDate(d.getDate() - (6 - i));
+                  return d.toISOString().slice(0, 10);
+                });
+                const byDay = Object.fromEntries(days.map(d => [d, 0]));
+                donations.forEach(d => {
+                  const day = d.created_at.slice(0, 10);
+                  if (byDay[day] !== undefined) byDay[day] += d.amount;
+                });
+                const vals = days.map(d => byDay[d]);
+                const max = Math.max(...vals, 1);
+                return (
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Posljednjih 7 dana</p>
+                    <div className="flex items-end gap-1.5 h-20">
+                      {days.map((day, i) => (
+                        <div key={day} className="flex-1 flex flex-col items-center gap-1">
+                          <div
+                            className="w-full rounded-t-md bg-orange-400 dark:bg-orange-500 transition-all"
+                            style={{ height: `${(vals[i] / max) * 64}px`, minHeight: vals[i] > 0 ? '4px' : '0' }}
+                          />
+                          <span className="text-[9px] text-muted-foreground">{new Date(day).toLocaleDateString('sr-RS', { day: 'numeric', month: 'numeric' })}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Full donor list */}
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Lista donatora</p>
+                {donations.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">Još nema donacija</p>
+                ) : (
+                  <div className="space-y-2">
+                    {donations.map(d => (
+                      <div key={d.id} className="flex items-center gap-3 py-2 border-b border-border last:border-0">
+                        <div className="h-8 w-8 rounded-full bg-orange-100 dark:bg-orange-950 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                          {d.anonymous || !d.sender_avatar
+                            ? <span className="text-sm">🎭</span>
+                            : <img src={d.sender_avatar} alt="" className="h-8 w-8 object-cover" />
+                          }
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-foreground truncate">
+                            {d.anonymous ? 'Anonimni korisnik' : (d.sender_name || 'Korisnik')}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(d.created_at).toLocaleDateString('sr-RS', { day: 'numeric', month: 'long', year: 'numeric' })}
+                          </p>
+                        </div>
+                        <span className="text-sm font-bold text-green-500 shrink-0">+{d.amount} kr</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         <Dialog open={analyticsOpen} onOpenChange={setAnalyticsOpen}>
           <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
             <DialogHeader>
