@@ -22,7 +22,7 @@ import {
 import {
   Briefcase, MessageSquare, Star, Plus,
   CheckCircle2, Clock, Bell, Trash2, Rss, UserCircle,
-  ChevronRight, AlertCircle, Eye, TrendingUp, Calendar, Coins, Crown
+  ChevronRight, AlertCircle, Eye, TrendingUp, Calendar, Coins, ShieldCheck
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { NotificationsModal, Notification } from '@/components/notifications-modal';
@@ -350,7 +350,7 @@ function DashboardContent() {
             </h1>
             {isPremium && (
               <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-400 flex items-center gap-1 mt-0.5">
-                <Crown className="h-3 w-3" /> {t('dashboard.badgePremium')}
+                <ShieldCheck className="h-3 w-3" /> PRO
               </span>
             )}
           </div>

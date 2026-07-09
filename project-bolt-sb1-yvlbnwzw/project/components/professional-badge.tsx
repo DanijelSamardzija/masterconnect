@@ -26,8 +26,8 @@ export function ProfessionalBadge({ size = 'md', className, variant = 'pro' }: P
         )}
         title="PRO Premium"
       >
-        <Crown className={sizeClasses[size]} />
-        <span>Premium</span>
+        <ShieldCheck className={sizeClasses[size]} />
+        <span>PRO</span>
       </div>
     );
   }

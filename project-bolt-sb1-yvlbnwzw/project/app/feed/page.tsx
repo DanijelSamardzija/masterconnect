@@ -764,7 +764,7 @@ function FeedContent() {
                 {isPremium && (
                   <>
                     <CheckCircle className="h-3.5 w-3.5 text-orange-500 shrink-0" />
-                    <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 text-[10px] px-1.5 py-0 h-4 shrink-0">Premium</Badge>
+                    <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 text-[10px] px-1.5 py-0 h-4 shrink-0">PRO</Badge>
                   </>
                 )}
                 {post.is_promoted && (
