@@ -531,7 +531,7 @@ export default {
   'profile.posts': 'Objave',
   'profile.allListings': 'Sve',
   'profile.serviceRequests': 'Zahtevi za Uslugama',
-  'profile.jobSeekerPosts': 'Oglasi za Posao',
+  'profile.jobSeekerPosts': 'Tražim posao',
   'profile.hiringPosts': 'Tražim radnika',
   'profile.portfolioPosts': 'Portfolio Objave',
   'profile.serviceListings': 'Ponude Usluga',

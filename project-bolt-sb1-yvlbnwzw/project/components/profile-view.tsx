@@ -1111,6 +1111,7 @@ export function ProfileView({
           { value: 'service_listing', label: t('profile.serviceListings') },
           { value: 'portfolio_post', label: t('profile.portfolioPosts') },
           { value: 'service_request', label: t('profile.serviceRequests') },
+          { value: 'job_seeker_post', label: t('profile.jobSeekerPosts') },
         ];
 
   const tabTriggerClass =

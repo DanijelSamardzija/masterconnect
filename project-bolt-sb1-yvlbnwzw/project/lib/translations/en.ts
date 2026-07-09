@@ -531,7 +531,7 @@ export default {
   'profile.posts': 'Posts',
   'profile.allListings': 'All',
   'profile.serviceRequests': 'Service Requests',
-  'profile.jobSeekerPosts': 'Job Seeker Posts',
+  'profile.jobSeekerPosts': 'Looking for work',
   'profile.hiringPosts': 'Looking for staff',
   'profile.portfolioPosts': 'Portfolio Posts',
   'profile.serviceListings': 'Service Listings',

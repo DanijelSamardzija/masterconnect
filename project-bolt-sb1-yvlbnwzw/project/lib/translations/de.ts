@@ -529,7 +529,7 @@ export default {
   'profile.posts': 'Beiträge',
   'profile.allListings': 'Alle',
   'profile.serviceRequests': 'Serviceanfragen',
-  'profile.jobSeekerPosts': 'Jobsuche-Beiträge',
+  'profile.jobSeekerPosts': 'Jobsuche',
   'profile.hiringPosts': 'Stellenausschreibungen',
   'profile.portfolioPosts': 'Portfolio-Beiträge',
   'profile.serviceListings': 'Dienstleistungsangebote',
