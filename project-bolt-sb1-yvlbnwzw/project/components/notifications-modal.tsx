@@ -77,7 +77,7 @@ export function NotificationsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-w-[calc(100vw-2rem)]">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2">
@@ -143,10 +143,10 @@ export function NotificationsModal({
                   }}
                 >
                   <span className="text-2xl flex-shrink-0">{getIcon(notification.type)}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm leading-tight">{notification.title}</p>
+                  <div className="flex-1 min-w-0 overflow-hidden">
+                    <p className="font-semibold text-sm leading-tight break-words">{notification.title}</p>
                     {notification.body && (
-                      <p className="text-xs text-foreground/70 mt-1">{notification.body}</p>
+                      <p className="text-xs text-foreground/70 mt-1 break-words line-clamp-3">{notification.body}</p>
                     )}
                     <p className="text-xs text-muted-foreground mt-1">{notification.time}</p>
                   </div>
