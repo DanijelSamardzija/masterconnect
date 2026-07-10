@@ -46,22 +46,54 @@ export async function POST(request: NextRequest) {
         from: { name: 'GigZone Support', email: 'support@gigzone.app' },
       });
 
-      // 2. Send confirmation to the user on the email they entered in the form
+      // 2. Send confirmation to the user — detect language by email domain
+      const emailDomain = email.split('@')[1]?.toLowerCase() || '';
+      const isDE = emailDomain.endsWith('.de') || emailDomain.endsWith('.at') || emailDomain.endsWith('.ch');
+      const isEN = !isDE && !emailDomain.endsWith('.rs') && !emailDomain.endsWith('.ba') && !emailDomain.endsWith('.hr') && !emailDomain.endsWith('.me');
+
+      const confirmSubject = isDE
+        ? 'Ihre Nachricht wurde empfangen — GigZone'
+        : isEN
+        ? 'We received your message — GigZone'
+        : 'Primili smo vašu poruku — GigZone';
+
+      const confirmBody = isDE ? `
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+          <h2 style="color:#ea580c">Danke, ${name}!</h2>
+          <p>Wir haben Ihre Nachricht erhalten und werden uns so bald wie möglich bei Ihnen melden.</p>
+          <div style="background:#f9f9f9;border-left:4px solid #ea580c;padding:12px 16px;margin:16px 0;border-radius:4px">
+            <p style="margin:0;color:#555">${message.replace(/\n/g, '<br/>')}</p>
+          </div>
+          <p>Bei weiteren Fragen erreichen Sie uns unter <a href="mailto:support@gigzone.app">support@gigzone.app</a>.</p>
+          <p style="color:#888;font-size:12px;margin-top:24px">GigZone — gigzone.app</p>
+        </div>
+      ` : isEN ? `
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+          <h2 style="color:#ea580c">Thank you, ${name}!</h2>
+          <p>We have received your message and will get back to you as soon as possible.</p>
+          <div style="background:#f9f9f9;border-left:4px solid #ea580c;padding:12px 16px;margin:16px 0;border-radius:4px">
+            <p style="margin:0;color:#555">${message.replace(/\n/g, '<br/>')}</p>
+          </div>
+          <p>If you have any further questions, you can reach us at <a href="mailto:support@gigzone.app">support@gigzone.app</a>.</p>
+          <p style="color:#888;font-size:12px;margin-top:24px">GigZone — gigzone.app</p>
+        </div>
+      ` : `
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+          <h2 style="color:#ea580c">Hvala, ${name}!</h2>
+          <p>Primili smo vašu poruku i odgovorićemo vam u najkraćem roku.</p>
+          <div style="background:#f9f9f9;border-left:4px solid #ea580c;padding:12px 16px;margin:16px 0;border-radius:4px">
+            <p style="margin:0;color:#555">${message.replace(/\n/g, '<br/>')}</p>
+          </div>
+          <p>Ako imate dodatnih pitanja, možete nas kontaktirati na <a href="mailto:support@gigzone.app">support@gigzone.app</a>.</p>
+          <p style="color:#888;font-size:12px;margin-top:24px">GigZone — gigzone.app</p>
+        </div>
+      `;
+
       await sendEmail({
         to: email,
         replyTo: 'support@gigzone.app',
-        subject: 'Primili smo vašu poruku — GigZone',
-        html: `
-          <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
-            <h2 style="color:#ea580c">Hvala, ${name}!</h2>
-            <p>Primili smo vašu poruku i odgovorićemo vam u najkraćem roku.</p>
-            <div style="background:#f9f9f9;border-left:4px solid #ea580c;padding:12px 16px;margin:16px 0;border-radius:4px">
-              <p style="margin:0;color:#555">${message.replace(/\n/g, '<br/>')}</p>
-            </div>
-            <p>Ako imate dodatnih pitanja, možete nas kontaktirati na <a href="mailto:support@gigzone.app">support@gigzone.app</a>.</p>
-            <p style="color:#888;font-size:12px;margin-top:24px">GigZone — gigzone.app</p>
-          </div>
-        `,
+        subject: confirmSubject,
+        html: confirmBody,
         from: { name: 'GigZone Support', email: 'support@gigzone.app' },
       });
     }
