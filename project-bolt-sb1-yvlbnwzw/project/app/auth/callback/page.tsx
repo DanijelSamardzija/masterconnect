@@ -37,7 +37,7 @@ export default function AuthCallbackPage() {
         .eq('id', user.id)
         .maybeSingle();
 
-      // Apply referral if new user
+      // Apply referral + UTM if new user
       if (!profile?.onboarding_completed) {
         const referralCode = localStorage.getItem('referral_code');
         if (referralCode) {
@@ -46,6 +46,17 @@ export default function AuthCallbackPage() {
             p_referral_code: referralCode,
           });
           localStorage.removeItem('referral_code');
+        }
+        const utmSource = localStorage.getItem('utm_source');
+        if (utmSource) {
+          await supabase.from('profiles').update({
+            utm_source: utmSource,
+            utm_medium: localStorage.getItem('utm_medium') || null,
+            utm_campaign: localStorage.getItem('utm_campaign') || null,
+          }).eq('id', user.id);
+          localStorage.removeItem('utm_source');
+          localStorage.removeItem('utm_medium');
+          localStorage.removeItem('utm_campaign');
         }
       }
 

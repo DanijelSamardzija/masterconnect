@@ -120,6 +120,7 @@ type AnalyticsData = {
   monthlyActiveUsers: { month: string; count: number }[];
   signupSources: { source: string; count: number }[];
   dailyNewUsers: { date: string; count: number }[];
+  utmSources: { source: string; count: number }[];
 };
 type InvestStats = {
   waitlistTotal: number;
@@ -424,6 +425,7 @@ function AdminContent() {
         { data: yearlyProfiles },
         { data: signupSourceData },
         { data: daily30Profiles },
+        { data: utmSourceData },
       ] = await Promise.all([
         supabase.rpc('get_page_view_counts'),
         // DAU/WAU/MAU/YAU via server-side COUNT DISTINCT
@@ -450,6 +452,8 @@ function AdminContent() {
         supabase.from('profiles').select('created_at').gte('created_at', chosenYearStart.toISOString()).lt('created_at', chosenYearEnd.toISOString()),
         // Signup sources
         supabase.from('profiles').select('signup_source').not('signup_source', 'is', null),
+        // UTM sources
+        supabase.from('profiles').select('utm_source, utm_medium, utm_campaign').not('utm_source', 'is', null),
         // Daily new users last 30 days
         supabase.from('profiles').select('created_at').gte('created_at', monthStart.toISOString()),
       ]);
@@ -461,6 +465,16 @@ function AdminContent() {
         sourceCount[s] = (sourceCount[s] || 0) + 1;
       }
       const signupSources = Object.entries(sourceCount)
+        .map(([source, count]) => ({ source, count }))
+        .sort((a, b) => b.count - a.count);
+
+      // UTM source aggregation
+      const utmCount: Record<string, number> = {};
+      for (const p of (utmSourceData as any[] || [])) {
+        const s = p.utm_source || 'direct';
+        utmCount[s] = (utmCount[s] || 0) + 1;
+      }
+      const utmSources = Object.entries(utmCount)
         .map(([source, count]) => ({ source, count }))
         .sort((a, b) => b.count - a.count);
 
@@ -605,6 +619,7 @@ function AdminContent() {
         monthlyActiveUsers,
         signupSources,
         dailyNewUsers,
+        utmSources,
       });
     } finally {
       setAnalyticsLoading(false);
@@ -2483,6 +2498,48 @@ function AdminContent() {
                             </div>
                           );
                         })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* UTM / Ad sources */}
+                  <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-blue-500" />
+                      <h3 className="font-semibold text-sm text-foreground">Registracije iz reklama (UTM)</h3>
+                    </div>
+                    {!analytics.utmSources || analytics.utmSources.length === 0 ? (
+                      <p className="text-sm text-muted-foreground py-4 text-center">Nema podataka — dodaj <code className="text-xs bg-muted px-1 rounded">?utm_source=facebook</code> na link u reklami</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {analytics.utmSources.map(({ source, count }) => {
+                          const total = analytics.utmSources.reduce((s: number, x: any) => s + x.count, 0);
+                          const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                          const colors: Record<string, string> = {
+                            facebook: 'bg-blue-600',
+                            instagram: 'bg-pink-500',
+                            google: 'bg-yellow-500',
+                            tiktok: 'bg-slate-800',
+                          };
+                          const icons: Record<string, string> = {
+                            facebook: '📘',
+                            instagram: '📸',
+                            google: '🔍',
+                            tiktok: '🎵',
+                          };
+                          return (
+                            <div key={source}>
+                              <div className="flex justify-between text-xs mb-1">
+                                <span className="font-medium">{icons[source] || '📣'} {source}</span>
+                                <span className="text-muted-foreground">{count} korisnika ({pct}%)</span>
+                              </div>
+                              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                <div className={`h-full ${colors[source] || 'bg-orange-500'} rounded-full transition-all`} style={{ width: `${pct}%` }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                        <p className="text-[10px] text-muted-foreground pt-1">Ukupno kroz reklame: {analytics.utmSources.reduce((s: number, x: any) => s + x.count, 0)} korisnika</p>
                       </div>
                     )}
                   </div>

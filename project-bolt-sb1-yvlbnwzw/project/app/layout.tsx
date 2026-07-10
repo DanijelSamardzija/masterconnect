@@ -12,6 +12,8 @@ import { Toaster as Sonner } from '@/components/ui/sonner';
 import { LayoutShell } from '@/components/layout-shell';
 import { GuestGateProvider } from '@/lib/contexts/guest-gate-context';
 import { PostHogProvider } from '@/lib/posthog/provider';
+import { UtmTracker } from '@/components/utm-tracker';
+import { Suspense } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -92,6 +94,7 @@ export default function RootLayout({
               <Sonner />
             </NotificationProvider>
 
+            <Suspense><UtmTracker /></Suspense>
             <LayoutShell>{children}</LayoutShell>
 
             <PushNotificationManager />

@@ -213,7 +213,20 @@ export default function LoginPage() {
 
       const signupSource = localStorage.getItem('signup_source') || 'direct';
       localStorage.removeItem('signup_source');
-      trackEvent('register_success', { source: signupSource });
+      const utmSource = localStorage.getItem('utm_source');
+      const utmMedium = localStorage.getItem('utm_medium');
+      const utmCampaign = localStorage.getItem('utm_campaign');
+      if (utmSource) {
+        await supabase.from('profiles').update({
+          utm_source: utmSource,
+          utm_medium: utmMedium || null,
+          utm_campaign: utmCampaign || null,
+        }).eq('id', data.user!.id);
+        localStorage.removeItem('utm_source');
+        localStorage.removeItem('utm_medium');
+        localStorage.removeItem('utm_campaign');
+      }
+      trackEvent('register_success', { source: signupSource, utm_source: utmSource || 'direct' });
       await new Promise(r => setTimeout(r, 500));
       router.push('/onboarding');
     } catch (err: any) {
