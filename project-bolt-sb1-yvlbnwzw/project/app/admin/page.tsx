@@ -424,8 +424,8 @@ function AdminContent() {
         { data: monthlyActiveRpc },
         { data: yearlyProfiles },
         { data: signupSourceData },
-        { data: daily30Profiles },
         { data: utmSourceData },
+        { data: daily30Profiles },
       ] = await Promise.all([
         supabase.rpc('get_page_view_counts'),
         // DAU/WAU/MAU/YAU via server-side COUNT DISTINCT
@@ -454,8 +454,8 @@ function AdminContent() {
         supabase.from('profiles').select('signup_source').not('signup_source', 'is', null),
         // UTM sources
         supabase.from('profiles').select('utm_source, utm_medium, utm_campaign').not('utm_source', 'is', null),
-        // Daily new users last 30 days
-        supabase.from('profiles').select('created_at').gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+        // Daily new users this month
+        supabase.from('profiles').select('created_at').gte('created_at', monthStart.toISOString()),
       ]);
 
       // Signup source aggregation
