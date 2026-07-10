@@ -455,7 +455,7 @@ function AdminContent() {
         // UTM sources
         supabase.from('profiles').select('utm_source, utm_medium, utm_campaign').not('utm_source', 'is', null),
         // Daily new users last 30 days
-        supabase.from('profiles').select('created_at').gte('created_at', monthStart.toISOString()),
+        supabase.from('profiles').select('created_at').gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
       ]);
 
       // Signup source aggregation
