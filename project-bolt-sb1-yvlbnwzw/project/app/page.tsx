@@ -311,7 +311,7 @@ export default function Home() {
         <div className="max-w-3xl mx-auto text-center">
           <p className="text-xs font-semibold text-orange-500 uppercase tracking-widest mb-2">🚀 Uskoro na GigZone</p>
           <h2 className="text-xl font-bold text-white mb-2">Šta dolazi</h2>
-          <p className="text-slate-500 text-sm mb-8">Radimo na novim funkcijama koje će učiniti platformu još boljom.</p>
+          <p className="text-sm mb-8" style={{color:'#6b7280'}}>Dvije funkcije u razvoju koje dolaze uskoro.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Podrži */}
             <div className="rounded-2xl border border-white/8 bg-white/3 p-6 text-left">
