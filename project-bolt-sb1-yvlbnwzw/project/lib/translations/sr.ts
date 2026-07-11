@@ -288,7 +288,7 @@ export default {
   'home.hero.trust2': 'Verifikovani profili',
   'home.hero.trust3': 'Prave recenzije',
   'home.fomo.jobs': '🔥 Novi poslovi svaki dan',
-  'home.fomo.pros': '🔥 Aktivni profesionalci spremni za rad',
+  'home.fomo.pros': '🔥 Firme i majstori spremni za rad',
   'home.fomo.freelance': '🚀 Idealno za freelancere',
   'home.socialProof': 'korisnika već na platformi',
   'home.browseFeed': 'Pregledaj feed',
