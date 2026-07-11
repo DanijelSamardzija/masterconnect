@@ -96,18 +96,9 @@ export default function Home() {
             </div>
 
             {/* Social proof */}
-            {userCount && (
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <div className="flex -space-x-2">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className="w-7 h-7 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 border-2 border-[#0f0f0f]" />
-                  ))}
-                </div>
-                <span className="text-slate-300 text-sm">
-                  <span className="text-white font-bold">{userCount}+</span> {t('home.socialProof')}
-                </span>
-              </div>
-            )}
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <span className="text-slate-300 text-sm">✅ Besplatno objavljivanje poslova i usluga</span>
+            </div>
 
             {/* Main CTA */}
             <div className="flex flex-col items-center gap-2 mb-4 max-w-sm mx-auto">
