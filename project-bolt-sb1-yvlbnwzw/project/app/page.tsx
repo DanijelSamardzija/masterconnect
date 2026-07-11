@@ -97,7 +97,7 @@ export default function Home() {
 
             {/* Social proof */}
             <div className="flex items-center justify-center gap-2 mb-4">
-              <span className="text-slate-300 text-sm">✅ Besplatno objavljivanje poslova i usluga</span>
+              <span className="text-slate-300 text-sm">✅ {t('home.socialProof')}</span>
             </div>
 
             {/* Main CTA */}

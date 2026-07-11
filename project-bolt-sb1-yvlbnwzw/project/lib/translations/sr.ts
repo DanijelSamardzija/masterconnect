@@ -290,7 +290,7 @@ export default {
   'home.fomo.jobs': '🔥 Novi poslovi svaki dan',
   'home.fomo.pros': '🔥 Firme i majstori spremni za rad',
   'home.fomo.freelance': '🚀 Idealno za freelancere',
-  'home.socialProof': 'korisnika već na platformi',
+  'home.socialProof': 'Besplatno objavljivanje poslova i usluga',
   'home.browseFeed': 'Pregledaj feed',
   'home.browseJobs': 'Oglasi za posao',
   'home.popup.title': 'Ne propusti klijente i poslove',
