@@ -306,6 +306,35 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── USKORO ────────────────────────────────────────────── */}
+      <section className="py-16 px-4 bg-[#0a0a0a]">
+        <div className="max-w-3xl mx-auto text-center">
+          <p className="text-xs font-semibold text-orange-500 uppercase tracking-widest mb-2">🚀 Uskoro na GigZone</p>
+          <h2 className="text-xl font-bold text-white mb-2">Šta dolazi</h2>
+          <p className="text-slate-500 text-sm mb-8">Radimo na novim funkcijama koje će učiniti platformu još boljom.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Podrži */}
+            <div className="rounded-2xl border border-white/8 bg-white/3 p-6 text-left">
+              <div className="text-2xl mb-3">💝</div>
+              <div className="flex items-center gap-2 mb-2">
+                <h3 className="text-sm font-bold text-white">Podrži članove zajednice</h3>
+                <span className="text-[10px] font-semibold bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full">Uskoro</span>
+              </div>
+              <p className="text-xs text-slate-500 leading-relaxed">Korisnici će moći poslati donaciju članovima zajednice kojima žele pružiti podršku.</p>
+            </div>
+            {/* Invest */}
+            <div className="rounded-2xl border border-white/8 bg-white/3 p-6 text-left">
+              <div className="text-2xl mb-3">🤝</div>
+              <div className="flex items-center gap-2 mb-2">
+                <h3 className="text-sm font-bold text-white">Invest</h3>
+                <span className="text-[10px] font-semibold bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full">Uskoro</span>
+              </div>
+              <p className="text-xs text-slate-500 leading-relaxed">Startupi i mali biznisi predstavljaju projekte, a investitori pronalaze zanimljive prilike. GigZone samo povezuje — bez posredovanja.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── STICKY MOBILE CTA ────────────────────────────────── */}
       <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0f0f0f]/95 backdrop-blur-md border-t border-white/10 p-3">
         <Button
