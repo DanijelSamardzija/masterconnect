@@ -315,9 +315,9 @@ export default {
   'home.howItWorks.title': 'How it works',
   'home.howItWorks.subtitle': 'Three simple steps to get started.',
   'home.howItWorks.step1.title': 'Search or post',
-  'home.howItWorks.step1.desc': 'Browse professionals by category and city, or post a job to receive offers.',
+  'home.howItWorks.step1.desc': 'Browse companies and contractors by category and city, or post a job to receive offers.',
   'home.howItWorks.step2.title': 'Connect directly',
-  'home.howItWorks.step2.desc': 'Message professionals, get quotes and compare ratings — no middleman.',
+  'home.howItWorks.step2.desc': 'Message companies and contractors, get quotes and compare ratings — no middleman.',
   'home.howItWorks.step3.title': 'Get it done',
   'home.howItWorks.step3.desc': 'Agree on terms, complete the work and leave a review.',
 

@@ -316,9 +316,9 @@ export default {
   'home.howItWorks.title': 'So funktioniert es',
   'home.howItWorks.subtitle': 'Drei einfache Schritte zum Einstieg.',
   'home.howItWorks.step1.title': 'Suchen oder posten',
-  'home.howItWorks.step1.desc': 'Durchsuche Fachleute nach Kategorie und Stadt oder poste einen Auftrag, um Angebote zu erhalten.',
+  'home.howItWorks.step1.desc': 'Durchsuche Firmen und Handwerker nach Kategorie und Stadt oder poste einen Auftrag, um Angebote zu erhalten.',
   'home.howItWorks.step2.title': 'Direkt verbinden',
-  'home.howItWorks.step2.desc': 'Schreibe Fachleuten, erhalte Angebote und vergleiche Bewertungen — ohne Vermittler.',
+  'home.howItWorks.step2.desc': 'Schreibe Firmen und Handwerkern, erhalte Angebote und vergleiche Bewertungen — ohne Vermittler.',
   'home.howItWorks.step3.title': 'Erledige es',
   'home.howItWorks.step3.desc': 'Einigt euch auf Bedingungen, erledigt die Arbeit und hinterlasst eine Bewertung.',
 

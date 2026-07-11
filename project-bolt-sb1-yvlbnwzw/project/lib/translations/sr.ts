@@ -315,9 +315,9 @@ export default {
   'home.howItWorks.title': 'Kako funkcioniše',
   'home.howItWorks.subtitle': 'Tri jednostavna koraka za početak.',
   'home.howItWorks.step1.title': 'Pretraži ili objavi',
-  'home.howItWorks.step1.desc': 'Pretraži profesionalce po kategoriji i gradu, ili objavi posao da primiš ponude.',
+  'home.howItWorks.step1.desc': 'Pretraži firme i majstore po kategoriji i gradu, ili objavi posao da primiš ponude.',
   'home.howItWorks.step2.title': 'Poveži se direktno',
-  'home.howItWorks.step2.desc': 'Pošalji poruku profesionalcima, dobij ponude i uporedi ocene — bez posrednika.',
+  'home.howItWorks.step2.desc': 'Pošalji poruku firmama i majstorima, dobij ponude i uporedi ocene — bez posrednika.',
   'home.howItWorks.step3.title': 'Završi posao',
   'home.howItWorks.step3.desc': 'Dogovori uslove, završi posao i ostavi recenziju.',
 
