@@ -272,7 +272,7 @@ export default {
   'time.yearsAgo': 'vor {count} Jahren',
 
   // Home page
-  'home.hero.badge': 'Plattform für Fachleute, Freelancer & Kunden',
+  'home.hero.badge': 'Plattform für Firmen, Handwerker & Kunden',
   'home.hero.title1': 'Jobs oder Kunden',
   'home.hero.title2': 'in Minuten finden.',
   'home.hero.subtitle': 'Verbinde dich mit verifizierten Handwerkern, Ärzten, IT-Experten und mehr. Poste einen Auftrag oder biete deine Dienste an — alles an einem Ort.',

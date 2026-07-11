@@ -271,7 +271,7 @@ export default {
   'time.yearsAgo': 'pre {count} godina',
 
   // Home page
-  'home.hero.badge': 'Platforma za profesionalce, freelancere i klijente',
+  'home.hero.badge': 'Platforma za firme, majstore i klijente',
   'home.hero.title1': 'Pronađi posao ili',
   'home.hero.title2': 'klijente za minut.',
   'home.hero.subtitle': 'Poveži se sa proverenim majstorima, doktorima, IT stručnjacima i još mnogo toga. Objavi posao ili ponudi usluge — sve na jednom mestu.',

@@ -271,7 +271,7 @@ export default {
   'time.yearsAgo': '{count} years ago',
 
   // Home page
-  'home.hero.badge': 'Platform for professionals, freelancers & clients',
+  'home.hero.badge': 'Platform for companies, contractors & clients',
   'home.hero.title1': 'Find jobs or',
   'home.hero.title2': 'clients in minutes.',
   'home.hero.subtitle': 'Connect with verified tradesmen, doctors, IT experts and more. Post a job or offer your services — all in one place.',
