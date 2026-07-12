@@ -8,8 +8,8 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import {
-  Search, Wrench, ArrowRight, Star, Shield, MessageSquare,
-  Zap, CheckCircle2, Users, Briefcase, ChevronRight, Loader2
+  Search, ArrowRight, Star, Shield, MessageSquare,
+  Zap, CheckCircle2, Users, ChevronRight, Loader2
 } from 'lucide-react';
 import { trackEvent, saveAnonymousId } from '@/lib/analytics';
 
@@ -166,54 +166,6 @@ export default function Home() {
               </div>
             </div>
 
-          </div>
-        </div>
-      </section>
-
-      {/* ── FOR WHO ──────────────────────────────────────────── */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">{t('home.forWho.title')}</h2>
-            <p className="text-slate-500 text-lg max-w-xl mx-auto">{t('home.forWho.subtitle')}</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            <div className="group relative bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 rounded-2xl p-7 transition-all duration-300 cursor-pointer"
-              onClick={goToJoin}>
-              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-5 group-hover:bg-orange-200 transition-colors">
-                <Search className="h-6 w-6 text-orange-600" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">{t('home.forWho.client.title')}</h3>
-              <p className="text-slate-500 text-sm leading-relaxed mb-4">{t('home.forWho.client.desc')}</p>
-              <span className="text-orange-600 text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
-                {t('home.forWho.client.cta')} <ArrowRight className="h-3.5 w-3.5" />
-              </span>
-            </div>
-
-            <div className="group relative bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 rounded-2xl p-7 transition-all duration-300 cursor-pointer"
-              onClick={goToJoin}>
-              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-5 group-hover:bg-orange-200 transition-colors">
-                <Wrench className="h-6 w-6 text-orange-600" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">{t('home.forWho.pro.title')}</h3>
-              <p className="text-slate-500 text-sm leading-relaxed mb-4">{t('home.forWho.pro.desc')}</p>
-              <span className="text-orange-600 text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
-                {t('home.forWho.pro.cta')} <ArrowRight className="h-3.5 w-3.5" />
-              </span>
-            </div>
-
-            <div className="group relative bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 rounded-2xl p-7 transition-all duration-300 cursor-pointer"
-              onClick={goToJoin}>
-              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-5 group-hover:bg-orange-200 transition-colors">
-                <Briefcase className="h-6 w-6 text-orange-600" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">{t('home.forWho.employer.title')}</h3>
-              <p className="text-slate-500 text-sm leading-relaxed mb-4">{t('home.forWho.employer.desc')}</p>
-              <span className="text-orange-600 text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
-                {t('home.forWho.employer.cta')} <ArrowRight className="h-3.5 w-3.5" />
-              </span>
-            </div>
           </div>
         </div>
       </section>
