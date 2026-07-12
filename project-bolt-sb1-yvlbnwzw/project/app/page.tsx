@@ -18,13 +18,6 @@ export default function Home() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [userCount, setUserCount] = useState<number | null>(null);
-
-  useEffect(() => {
-    supabase.from('profiles').select('id', { count: 'exact', head: true }).then(({ count }) => {
-      if (count) setUserCount(count);
-    });
-  }, []);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -275,6 +268,54 @@ export default function Home() {
                 <p className="text-slate-500 text-sm leading-relaxed">{f.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── ZA SVE DELATNOSTI ────────────────────────────────── */}
+      <section className="py-20 bg-[#0a0a0a]">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center mb-12">
+            <div className="inline-flex items-center gap-1.5 bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-semibold px-3 py-1 rounded-full mb-5 tracking-wider">
+              {t('home.professions.label')}
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-3 tracking-tight">
+              {t('home.professions.title')}
+            </h2>
+            <p className="text-slate-400 text-base max-w-lg mx-auto leading-relaxed">
+              {t('home.professions.subtitle')}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-2 max-w-3xl mx-auto mb-12">
+            {['🔧 Majstori', 'Vodoinstalateri', 'Električari', '💻 IT stručnjaci', 'Web developeri', 'Dizajneri', '🎨 Freelanceri', 'Preduzetnici', 'Zanatske firme', '🍽️ Ugostiteljstvo', 'Kafane & barovi', '🏋️ Treneri', 'Fizioterapeuti', '📚 Edukatori', 'Nastavnici', 'Doktori', 'Pravnici', 'Stolari', '+ mnogo više...'].map((tag) => (
+              <span key={tag} className="bg-white/5 border border-white/10 text-slate-400 text-xs px-3 py-1.5 rounded-full hover:bg-orange-500/10 hover:border-orange-500/20 hover:text-orange-400 transition-colors cursor-default whitespace-nowrap">
+                {tag}
+              </span>
+            ))}
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
+            {[
+              { icon: '📸', titleKey: 'home.professions.feed.title', descKey: 'home.professions.feed.desc' },
+              { icon: '🌐', titleKey: 'home.professions.multilang.title', descKey: 'home.professions.multilang.desc' },
+              { icon: '💳', titleKey: 'home.professions.credits.title', descKey: 'home.professions.credits.desc' },
+              { icon: '📱', titleKey: 'home.professions.pwa.title', descKey: 'home.professions.pwa.desc' },
+            ].map((h) => (
+              <div key={h.titleKey} className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col gap-3">
+                <div className="text-2xl">{h.icon}</div>
+                <div>
+                  <h4 className="text-sm font-semibold text-white mb-1">{t(h.titleKey)}</h4>
+                  <p className="text-xs text-slate-500 leading-relaxed">{t(h.descKey)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center mt-10">
+            <Link href="/o-platformi" className="text-orange-400 text-sm font-semibold hover:text-orange-300 transition-colors">
+              {t('home.professions.learnMore')} →
+            </Link>
           </div>
         </div>
       </section>
