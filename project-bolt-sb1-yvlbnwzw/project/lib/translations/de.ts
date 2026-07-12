@@ -340,7 +340,7 @@ export default {
   'home.professions.feed.title': 'Inhalts-Feed',
   'home.professions.feed.desc': 'Fotos und Videos deiner Arbeit posten — lass Kunden sehen, was du kannst',
   'home.professions.multilang.title': 'Mehrsprachig',
-  'home.professions.multilang.desc': 'Serbisch, Englisch, Deutsch — Nutzer aus der Region und der Diaspora',
+  'home.professions.multilang.desc': 'Serbisch, Englisch, Deutsch — verfügbar für Nutzer weltweit',
   'home.professions.credits.title': 'Credits & Empfehlung',
   'home.professions.credits.desc': 'Verdiene Credits durch Empfehlungen — nutze sie für hervorgehobene Anzeigen',
   'home.professions.pwa.title': 'Funktioniert als App',

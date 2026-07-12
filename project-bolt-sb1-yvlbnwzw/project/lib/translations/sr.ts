@@ -339,7 +339,7 @@ export default {
   'home.professions.feed.title': 'Feed sa sadržajem',
   'home.professions.feed.desc': 'Objavi slike i video radova — neka klijenti vide šta umiješ',
   'home.professions.multilang.title': 'Višejezična',
-  'home.professions.multilang.desc': 'Srpski, engleski, njemački — korisnici iz regiona i dijaspore',
+  'home.professions.multilang.desc': 'Srpski, engleski, njemački — dostupna korisnicima širom sveta',
   'home.professions.credits.title': 'Krediti & referral',
   'home.professions.credits.desc': 'Zarađuj kredite preporukom — plaćaj samo kad ti treba istaknuti oglas',
   'home.professions.pwa.title': 'Radi kao aplikacija',

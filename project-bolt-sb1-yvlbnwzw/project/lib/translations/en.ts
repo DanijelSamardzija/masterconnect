@@ -339,7 +339,7 @@ export default {
   'home.professions.feed.title': 'Content Feed',
   'home.professions.feed.desc': 'Post photos and videos of your work — let clients see what you can do',
   'home.professions.multilang.title': 'Multilingual',
-  'home.professions.multilang.desc': 'Serbian, English, German — users from the region and diaspora',
+  'home.professions.multilang.desc': 'Serbian, English, German — available to users worldwide',
   'home.professions.credits.title': 'Credits & referral',
   'home.professions.credits.desc': 'Earn credits by referring — spend them when you need a boosted listing',
   'home.professions.pwa.title': 'Works as an app',
