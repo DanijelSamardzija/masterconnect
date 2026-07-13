@@ -299,6 +299,9 @@ function AdminContent() {
   const [loadingMorePosts, setLoadingMorePosts] = useState(false);
   const [postTypeFilter, setPostTypeFilter] = useState<string>('all');
   const [postSearch, setPostSearch] = useState('');
+  const [searchedPosts, setSearchedPosts] = useState<PostItem[] | null>(null);
+  const [searchingPosts, setSearchingPosts] = useState(false);
+  const postSearchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Announcements state
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -964,6 +967,68 @@ function AdminContent() {
     setLoadingMorePosts(false);
   };
 
+  const searchPosts = useCallback(async (query: string) => {
+    if (!query.trim()) { setSearchedPosts(null); return; }
+    setSearchingPosts(true);
+    // First find matching profiles by name
+    const { data: matchingProfiles } = await supabase
+      .from('profiles')
+      .select('id, name, avatar_url')
+      .ilike('name', `%${query}%`)
+      .limit(50);
+    const matchingIds = (matchingProfiles || []).map((p: any) => p.id);
+    const profilesMap: Record<string, { id: string; name: string; avatar_url?: string }> = {};
+    (matchingProfiles || []).forEach((p: any) => { profilesMap[p.id] = p; });
+
+    // Query posts by text OR by matching user_ids
+    let allPosts: any[] = [];
+    // By content
+    const { data: byContent } = await supabase
+      .from('posts')
+      .select('id, text, created_at, views_count, status, user_id, post_type, is_promoted')
+      .ilike('text', `%${query}%`)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    allPosts = [...(byContent || [])];
+    // By author
+    if (matchingIds.length > 0) {
+      const { data: byAuthor } = await supabase
+        .from('posts')
+        .select('id, text, created_at, views_count, status, user_id, post_type, is_promoted')
+        .in('user_id', matchingIds)
+        .order('created_at', { ascending: false })
+        .limit(50);
+      (byAuthor || []).forEach((p: any) => {
+        if (!allPosts.find((x: any) => x.id === p.id)) allPosts.push(p);
+      });
+    }
+    // Fetch any missing authors
+    const missingIds = [...new Set(allPosts.map((p: any) => p.user_id).filter((id: string) => !profilesMap[id]))];
+    if (missingIds.length > 0) {
+      const { data: extra } = await supabase.from('profiles').select('id, name, avatar_url').in('id', missingIds);
+      (extra || []).forEach((p: any) => { profilesMap[p.id] = p; });
+    }
+    const items: PostItem[] = allPosts.map((p: any) => ({
+      id: p.id,
+      content: p.text,
+      created_at: p.created_at,
+      views_count: p.views_count || 0,
+      status: p.status,
+      post_type: p.post_type || 'social_post',
+      is_promoted: p.is_promoted || false,
+      author: profilesMap[p.user_id] || null,
+    }));
+    setSearchedPosts(items);
+    setSearchingPosts(false);
+  }, []);
+
+  useEffect(() => {
+    if (postSearchTimeout.current) clearTimeout(postSearchTimeout.current);
+    if (!postSearch.trim()) { setSearchedPosts(null); return; }
+    postSearchTimeout.current = setTimeout(() => searchPosts(postSearch), 350);
+    return () => { if (postSearchTimeout.current) clearTimeout(postSearchTimeout.current); };
+  }, [postSearch, searchPosts]);
+
   const handleDeletePost = async (postId: string) => {
     if (!confirm('Obrisati ovaj post? Ova akcija je nepovratna.')) return;
     const { error } = await supabase.from('posts').delete().eq('id', postId);
@@ -1602,17 +1667,19 @@ function AdminContent() {
               ))}
             </div>
 
-            {loading ? (
+            {loading || searchingPosts ? (
               [...Array(4)].map((_, i) => <Skeleton key={i} className="h-20 rounded-2xl" />)
-            ) : posts.filter(p => (postTypeFilter === 'all' || p.post_type === postTypeFilter) && (!postSearch.trim() || p.author?.name.toLowerCase().includes(postSearch.toLowerCase()) || (p.content ?? '').toLowerCase().includes(postSearch.toLowerCase()))).length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <FileText className="h-10 w-10 mx-auto mb-3 opacity-30" />
-                <p className="font-medium">Nema postova</p>
-              </div>
-            ) : (
+            ) : (() => {
+              const displayPosts = (searchedPosts ?? posts).filter(p => postTypeFilter === 'all' || p.post_type === postTypeFilter);
+              return displayPosts.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <FileText className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                  <p className="font-medium">{postSearch ? 'Nema rezultata' : 'Nema postova'}</p>
+                </div>
+              ) : (
               <>
                 <div className="space-y-2">
-                  {posts.filter(p => (postTypeFilter === 'all' || p.post_type === postTypeFilter) && (!postSearch.trim() || p.author?.name.toLowerCase().includes(postSearch.toLowerCase()) || (p.content ?? '').toLowerCase().includes(postSearch.toLowerCase()))).map(post => (
+                  {displayPosts.map(post => (
                     <div key={post.id} className="bg-card border border-border rounded-2xl px-4 py-3 flex items-start gap-3">
                       {post.author && (
                         <Avatar className="h-9 w-9 flex-shrink-0 mt-0.5">
@@ -1710,7 +1777,7 @@ function AdminContent() {
                   ))}
                 </div>
 
-                {hasMorePosts && (
+                {!searchedPosts && hasMorePosts && (
                   <button
                     onClick={loadMorePosts}
                     disabled={loadingMorePosts}
@@ -1723,7 +1790,8 @@ function AdminContent() {
                   </button>
                 )}
               </>
-            )}
+              );
+            })()}
           </div>
         )}
 
