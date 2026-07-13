@@ -1179,7 +1179,7 @@ export default {
   'createPost.errorPostFailed': 'Beitrag konnte nicht erstellt werden. Bitte versuche es erneut.',
   'createPost.errorMediaFailed': 'Medien konnten nicht gespeichert werden',
   'createPost.errorUploadFailed': 'Datei konnte nicht hochgeladen werden',
-  'upload.errorVideoTooLarge': 'Videodatei ist zu groß (max 30MB)',
+  'upload.errorVideoTooLarge': 'Videodatei ist zu groß (max 50MB)',
   'upload.errorFileTooLarge': 'Datei ist zu groß (max 10MB)',
   'upload.errorFileType': 'Dateityp nicht unterstützt. Erlaubt: Bilder, Videos (MP4/WebM) und Dokumente (PDF/DOC)',
   'createPost.errorGeneric': 'Beitrag konnte nicht erstellt werden',

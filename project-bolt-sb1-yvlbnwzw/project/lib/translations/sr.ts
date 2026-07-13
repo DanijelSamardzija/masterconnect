@@ -1183,7 +1183,7 @@ export default {
   'createPost.errorPostFailed': 'Greška pri kreiranju objave. Pokušajte ponovo.',
   'createPost.errorMediaFailed': 'Greška pri čuvanju medija',
   'createPost.errorUploadFailed': 'Greška pri otpremanju fajla',
-  'upload.errorVideoTooLarge': 'Video fajl je prevelik (maks 30MB)',
+  'upload.errorVideoTooLarge': 'Video fajl je prevelik (maks 50MB)',
   'upload.errorFileTooLarge': 'Fajl je prevelik (maks 10MB)',
   'upload.errorFileType': 'Tip fajla nije podržan. Dozvoljena su: slike, videi (MP4/WebM) i dokumenti (PDF/DOC)',
   'createPost.errorGeneric': 'Greška pri kreiranju objave',

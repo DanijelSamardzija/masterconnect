@@ -1183,7 +1183,7 @@ export default {
   'createPost.errorPostFailed': 'Failed to create post. Please try again.',
   'createPost.errorMediaFailed': 'Failed to save media',
   'createPost.errorUploadFailed': 'Failed to upload file',
-  'upload.errorVideoTooLarge': 'Video file is too large (max 30MB)',
+  'upload.errorVideoTooLarge': 'Video file is too large (max 50MB)',
   'upload.errorFileTooLarge': 'File is too large (max 10MB)',
   'upload.errorFileType': 'File type not supported. Allowed: images, videos (MP4/WebM) and documents (PDF/DOC)',
   'createPost.errorGeneric': 'Failed to create post',

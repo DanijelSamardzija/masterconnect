@@ -7,7 +7,7 @@ export const ALLOWED_FILE_TYPES = {
 };
 
 export const MAX_FILE_SIZE = 10 * 1024 * 1024;
-export const MAX_VIDEO_SIZE = 30 * 1024 * 1024; // 30MB
+export const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
 
 export type AttachmentType = 'image' | 'video' | 'document';
 
