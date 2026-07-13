@@ -1035,20 +1035,25 @@ function AdminContent() {
     if (error) { toast.error('Greška pri brisanju'); return; }
     toast.success('Post obrisan');
     setPosts(prev => prev.filter(p => p.id !== postId));
+    setSearchedPosts(prev => prev ? prev.filter(p => p.id !== postId) : null);
     fetchStats();
   };
 
   const handleTogglePromoted = async (postId: string, current: boolean) => {
     const { error } = await supabase.from('posts').update({ is_promoted: !current }).eq('id', postId);
     if (error) { toast.error('Greška'); return; }
-    setPosts(prev => prev.map(p => p.id === postId ? { ...p, is_promoted: !current } : p));
+    const updateFn = (p: PostItem) => p.id === postId ? { ...p, is_promoted: !current } : p;
+    setPosts(prev => prev.map(updateFn));
+    setSearchedPosts(prev => prev ? prev.map(updateFn) : null);
     toast.success(!current ? 'Post označen kao sponzorisan' : 'Sponzorstvo uklonjeno');
   };
 
   const handleLiftShadow = async (postId: string) => {
     const { error } = await supabase.from('posts').update({ status: 'published' }).eq('id', postId);
     if (error) { toast.error('Greška'); return; }
-    setPosts(prev => prev.map(p => p.id === postId ? { ...p, status: 'published' } : p));
+    const updateFn = (p: PostItem) => p.id === postId ? { ...p, status: 'published' } : p;
+    setPosts(prev => prev.map(updateFn));
+    setSearchedPosts(prev => prev ? prev.map(updateFn) : null);
     toast.success('Shadow ban uklonjen');
   };
 
