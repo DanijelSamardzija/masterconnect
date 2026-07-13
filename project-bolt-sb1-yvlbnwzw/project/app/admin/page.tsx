@@ -1604,7 +1604,7 @@ function AdminContent() {
 
             {loading ? (
               [...Array(4)].map((_, i) => <Skeleton key={i} className="h-20 rounded-2xl" />)
-            ) : posts.filter(p => (postTypeFilter === 'all' || p.post_type === postTypeFilter) && (!postSearch.trim() || p.author?.name.toLowerCase().includes(postSearch.toLowerCase()) || p.content.toLowerCase().includes(postSearch.toLowerCase()))).length === 0 ? (
+            ) : posts.filter(p => (postTypeFilter === 'all' || p.post_type === postTypeFilter) && (!postSearch.trim() || p.author?.name.toLowerCase().includes(postSearch.toLowerCase()) || (p.content ?? '').toLowerCase().includes(postSearch.toLowerCase()))).length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <FileText className="h-10 w-10 mx-auto mb-3 opacity-30" />
                 <p className="font-medium">Nema postova</p>
@@ -1612,7 +1612,7 @@ function AdminContent() {
             ) : (
               <>
                 <div className="space-y-2">
-                  {posts.filter(p => (postTypeFilter === 'all' || p.post_type === postTypeFilter) && (!postSearch.trim() || p.author?.name.toLowerCase().includes(postSearch.toLowerCase()) || p.content.toLowerCase().includes(postSearch.toLowerCase()))).map(post => (
+                  {posts.filter(p => (postTypeFilter === 'all' || p.post_type === postTypeFilter) && (!postSearch.trim() || p.author?.name.toLowerCase().includes(postSearch.toLowerCase()) || (p.content ?? '').toLowerCase().includes(postSearch.toLowerCase()))).map(post => (
                     <div key={post.id} className="bg-card border border-border rounded-2xl px-4 py-3 flex items-start gap-3">
                       {post.author && (
                         <Avatar className="h-9 w-9 flex-shrink-0 mt-0.5">
