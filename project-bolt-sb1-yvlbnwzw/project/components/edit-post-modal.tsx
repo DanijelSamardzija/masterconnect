@@ -126,15 +126,27 @@ export function EditPostModal({
       .replace(/[žŽ]/g, 'z');
   };
 
+  const MAX_MEDIA = 6;
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+    const currentTotal = existingMedia.length + newFiles.length;
     const toAdd: { file: File; preview: string }[] = [];
     for (const file of files) {
       const validation = validateFile(file);
       if (!validation.valid) { toast.error(t(validation.error as any)); continue; }
       toAdd.push({ file, preview: URL.createObjectURL(file) });
     }
-    setNewFiles(prev => [...prev, ...toAdd]);
+    setNewFiles(prev => {
+      const combined = [...prev, ...toAdd];
+      const totalAfter = existingMedia.length + combined.length;
+      if (totalAfter > MAX_MEDIA) {
+        toast.error(`Maksimalno ${MAX_MEDIA} fajlova po objavi`);
+        const allowed = MAX_MEDIA - existingMedia.length;
+        return combined.slice(0, Math.max(0, allowed));
+      }
+      return combined;
+    });
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -679,6 +691,7 @@ export function EditPostModal({
                     onChange={handleFileSelect}
                     disabled={saving}
                   />
+                  {existingMedia.length + newFiles.length < MAX_MEDIA && (
                   <Button
                     type="button"
                     variant="outline"
@@ -696,6 +709,8 @@ export function EditPostModal({
                     <ImageIcon className="h-3.5 w-3.5" />
                     Slika
                   </Button>
+                  )}
+                  {existingMedia.length + newFiles.length < MAX_MEDIA && (
                   <Button
                     type="button"
                     variant="outline"
@@ -713,6 +728,7 @@ export function EditPostModal({
                     <Video className="h-3.5 w-3.5" />
                     Video
                   </Button>
+                  )}
                 </div>
               </div>
 
