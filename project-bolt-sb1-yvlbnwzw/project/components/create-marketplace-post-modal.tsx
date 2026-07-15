@@ -693,16 +693,22 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
             <>
               <div>
                 <Label>{t('marketplace.priceTypeRequired')}</Label>
-                <Select value={priceType} onValueChange={setPriceType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('marketplace.priceTypeSelect')} />
-                  </SelectTrigger>
-                  <SelectContent side="bottom" align="start" sideOffset={4}>
-                    <SelectItem value="fixed">{t('marketplace.fixed')}</SelectItem>
-                    <SelectItem value="hourly">{t('marketplace.hourly')}</SelectItem>
-                    <SelectItem value="negotiable">{t('marketplace.negotiable')}</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2 mt-1.5">
+                  {(['fixed', 'hourly', 'negotiable'] as const).map((pt) => (
+                    <button
+                      key={pt}
+                      type="button"
+                      onClick={() => setPriceType(pt)}
+                      className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-colors ${
+                        priceType === pt
+                          ? 'bg-orange-500 border-orange-500 text-white'
+                          : 'border-border text-muted-foreground hover:border-orange-400 hover:text-orange-400'
+                      }`}
+                    >
+                      {pt === 'fixed' ? t('marketplace.fixed') : pt === 'hourly' ? t('marketplace.hourly') : t('marketplace.negotiable')}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {(priceType === 'fixed' || priceType === 'hourly') && (
@@ -725,16 +731,22 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
                   </div>
                   <div>
                     <Label>{t('marketplace.currencyRequired')}</Label>
-                    <Select value={currency} onValueChange={setCurrency}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent side="bottom" align="start" sideOffset={4}>
-                        <SelectItem value="RSD">RSD</SelectItem>
-                        <SelectItem value="EUR">EUR</SelectItem>
-                        <SelectItem value="USD">USD</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="flex gap-1.5 mt-1.5">
+                      {(['RSD', 'EUR', 'USD'] as const).map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setCurrency(c)}
+                          className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                            currency === c
+                              ? 'bg-orange-500 border-orange-500 text-white'
+                              : 'border-border text-muted-foreground hover:border-orange-400 hover:text-orange-400'
+                          }`}
+                        >
+                          {c}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
