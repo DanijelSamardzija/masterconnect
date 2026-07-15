@@ -261,19 +261,19 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
         toast.error(t('marketplace.portfolioLimitReached'));
         return;
       }
+    }
 
-      if (postType === 'service_listing') {
-        const { count } = await supabase
-          .from('posts')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .eq('post_type', 'service_listing')
-          .eq('is_active', true);
+    if (postType === 'service_listing') {
+      const { count } = await supabase
+        .from('posts')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('post_type', 'service_listing')
+        .neq('status', 'deleted');
 
-        if (count && count >= 10) {
-          toast.error(t('marketplace.serviceListingLimitReached'));
-          return;
-        }
+      if ((count ?? 0) >= 2) {
+        toast.error(t('marketplace.serviceListingLimitReached'));
+        return;
       }
     }
 
@@ -524,28 +524,32 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
 
           <div>
             <Label>{t('marketplace.postType')}</Label>
-            <Select value={postType} onValueChange={(value: any) => setPostType(value)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent side="bottom" align="start" sideOffset={4}>
-                {(!allowedTypes || allowedTypes.includes('service_listing')) && (
-                  <SelectItem value="service_listing">{t('marketplace.serviceListing')}</SelectItem>
-                )}
-                {(!allowedTypes || allowedTypes.includes('hiring_post')) && (
-                  <SelectItem value="hiring_post">{t('marketplace.hiringPost')}</SelectItem>
-                )}
-                {(!allowedTypes || allowedTypes.includes('job_seeker_post')) && (
-                  <SelectItem value="job_seeker_post">{t('marketplace.jobSeekerPost')}</SelectItem>
-                )}
-                {(!allowedTypes || allowedTypes.includes('service_request')) && (
-                  <SelectItem value="service_request">{t('marketplace.serviceRequest')}</SelectItem>
-                )}
-                {(!allowedTypes || allowedTypes.includes('portfolio_post')) && (
-                  <SelectItem value="portfolio_post">{t('marketplace.portfolioPost')}</SelectItem>
-                )}
-              </SelectContent>
-            </Select>
+            <div className="flex flex-wrap gap-2 mt-1.5">
+              {(
+                [
+                  { value: 'service_listing', label: t('marketplace.serviceListing') },
+                  { value: 'hiring_post', label: t('marketplace.hiringPost') },
+                  { value: 'job_seeker_post', label: t('marketplace.jobSeekerPost') },
+                  { value: 'service_request', label: t('marketplace.serviceRequest') },
+                  { value: 'portfolio_post', label: t('marketplace.portfolioPost') },
+                ] as const
+              )
+                .filter(({ value }) => !allowedTypes || allowedTypes.includes(value))
+                .map(({ value, label }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setPostType(value)}
+                    className={`py-2 px-3 rounded-lg border text-sm font-medium transition-colors ${
+                      postType === value
+                        ? 'bg-orange-500 border-orange-500 text-white'
+                        : 'border-border text-muted-foreground hover:border-orange-400 hover:text-orange-400'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+            </div>
           </div>
 
           {postType === 'service_request' && (
