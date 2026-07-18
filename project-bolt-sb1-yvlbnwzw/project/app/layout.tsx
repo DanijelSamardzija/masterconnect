@@ -24,6 +24,7 @@ export const metadata: Metadata = {
   keywords: ['majstori', 'poslovi', 'usluge', 'marketplace', 'zaposljavanje', 'gigzone'],
   authors: [{ name: 'GigZone' }],
   metadataBase: new URL('https://www.gigzone.app'),
+  alternates: { canonical: 'https://www.gigzone.app' },
   manifest: '/manifest.json?v=landing-light',
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
