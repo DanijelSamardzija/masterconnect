@@ -35,14 +35,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = `${name} – ${typeLabel} | GigZone`;
   const description = snippet || `${typeLabel} od ${name} na GigZone platformi.`;
 
+  const ogImage = `https://www.gigzone.app/api/og?postId=${params.postId}`;
+
   return {
     title,
     description,
     openGraph: {
       title,
       description,
-      url: `https://gigzone.app/posts/${params.postId}`,
+      url: `https://www.gigzone.app/posts/${params.postId}`,
       siteName: 'GigZone',
+      images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [ogImage],
     },
   };
 }
