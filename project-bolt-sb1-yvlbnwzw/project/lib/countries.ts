@@ -1,4 +1,5 @@
 export const countries: { value: string; sr: string; en: string; de: string }[] = [
+  // Balkan
   { value: 'Bosna i Hercegovina', sr: 'Bosna i Hercegovina', en: 'Bosnia and Herzegovina', de: 'Bosnien und Herzegowina' },
   { value: 'Srbija', sr: 'Srbija', en: 'Serbia', de: 'Serbien' },
   { value: 'Hrvatska', sr: 'Hrvatska', en: 'Croatia', de: 'Kroatien' },
@@ -7,21 +8,71 @@ export const countries: { value: string; sr: string; en: string; de: string }[] 
   { value: 'Sjeverna Makedonija', sr: 'Sjeverna Makedonija', en: 'North Macedonia', de: 'Nordmazedonien' },
   { value: 'Kosovo', sr: 'Kosovo', en: 'Kosovo', de: 'Kosovo' },
   { value: 'Albanija', sr: 'Albanija', en: 'Albania', de: 'Albanien' },
+  { value: 'Bugarska', sr: 'Bugarska', en: 'Bulgaria', de: 'Bulgarien' },
+  { value: 'Rumunija', sr: 'Rumunija', en: 'Romania', de: 'Rumänien' },
+  { value: 'Grčka', sr: 'Grčka', en: 'Greece', de: 'Griechenland' },
+  // Srednja i Istočna Evropa
   { value: 'Austrija', sr: 'Austrija', en: 'Austria', de: 'Österreich' },
   { value: 'Njemačka', sr: 'Njemačka', en: 'Germany', de: 'Deutschland' },
   { value: 'Švicarska', sr: 'Švicarska', en: 'Switzerland', de: 'Schweiz' },
   { value: 'Luksemburg', sr: 'Luksemburg', en: 'Luxembourg', de: 'Luxemburg' },
-  { value: 'Švedska', sr: 'Švedska', en: 'Sweden', de: 'Schweden' },
-  { value: 'Norveška', sr: 'Norveška', en: 'Norway', de: 'Norwegen' },
-  { value: 'Danska', sr: 'Danska', en: 'Denmark', de: 'Dänemark' },
-  { value: 'Holandija', sr: 'Holandija', en: 'Netherlands', de: 'Niederlande' },
-  { value: 'Belgija', sr: 'Belgija', en: 'Belgium', de: 'Belgien' },
+  { value: 'Mađarska', sr: 'Mađarska', en: 'Hungary', de: 'Ungarn' },
+  { value: 'Češka', sr: 'Češka', en: 'Czech Republic', de: 'Tschechien' },
+  { value: 'Slovačka', sr: 'Slovačka', en: 'Slovakia', de: 'Slowakei' },
+  { value: 'Poljska', sr: 'Poljska', en: 'Poland', de: 'Polen' },
+  { value: 'Ukrajina', sr: 'Ukrajina', en: 'Ukraine', de: 'Ukraine' },
+  { value: 'Moldavija', sr: 'Moldavija', en: 'Moldova', de: 'Moldau' },
+  // Zapadna Evropa
   { value: 'Francuska', sr: 'Francuska', en: 'France', de: 'Frankreich' },
   { value: 'Italija', sr: 'Italija', en: 'Italy', de: 'Italien' },
   { value: 'Španija', sr: 'Španija', en: 'Spain', de: 'Spanien' },
+  { value: 'Portugal', sr: 'Portugal', en: 'Portugal', de: 'Portugal' },
+  { value: 'Holandija', sr: 'Holandija', en: 'Netherlands', de: 'Niederlande' },
+  { value: 'Belgija', sr: 'Belgija', en: 'Belgium', de: 'Belgien' },
   { value: 'Velika Britanija', sr: 'Velika Britanija', en: 'United Kingdom', de: 'Vereinigtes Königreich' },
+  { value: 'Irska', sr: 'Irska', en: 'Ireland', de: 'Irland' },
+  // Sjeverna Evropa
+  { value: 'Švedska', sr: 'Švedska', en: 'Sweden', de: 'Schweden' },
+  { value: 'Norveška', sr: 'Norveška', en: 'Norway', de: 'Norwegen' },
+  { value: 'Danska', sr: 'Danska', en: 'Denmark', de: 'Dänemark' },
+  { value: 'Finska', sr: 'Finska', en: 'Finland', de: 'Finnland' },
+  { value: 'Estonija', sr: 'Estonija', en: 'Estonia', de: 'Estland' },
+  { value: 'Letonija', sr: 'Letonija', en: 'Latvia', de: 'Lettland' },
+  { value: 'Litvanija', sr: 'Litvanija', en: 'Lithuania', de: 'Litauen' },
+  { value: 'Island', sr: 'Island', en: 'Iceland', de: 'Island' },
+  // Rusija i susjedne
+  { value: 'Rusija', sr: 'Rusija', en: 'Russia', de: 'Russland' },
+  { value: 'Bjelorusija', sr: 'Bjelorusija', en: 'Belarus', de: 'Belarus' },
+  // Bliski Istok
+  { value: 'Turska', sr: 'Turska', en: 'Turkey', de: 'Türkei' },
+  { value: 'UAE', sr: 'UAE', en: 'UAE', de: 'VAE' },
+  { value: 'Katar', sr: 'Katar', en: 'Qatar', de: 'Katar' },
+  { value: 'Saudijska Arabija', sr: 'Saudijska Arabija', en: 'Saudi Arabia', de: 'Saudi-Arabien' },
+  { value: 'Izrael', sr: 'Izrael', en: 'Israel', de: 'Israel' },
+  // Azija
+  { value: 'Kina', sr: 'Kina', en: 'China', de: 'China' },
+  { value: 'Japan', sr: 'Japan', en: 'Japan', de: 'Japan' },
+  { value: 'Indija', sr: 'Indija', en: 'India', de: 'Indien' },
+  { value: 'Južna Koreja', sr: 'Južna Koreja', en: 'South Korea', de: 'Südkorea' },
+  { value: 'Singapur', sr: 'Singapur', en: 'Singapore', de: 'Singapur' },
+  // Sjeverna Amerika
   { value: 'SAD', sr: 'SAD', en: 'USA', de: 'USA' },
   { value: 'Kanada', sr: 'Kanada', en: 'Canada', de: 'Kanada' },
+  { value: 'Meksiko', sr: 'Meksiko', en: 'Mexico', de: 'Mexiko' },
+  // Južna Amerika
+  { value: 'Brazil', sr: 'Brazil', en: 'Brazil', de: 'Brasilien' },
+  { value: 'Argentina', sr: 'Argentina', en: 'Argentina', de: 'Argentinien' },
+  { value: 'Čile', sr: 'Čile', en: 'Chile', de: 'Chile' },
+  { value: 'Kolumbija', sr: 'Kolumbija', en: 'Colombia', de: 'Kolumbien' },
+  // Australija i Okeanija
   { value: 'Australija', sr: 'Australija', en: 'Australia', de: 'Australien' },
+  { value: 'Novi Zeland', sr: 'Novi Zeland', en: 'New Zealand', de: 'Neuseeland' },
+  // Afrika
+  { value: 'Južna Afrika', sr: 'Južna Afrika', en: 'South Africa', de: 'Südafrika' },
+  { value: 'Maroko', sr: 'Maroko', en: 'Morocco', de: 'Marokko' },
+  { value: 'Egipat', sr: 'Egipat', en: 'Egypt', de: 'Ägypten' },
+  { value: 'Nigerija', sr: 'Nigerija', en: 'Nigeria', de: 'Nigeria' },
+  { value: 'Kenija', sr: 'Kenija', en: 'Kenya', de: 'Kenia' },
+  // Ostalo
   { value: 'Ostalo', sr: 'Ostalo', en: 'Other', de: 'Sonstiges' },
 ];
