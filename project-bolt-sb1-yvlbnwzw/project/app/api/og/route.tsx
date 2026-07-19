@@ -1,4 +1,4 @@
-import { ImageResponse } from 'next/og';
+import { ImageResponse } from '@vercel/og';
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
