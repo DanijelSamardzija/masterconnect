@@ -44,6 +44,7 @@ import { SharePostModal } from '@/components/share-post-modal';
 import { CityAutocomplete, cyrillicToLatin } from '@/components/city-autocomplete';
 import { locationScore } from '@/lib/location-sort';
 import { CategoryCombobox } from '@/components/category-combobox';
+import { countries } from '@/lib/countries';
 import { OfferServiceModal } from '@/components/offer-service-modal';
 import { SendOfferModal } from '@/components/send-offer-modal-v2';
 import { JobApplicationModal } from '@/components/job-application-modal';
@@ -58,6 +59,7 @@ type Post = {
   profession?: string | null;
   category?: string | null;
   city?: string | null;
+  country?: string | null;
   experience_level?: string | null;
   location?: string | null;
   availability?: string | null;
@@ -963,6 +965,7 @@ function JobsMarketplaceContent() {
   const [deleteConfirmPostId, setDeleteConfirmPostId] = useState<string | null>(null);
   const [boostingJobId, setBoostingJobId] = useState<string | null>(null);
   const [cityFilter, setCityFilter] = useState('');
+  const [countryFilter, setCountryFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [categories, setCategories] = useState<string[]>([]);
@@ -1106,6 +1109,7 @@ function JobsMarketplaceContent() {
             profession,
             category,
             city,
+            country,
             experience_level,
             location,
             availability,
@@ -1330,6 +1334,7 @@ function JobsMarketplaceContent() {
 
   const resetFilters = () => {
     setCityFilter('');
+    setCountryFilter('');
     setCategoryFilter('');
     setSortOrder('newest');
   };
@@ -1349,6 +1354,10 @@ function JobsMarketplaceContent() {
       if (cityFilter) {
         const postCity = cyrillicToLatin(post.city || post.location || '').toLowerCase();
         if (!postCity.includes(cyrillicToLatin(cityFilter).toLowerCase())) return false;
+      }
+
+      if (countryFilter && post.country) {
+        if (post.country !== countryFilter) return false;
       }
 
       if (categoryFilter && post.category) {
@@ -1540,7 +1549,7 @@ function JobsMarketplaceContent() {
 
           <Card className="mt-4 bg-card text-card-foreground border border-border rounded-2xl shadow-sm">
             <CardContent className="pt-6 pb-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
                   <label className="text-xs font-medium text-slate-600 dark:text-gray-300 mb-1.5 block">
                     {t('jobs.filterCity')}
@@ -1550,6 +1559,22 @@ function JobsMarketplaceContent() {
                     onChange={(city) => setCityFilter(city)}
                     placeholder={t('jobs.filterCityPlaceholder')}
                   />
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-slate-600 dark:text-gray-300 mb-1.5 block">
+                    {t('jobs.filterCountry')}
+                  </label>
+                  <select
+                    value={countryFilter}
+                    onChange={(e) => setCountryFilter(e.target.value)}
+                    className="w-full h-10 rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  >
+                    <option value="">{t('jobs.filterCountryPlaceholder')}</option>
+                    {countries.map((c) => (
+                      <option key={c.value} value={c.value}>{c.sr}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
@@ -1565,7 +1590,8 @@ function JobsMarketplaceContent() {
                     allCategoriesLabel={t('jobs.filterCategoryPlaceholder')}
                   />
                 </div>
-
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                 <div>
                   <label className="text-xs font-medium text-slate-600 dark:text-gray-300 mb-1.5 block">
                     {t('jobs.filterSort')}
@@ -1778,11 +1804,11 @@ function JobsMarketplaceContent() {
                                   <span className="text-[11px] font-semibold text-slate-800 dark:text-gray-100 truncate">{post.category}</span>
                                 </div>
                               )}
-                              {post.city && (
+                              {(post.city || post.country) && (
                                 <div className="flex items-center gap-1.5 min-w-0">
                                   <MapPin className="h-3.5 w-3.5 text-orange-500 shrink-0" />
                                   <span className="text-[11px] text-slate-500 dark:text-slate-400 shrink-0">{t('jobs.labelCity')}:</span>
-                                  <span className="text-[11px] font-semibold text-slate-800 dark:text-gray-100 truncate">{post.city}</span>
+                                  <span className="text-[11px] font-semibold text-slate-800 dark:text-gray-100 truncate">{[post.city, post.country].filter(Boolean).join(', ')}</span>
                                 </div>
                               )}
                               {post.experience_level && (
@@ -1816,11 +1842,11 @@ function JobsMarketplaceContent() {
                                   <span className="text-[11px] font-semibold text-slate-800 dark:text-gray-100 truncate">{post.category}</span>
                                 </div>
                               )}
-                              {post.city && (
+                              {(post.city || post.country) && (
                                 <div className="flex items-center gap-1.5 min-w-0">
                                   <MapPin className="h-3.5 w-3.5 text-green-600 shrink-0" />
                                   <span className="text-[11px] text-slate-500 dark:text-slate-400 shrink-0">{t('jobs.labelCity')}:</span>
-                                  <span className="text-[11px] font-semibold text-slate-800 dark:text-gray-100 truncate">{post.city}</span>
+                                  <span className="text-[11px] font-semibold text-slate-800 dark:text-gray-100 truncate">{[post.city, post.country].filter(Boolean).join(', ')}</span>
                                 </div>
                               )}
                               {post.experience_level && (

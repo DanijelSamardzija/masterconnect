@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { countries } from '@/lib/countries';
 import { usePageTracking } from '@/lib/hooks/use-page-tracking';
 import { ProfessionalCard } from '@/components/professional-card';
 import { GuestWall } from '@/components/guest-wall';
@@ -28,6 +29,7 @@ type ServiceListing = {
   job_title: string;
   category: string;
   city: string;
+  country?: string | null;
   price_type?: string;
   price_value?: number;
   currency?: string;
@@ -58,6 +60,7 @@ export function ServicesClient() {
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [cityFilter, setCityFilter] = useState('');
+  const [countryFilter, setCountryFilter] = useState('');
   const [hasFilters, setHasFilters] = useState(false);
   const [savedSet, setSavedSet] = useState<Set<string>>(new Set());
   const [shareModalPostId, setShareModalPostId] = useState<string | null>(null);
@@ -77,8 +80,8 @@ export function ServicesClient() {
 
   useEffect(() => {
     loadListings();
-    setHasFilters(!!selectedCategory || !!cityFilter);
-  }, [selectedCategory, cityFilter, sortBy]);
+    setHasFilters(!!selectedCategory || !!cityFilter || !!countryFilter);
+  }, [selectedCategory, cityFilter, countryFilter, sortBy]);
 
   const loadCategories = async () => {
     try {
@@ -104,6 +107,7 @@ export function ServicesClient() {
           job_title,
           category,
           city,
+          country,
           price_type,
           price_value,
           currency,
@@ -146,6 +150,10 @@ export function ServicesClient() {
 
       if (cityFilter) {
         query = query.ilike('city', `%${cyrillicToLatin(cityFilter)}%`);
+      }
+
+      if (countryFilter) {
+        query = query.eq('country', countryFilter);
       }
 
       const { data, error } = await query;
@@ -330,6 +338,7 @@ export function ServicesClient() {
   const clearFilters = () => {
     setSelectedCategory('');
     setCityFilter('');
+    setCountryFilter('');
   };
 
   return (
@@ -365,7 +374,7 @@ export function ServicesClient() {
           <h2 className="text-lg font-semibold text-foreground">Filters</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <Label>{t('discover.allCategories')}</Label>
             <CategoryCombobox
@@ -386,6 +395,20 @@ export function ServicesClient() {
               placeholder={t('discover.filterCity')}
               showAllOption={true}
             />
+          </div>
+
+          <div>
+            <Label>{t('discover.filterCountry')}</Label>
+            <select
+              value={countryFilter}
+              onChange={(e) => setCountryFilter(e.target.value)}
+              className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            >
+              <option value="">{t('discover.filterCountry')}</option>
+              {countries.map((c) => (
+                <option key={c.value} value={c.value}>{c.sr}</option>
+              ))}
+            </select>
           </div>
         </div>
 

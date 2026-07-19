@@ -415,6 +415,7 @@ export default {
   'discover.subtitle': 'Browse professional service listings',
   'discover.allCategories': 'All Categories',
   'discover.filterCity': 'Filter by city...',
+  'discover.filterCountry': 'Filter by country...',
   'discover.noResults': 'No service listings found',
   'discover.clearFilters': 'Clear Filters',
 
@@ -790,6 +791,8 @@ export default {
 
   // Job marketplace filters
   'jobs.filterCity': 'City',
+  'jobs.filterCountry': 'Country',
+  'jobs.filterCountryPlaceholder': 'All countries',
   'jobs.filterCategory': 'Category',
   'jobs.filterSort': 'Sort',
   'jobs.filterCityPlaceholder': 'Select city',
@@ -867,6 +870,8 @@ export default {
   'marketplace.currencyRequired': 'Currency *',
   'marketplace.category': 'Category',
   'marketplace.categoryRequired': 'Category *',
+  'marketplace.country': 'Country',
+  'marketplace.countryPlaceholder': 'Select country',
   'marketplace.city': 'City',
   'marketplace.cityRequired': 'City *',
   'marketplace.profession': 'Profession/Trade',

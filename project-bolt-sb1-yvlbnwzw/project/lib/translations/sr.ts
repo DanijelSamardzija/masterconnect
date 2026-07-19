@@ -415,6 +415,7 @@ export default {
   'discover.subtitle': 'Pregledaj profesionalne ponude usluga',
   'discover.allCategories': 'Sve Kategorije',
   'discover.filterCity': 'Filtriraj po gradu...',
+  'discover.filterCountry': 'Filtriraj po državi...',
   'discover.noResults': 'Nema pronađenih ponuda usluga',
   'discover.clearFilters': 'Obriši Filtere',
 
@@ -790,6 +791,8 @@ export default {
 
   // Job marketplace filters
   'jobs.filterCity': 'Grad',
+  'jobs.filterCountry': 'Država',
+  'jobs.filterCountryPlaceholder': 'Sve države',
   'jobs.filterCategory': 'Kategorija',
   'jobs.filterSort': 'Sortiranje',
   'jobs.filterCityPlaceholder': 'Izaberi grad',
@@ -867,6 +870,8 @@ export default {
   'marketplace.currencyRequired': 'Valuta *',
   'marketplace.category': 'Kategorija',
   'marketplace.categoryRequired': 'Kategorija *',
+  'marketplace.country': 'Država',
+  'marketplace.countryPlaceholder': 'Odaberite državu',
   'marketplace.city': 'Grad',
   'marketplace.cityRequired': 'Grad *',
   'marketplace.profession': 'Zanimanje/Zanat',

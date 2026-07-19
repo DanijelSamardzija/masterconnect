@@ -18,6 +18,7 @@ import { Image as ImageIcon, Video, X, Loader2, Lightbulb } from 'lucide-react';
 import { toast } from 'sonner';
 import { validateImageFile, processImageForUpload, getImageDimensions } from '@/lib/image-utils';
 import { uploadVideoToCloudinary } from '@/lib/attachment-utils';
+import { countries } from '@/lib/countries';
 
 type PostType = 'service_request' | 'job_seeker_post' | 'hiring_post' | 'portfolio_post' | 'service_listing';
 
@@ -40,6 +41,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
   const [jobSeekerTitle, setJobSeekerTitle] = useState('');
   const [category, setCategory] = useState('');
   const [city, setCity] = useState('');
+  const [country, setCountry] = useState(profile?.country || '');
   const [experienceLevel, setExperienceLevel] = useState('');
   const [availability, setAvailability] = useState('');
   const [priceType, setPriceType] = useState('');
@@ -296,6 +298,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
         post_type: postType,
         category: trimmedCategory,
         city: trimmedCity,
+        country: country || undefined,
         title: title.trim() || undefined,
         jobTitle: jobTitle.trim() || undefined,
       };
@@ -684,13 +687,28 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
             />
           </div>
 
-          <div>
-            <Label>{t('marketplace.cityRequired')}</Label>
-            <CityAutocomplete
-              value={city}
-              onChange={(cityValue) => setCity(cityValue)}
-              placeholder={t('marketplace.city')}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>{t('marketplace.country')}</Label>
+              <select
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 mt-1"
+              >
+                <option value="">{t('marketplace.countryPlaceholder')}</option>
+                {countries.map((c) => (
+                  <option key={c.value} value={c.value}>{c.sr}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label>{t('marketplace.cityRequired')}</Label>
+              <CityAutocomplete
+                value={city}
+                onChange={(cityValue) => setCity(cityValue)}
+                placeholder={t('marketplace.city')}
+              />
+            </div>
           </div>
 
           {postType === 'service_listing' && (

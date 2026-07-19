@@ -12,6 +12,7 @@ type ProfileHeaderProps = {
   avatarUrl?: string | null;
   coverUrl?: string | null;
   city?: string | null;
+  country?: string | null;
   phone?: string | null;
   email?: string | null;
   websiteUrl?: string | null;
@@ -42,6 +43,7 @@ export function ProfileHeader({
   name,
   avatarUrl,
   city,
+  country,
   phone,
   email,
   websiteUrl,
@@ -134,10 +136,10 @@ export function ProfileHeader({
         {/* ── City + category ── */}
         {(city || category) && (
           <div className="flex flex-wrap items-center gap-2 mb-3">
-            {city && (
+            {(city || country) && (
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <MapPin className="h-3.5 w-3.5" />
-                <span>{city}</span>
+                <span>{[city, country].filter(Boolean).join(', ')}</span>
               </div>
             )}
             {category && (

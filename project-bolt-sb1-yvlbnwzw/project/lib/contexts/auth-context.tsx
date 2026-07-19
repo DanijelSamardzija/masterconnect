@@ -18,6 +18,7 @@ type Profile = {
   onboarding_completed?: boolean;
   created_at: string;
   city?: string;
+  country?: string;
   category?: string;
   bio?: string;
   phone?: string;

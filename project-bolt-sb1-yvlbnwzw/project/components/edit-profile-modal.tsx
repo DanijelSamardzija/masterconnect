@@ -15,6 +15,7 @@ import { Switch } from '@/components/ui/switch';
 import { Loader2, X, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { countries } from '@/lib/countries';
 
 type EditProfileModalProps = {
   open: boolean;
@@ -23,6 +24,7 @@ type EditProfileModalProps = {
   currentProfile: {
     name: string;
     city?: string;
+    country?: string;
     bio?: string;
     skills?: string[];
     avatar_url?: string;
@@ -39,6 +41,7 @@ export function EditProfileModal({ open, onOpenChange, onSuccess, currentProfile
   const { t } = useLanguage();
   const [name, setName] = useState(currentProfile.name);
   const [city, setCity] = useState(currentProfile.city || '');
+  const [country, setCountry] = useState(currentProfile.country || '');
   const [bio, setBio] = useState(currentProfile.bio || '');
   const [skills, setSkills] = useState<string[]>(currentProfile.skills || []);
   const [skillInput, setSkillInput] = useState('');
@@ -66,6 +69,7 @@ export function EditProfileModal({ open, onOpenChange, onSuccess, currentProfile
   useEffect(() => {
     setName(currentProfile.name);
     setCity(currentProfile.city || '');
+    setCountry(currentProfile.country || '');
     setBio(currentProfile.bio || '');
     setSkills(currentProfile.skills || []);
     setAvatarUrl(currentProfile.avatar_url || '');
@@ -157,6 +161,7 @@ export function EditProfileModal({ open, onOpenChange, onSuccess, currentProfile
         .update({
           name: name.trim(),
           city: city.trim() || null,
+          country: country || null,
           bio: bio.trim() || null,
           skills: skills,
           phone: phone.trim() || null,
@@ -247,15 +252,32 @@ export function EditProfileModal({ open, onOpenChange, onSuccess, currentProfile
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="city">Location</Label>
-            <Input
-              id="city"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="City, Country"
-              disabled={saving}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="country">{t('profile.editCountry')}</Label>
+              <select
+                id="country"
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                disabled={saving}
+                className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50"
+              >
+                <option value="">{t('profile.editCountryPlaceholder')}</option>
+                {countries.map((c) => (
+                  <option key={c.value} value={c.value}>{c.sr}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="city">{t('profile.editCity') || 'Grad'}</Label>
+              <Input
+                id="city"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder={t('marketplace.city') || 'Vaš grad'}
+                disabled={saving}
+              />
+            </div>
           </div>
 
           <div className="space-y-2">

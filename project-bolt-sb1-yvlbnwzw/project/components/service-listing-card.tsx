@@ -25,6 +25,7 @@ type ServiceListingCardProps = {
     post_type: string;
     category?: string | null;
     city?: string | null;
+    country?: string | null;
     job_title?: string | null;
     price_type?: string | null;
     price_value?: number | null;
@@ -122,10 +123,10 @@ export function ServiceListingCard({
                     <span>{post.category}</span>
                   </div>
                 )}
-                {post.city && (
+                {(post.city || post.country) && (
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <MapPin className="h-3.5 w-3.5" />
-                    <span>{post.city}</span>
+                    <span>{[post.city, post.country].filter(Boolean).join(', ')}</span>
                   </div>
                 )}
                 {formatPrice() && (

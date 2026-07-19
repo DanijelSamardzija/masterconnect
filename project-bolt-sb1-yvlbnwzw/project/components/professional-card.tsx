@@ -17,6 +17,7 @@ type ProfessionalCardProps = {
     job_title: string;
     category: string;
     city: string;
+    country?: string | null;
     price_type?: string;
     price_value?: number;
     currency?: string;
@@ -160,10 +161,13 @@ export function ProfessionalCard({ listing }: ProfessionalCardProps) {
                 {listing.category}
               </span>
             )}
-            {listing.city && (
+            {(listing.city || listing.country) && (
               <>
                 {listing.category && <span className="text-gray-400">•</span>}
-                <span className="truncate">{listing.city}</span>
+                <span className="flex items-center gap-1 truncate">
+                  <MapPin className="h-3 w-3 shrink-0" />
+                  {[listing.city, listing.country].filter(Boolean).join(', ')}
+                </span>
               </>
             )}
           </div>

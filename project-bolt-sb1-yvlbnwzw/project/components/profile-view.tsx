@@ -125,6 +125,7 @@ type UserProfile = {
   email: string;
   account_type: 'professional' | 'customer';
   city?: string;
+  country?: string;
   category?: string;
   bio?: string;
   skills?: string[];
@@ -1131,6 +1132,7 @@ export function ProfileView({
           name={profile.name}
           avatarUrl={profile.avatar_url}
           city={profile.city}
+          country={profile.country}
           phone={profile.phone}
           email={profile.email}
           websiteUrl={profile.website_url}
