@@ -697,7 +697,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
               >
                 <option value="">{t('marketplace.countryPlaceholder')}</option>
                 {countries.map((c) => (
-                  <option key={c.value} value={c.value}>{language === 'sr' ? c.sr : c.en}</option>
+                  <option key={c.value} value={c.value}>{language === 'sr' ? c.sr : language === 'de' ? c.de : c.en}</option>
                 ))}
               </select>
             </div>

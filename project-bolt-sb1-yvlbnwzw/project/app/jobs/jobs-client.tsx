@@ -1572,7 +1572,7 @@ function JobsMarketplaceContent() {
                   >
                     <option value="">{t('jobs.filterCountryPlaceholder')}</option>
                     {countries.map((c) => (
-                      <option key={c.value} value={c.value}>{language === 'sr' ? c.sr : c.en}</option>
+                      <option key={c.value} value={c.value}>{language === 'sr' ? c.sr : language === 'de' ? c.de : c.en}</option>
                     ))}
                   </select>
                 </div>
