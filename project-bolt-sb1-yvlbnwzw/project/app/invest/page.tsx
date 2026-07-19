@@ -2,12 +2,12 @@ import { Metadata } from 'next';
 import { InvestClient } from './invest-client';
 
 export const metadata: Metadata = {
-  title: 'GigZone Invest — Ulažite u male biznise i startupe iz regiona',
-  description: 'Platforma za investiranje u provjerene lokalne biznise, startupe i projekte iz Srbije, Hrvatske i dijaspore. ROI 8–35% godišnje. Prijavite se na listu čekanja.',
-  keywords: ['investicija Srbija', 'ulaganje mali biznis', 'startup investicija', 'ROI Beograd', 'investicioni projekti dijaspora', 'GigZone Invest'],
+  title: 'GigZone Invest — Ulažite u male biznise i startupe',
+  description: 'Platforma za investiranje u provjerene biznise, startupe i projekte. Povežite kapital sa perspektivnim poduzećima. ROI 8–35% godišnje. Prijavite se na listu čekanja.',
+  keywords: ['invest', 'investment platform', 'startup investment', 'small business', 'ROI', 'angel investor', 'GigZone Invest'],
   openGraph: {
     title: 'GigZone Invest — Ulažite u male biznise i startupe',
-    description: 'Povežite kapital sa provjerenim lokalnim biznisom. ROI 8–35% godišnje. Projekti iz Srbije, Hrvatske, BiH i dijaspore.',
+    description: 'Povežite kapital sa provjerenim biznisom. ROI 8–35% godišnje. Prijavite se na listu čekanja.',
     url: 'https://gigzone.app/invest',
     type: 'website',
   },
@@ -20,20 +20,14 @@ const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'FinancialService',
   name: 'GigZone Invest',
-  description: 'Platforma za investiranje u male biznise, startupe i projekte iz Srbije i dijaspore. Povežite kapital sa provjerenim lokalnim biznisom uz ROI 8–35% godišnje.',
+  description: 'Platforma za investiranje u male biznise, startupe i projekte. Povežite kapital sa provjerenim biznisom uz ROI 8–35% godišnje.',
   url: 'https://gigzone.app/invest',
   provider: {
     '@type': 'Organization',
     name: 'GigZone',
     url: 'https://gigzone.app',
   },
-  areaServed: [
-    { '@type': 'Country', name: 'Serbia' },
-    { '@type': 'Country', name: 'Croatia' },
-    { '@type': 'Country', name: 'Bosnia and Herzegovina' },
-    { '@type': 'Country', name: 'Germany' },
-    { '@type': 'Country', name: 'Austria' },
-  ],
+  areaServed: { '@type': 'Place', name: 'Worldwide' },
   serviceType: 'Investment Platform',
   offers: {
     '@type': 'Offer',
