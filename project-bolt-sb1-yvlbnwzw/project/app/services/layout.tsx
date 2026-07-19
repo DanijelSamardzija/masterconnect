@@ -3,14 +3,14 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Usluge majstora i profesionalaca — GigZone',
   description:
-    'Pronađite majstore, vodoinstalaere, električare, IT stručnjake i druge profesionalce. Objave iz Srbije, Bosne, Hrvatske, Austrije i Njemačke.',
+    'Pronađite majstore, vodoinstalaere, električare, IT stručnjake i druge profesionalce. Brzo, jednostavno, pouzdano.',
   keywords: [
     'majstor', 'usluge', 'vodoinstalater', 'električar', 'moler', 'IT usluge',
-    'Beograd', 'Novi Sad', 'Zagreb', 'Sarajevo', 'Beč', 'Berlin', 'gigzone',
+    'services', 'professionals', 'freelance', 'skilled workers', 'gigzone',
   ],
   openGraph: {
     title: 'Usluge majstora i profesionalaca — GigZone',
-    description: 'Pronađite majstore i profesionalce iz ex-YU dijaspore.',
+    description: 'Pronađite majstore i profesionalce. Brzo, jednostavno, pouzdano.',
     url: 'https://www.gigzone.app/services',
     siteName: 'GigZone',
     type: 'website',

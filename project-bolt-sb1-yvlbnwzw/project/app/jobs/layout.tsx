@@ -3,14 +3,14 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Poslovi i zapošljavanje — GigZone',
   description:
-    'Pronađite posao ili zaposlite radnike. Oglasi iz Srbije, Bosne, Hrvatske i dijaspore u Austriji, Njemačkoj i Švicarskoj.',
+    'Pronađite posao ili zaposlite radnike. Hiljade oglasa za posao i traženje radnika na jednom mjestu.',
   keywords: [
     'posao', 'zapošljavanje', 'tražim posao', 'tražim radnika', 'oglasi za posao',
-    'Srbija', 'Bosna', 'Hrvatska', 'Austrija', 'Njemačka', 'Švajcarska', 'gigzone',
+    'jobs', 'employment', 'hiring', 'work', 'gigzone',
   ],
   openGraph: {
     title: 'Poslovi i zapošljavanje — GigZone',
-    description: 'Oglasi za posao i traženje radnika iz ex-YU dijaspore.',
+    description: 'Pronađite posao ili zaposlite radnike. Hiljade oglasa na jednom mjestu.',
     url: 'https://www.gigzone.app/jobs',
     siteName: 'GigZone',
     type: 'website',
