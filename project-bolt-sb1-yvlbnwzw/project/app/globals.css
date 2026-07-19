@@ -211,3 +211,13 @@ body {
 .dark .invest-shimmer-bar {
   background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0) 100%);
 }
+@keyframes heart-pulse {
+  0%   { transform: scale(1); }
+  25%  { transform: scale(1.45); color: #ef4444; }
+  50%  { transform: scale(0.92); }
+  75%  { transform: scale(1.2); color: #ef4444; }
+  100% { transform: scale(1); }
+}
+.heart-pulse {
+  animation: heart-pulse 0.6s ease-in-out;
+}

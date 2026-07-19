@@ -152,6 +152,11 @@ function FeedContent() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [audioUnlocked, setAudioUnlocked] = useState(false);
 
+  const [pulsedPosts, setPulsedPosts] = useState<Set<string>>(new Set());
+  const pulseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const watchStartRef = useRef<{ id: string; ts: number } | null>(null);
+  const watchTimesRef = useRef<Record<string, number>>({});
+
   const OWNER_USER_ID = 'c5e87d26-7e51-4c05-9c4f-13e39e002c48';
   const PREFETCH_THRESHOLD = 5;
 
@@ -270,6 +275,37 @@ function FeedContent() {
       setPosts(prev => prev.map(p => p.id === post.id ? { ...p, views_count: p.views_count + 1 } : p));
     });
   }, [activePostIndex, posts]);
+
+  useEffect(() => {
+    const post = posts[activePostIndex];
+
+    // Save watch time for the previous post
+    if (watchStartRef.current) {
+      const elapsed = (Date.now() - watchStartRef.current.ts) / 1000;
+      watchTimesRef.current[watchStartRef.current.id] =
+        (watchTimesRef.current[watchStartRef.current.id] || 0) + elapsed;
+      watchStartRef.current = null;
+    }
+
+    if (!post) return;
+
+    // Start tracking watch time for the current post
+    watchStartRef.current = { id: post.id, ts: Date.now() };
+
+    // Clear any pending pulse timer
+    if (pulseTimerRef.current) clearTimeout(pulseTimerRef.current);
+
+    // After 3s, pulse the heart if user hasn't liked the post yet
+    if (!pulsedPosts.has(post.id)) {
+      pulseTimerRef.current = setTimeout(() => {
+        setPulsedPosts(prev => new Set([...prev, post.id]));
+      }, 3000);
+    }
+
+    return () => {
+      if (pulseTimerRef.current) clearTimeout(pulseTimerRef.current);
+    };
+  }, [activePostIndex]);
 
   useEffect(() => {
     if (!posts.length || !hasMore || isFetchingNext || loadingMore || loading) return;
@@ -989,7 +1025,7 @@ function FeedContent() {
           {/* Actions */}
           <div className="flex items-center px-3 py-2 border-t border-border gap-1 shrink-0">
             <button onClick={() => user ? handleLike(post) : openGuestGate('like', post.id)} className="flex items-center gap-1.5 text-xs px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
-              <Heart className={`h-4 w-4 ${post.user_has_reacted ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
+              <Heart className={`h-4 w-4 transition-colors ${post.user_has_reacted ? 'fill-red-500 text-red-500' : 'text-muted-foreground'} ${pulsedPosts.has(post.id) && !post.user_has_reacted ? 'heart-pulse' : ''}`} />
               <span className="text-muted-foreground">{post.reactions_count}</span>
             </button>
             <button onClick={() => user ? (setSelectedPost(post), setCommentsOpen(true)) : openGuestGate('comment', post.id)} className="flex items-center gap-1.5 text-xs text-muted-foreground px-2 py-1.5 rounded-lg hover:bg-muted transition-colors">
