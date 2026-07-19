@@ -53,7 +53,7 @@ type ServiceListing = {
 
 export function ServicesClient() {
   const { profile, user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   usePageTracking('services');
   const [listings, setListings] = useState<ServiceListing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -406,7 +406,7 @@ export function ServicesClient() {
             >
               <option value="">{t('discover.filterCountry')}</option>
               {countries.map((c) => (
-                <option key={c.value} value={c.value}>{c.sr}</option>
+                <option key={c.value} value={c.value}>{language === 'sr' ? c.sr : c.en}</option>
               ))}
             </select>
           </div>

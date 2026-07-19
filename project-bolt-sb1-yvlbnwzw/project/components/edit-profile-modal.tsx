@@ -38,7 +38,7 @@ type EditProfileModalProps = {
 
 export function EditProfileModal({ open, onOpenChange, onSuccess, currentProfile }: EditProfileModalProps) {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [name, setName] = useState(currentProfile.name);
   const [city, setCity] = useState(currentProfile.city || '');
   const [country, setCountry] = useState(currentProfile.country || '');
@@ -264,7 +264,7 @@ export function EditProfileModal({ open, onOpenChange, onSuccess, currentProfile
               >
                 <option value="">{t('profile.editCountryPlaceholder')}</option>
                 {countries.map((c) => (
-                  <option key={c.value} value={c.value}>{c.sr}</option>
+                  <option key={c.value} value={c.value}>{language === 'sr' ? c.sr : c.en}</option>
                 ))}
               </select>
             </div>

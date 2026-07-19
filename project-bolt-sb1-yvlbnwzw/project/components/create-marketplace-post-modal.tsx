@@ -32,7 +32,7 @@ type MarketplacePostModalProps = {
 
 export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, initialPostType, allowedTypes }: MarketplacePostModalProps) {
   const { user, profile } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const defaultPostType = initialPostType || (allowedTypes?.[0]) || 'service_listing';
   const [postType, setPostType] = useState<'service_request' | 'job_seeker_post' | 'hiring_post' | 'portfolio_post' | 'service_listing'>(defaultPostType);
   const [text, setText] = useState('');
@@ -697,7 +697,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
               >
                 <option value="">{t('marketplace.countryPlaceholder')}</option>
                 {countries.map((c) => (
-                  <option key={c.value} value={c.value}>{c.sr}</option>
+                  <option key={c.value} value={c.value}>{language === 'sr' ? c.sr : c.en}</option>
                 ))}
               </select>
             </div>

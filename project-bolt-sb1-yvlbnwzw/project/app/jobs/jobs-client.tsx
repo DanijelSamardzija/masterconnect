@@ -951,7 +951,7 @@ const AVAIL_KEYS: Record<string, string> = {
 
 function JobsMarketplaceContent() {
   const { user, profile } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
   const { openGuestGate } = useGuestGate();
   usePageTracking('jobs');
@@ -1572,7 +1572,7 @@ function JobsMarketplaceContent() {
                   >
                     <option value="">{t('jobs.filterCountryPlaceholder')}</option>
                     {countries.map((c) => (
-                      <option key={c.value} value={c.value}>{c.sr}</option>
+                      <option key={c.value} value={c.value}>{language === 'sr' ? c.sr : c.en}</option>
                     ))}
                   </select>
                 </div>
