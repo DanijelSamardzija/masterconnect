@@ -238,7 +238,7 @@ function SinglePostContent() {
 
   if (error || !post) {
     return (
-      <div className="min-h-screen bg-slate-50 py-8">
+      <div className="min-h-screen bg-background py-8">
         <div className="container mx-auto px-4 max-w-3xl">
           <Button
             variant="ghost"
@@ -411,7 +411,7 @@ function SinglePostContent() {
   }
 
   return (
-    <div className="bg-slate-50 py-8 pb-24">
+    <div className="bg-background py-8 pb-24">
       <div className="container mx-auto px-4 max-w-3xl">
         <Button
           variant="ghost"
