@@ -1,20 +1,9 @@
 import type { Metadata } from 'next';
 
+// /services is always redirected to /{lang}/services by middleware before rendering.
+// noindex is a safety net in case middleware is ever bypassed.
 export const metadata: Metadata = {
-  title: 'Usluge majstora i profesionalaca — GigZone',
-  description:
-    'Pronađite majstore, vodoinstalaere, električare, IT stručnjake i druge profesionalce. Brzo, jednostavno, pouzdano.',
-  keywords: [
-    'majstor', 'usluge', 'vodoinstalater', 'električar', 'moler', 'IT usluge',
-    'services', 'professionals', 'freelance', 'skilled workers', 'gigzone',
-  ],
-  openGraph: {
-    title: 'Usluge majstora i profesionalaca — GigZone',
-    description: 'Pronađite majstore i profesionalce. Brzo, jednostavno, pouzdano.',
-    url: 'https://www.gigzone.app/services',
-    siteName: 'GigZone',
-    type: 'website',
-  },
+  robots: { index: false, follow: false },
 };
 
 export default function ServicesLayout({ children }: { children: React.ReactNode }) {
