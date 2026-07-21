@@ -360,19 +360,38 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
 
         {/* PRO Premium upgrade CTA */}
         {!isCreatorPremium && (
-          <div className="border-t border-orange-300/20 px-4 py-2.5 flex items-start justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold text-foreground">🔶 PRO Premium</p>
-              <p className="text-[11px] text-muted-foreground">{t('credits.creatorPremium.subtitle')}</p>
-              <p className="text-[10px] text-orange-500 font-medium mt-0.5">{t('credits.creatorPremium.oneTime')}</p>
+          <div className="border-t border-orange-300/20 px-4 py-3">
+            <p className="text-xs font-semibold text-foreground mb-2">🔶 PRO Premium</p>
+            <ul className="space-y-1 mb-3">
+              {([
+                { key: 'verifiedBadge', soon: false },
+                { key: 'receiveSupport', soon: false },
+                { key: 'moreTrust', soon: false },
+                { key: 'analytics', soon: true },
+                { key: 'futureBenefits', soon: false },
+              ] as { key: string; soon: boolean }[]).map(({ key, soon }) => (
+                <li key={key} className="flex items-center gap-1.5">
+                  <Check className={`h-3 w-3 shrink-0 ${soon ? 'text-muted-foreground/50' : 'text-orange-500'}`} />
+                  <span className={`text-[11px] ${soon ? 'text-muted-foreground/50' : 'text-muted-foreground'}`}>
+                    {t(`credits.creatorPremium.benefits.${key}`)}
+                    {soon && <span className="ml-1 text-[10px] italic">{t('credits.creatorPremium.comingSoon')}</span>}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-bold text-foreground">500 {t('credits.unit')}</p>
+                <p className="text-[10px] text-orange-500 font-medium">{t('credits.creatorPremium.oneTime')}</p>
+              </div>
+              <button
+                onClick={handleUpgrade}
+                disabled={upgrading || (balance !== null && balance < 500)}
+                className="text-xs font-bold px-3 py-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 text-white disabled:opacity-40 hover:from-orange-600 hover:to-amber-600 transition-all shrink-0"
+              >
+                {upgrading ? '...' : t('credits.creatorPremium.activate')}
+              </button>
             </div>
-            <button
-              onClick={handleUpgrade}
-              disabled={upgrading || (balance !== null && balance < 500)}
-              className="text-xs font-bold px-3 py-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 text-white disabled:opacity-40 hover:from-orange-600 hover:to-amber-600 transition-all shrink-0"
-            >
-              {upgrading ? '...' : t('credits.creatorPremium.activate')}
-            </button>
           </div>
         )}
 
