@@ -1057,8 +1057,7 @@ function FeedContent() {
                 <Coins className="relative h-4 w-4" />
               </button>
             )}
-            {isOwn && (
-              {(() => {
+            {isOwn && (() => {
                 const boostActive = !!post.promoted_until && new Date(post.promoted_until) > new Date();
                 const fmtDate = (d: string) => new Date(d).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' });
                 const title = boostActive
@@ -1066,6 +1065,7 @@ function FeedContent() {
                   : t('credits.boost.tooltipFeed');
                 return (
                   <button
+                    key="boost"
                     onClick={() => handleBoostPost(post.id)}
                     disabled={boostingPostId === post.id}
                     className="flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg transition-colors disabled:opacity-50 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600"
@@ -1076,7 +1076,6 @@ function FeedContent() {
                   </button>
                 );
               })()}
-            )}
             {!isOwn && user && (
               <button
                 onClick={() => handleContact(post.user_id)}
