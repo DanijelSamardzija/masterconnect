@@ -15,7 +15,7 @@ import { PostHogProvider } from '@/lib/posthog/provider';
 import { UtmTracker } from '@/components/utm-tracker';
 import { Suspense } from 'react';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ['latin', 'latin-ext'] });
 
 export const metadata: Metadata = {
   title: 'GigZone - Platforma za majstore i poslove',
@@ -96,6 +96,10 @@ export default function RootLayout({
   return (
     <html lang="sr" suppressHydrationWarning className="h-dvh">
       <head>
+        {process.env.NEXT_PUBLIC_SUPABASE_URL && (
+          <link rel="preconnect" href={new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin} />
+        )}
+        <link rel="dns-prefetch" href="https://lh3.googleusercontent.com" />
         {/* Apply dark class BEFORE first render to prevent flash of light mode on refresh */}
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {
