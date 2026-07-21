@@ -817,74 +817,43 @@ function DashboardContent() {
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">
             {t('dashboard.quickActions')}
           </p>
-          <div className="grid grid-cols-2 gap-3">
-            {isPro ? (
-              <>
-                <button
-                  onClick={() => setShowTypePicker(true)}
-                  className="bg-orange-500 hover:bg-orange-600 text-white rounded-2xl px-4 py-3.5 flex items-center gap-3 transition-colors text-left"
-                >
-                  <div className="p-2 bg-white/20 rounded-xl">
-                    <Plus className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold">{t('dashboard.postAd')}</p>
-                    <p className="text-xs text-white/80">{t('dashboard.postAdDesc')}</p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => router.push('/feed')}
-                  className="bg-card border border-border rounded-2xl px-4 py-3.5 flex items-center gap-3 hover:border-orange-400/50 hover:bg-accent transition-colors text-left"
-                >
-                  <div className="p-2 bg-orange-100 dark:bg-orange-950 rounded-xl">
-                    <Rss className="h-4 w-4 text-orange-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">Feed</p>
-                    <p className="text-xs text-muted-foreground">{t('dashboard.feedDesc')}</p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => router.push(`/profile/${profile.id}`)}
-                  className="bg-card border border-border rounded-2xl px-4 py-3.5 flex items-center gap-3 hover:border-orange-400/50 hover:bg-accent transition-colors text-left"
-                >
-                  <div className="p-2 bg-purple-100 dark:bg-purple-950 rounded-xl">
-                    <UserCircle className="h-4 w-4 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{t('dashboard.updateProfile')}</p>
-                    <p className="text-xs text-muted-foreground">{t('dashboard.updateProfileShort')}</p>
-                  </div>
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={() => setShowTypePicker(true)}
-                  className="bg-orange-500 hover:bg-orange-600 text-white rounded-2xl px-4 py-3.5 flex items-center gap-3 transition-colors text-left"
-                >
-                  <div className="p-2 bg-white/20 rounded-xl">
-                    <Plus className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold">{t('dashboard.postAd')}</p>
-                    <p className="text-xs text-white/80">{t('dashboard.postAdDesc')}</p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => router.push('/feed')}
-                  className="bg-card border border-border rounded-2xl px-4 py-3.5 flex items-center gap-3 hover:border-orange-400/50 hover:bg-accent transition-colors text-left"
-                >
-                  <div className="p-2 bg-orange-100 dark:bg-orange-950 rounded-xl">
-                    <Rss className="h-4 w-4 text-orange-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">Feed</p>
-                    <p className="text-xs text-muted-foreground">{t('dashboard.feedBrowseDesc')}</p>
-                  </div>
-                </button>
-              </>
-            )}
+          <div className="grid grid-cols-3 gap-3">
+            <button
+              onClick={() => setShowTypePicker(true)}
+              className="bg-orange-500 hover:bg-orange-600 text-white rounded-2xl px-3 py-3.5 flex items-center gap-2 transition-colors text-left"
+            >
+              <div className="p-1.5 bg-white/20 rounded-xl flex-shrink-0">
+                <Plus className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold truncate">{t('dashboard.postAd')}</p>
+                <p className="text-xs text-white/80 truncate">{t('dashboard.postAdDesc')}</p>
+              </div>
+            </button>
+            <button
+              onClick={() => router.push('/feed')}
+              className="bg-card border border-border rounded-2xl px-3 py-3.5 flex items-center gap-2 hover:border-orange-400/50 hover:bg-accent transition-colors text-left"
+            >
+              <div className="p-1.5 bg-orange-100 dark:bg-orange-950 rounded-xl flex-shrink-0">
+                <Rss className="h-4 w-4 text-orange-600" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-foreground truncate">Feed</p>
+                <p className="text-xs text-muted-foreground truncate">{t('dashboard.feedDesc')}</p>
+              </div>
+            </button>
+            <button
+              onClick={() => router.push(`/profile/${profile.id}`)}
+              className="bg-card border border-border rounded-2xl px-3 py-3.5 flex items-center gap-2 hover:border-orange-400/50 hover:bg-accent transition-colors text-left"
+            >
+              <div className="p-1.5 bg-purple-100 dark:bg-purple-950 rounded-xl flex-shrink-0">
+                <UserCircle className="h-4 w-4 text-purple-600" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-foreground truncate">{t('dashboard.updateProfile')}</p>
+                <p className="text-xs text-muted-foreground truncate">{t('dashboard.updateProfileShort')}</p>
+              </div>
+            </button>
           </div>
         </div>
 
