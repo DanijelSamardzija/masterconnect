@@ -17,6 +17,7 @@ import { uploadFile, deleteFile, extractStoragePathFromUrl, validateFile } from 
 import { normalizeImageForFeed } from '@/lib/image-utils';
 import { CategoryCombobox } from './category-combobox';
 import { CityAutocomplete } from './city-autocomplete';
+import { devLog } from '@/lib/dev-log';
 
 type PostMedia = {
   id: string;
@@ -308,8 +309,8 @@ export function EditPostModal({
         const { data: { session } } = await supabase.auth.getSession();
         const token = session?.access_token;
 
-        console.log('[EDIT MODAL DEBUG] Token:', token);
-        console.log('[EDIT MODAL DEBUG] Session:', session);
+        devLog('[EDIT MODAL DEBUG] Token:', token);
+        devLog('[EDIT MODAL DEBUG] Session:', session);
 
         if (!token) {
           throw new Error('Not authenticated');
@@ -364,7 +365,7 @@ export function EditPostModal({
           body: JSON.stringify(minimalPayload),
         });
 
-        console.log('[EDIT MODAL DEBUG] Response status:', response.status);
+        devLog('[EDIT MODAL DEBUG] Response status:', response.status);
 
         if (!response.ok) {
           const error = await response.json();
@@ -373,7 +374,7 @@ export function EditPostModal({
         }
 
         const result = await response.json();
-        console.log('[EDIT MODAL DEBUG] Success response:', result);
+        devLog('[EDIT MODAL DEBUG] Success response:', result);
 
         // Show appropriate toast based on spam analysis
         if (result.spam_analysis) {
@@ -398,8 +399,8 @@ export function EditPostModal({
         const { data: { session } } = await supabase.auth.getSession();
         const token = session?.access_token;
 
-        console.log('[EDIT MODAL SOCIAL DEBUG] Token:', token);
-        console.log('[EDIT MODAL SOCIAL DEBUG] Session:', session);
+        devLog('[EDIT MODAL SOCIAL DEBUG] Token:', token);
+        devLog('[EDIT MODAL SOCIAL DEBUG] Session:', session);
 
         if (!token) {
           throw new Error('Not authenticated');
@@ -411,8 +412,8 @@ export function EditPostModal({
           'Authorization': `Bearer ${token}`,
         };
 
-        console.log('[EDIT MODAL SOCIAL DEBUG] Request headers:', headers);
-        console.log('[EDIT MODAL SOCIAL DEBUG] Request body:', { postId, text: text.trim() });
+        devLog('[EDIT MODAL SOCIAL DEBUG] Request headers:', headers);
+        devLog('[EDIT MODAL SOCIAL DEBUG] Request body:', { postId, text: text.trim() });
 
         const response = await fetch('/api/posts/update', {
           method: 'PUT',
@@ -423,7 +424,7 @@ export function EditPostModal({
           }),
         });
 
-        console.log('[EDIT MODAL SOCIAL DEBUG] Response status:', response.status);
+        devLog('[EDIT MODAL SOCIAL DEBUG] Response status:', response.status);
 
         if (!response.ok) {
           const error = await response.json();
@@ -432,7 +433,7 @@ export function EditPostModal({
         }
 
         const result = await response.json();
-        console.log('[EDIT MODAL SOCIAL DEBUG] Success response:', result);
+        devLog('[EDIT MODAL SOCIAL DEBUG] Success response:', result);
 
         // Show appropriate toast based on spam analysis
         if (result.spam_analysis) {

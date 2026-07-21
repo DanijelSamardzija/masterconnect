@@ -22,6 +22,7 @@ import { CityAutocomplete } from '@/components/city-autocomplete';
 export const revalidate = 0;
 import { Label } from '@/components/ui/label';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { devLog } from '@/lib/dev-log';
 
 type Post = {
   id: string;
@@ -88,7 +89,7 @@ function PostsContent() {
   useEffect(() => {
     if (!user) return;
 
-    console.log('[Posts] Setting up realtime subscription for user:', user.id, user.email);
+    devLog('[Posts] Setting up realtime subscription for user:', user.id, user.email);
 
     const channel = supabase
       .channel('posts-changes')
@@ -101,43 +102,43 @@ function PostsContent() {
           filter: `post_type=eq.social_post`
         },
         async (payload: any) => {
-          console.log('=== REALTIME EVENT ===');
-          console.log('Event type:', payload.eventType);
-          console.log('New record:', payload.new);
-          console.log('Old record:', payload.old);
-          console.log('=====================');
+          devLog('=== REALTIME EVENT ===');
+          devLog('Event type:', payload.eventType);
+          devLog('New record:', payload.new);
+          devLog('Old record:', payload.old);
+          devLog('=====================');
 
           if (payload.eventType === 'INSERT') {
-            console.log('[Posts] New post detected, reloading posts...');
+            devLog('[Posts] New post detected, reloading posts...');
             await loadPosts();
           } else if (payload.eventType === 'DELETE') {
-            console.log('[Posts] Post deleted, removing from list...');
+            devLog('[Posts] Post deleted, removing from list...');
             setPosts(prev => prev.filter(p => p.id !== payload.old.id));
           } else if (payload.eventType === 'UPDATE') {
-            console.log('[Posts] Post updated, reloading posts...');
+            devLog('[Posts] Post updated, reloading posts...');
             await loadPosts();
           }
         }
       )
       .subscribe((status: any, err: any) => {
-        console.log('[Posts] Subscription status:', status);
+        devLog('[Posts] Subscription status:', status);
         if (err) console.error('[Posts] Subscription error:', err);
         if (status === 'SUBSCRIBED') {
-          console.log('[Posts] Successfully subscribed to realtime updates!');
+          devLog('[Posts] Successfully subscribed to realtime updates!');
         }
       });
 
     return () => {
-      console.log('[Posts] Cleaning up realtime subscription...');
+      devLog('[Posts] Cleaning up realtime subscription...');
       supabase.removeChannel(channel);
     };
   }, [user]);
 
   const loadPosts = async () => {
     try {
-      console.log('[LoadPosts] Starting to load posts...');
+      devLog('[LoadPosts] Starting to load posts...');
       const { data: { session } } = await supabase.auth.getSession();
-      console.log('[LoadPosts] Current session user:', session?.user?.id, session?.user?.email);
+      devLog('[LoadPosts] Current session user:', session?.user?.id, session?.user?.email);
 
       const { data: postsData, error } = await supabase
         .from('posts')
@@ -166,11 +167,11 @@ function PostsContent() {
         throw error;
       }
 
-      console.log('[LoadPosts] Posts loaded:', postsData?.length || 0);
-      console.log('[LoadPosts] Posts IDs:', postsData?.map((p: any) => p.id).join(', '));
+      devLog('[LoadPosts] Posts loaded:', postsData?.length || 0);
+      devLog('[LoadPosts] Posts IDs:', postsData?.map((p: any) => p.id).join(', '));
       if (postsData && postsData.length > 0) {
-        console.log('[LoadPosts] First post:', postsData[0]);
-        console.log('[LoadPosts] Last post:', postsData[postsData.length - 1]);
+        devLog('[LoadPosts] First post:', postsData[0]);
+        devLog('[LoadPosts] Last post:', postsData[postsData.length - 1]);
       }
 
       const postIds = postsData?.map((p: any) => p.id) || [];
@@ -185,7 +186,7 @@ function PostsContent() {
       let reviewsData: any[] = [];
 
       if (postIds.length > 0) {
-        console.log('[LoadPosts] Loading media for posts:', postIds);
+        devLog('[LoadPosts] Loading media for posts:', postIds);
         const { data: media, error: mediaError } = await supabase
           .from('post_media')
           .select('*')
@@ -195,7 +196,7 @@ function PostsContent() {
         if (mediaError) {
           console.error('[LoadPosts] Error fetching media:', mediaError);
         } else {
-          console.log('[LoadPosts] Media loaded:', media?.length || 0);
+          devLog('[LoadPosts] Media loaded:', media?.length || 0);
         }
 
         mediaData = media || [];
@@ -234,7 +235,7 @@ function PostsContent() {
         };
       }) || [];
 
-      console.log('[LoadPosts] Final posts with media:', postsWithMedia.length);
+      devLog('[LoadPosts] Final posts with media:', postsWithMedia.length);
       setPosts(postsWithMedia);
     } catch (error: any) {
       console.error('[LoadPosts] Error loading posts:', error);
@@ -277,7 +278,7 @@ function PostsContent() {
     setUploading(true);
 
     try {
-      console.log('[Posts] Creating post for user:', user.id, user.email);
+      devLog('[Posts] Creating post for user:', user.id, user.email);
 
       // Refresh session to ensure JWT is valid
       const { data: { session }, error: sessionError } = await supabase.auth.refreshSession();
@@ -289,7 +290,7 @@ function PostsContent() {
         return;
       }
 
-      console.log('[Posts] Session refreshed, auth.uid:', session.user.id);
+      devLog('[Posts] Session refreshed, auth.uid:', session.user.id);
 
       // Normalize category if provided
       const normalizeCategory = (cat: string) => {
@@ -320,23 +321,23 @@ function PostsContent() {
         throw new Error(postError.message || 'Failed to create post');
       }
 
-      console.log('[Posts] Post created successfully:', postData);
-      console.log('[Posts] Post ID:', postData.id);
-      console.log('[Posts] User ID in post:', postData.user_id);
-      console.log('[Posts] Post type:', postData.post_type);
+      devLog('[Posts] Post created successfully:', postData);
+      devLog('[Posts] Post ID:', postData.id);
+      devLog('[Posts] User ID in post:', postData.user_id);
+      devLog('[Posts] Post type:', postData.post_type);
 
       // Upload media files if any
       if (selectedFiles.length > 0 && postData) {
-        console.log('[Posts] Uploading media files for post:', postData.id);
+        devLog('[Posts] Uploading media files for post:', postData.id);
         const mediaItems = [];
 
         for (let i = 0; i < selectedFiles.length; i++) {
           const file = selectedFiles[i];
-          console.log('[Posts] Uploading file:', file.name, file.type, file.size);
+          devLog('[Posts] Uploading file:', file.name, file.type, file.size);
           const uploadResult = await uploadFileUtil(file, session.user.id, undefined, 'post-media');
 
           if (uploadResult) {
-            console.log('[Posts] File uploaded successfully:', uploadResult.url);
+            devLog('[Posts] File uploaded successfully:', uploadResult.url);
             const mediaType = file.type.startsWith('image/') ? 'image' : 'video';
             mediaItems.push({
               post_id: postData.id,
@@ -351,14 +352,14 @@ function PostsContent() {
         }
 
         if (mediaItems.length > 0) {
-          console.log('[Posts] Saving media items to database:', mediaItems.length);
+          devLog('[Posts] Saving media items to database:', mediaItems.length);
           const { error: mediaError } = await supabase.from('post_media').insert(mediaItems);
 
           if (mediaError) {
             console.error('[Posts] Failed to save media:', mediaError);
             toast.error('Failed to save media attachments');
           } else {
-            console.log('[Posts] Media saved successfully');
+            devLog('[Posts] Media saved successfully');
           }
         }
       }
@@ -441,7 +442,7 @@ function PostsContent() {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
 
-      console.log('[POSTS PAGE DEBUG] Token:', token);
+      devLog('[POSTS PAGE DEBUG] Token:', token);
 
       if (!token) {
         throw new Error('Not authenticated');

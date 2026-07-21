@@ -1,5 +1,6 @@
 import { supabase } from './client';
 import { isInRateLimitCooldown } from '../rate-limit-handler';
+import { devLog } from '../dev-log';
 
 let refreshInterval: NodeJS.Timeout | null = null;
 
@@ -10,7 +11,7 @@ export function startTokenRefreshManager() {
 
   refreshInterval = setInterval(async () => {
     if (isInRateLimitCooldown()) {
-      console.log('[TokenRefreshManager] Skipping refresh due to cooldown');
+      devLog('[TokenRefreshManager] Skipping refresh due to cooldown');
       return;
     }
 
@@ -23,7 +24,7 @@ export function startTokenRefreshManager() {
       }
 
       if (!session) {
-        console.log('[TokenRefreshManager] No active session');
+        devLog('[TokenRefreshManager] No active session');
         return;
       }
 
@@ -32,7 +33,7 @@ export function startTokenRefreshManager() {
       const timeUntilExpiry = expiresAt ? expiresAt - now : 0;
 
       if (timeUntilExpiry < 300) {
-        console.log('[TokenRefreshManager] Token expiring soon, refreshing...', {
+        devLog('[TokenRefreshManager] Token expiring soon, refreshing...', {
           timeUntilExpiry,
           expiresAt,
           now
@@ -43,14 +44,14 @@ export function startTokenRefreshManager() {
         if (refreshError) {
           console.error('[TokenRefreshManager] Refresh failed:', refreshError);
         } else if (data?.session) {
-          console.log('[TokenRefreshManager] Token refreshed successfully', {
+          devLog('[TokenRefreshManager] Token refreshed successfully', {
             newExpiresAt: data.session.expires_at
           });
         } else {
           console.warn('[TokenRefreshManager] Refresh returned no session');
         }
       } else {
-        console.log('[TokenRefreshManager] Token still valid', {
+        devLog('[TokenRefreshManager] Token still valid', {
           timeUntilExpiry,
           minutesRemaining: Math.floor(timeUntilExpiry / 60)
         });
@@ -60,13 +61,13 @@ export function startTokenRefreshManager() {
     }
   }, 60000);
 
-  console.log('[TokenRefreshManager] Started');
+  devLog('[TokenRefreshManager] Started');
 }
 
 export function stopTokenRefreshManager() {
   if (refreshInterval) {
     clearInterval(refreshInterval);
     refreshInterval = null;
-    console.log('[TokenRefreshManager] Stopped');
+    devLog('[TokenRefreshManager] Stopped');
   }
 }

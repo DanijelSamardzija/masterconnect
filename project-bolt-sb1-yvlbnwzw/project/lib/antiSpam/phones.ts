@@ -1,4 +1,5 @@
 import { ANTI_SPAM_CONFIG } from './config';
+import { devLog } from '@/lib/dev-log';
 
 export function normalizePhone(raw: string): string | null {
   let cleaned = raw.replace(/[^\d+]/g, '');
@@ -98,7 +99,7 @@ export function extractUniquePhones(text: string): string[] {
   }
 
   const uniquePhones = Array.from(normalized);
-  console.log('PHONE DEBUG', {
+  devLog('PHONE DEBUG', {
     text: text.slice(0, 100),
     candidates: candidates.length,
     uniquePhones,

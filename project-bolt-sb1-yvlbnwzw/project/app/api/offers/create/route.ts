@@ -1,35 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { devLog } from '@/lib/dev-log';
 
 export async function POST(req: NextRequest) {
   try {
-    console.log('[Offers API v4.0] ============= REQUEST RECEIVED =============');
+    devLog('[Offers API v4.0] ============= REQUEST RECEIVED =============');
 
     const authHeader = req.headers.get('authorization');
     const customHeader = req.headers.get('x-supabase-token');
 
-    console.log('[Offers API v4.0] Standard Auth header:', authHeader ? 'Present' : 'Missing');
-    console.log('[Offers API v4.0] Custom header:', customHeader ? 'Present' : 'Missing');
+    devLog('[Offers API v4.0] Standard Auth header:', authHeader ? 'Present' : 'Missing');
+    devLog('[Offers API v4.0] Custom header:', customHeader ? 'Present' : 'Missing');
 
     let token: string | null = null;
 
     if (customHeader) {
       token = customHeader;
-      console.log('[Offers API v4.0] Using custom header token');
+      devLog('[Offers API v4.0] Using custom header token');
     } else if (authHeader && authHeader.startsWith('Bearer ')) {
       token = authHeader.replace('Bearer ', '');
-      console.log('[Offers API v4.0] Using standard Authorization header');
+      devLog('[Offers API v4.0] Using standard Authorization header');
     }
 
     if (!token) {
-      console.log('[Offers API v4.0] FAIL: No authentication token found');
+      devLog('[Offers API v4.0] FAIL: No authentication token found');
       return NextResponse.json({
         error: 'Missing authentication token',
         details: 'Please include token in X-Supabase-Token or Authorization header'
       }, { status: 401 });
     }
 
-    console.log('[Offers API v4.0] Token extracted, length:', token.length);
+    devLog('[Offers API v4.0] Token extracted, length:', token.length);
 
     const supabase = createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -43,11 +44,11 @@ export async function POST(req: NextRequest) {
       }
     );
 
-    console.log('[Offers API v4.0] Supabase client created with user token in headers');
-    console.log('[Offers API v4.0] Calling getUser with token...');
+    devLog('[Offers API v4.0] Supabase client created with user token in headers');
+    devLog('[Offers API v4.0] Calling getUser with token...');
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
 
-    console.log('[Offers API v4.0] getUser result:', {
+    devLog('[Offers API v4.0] getUser result:', {
       hasUser: !!user,
       userId: user?.id,
       hasError: !!userError,
@@ -55,14 +56,14 @@ export async function POST(req: NextRequest) {
     });
 
     if (userError || !user) {
-      console.log('[Offers API v4.0] FAIL: User authentication failed');
+      devLog('[Offers API v4.0] FAIL: User authentication failed');
       return NextResponse.json({
         error: 'Unauthorized',
         details: userError?.message || 'Invalid token'
       }, { status: 401 });
     }
 
-    console.log('[Offers API v4.0] ✓✓✓ USER AUTHENTICATED:', user.id);
+    devLog('[Offers API v4.0] ✓✓✓ USER AUTHENTICATED:', user.id);
 
     const body = await req.json();
     const {
@@ -116,7 +117,7 @@ export async function POST(req: NextRequest) {
 
     if (existingThread) {
       threadId = existingThread.id;
-      console.log('[Offers API v4.0] Using existing thread:', threadId);
+      devLog('[Offers API v4.0] Using existing thread:', threadId);
     } else {
       const { data: newThread, error: threadCreateError } = await supabase
         .from('threads')
@@ -135,7 +136,7 @@ export async function POST(req: NextRequest) {
       }
 
       threadId = newThread.id;
-      console.log('[Offers API v4.0] Created new thread:', threadId);
+      devLog('[Offers API v4.0] Created new thread:', threadId);
     }
 
     const { data: offer, error: offerError } = await supabase
@@ -164,7 +165,7 @@ export async function POST(req: NextRequest) {
       }, { status: 500 });
     }
 
-    console.log('[Offers API v4.0] Offer created:', offer.id);
+    devLog('[Offers API v4.0] Offer created:', offer.id);
 
     const priceText = priceType === 'per_hour' ? `${price} ${currency}/h` : `${price} ${currency}`;
     const offerTypeText = offerType === 'service' ? 'service offer' : 'job offer';
@@ -185,14 +186,14 @@ export async function POST(req: NextRequest) {
     if (messageError) {
       console.error('[Offers API v3.0] Failed to create message:', messageError);
     } else if (message) {
-      console.log('[Offers API v4.0] Message created:', message.id);
+      devLog('[Offers API v4.0] Message created:', message.id);
       await supabase
         .from('offers')
         .update({ message_id: message.id })
         .eq('id', offer.id);
     }
 
-    console.log('[Offers API v4.0] SUCCESS - Offer sent');
+    devLog('[Offers API v4.0] SUCCESS - Offer sent');
 
     return NextResponse.json({
       success: true,

@@ -1,4 +1,5 @@
 import { supabase } from './supabase/client';
+import { devLog } from './dev-log';
 
 export const ALLOWED_FILE_TYPES = {
   images: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
@@ -64,7 +65,7 @@ export const uploadFile = async (
   const fileExt = file.name.split('.').pop();
   const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-  console.log('[UPLOAD] Starting upload:', {
+  devLog('[UPLOAD] Starting upload:', {
     bucket: bucketName,
     path: fileName,
     fileName: file.name,
@@ -88,7 +89,7 @@ export const uploadFile = async (
     .from(bucketName)
     .getPublicUrl(data.path);
 
-  console.log('[UPLOAD] Upload successful:', {
+  devLog('[UPLOAD] Upload successful:', {
     bucket: bucketName,
     path: data.path,
     url: publicUrl

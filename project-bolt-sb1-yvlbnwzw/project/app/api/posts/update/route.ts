@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { analyzeSpam } from '@/lib/antiSpam';
-
-// Debug mode - disable verbose logs in production
-const DEBUG = process.env.NODE_ENV !== 'production';
+import { devLog } from '@/lib/dev-log';
 
 export async function PUT(request: NextRequest) {
   let body;
@@ -42,10 +40,8 @@ export async function PUT(request: NextRequest) {
     const xAccessToken = request.headers.get('x-access-token');
     const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
 
-    if (DEBUG) {
-      console.log('[UPDATE ENDPOINT] x-access-token:', xAccessToken);
-      console.log('[UPDATE ENDPOINT] authorization:', authHeader);
-    }
+    devLog('[UPDATE ENDPOINT] x-access-token:', xAccessToken);
+    devLog('[UPDATE ENDPOINT] authorization:', authHeader);
 
     let token: string | null = null;
 
@@ -100,9 +96,7 @@ export async function PUT(request: NextRequest) {
 
     // STEP 1: WHITELIST USER-CONTROLLED FIELDS
     // SECURITY: Only allow text, city, category - prevent manipulation of status, rank_penalty, etc.
-    if (DEBUG) {
-      console.log('[UPDATE] Request body keys:', Object.keys(body));
-    }
+    devLog('[UPDATE] Request body keys:', Object.keys(body));
 
     const updateData: any = {};
 
@@ -180,7 +174,7 @@ export async function PUT(request: NextRequest) {
     const allowedFields = ['text', 'city', 'category', 'job_title', 'price_type', 'price_value', 'currency', 'experience_level', 'availability', 'profession', 'location'];
     Object.keys(updateData).forEach((key) => {
       if (!allowedFields.includes(key)) {
-        if (DEBUG) console.log(`[SECURITY] Removing disallowed field: ${key}`);
+        devLog(`[SECURITY] Removing disallowed field: ${key}`);
         delete updateData[key];
       }
     });
@@ -247,15 +241,13 @@ export async function PUT(request: NextRequest) {
       recent_posts: recentPosts || [],
     });
 
-    if (DEBUG) {
-      console.log('[SPAM] Analysis:', {
-        spam_score: spamAnalysis.spam_score,
-        status: spamAnalysis.status,
-        rank_penalty: spamAnalysis.rank_penalty,
-        link_count: spamAnalysis.link_count,
-        phone_count: spamAnalysis.phone_count,
-      });
-    }
+    devLog('[SPAM] Analysis:', {
+      spam_score: spamAnalysis.spam_score,
+      status: spamAnalysis.status,
+      rank_penalty: spamAnalysis.rank_penalty,
+      link_count: spamAnalysis.link_count,
+      phone_count: spamAnalysis.phone_count,
+    });
 
     // STEP 4: ADD SPAM FIELDS WITH STRICT TYPE VALIDATION
     const finalUpdateData: any = { ...updateData };
@@ -292,9 +284,7 @@ export async function PUT(request: NextRequest) {
     finalUpdateData.caps_ratio = typeof spamAnalysis.caps_ratio === 'number' ? spamAnalysis.caps_ratio : 0;
     finalUpdateData.moderation_reasons = spamAnalysis.moderation_reasons || [];
 
-    if (DEBUG) {
-      console.log('[UPDATE] Final DB data:', Object.keys(finalUpdateData));
-    }
+    devLog('[UPDATE] Final DB data:', Object.keys(finalUpdateData));
 
     const { data: updatedPost, error: updateError } = await supabase
       .from('posts')
@@ -309,11 +299,9 @@ export async function PUT(request: NextRequest) {
       console.error('ERROR MESSAGE:', updateError.message);
       console.error('ERROR DETAILS:', updateError.details);
 
-      if (DEBUG) {
-        console.error('Full error:', JSON.stringify(updateError, null, 2));
-        console.error('Update data sent:', finalUpdateData);
-        console.error('Post ID:', postId);
-      }
+      devLog('Full error:', JSON.stringify(updateError, null, 2));
+      devLog('Update data sent:', finalUpdateData);
+      devLog('Post ID:', postId);
 
       return NextResponse.json(
         {
@@ -327,9 +315,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    if (DEBUG) {
-      console.log('[UPDATE] Success - Post ID:', postId);
-    }
+    devLog('[UPDATE] Success - Post ID:', postId);
 
     return NextResponse.json({
       success: true,

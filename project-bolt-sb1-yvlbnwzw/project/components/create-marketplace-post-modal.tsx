@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 import { validateImageFile, processImageForUpload, getImageDimensions } from '@/lib/image-utils';
 import { uploadVideoToCloudinary } from '@/lib/attachment-utils';
 import { countries } from '@/lib/countries';
+import { devLog } from '@/lib/dev-log';
 
 type PostType = 'service_request' | 'job_seeker_post' | 'hiring_post' | 'portfolio_post' | 'service_listing';
 
@@ -334,13 +335,13 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
         postPayload.job_title = jobTitle.trim();
       }
 
-      console.log('[Marketplace Post] Getting access token...');
+      devLog('[Marketplace Post] Getting access token...');
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token;
 
-      console.log('[Marketplace Post] POST TOKEN?', !!token, token?.slice(0, 20));
-      console.log('[Marketplace Post] FETCH URL', new URL('/api/posts', window.location.href).toString());
-      console.log('[Marketplace Post] TOKEN PREFIX', token?.slice(0, 20));
+      devLog('[Marketplace Post] POST TOKEN?', !!token, token?.slice(0, 20));
+      devLog('[Marketplace Post] FETCH URL', new URL('/api/posts', window.location.href).toString());
+      devLog('[Marketplace Post] TOKEN PREFIX', token?.slice(0, 20));
 
       if (!token) {
         console.error('[Marketplace Post] ❌ No access token in session');
@@ -348,8 +349,8 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
         throw new Error('No access token in session');
       }
 
-      console.log('[Marketplace Post] ✓ Token found, creating post via /api/posts with Authorization header...');
-      console.log('[Marketplace Post] Token:', token ? token.slice(0, 20) + '...' : 'MISSING');
+      devLog('[Marketplace Post] ✓ Token found, creating post via /api/posts with Authorization header...');
+      devLog('[Marketplace Post] Token:', token ? token.slice(0, 20) + '...' : 'MISSING');
 
       const createPostResponse = await fetch('/api/posts', {
         method: 'POST',
@@ -361,7 +362,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
         body: JSON.stringify(postPayload),
       });
 
-      console.log('[Marketplace Post] Response status:', createPostResponse.status);
+      devLog('[Marketplace Post] Response status:', createPostResponse.status);
 
       if (!createPostResponse.ok) {
         const errorText = await createPostResponse.text();
@@ -385,10 +386,10 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
       const result = await createPostResponse.json();
       const postResult = result.data;
 
-      console.log('[Marketplace Post] Post created:', postResult.id, 'serverDebug:', result.debug);
+      devLog('[Marketplace Post] Post created:', postResult.id, 'serverDebug:', result.debug);
 
       if (result.antiSpamDebug) {
-        console.log('🔍 ANTI-SPAM DEBUG:', result.antiSpamDebug);
+        devLog('🔍 ANTI-SPAM DEBUG:', result.antiSpamDebug);
       }
 
       if (selectedFiles.length > 0 && postResult) {

@@ -4,19 +4,6 @@ import { setRateLimitHit } from '../rate-limit-handler';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-if (process.env.NODE_ENV !== 'production') {
-  console.log('[Supabase Client] Initializing:', {
-    hasUrl: !!supabaseUrl,
-    hasKey: !!supabaseAnonKey,
-    url: supabaseUrl,
-    host: supabaseUrl ? new URL(supabaseUrl).host : 'MISSING'
-  });
-
-  if (typeof window !== 'undefined') {
-    console.log('[CLIENT SUPABASE HOST]', supabaseUrl ? new URL(supabaseUrl).host : 'MISSING');
-  }
-}
-
 let supabaseInstance: ReturnType<typeof createClient>;
 
 function createSupabaseInstance() {

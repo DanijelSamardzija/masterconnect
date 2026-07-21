@@ -41,6 +41,7 @@ import { VideoMessage, ImageMessage } from '@/components/video-message';
 import { toast } from 'sonner';
 import { EmojiPicker } from '@/components/emoji-picker';
 import { addRecentEmoji, loadRecentEmojisFromDatabase, syncRecentEmojisToDatabase } from '@/lib/emoji-tracking';
+import { devLog } from '@/lib/dev-log';
 import { TwemojiText, MessageText } from '@/components/twemoji';
 import { ReviewModal } from '@/components/review-modal';
 import { BlockUserModal } from '@/components/block-user-modal';
@@ -306,7 +307,7 @@ function MessagesContent() {
         }
       )
       .subscribe((status) => {
-        console.log('[Realtime] channel status:', status);
+        devLog('[Realtime] channel status:', status);
       });
 
     // Fallback polling every 3s in case realtime is not working

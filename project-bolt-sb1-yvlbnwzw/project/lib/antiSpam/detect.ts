@@ -1,5 +1,6 @@
 import { ANTI_SPAM_CONFIG } from './config';
 import { extractUniquePhones, countPhones as countUniquePhones } from './phones';
+import { devLog } from '@/lib/dev-log';
 
 export function normalizeText(text: string): string {
   return text
@@ -47,7 +48,7 @@ export function countLinks(text: string): number {
     uniqueLinks: uniqueLinks
   };
 
-  console.log('[LINK DEBUG]', lastLinkDebug);
+  devLog('[LINK DEBUG]', lastLinkDebug);
 
   return uniqueLinks.length;
 }

@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase/client';
 import { getCachedData, setCachedData, clearCache } from '@/lib/cache-utils';
 import { setRateLimitHit, isInRateLimitCooldown } from '@/lib/rate-limit-handler';
 import { startTokenRefreshManager, stopTokenRefreshManager } from '@/lib/supabase/token-refresh-manager';
+import { devLog } from '@/lib/dev-log';
 
 type Profile = {
   id: string;
@@ -115,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
 
     const initializeAuth = async () => {
-      console.log('[AuthContext] Initializing auth...');
+      devLog('[AuthContext] Initializing auth...');
       try {
         const cachedSession = getCachedData<{ userId: string }>('session');
         let cachedProfile: Profile | null = null;
@@ -123,13 +124,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (cachedSession?.userId) {
           cachedProfile = getCachedData<Profile>(`profile_${cachedSession.userId}`);
           if (cachedProfile) {
-            console.log('[AuthContext] Found cached profile:', cachedProfile.id);
+            devLog('[AuthContext] Found cached profile:', cachedProfile.id);
             setProfile(cachedProfile);
           }
         }
 
         if (isInRateLimitCooldown()) {
-          console.log('[AuthContext] Skipping session check due to rate limit cooldown');
+          devLog('[AuthContext] Skipping session check due to rate limit cooldown');
           setUser(null);
           setProfile(null);
           setLoading(false);
@@ -137,14 +138,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (typeof window !== 'undefined' && window.location.pathname === '/login') {
-          console.log('[AuthContext] On login page, skipping session check');
+          devLog('[AuthContext] On login page, skipping session check');
           setUser(null);
           setProfile(null);
           setLoading(false);
           return;
         }
 
-        console.log('[AuthContext] Getting session from Supabase...');
+        devLog('[AuthContext] Getting session from Supabase...');
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
 
         if (!mounted) return;
@@ -168,7 +169,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (currentSession?.user) {
-          console.log('[AuthContext] Session found, user ID:', currentSession.user.id);
+          devLog('[AuthContext] Session found, user ID:', currentSession.user.id);
           setUser(currentSession.user);
           setSession(currentSession);
           setCachedData('session', { userId: currentSession.user.id });
@@ -192,7 +193,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
           startTokenRefreshManager();
         } else {
-          console.log('[AuthContext] No session found');
+          devLog('[AuthContext] No session found');
           setUser(null);
           setProfile(null);
           setSession(null);
@@ -213,13 +214,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(null);
       } finally {
         if (mounted) {
-          console.log('[AuthContext] Finished initialization, loading=false');
+          devLog('[AuthContext] Finished initialization, loading=false');
           setLoading(false);
         }
       }
     };
 
-    console.log('[AuthContext] Calling initializeAuth...');
+    devLog('[AuthContext] Calling initializeAuth...');
     initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event: any, newSession: any) => {

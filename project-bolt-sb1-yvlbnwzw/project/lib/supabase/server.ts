@@ -2,6 +2,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import type { NextRequest, NextResponse } from 'next/server';
+import { devLog } from '@/lib/dev-log';
 
 export function createClient(cookieStore?: ReturnType<typeof cookies>) {
   const store = cookieStore || cookies();
@@ -83,14 +84,14 @@ export async function createClientFromAuthHeader(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
   const accessToken = authHeader?.replace('Bearer ', '');
 
-  console.log('[createClientFromAuthHeader] Starting:', {
+  devLog('[createClientFromAuthHeader] Starting:', {
     hasAuthHeader: !!authHeader,
     tokenLength: accessToken?.length || 0,
     tokenPrefix: accessToken?.substring(0, 10) + '...'
   });
 
   if (!accessToken) {
-    console.log('[createClientFromAuthHeader] No access token found');
+    devLog('[createClientFromAuthHeader] No access token found');
     return null;
   }
 
@@ -117,11 +118,11 @@ export async function createClientFromAuthHeader(request: NextRequest) {
   );
 
   try {
-    console.log('[createClientFromAuthHeader] Validating token with getUser...');
+    devLog('[createClientFromAuthHeader] Validating token with getUser...');
 
     const { data: userData, error: userError } = await client.auth.getUser();
 
-    console.log('[createClientFromAuthHeader] getUser result:', {
+    devLog('[createClientFromAuthHeader] getUser result:', {
       hasUser: !!userData?.user,
       userId: userData?.user?.id || 'none',
       userEmail: userData?.user?.email || 'none',
@@ -137,7 +138,7 @@ export async function createClientFromAuthHeader(request: NextRequest) {
       return null;
     }
 
-    console.log('[createClientFromAuthHeader] SUCCESS - Token validated, user:', userData.user.id);
+    devLog('[createClientFromAuthHeader] SUCCESS - Token validated, user:', userData.user.id);
 
     return client;
   } catch (error) {

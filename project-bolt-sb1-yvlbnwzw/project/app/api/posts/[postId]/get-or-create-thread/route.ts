@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClientFromRequest, createClientFromAuthHeader } from '@/lib/supabase/server';
+import { devLog } from '@/lib/dev-log';
 
 export async function POST(
   request: NextRequest,
@@ -7,27 +8,27 @@ export async function POST(
 ) {
   try {
     const { postId } = await params;
-    console.log('[API] get-or-create-thread called for postId:', postId);
+    devLog('[API] get-or-create-thread called for postId:', postId);
 
     const authHeader = request.headers.get('authorization');
-    console.log('[API] Authorization header present:', !!authHeader);
-    console.log('[API] Authorization header value:', authHeader?.substring(0, 20) + '...');
+    devLog('[API] Authorization header present:', !!authHeader);
+    devLog('[API] Authorization header value:', authHeader?.substring(0, 20) + '...');
 
     const supabaseFromAuth = await createClientFromAuthHeader(request);
     const supabase = supabaseFromAuth || createClientFromRequest(request);
 
-    console.log('[API] Using auth header client:', !!supabaseFromAuth);
+    devLog('[API] Using auth header client:', !!supabaseFromAuth);
 
     const {
       data: { user },
       error: authError
     } = await supabase.auth.getUser();
 
-    console.log('[API] User authenticated:', user?.id);
-    console.log('[API] Auth error:', authError);
+    devLog('[API] User authenticated:', user?.id);
+    devLog('[API] Auth error:', authError);
 
     if (!user) {
-      console.log('[API] No user found, returning 401');
+      devLog('[API] No user found, returning 401');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

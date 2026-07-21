@@ -16,6 +16,7 @@ import { CityAutocomplete } from '@/components/city-autocomplete';
 import { CategoryCombobox } from '@/components/category-combobox';
 import { Label } from '@/components/ui/label';
 import { FlexibleTextOverlayEditor } from '@/components/flexible-text-overlay-editor';
+import { devLog } from '@/lib/dev-log';
 
 type CreatePostModalProps = {
   open: boolean;
@@ -202,8 +203,8 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
     }
 
     const requestId = Math.random().toString(36).substring(7);
-    console.log(`[Client ${requestId}] Starting post creation...`);
-    console.log(`[Client ${requestId}] Current user:`, user ? { id: user.id, email: user.email } : 'NO USER');
+    devLog(`[Client ${requestId}] Starting post creation...`);
+    devLog(`[Client ${requestId}] Current user:`, user ? { id: user.id, email: user.email } : 'NO USER');
 
     setIsSubmitting(true);
     setUploading(true);
@@ -211,7 +212,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
     try {
       // Get current session token
       const { data: { session } } = await supabase.auth.getSession();
-      console.log(`[Client ${requestId}] Current session:`, {
+      devLog(`[Client ${requestId}] Current session:`, {
         hasSession: !!session,
         expiresAt: session?.expires_at,
         now: Math.floor(Date.now() / 1000)
@@ -222,13 +223,13 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
         return;
       }
 
-      console.log(`[Client ${requestId}] Getting access token...`);
+      devLog(`[Client ${requestId}] Getting access token...`);
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token;
 
-      console.log(`[Client ${requestId}] POST TOKEN?`, !!token, token?.slice(0, 20));
-      console.log(`[Client ${requestId}] FETCH URL`, new URL('/api/posts', window.location.href).toString());
-      console.log(`[Client ${requestId}] TOKEN PREFIX`, token?.slice(0, 20));
+      devLog(`[Client ${requestId}] POST TOKEN?`, !!token, token?.slice(0, 20));
+      devLog(`[Client ${requestId}] FETCH URL`, new URL('/api/posts', window.location.href).toString());
+      devLog(`[Client ${requestId}] TOKEN PREFIX`, token?.slice(0, 20));
 
       if (!token) {
         console.error(`[Client ${requestId}] ❌ No access token in session`);
@@ -236,8 +237,8 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
         throw new Error('No access token in session');
       }
 
-      console.log(`[Client ${requestId}] ✓ Token found, creating post via /api/posts with Authorization header...`);
-      console.log(`[Client ${requestId}] Token:`, token ? token.slice(0, 20) + '...' : 'MISSING');
+      devLog(`[Client ${requestId}] ✓ Token found, creating post via /api/posts with Authorization header...`);
+      devLog(`[Client ${requestId}] Token:`, token ? token.slice(0, 20) + '...' : 'MISSING');
 
       const createPostResponse = await fetch('/api/posts', {
         method: 'POST',
@@ -255,7 +256,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
         }),
       });
 
-      console.log(`[Client ${requestId}] Response status:`, createPostResponse.status);
+      devLog(`[Client ${requestId}] Response status:`, createPostResponse.status);
 
       if (!createPostResponse.ok) {
         const errorText = await createPostResponse.text();
@@ -275,14 +276,14 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
       const result = await createPostResponse.json();
       const postData = result.data;
 
-      console.log(`[Client ${requestId}] Post created:`, {
+      devLog(`[Client ${requestId}] Post created:`, {
         postId: postData?.id,
         hasMedia: mediaFiles.length > 0,
         serverDebug: result.debug
       });
 
       if (result.antiSpamDebug) {
-        console.log(`[Client ${requestId}] 🔍 ANTI-SPAM DEBUG:`, result.antiSpamDebug);
+        devLog(`[Client ${requestId}] 🔍 ANTI-SPAM DEBUG:`, result.antiSpamDebug);
       }
 
       // First post reward
@@ -301,20 +302,20 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
       }
 
       if (mediaFiles.length > 0 && postData) {
-        console.log(`[Client ${requestId}] Uploading ${mediaFiles.length} media files...`);
+        devLog(`[Client ${requestId}] Uploading ${mediaFiles.length} media files...`);
         const mediaItems = [];
 
         for (let i = 0; i < mediaFiles.length; i++) {
           const { file } = mediaFiles[i];
-          console.log(`[Client ${requestId}] Uploading file ${i + 1}/${mediaFiles.length}:`, file.name);
+          devLog(`[Client ${requestId}] Uploading file ${i + 1}/${mediaFiles.length}:`, file.name);
 
           let fileToUpload = file;
 
           if (file.type.startsWith('image/')) {
             try {
-              console.log(`[Client ${requestId}] Normalizing image to 1080x1920...`);
+              devLog(`[Client ${requestId}] Normalizing image to 1080x1920...`);
               fileToUpload = await normalizeImageForFeed(file);
-              console.log(`[Client ${requestId}] Image normalized successfully`);
+              devLog(`[Client ${requestId}] Image normalized successfully`);
             } catch (error) {
               console.error(`[Client ${requestId}] Failed to normalize image:`, error);
               toast.warning(`${t('createPost.warningOriginalImage')}: ${file.name}`);
@@ -348,7 +349,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
 
           if (uploadResult) {
             const mediaType = isVideo ? 'video' : 'image';
-            console.log(`[Client ${requestId}] Determined media type:`, {
+            devLog(`[Client ${requestId}] Determined media type:`, {
               fileName: file.name,
               fileType: file.type,
               determinedType: mediaType,
@@ -373,7 +374,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
         }
 
         if (mediaItems.length > 0) {
-          console.log(`[Client ${requestId}] Saving ${mediaItems.length} media items to database...`);
+          devLog(`[Client ${requestId}] Saving ${mediaItems.length} media items to database...`);
 
           const mediaItemsWithOverlay = mediaItems.map((item, index) => {
             const overlay = mediaFiles[index].overlay;
@@ -389,7 +390,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
             };
           });
 
-          console.log(`[Client ${requestId}] Media items to insert:`, mediaItemsWithOverlay.map(m => ({
+          devLog(`[Client ${requestId}] Media items to insert:`, mediaItemsWithOverlay.map(m => ({
             type: m.type,
             url: m.url.substring(0, 80),
             order: m.order
@@ -404,7 +405,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
             toast.error(t('createPost.errorMediaFailed'));
             return;
           } else {
-            console.log(`[Client ${requestId}] Media saved successfully`);
+            devLog(`[Client ${requestId}] Media saved successfully`);
 
             // Earn credits for posting with media
             const hasVideo = mediaItems.some(m => m.type === 'video');
@@ -426,8 +427,8 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
         }
       }
 
-      console.log(`[Client ${requestId}] Post creation completed successfully`);
-      console.log(`[Client ${requestId}] Created post details:`, {
+      devLog(`[Client ${requestId}] Post creation completed successfully`);
+      devLog(`[Client ${requestId}] Created post details:`, {
         id: result.data?.id,
         status: result.data?.status,
         post_type: result.data?.post_type,
@@ -467,7 +468,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
       console.error(`[Client ${requestId}] Error creating post:`, error);
       toast.error(t('createPost.errorGeneric'));
     } finally {
-      console.log(`[Client ${requestId}] Cleaning up...`);
+      devLog(`[Client ${requestId}] Cleaning up...`);
       setUploading(false);
       setIsSubmitting(false);
     }

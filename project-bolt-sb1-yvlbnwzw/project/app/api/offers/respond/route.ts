@@ -1,34 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { devLog } from '@/lib/dev-log';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('[Offers Respond API v2.0] ============= REQUEST RECEIVED =============');
+    devLog('[Offers Respond API v2.0] ============= REQUEST RECEIVED =============');
 
     const authHeader = request.headers.get('authorization');
     const customHeader = request.headers.get('x-supabase-token');
 
-    console.log('[Offers Respond API v2.0] Standard Auth header:', authHeader ? 'Present' : 'Missing');
-    console.log('[Offers Respond API v2.0] Custom header:', customHeader ? 'Present' : 'Missing');
+    devLog('[Offers Respond API v2.0] Standard Auth header:', authHeader ? 'Present' : 'Missing');
+    devLog('[Offers Respond API v2.0] Custom header:', customHeader ? 'Present' : 'Missing');
 
     let token: string | null = null;
 
     if (customHeader) {
       token = customHeader;
-      console.log('[Offers Respond API v2.0] Using custom header token');
+      devLog('[Offers Respond API v2.0] Using custom header token');
     } else if (authHeader) {
       token = authHeader.replace('Bearer ', '');
-      console.log('[Offers Respond API v2.0] Using standard Authorization header');
+      devLog('[Offers Respond API v2.0] Using standard Authorization header');
     }
 
     if (!token) {
-      console.log('[Offers Respond API v2.0] FAIL: No authentication token found');
+      devLog('[Offers Respond API v2.0] FAIL: No authentication token found');
       return NextResponse.json({
         error: 'Unauthorized - Please sign in to respond to offers'
       }, { status: 401 });
     }
 
-    console.log('[Offers Respond API v2.0] Token extracted, length:', token.length);
+    devLog('[Offers Respond API v2.0] Token extracted, length:', token.length);
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    console.log('[Offers Respond API v2.0] Calling getUser...');
+    devLog('[Offers Respond API v2.0] Calling getUser...');
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
       }, { status: 401 });
     }
 
-    console.log('[Offers Respond API v2.0] ✓✓✓ USER AUTHENTICATED:', user.id);
+    devLog('[Offers Respond API v2.0] ✓✓✓ USER AUTHENTICATED:', user.id);
 
     const body = await request.json();
     const { offerId, action } = body;
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
 
     const newStatus = action === 'accept' ? 'accepted' : 'declined';
 
-    console.log('[Offers Respond API v2.0] Updating offer status to:', newStatus);
+    devLog('[Offers Respond API v2.0] Updating offer status to:', newStatus);
 
     const { error: updateError } = await supabase
       .from('offers')
@@ -104,13 +105,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to update offer' }, { status: 500 });
     }
 
-    console.log('[Offers Respond API v2.0] Offer updated successfully');
+    devLog('[Offers Respond API v2.0] Offer updated successfully');
 
     const systemMessageText = action === 'accept'
       ? `Offer accepted`
       : `Offer declined`;
 
-    console.log('[Offers Respond API v2.0] Creating system message...');
+    devLog('[Offers Respond API v2.0] Creating system message...');
 
     await supabase
       .from('messages')
@@ -122,7 +123,7 @@ export async function POST(request: NextRequest) {
         message_type: 'system'
       });
 
-    console.log('[Offers Respond API v2.0] SUCCESS - Response recorded');
+    devLog('[Offers Respond API v2.0] SUCCESS - Response recorded');
 
     return NextResponse.json({
       success: true,

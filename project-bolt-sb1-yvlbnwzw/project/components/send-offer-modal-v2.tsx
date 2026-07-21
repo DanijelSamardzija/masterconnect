@@ -1,7 +1,5 @@
 'use client';
 
-console.log('=== SEND OFFER MODAL LOADED - VERSION 2.0 ===');
-
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
@@ -15,6 +13,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { devLog } from '@/lib/dev-log';
 
 type SendOfferModalProps = {
   open: boolean;
@@ -35,9 +34,9 @@ export function SendOfferModal({ open, onOpenChange, receiverId, receiverName, p
   const [sending, setSending] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log('[SendOffer] ========== HANDLE SUBMIT CALLED ==========');
+    devLog('[SendOffer] ========== HANDLE SUBMIT CALLED ==========');
     e.preventDefault();
-    console.log('[SendOffer] Form data:', { price, currency, receiverId, postId });
+    devLog('[SendOffer] Form data:', { price, currency, receiverId, postId });
 
     if (!price || price.trim() === '') {
       toast.error(t('offer.validPriceError'));
@@ -65,7 +64,7 @@ export function SendOfferModal({ open, onOpenChange, receiverId, receiverName, p
         note: note || null,
       };
 
-      console.log('[SendOffer] Sending offer:', requestBody);
+      devLog('[SendOffer] Sending offer:', requestBody);
 
       const { data: { session } } = await supabase.auth.getSession();
 
@@ -86,8 +85,8 @@ export function SendOfferModal({ open, onOpenChange, receiverId, receiverName, p
         body: JSON.stringify(requestBody),
       });
 
-      console.log('[SendOffer] Response status:', response.status);
-      console.log('[SendOffer] Response headers:', Object.fromEntries(response.headers.entries()));
+      devLog('[SendOffer] Response status:', response.status);
+      devLog('[SendOffer] Response headers:', Object.fromEntries(response.headers.entries()));
 
       const data = await response.json();
 

@@ -1,14 +1,16 @@
+import { devLog } from './dev-log';
+
 let lastRateLimitTime: number | null = null;
 let rateLimitCooldownSeconds = 60;
 
 export function setRateLimitHit() {
   if (lastRateLimitTime) {
-    console.log('[RateLimitHandler] Rate limit hit again, but cooldown already active');
+    devLog('[RateLimitHandler] Rate limit hit again, but cooldown already active');
     return;
   }
 
   lastRateLimitTime = Date.now();
-  console.log('[RateLimitHandler] Rate limit hit, cooldown started');
+  devLog('[RateLimitHandler] Rate limit hit, cooldown started');
 
   try {
     const keysToPreserve = ['sb-', 'cachedProfile', 'session'];
@@ -31,7 +33,7 @@ export function setRateLimitHit() {
       localStorage.setItem(key, itemsToKeep[key]);
     }
 
-    console.log('[RateLimitHandler] Cleaned up localStorage except user data');
+    devLog('[RateLimitHandler] Cleaned up localStorage except user data');
   } catch (error) {
     console.error('[RateLimitHandler] Error cleaning localStorage:', error);
   }
@@ -44,7 +46,7 @@ export function isInRateLimitCooldown(): boolean {
   const remaining = rateLimitCooldownSeconds - elapsed;
 
   if (remaining > 0) {
-    console.log(`[RateLimitHandler] Still in cooldown: ${Math.ceil(remaining)}s remaining`);
+    devLog(`[RateLimitHandler] Still in cooldown: ${Math.ceil(remaining)}s remaining`);
     return true;
   }
 
@@ -63,5 +65,5 @@ export function getRemainingCooldownSeconds(): number {
 
 export function clearRateLimitCooldown() {
   lastRateLimitTime = null;
-  console.log('[RateLimitHandler] Cooldown cleared');
+  devLog('[RateLimitHandler] Cooldown cleared');
 }

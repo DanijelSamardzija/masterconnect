@@ -14,6 +14,7 @@ import { Loader2, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useAuth } from '@/lib/contexts/auth-context';
+import { devLog } from '@/lib/dev-log';
 
 type OfferServiceModalProps = {
   open: boolean;
@@ -36,9 +37,9 @@ export function OfferServiceModal({ open, onOpenChange, receiverId, receiverName
   const [sending, setSending] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log('[OfferService] ========== HANDLE SUBMIT CALLED ==========');
+    devLog('[OfferService] ========== HANDLE SUBMIT CALLED ==========');
     e.preventDefault();
-    console.log('[OfferService] Form data:', { price, currency, priceType, receiverId, postId });
+    devLog('[OfferService] Form data:', { price, currency, priceType, receiverId, postId });
 
     if (!price || price.trim() === '') {
       toast.error(t('offer.validPriceError'));
@@ -66,7 +67,7 @@ export function OfferServiceModal({ open, onOpenChange, receiverId, receiverName
         note: note || null,
       };
 
-      console.log('[OfferService] Sending offer:', requestBody);
+      devLog('[OfferService] Sending offer:', requestBody);
 
       const { data: { session: currentSession } } = await supabase.auth.getSession();
 
@@ -77,8 +78,8 @@ export function OfferServiceModal({ open, onOpenChange, receiverId, receiverName
         return;
       }
 
-      console.log('[OfferService] Token length:', currentSession.access_token.length);
-      console.log('[OfferService] Token first 30 chars:', currentSession.access_token.substring(0, 30));
+      devLog('[OfferService] Token length:', currentSession.access_token.length);
+      devLog('[OfferService] Token first 30 chars:', currentSession.access_token.substring(0, 30));
 
       const headers = {
         'Content-Type': 'application/json',
@@ -86,8 +87,8 @@ export function OfferServiceModal({ open, onOpenChange, receiverId, receiverName
         'Authorization': `Bearer ${currentSession.access_token}`,
       };
 
-      console.log('[OfferService] Headers being sent:', Object.keys(headers));
-      console.log('[OfferService] Custom header X-Supabase-Token set');
+      devLog('[OfferService] Headers being sent:', Object.keys(headers));
+      devLog('[OfferService] Custom header X-Supabase-Token set');
 
       const response = await fetch('/api/offers/create', {
         method: 'POST',
@@ -96,12 +97,12 @@ export function OfferServiceModal({ open, onOpenChange, receiverId, receiverName
         body: JSON.stringify(requestBody),
       });
 
-      console.log('[OfferService] Response status:', response.status);
-      console.log('[OfferService] Response headers:', Object.fromEntries(response.headers.entries()));
+      devLog('[OfferService] Response status:', response.status);
+      devLog('[OfferService] Response headers:', Object.fromEntries(response.headers.entries()));
 
       const data = await response.json();
 
-      console.log('[OfferService] Response data:', data);
+      devLog('[OfferService] Response data:', data);
 
       if (!response.ok) {
         console.error('[OfferService] Error response:', data);

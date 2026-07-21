@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { computeSpamScore, type UserProfile, type PostingStats } from '@/lib/antiSpam';
 import { notifySubscribers } from '@/lib/notify-subscribers';
+import { devLog } from '@/lib/dev-log';
 
 export const runtime = 'nodejs';
 
@@ -136,7 +137,7 @@ export async function GET(request: NextRequest) {
     }, {});
 
     if (process.env.NODE_ENV !== 'production') {
-      console.log('[Posts GET] Feed statistics:', {
+      devLog('[Posts GET] Feed statistics:', {
         totalPostsInDB: totalPostsCount,
         publishedOrOwnPosts: publishedPostsCount,
         allPostsStatusBreakdown: statusCounts,
@@ -411,7 +412,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (process.env.NODE_ENV !== 'production') {
-      console.log(`[API POST /api/posts ${requestId}] Auth check:`, {
+      devLog(`[API POST /api/posts ${requestId}] Auth check:`, {
         hasAuthHeader: !!auth,
         authLen: auth.length,
         authPreview: auth.slice(0, 30),
@@ -475,7 +476,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (process.env.NODE_ENV !== 'production') {
-      console.log(`[API POST /api/posts ${requestId}] ✓ User authenticated:`, user.id);
+      devLog(`[API POST /api/posts ${requestId}] ✓ User authenticated:`, user.id);
     }
 
     const body = await request.json();
@@ -658,7 +659,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (process.env.NODE_ENV !== 'production') {
-      console.log('[API POST /api/posts] Inserting post:', {
+      devLog('[API POST /api/posts] Inserting post:', {
         user_id: user.id,
         text_length: text?.trim()?.length || 0,
         title_length: title?.trim()?.length || 0,
@@ -678,8 +679,8 @@ export async function POST(request: NextRequest) {
     const postText = text?.trim() || '';
 
     if (process.env.NODE_ENV !== 'production') {
-      console.log('[API POST /api/posts] ANTI SPAM INPUT TEXT:', combinedText);
-      console.log('[API POST /api/posts] Text parts:', {
+      devLog('[API POST /api/posts] ANTI SPAM INPUT TEXT:', combinedText);
+      devLog('[API POST /api/posts] Text parts:', {
         text: text?.length || 0,
         title: title?.length || 0,
         jobTitle: jobTitle?.length || 0
@@ -778,7 +779,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (process.env.NODE_ENV !== 'production') {
-      console.log('[API POST /api/posts] Spam analysis:', {
+      devLog('[API POST /api/posts] Spam analysis:', {
         link_count: spamAnalysis.link_count,
         phone_count: spamAnalysis.phone_count,
         spam_score: spamAnalysis.spam_score,
@@ -882,7 +883,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (process.env.NODE_ENV !== 'production') {
-      console.log('[API POST /api/posts] Post created successfully:', {
+      devLog('[API POST /api/posts] Post created successfully:', {
         id: data.id,
         status: data.status,
         post_type: data.post_type,
@@ -929,7 +930,7 @@ export async function POST(request: NextRequest) {
         rank_penalty: spamAnalysis.rank_penalty,
         features: spamAnalysis.features
       };
-      console.log('[API POST /api/posts] Debug data:', response.antiSpamDebug);
+      devLog('[API POST /api/posts] Debug data:', response.antiSpamDebug);
     }
 
     return NextResponse.json(response);
