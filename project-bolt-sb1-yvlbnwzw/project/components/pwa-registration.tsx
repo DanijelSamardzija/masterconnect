@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { X, Share, Plus, Download } from 'lucide-react';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useAuth } from '@/lib/contexts/auth-context';
+import { toast } from 'sonner';
 
 // Saved permanently only after user clicks Install
 const PWA_INSTALLED_KEY = 'pwa_installed_v1';
@@ -47,12 +48,18 @@ export function PWARegistration() {
             if (newWorker) {
               newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  window.location.reload();
+                  toast('Nova verzija GigZone je dostupna', {
+                    duration: Infinity,
+                    action: {
+                      label: 'Osvježi',
+                      onClick: () => window.location.reload(),
+                    },
+                  });
                 }
               });
             }
           });
-          setInterval(() => { registration.update(); }, 60000);
+          setInterval(() => { registration.update(); }, 3_600_000);
         })
         .catch((error) => {
           console.error('[PWA] Service Worker registration failed:', error);
