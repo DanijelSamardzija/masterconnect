@@ -452,53 +452,30 @@ function DashboardContent() {
         )}
 
         {/* Stats row */}
-        <div className="grid grid-cols-2 gap-3">
-          {isPro ? (
-            <>
-              <button
-                onClick={() => router.push('/messages')}
-                className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-1 text-left hover:border-orange-400/50 hover:bg-accent transition-colors"
-              >
-                <MessageSquare className="h-5 w-5 text-green-500 mb-1" />
-                <p className="text-2xl font-bold text-foreground">{threads.length}</p>
-                <p className="text-xs text-muted-foreground">{t('dashboard.activeLeads')}</p>
-              </button>
-              <button
-                onClick={() => router.push('/messages')}
-                className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-1 text-left hover:border-orange-400/50 hover:bg-accent transition-colors"
-              >
-                <MessageSquare className="h-5 w-5 text-blue-500 mb-1" />
-                <p className="text-2xl font-bold text-foreground">{unreadCount}</p>
-                <p className="text-xs text-muted-foreground">{t('dashboard.messages')}</p>
-              </button>
-            </>
-          ) : (
-            <>
-              <div className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-1">
-                <Briefcase className="h-5 w-5 text-blue-500 mb-1" />
-                <p className="text-2xl font-bold text-foreground">
-                  {jobs.filter(j => j.status === 'open').length}
-                </p>
-                <p className="text-xs text-muted-foreground">{t('dashboard.activeJobs')}</p>
-              </div>
-              <button
-                onClick={() => router.push('/messages')}
-                className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-1 text-left hover:border-orange-400/50 hover:bg-accent transition-colors"
-              >
-                <MessageSquare className="h-5 w-5 text-green-500 mb-1" />
-                <p className="text-2xl font-bold text-foreground">{unreadCount}</p>
-                <p className="text-xs text-muted-foreground">{t('dashboard.messages')}</p>
-              </button>
-              <button
-                onClick={handleOpenNotifications}
-                className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-1 text-left hover:border-orange-400/50 hover:bg-accent transition-colors"
-              >
-                <Bell className="h-5 w-5 text-orange-500 mb-1" />
-                <p className="text-2xl font-bold text-foreground">{notificationsCount}</p>
-                <p className="text-xs text-muted-foreground">{t('dashboard.notifications')}</p>
-              </button>
-            </>
-          )}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-1">
+            <Briefcase className="h-5 w-5 text-blue-500 mb-1" />
+            <p className="text-2xl font-bold text-foreground">
+              {jobs.filter(j => j.status === 'open').length}
+            </p>
+            <p className="text-xs text-muted-foreground">{t('dashboard.activeJobs')}</p>
+          </div>
+          <button
+            onClick={() => router.push('/messages')}
+            className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-1 text-left hover:border-orange-400/50 hover:bg-accent transition-colors"
+          >
+            <MessageSquare className="h-5 w-5 text-green-500 mb-1" />
+            <p className="text-2xl font-bold text-foreground">{unreadCount}</p>
+            <p className="text-xs text-muted-foreground">{t('dashboard.messages')}</p>
+          </button>
+          <button
+            onClick={handleOpenNotifications}
+            className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-1 text-left hover:border-orange-400/50 hover:bg-accent transition-colors"
+          >
+            <Bell className="h-5 w-5 text-orange-500 mb-1" />
+            <p className="text-2xl font-bold text-foreground">{notificationsCount}</p>
+            <p className="text-xs text-muted-foreground">{t('dashboard.notifications')}</p>
+          </button>
         </div>
 
         {/* Analytics card — klikabilna, otvara modal s detaljima */}
