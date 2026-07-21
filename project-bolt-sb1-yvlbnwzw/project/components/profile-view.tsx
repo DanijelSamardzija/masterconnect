@@ -48,6 +48,8 @@ import {
   Wrench,
   Search,
   UserCircle,
+  CreditCard,
+  X,
 } from 'lucide-react';
 import { CommentsSheet } from '@/components/comments-sheet';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -237,6 +239,7 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
   const [loading, setLoading] = useState(true);
   const [upgrading, setUpgrading] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [buyCreditsOpen, setBuyCreditsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [referralCount, setReferralCount] = useState<number | null>(null);
   const isCreatorPremium = (profile as any).is_premium === true;
@@ -275,7 +278,7 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
     try {
       const { data } = await supabase.rpc('become_creator_premium', { p_user_id: profile.id });
       if (data?.ok) {
-        setBalance(prev => (prev !== null ? prev - 200 : prev));
+        setBalance(prev => (prev !== null ? prev - 500 : prev));
         toast.success(t('credits.creatorPremium.activated') + ' ' + t('credits.creatorPremium.reloadNote'));
         setTimeout(() => window.location.reload(), 2500);
       } else if (data?.error === 'insufficient_balance') {
@@ -316,6 +319,23 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
           </div>
         </button>
 
+        {/* Buy credits row */}
+        <div className="border-t border-orange-300/20 px-4 py-2.5 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <CreditCard className="h-4 w-4 text-orange-500 shrink-0" />
+            <div>
+              <p className="text-xs font-semibold text-foreground">{t('credits.buy.button')}</p>
+              <p className="text-[11px] text-muted-foreground">{t('credits.buy.subtitle')}</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setBuyCreditsOpen(true)}
+            className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white transition-colors"
+          >
+            {t('credits.buy.button')}
+          </button>
+        </div>
+
         {/* Referral row */}
         <div className="border-t border-orange-300/20 px-4 py-2.5 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -340,14 +360,15 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
 
         {/* PRO Premium upgrade CTA */}
         {!isCreatorPremium && (
-          <div className="border-t border-orange-300/20 px-4 py-2.5 flex items-center justify-between gap-3">
+          <div className="border-t border-orange-300/20 px-4 py-2.5 flex items-start justify-between gap-3">
             <div>
               <p className="text-xs font-semibold text-foreground">🔶 PRO Premium</p>
               <p className="text-[11px] text-muted-foreground">{t('credits.creatorPremium.subtitle')}</p>
+              <p className="text-[10px] text-orange-500 font-medium mt-0.5">{t('credits.creatorPremium.oneTime')}</p>
             </div>
             <button
               onClick={handleUpgrade}
-              disabled={upgrading || (balance !== null && balance < 200)}
+              disabled={upgrading || (balance !== null && balance < 500)}
               className="text-xs font-bold px-3 py-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 text-white disabled:opacity-40 hover:from-orange-600 hover:to-amber-600 transition-all shrink-0"
             >
               {upgrading ? '...' : t('credits.creatorPremium.activate')}
@@ -362,6 +383,79 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
           </div>
         )}
       </div>
+
+      {/* Buy Credits modal */}
+      <Dialog open={buyCreditsOpen} onOpenChange={setBuyCreditsOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <CreditCard className="h-5 w-5 text-orange-500" />
+              {t('credits.buy.title')}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-2 mt-1">
+            {([
+              { credits: 250, eur: 5,  bonus: null },
+              { credits: 550, eur: 10, bonus: 50 },
+              { credits: 1200, eur: 20, bonus: 200, popular: true },
+              { credits: 3200, eur: 50, bonus: 700 },
+            ] as { credits: number; eur: number; bonus: number | null; popular?: boolean }[]).map((pkg) => (
+              <div
+                key={pkg.eur}
+                className={`relative rounded-xl border px-4 py-3 flex items-center justify-between gap-3 ${
+                  pkg.popular
+                    ? 'border-orange-400 bg-orange-500/8'
+                    : 'border-border bg-muted/30'
+                }`}
+              >
+                {pkg.popular && (
+                  <span className="absolute -top-2.5 left-3 text-[10px] font-bold bg-orange-500 text-white px-2 py-0.5 rounded-full">
+                    {t('credits.buy.popular')}
+                  </span>
+                )}
+                <div>
+                  <p className="text-sm font-bold text-foreground">
+                    {pkg.credits.toLocaleString()} {t('credits.unit')}
+                    {pkg.bonus && (
+                      <span className="ml-1.5 text-xs font-semibold text-green-600 dark:text-green-400">
+                        +{pkg.bonus} {t('credits.buy.bonus')}
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <span className={`text-base font-bold shrink-0 ${pkg.popular ? 'text-orange-500' : 'text-foreground'}`}>
+                  {pkg.eur} €
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Stripe not available notice */}
+          <div className="mt-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 px-4 py-3">
+            <p className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
+              {t('credits.buy.stripeNotice')}
+            </p>
+          </div>
+
+          <div className="flex gap-2 mt-1">
+            <button
+              onClick={() => setBuyCreditsOpen(false)}
+              className="flex-1 rounded-xl border border-border py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted transition-colors"
+            >
+              {t('credits.buy.close')}
+            </button>
+            <a
+              href="/contact"
+              onClick={() => setBuyCreditsOpen(false)}
+              className="flex-1 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white py-2.5 text-sm font-bold transition-all flex items-center justify-center gap-2"
+            >
+              <CreditCard className="h-4 w-4" />
+              {t('credits.buy.contactSupport')}
+            </a>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Credits info modal */}
       <Dialog open={infoOpen} onOpenChange={setInfoOpen}>
@@ -411,7 +505,7 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
               {([
                 { key: 'boostFeed', amount: '75', noteKey: 'boostFeedNote' },
                 { key: 'boostListing', amount: '140', noteKey: 'boostListingNote' },
-                { key: 'creatorPremium', amount: '200', noteKey: 'creatorPremiumNote' },
+                { key: 'creatorPremium', amount: '500', noteKey: 'creatorPremiumNote' },
                 { key: 'support', amount: '1+', noteKey: 'supportNote' },
               ] as { key: string; amount: string; noteKey: string }[]).map((item) => (
                 <div key={item.key} className="flex items-center justify-between rounded-lg bg-orange-500/8 px-3 py-1.5">
