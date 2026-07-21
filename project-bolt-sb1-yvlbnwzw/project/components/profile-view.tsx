@@ -49,7 +49,6 @@ import {
   Search,
   UserCircle,
   CreditCard,
-  MessageCircle,
   X,
 } from 'lucide-react';
 import { CommentsSheet } from '@/components/comments-sheet';
