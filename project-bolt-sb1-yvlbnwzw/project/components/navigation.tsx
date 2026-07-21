@@ -38,8 +38,14 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { LanguageSwitcher } from '@/components/language-switcher';
+import dynamic from 'next/dynamic';
+import type { Notification } from '@/components/notifications-modal';
 import { SearchModal } from '@/components/search-modal';
-import { NotificationsModal, Notification } from '@/components/notifications-modal';
+
+const NotificationsModal = dynamic(
+  () => import('@/components/notifications-modal').then(m => ({ default: m.NotificationsModal })),
+  { ssr: false }
+);
 import { useTheme } from '@/hooks/use-theme';
 import { formatDistanceToNow } from 'date-fns';
 import { sr } from 'date-fns/locale';
