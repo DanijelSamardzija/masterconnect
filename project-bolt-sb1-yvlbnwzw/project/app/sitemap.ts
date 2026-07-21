@@ -12,7 +12,6 @@ const LANGS = ['sr', 'en', 'de'] as const;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: BASE, lastModified: new Date(), changeFrequency: 'daily', priority: 1 },
-    { url: `${BASE}/feed`, lastModified: new Date(), changeFrequency: 'hourly', priority: 0.8 },
     { url: `${BASE}/help`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.5 },
     { url: `${BASE}/invest`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
     { url: `${BASE}/o-platformi`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.4 },
