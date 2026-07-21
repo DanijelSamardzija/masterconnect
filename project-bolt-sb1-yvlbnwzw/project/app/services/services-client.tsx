@@ -311,7 +311,8 @@ export function ServicesClient() {
           toast.error('Greška pri boostu.');
         }
       } else {
-        toast.success('🚀 Oglas je boostan! Aktivan 7 dana.');
+        const dateStr = data.promoted_until ? new Date(data.promoted_until).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
+        toast.success(t('credits.boost.successDate').replace('{date}', dateStr));
         setListings(prev => prev.map(l => l.id === listingId ? { ...l, promoted_until: data.promoted_until } : l));
       }
     } catch {
@@ -475,16 +476,23 @@ export function ServicesClient() {
                   </div>
                 )}
                 <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
-                  {user?.id === listing.user_id && (
-                    <button
-                      onClick={(e) => handleBoostListing(e, listing.id)}
-                      disabled={boostingId === listing.id || ((listing as any).promoted_until && new Date((listing as any).promoted_until) > new Date())}
-                      className="p-1.5 rounded-full bg-orange-500/90 backdrop-blur-sm hover:bg-orange-600 transition-colors disabled:opacity-50"
-                      title={(listing as any).promoted_until && new Date((listing as any).promoted_until) > new Date() ? 'Boost aktivan' : 'Boost oglas (140 kredita, 7 dana)'}
-                    >
-                      {boostingId === listing.id ? <Loader2 className="h-4 w-4 text-white animate-spin" /> : <Zap className="h-4 w-4 text-white" />}
-                    </button>
-                  )}
+                  {user?.id === listing.user_id && (() => {
+                    const boostActive = !!(listing as any).promoted_until && new Date((listing as any).promoted_until) > new Date();
+                    const fmtDate = (d: string) => new Date(d).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    const title = boostActive
+                      ? `${t('credits.boost.activeUntil').replace('{date}', fmtDate((listing as any).promoted_until))} · ${t('credits.boost.extendInfo').replace('{days}', '7').replace('{cost}', '140')}`
+                      : t('credits.boost.tooltipListing');
+                    return (
+                      <button
+                        onClick={(e) => handleBoostListing(e, listing.id)}
+                        disabled={boostingId === listing.id}
+                        className="p-1.5 rounded-full bg-orange-500/90 backdrop-blur-sm hover:bg-orange-600 transition-colors disabled:opacity-50"
+                        title={title}
+                      >
+                        {boostingId === listing.id ? <Loader2 className="h-4 w-4 text-white animate-spin" /> : <Zap className="h-4 w-4 text-white" />}
+                      </button>
+                    );
+                  })()}
                   <button
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShareModalPostId(listing.id); }}
                     className="p-1.5 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors"

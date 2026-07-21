@@ -489,10 +489,11 @@ function FeedContent() {
         if (err === 'insufficient_balance') {
           toast.error(t('credits.boost.insufficient').replace('{cost}', String(data?.cost ?? '')).replace('{balance}', String(data?.balance ?? '')));
         } else {
-          toast.error('Greška pri boostu. Pokušaj ponovo.');
+          toast.error(t('credits.boost.error'));
         }
       } else {
-        toast.success(`🚀 Post je boostan! Aktivan ${data?.cost === 140 ? '7' : '3'} dana.`);
+        const dateStr = data.promoted_until ? new Date(data.promoted_until).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
+        toast.success(t('credits.boost.successDate').replace('{date}', dateStr));
         setPosts(prev => prev.map(p => p.id === postId ? { ...p, promoted_until: data.promoted_until } : p));
       }
     } catch {
@@ -1057,15 +1058,24 @@ function FeedContent() {
               </button>
             )}
             {isOwn && (
-              <button
-                onClick={() => handleBoostPost(post.id)}
-                disabled={boostingPostId === post.id || (!!post.promoted_until && new Date(post.promoted_until) > new Date())}
-                className="flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg transition-colors disabled:opacity-50 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600"
-                title={post.promoted_until && new Date(post.promoted_until) > new Date() ? 'Boost aktivan' : 'Boost post (75 kredita, 3 dana)'}
-              >
-                {boostingPostId === post.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                {post.promoted_until && new Date(post.promoted_until) > new Date() ? 'Boostan' : 'Boost'}
-              </button>
+              {(() => {
+                const boostActive = !!post.promoted_until && new Date(post.promoted_until) > new Date();
+                const fmtDate = (d: string) => new Date(d).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const title = boostActive
+                  ? `${t('credits.boost.activeUntil').replace('{date}', fmtDate(post.promoted_until!))} · ${t('credits.boost.extendInfo').replace('{days}', '3').replace('{cost}', '75')}`
+                  : t('credits.boost.tooltipFeed');
+                return (
+                  <button
+                    onClick={() => handleBoostPost(post.id)}
+                    disabled={boostingPostId === post.id}
+                    className="flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg transition-colors disabled:opacity-50 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600"
+                    title={title}
+                  >
+                    {boostingPostId === post.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                    {boostActive ? t('credits.boost.extend') : t('credits.boost.button')}
+                  </button>
+                );
+              })()}
             )}
             {!isOwn && user && (
               <button

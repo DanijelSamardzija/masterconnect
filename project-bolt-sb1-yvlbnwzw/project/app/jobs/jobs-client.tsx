@@ -1037,7 +1037,8 @@ function JobsMarketplaceContent() {
           toast.error('Greška pri boostu.');
         }
       } else {
-        toast.success('🚀 Oglas je boostan! Aktivan 7 dana.');
+        const dateStr = data.promoted_until ? new Date(data.promoted_until).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
+        toast.success(t('credits.boost.successDate').replace('{date}', dateStr));
         setPosts(prev => prev.map(p => p.id === postId ? { ...p, promoted_until: data.promoted_until } : p));
       }
     } catch {
@@ -1760,17 +1761,24 @@ function JobsMarketplaceContent() {
                                 </button>
                               )}
 
-                              {user?.id === post.user_id && (
-                                <button
-                                  onClick={(e) => handleBoostJob(e, post.id)}
-                                  disabled={boostingJobId === post.id || (post.promoted_until && new Date(post.promoted_until) > new Date())}
-                                  className="h-7 px-2 flex items-center gap-1 rounded-lg text-xs font-medium transition-colors text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 disabled:opacity-50"
-                                  title={post.promoted_until && new Date(post.promoted_until) > new Date() ? 'Boost aktivan' : 'Boost oglas (140 kredita, 7 dana)'}
-                                >
-                                  {boostingJobId === post.id ? <Loader className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
-                                  {post.promoted_until && new Date(post.promoted_until) > new Date() ? 'Boostan' : 'Boost'}
-                                </button>
-                              )}
+                              {user?.id === post.user_id && (() => {
+                                const boostActive = !!post.promoted_until && new Date(post.promoted_until) > new Date();
+                                const fmtDate = (d: string) => new Date(d).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' });
+                                const title = boostActive
+                                  ? `${t('credits.boost.activeUntil').replace('{date}', fmtDate(post.promoted_until!))} · ${t('credits.boost.extendInfo').replace('{days}', '7').replace('{cost}', '140')}`
+                                  : t('credits.boost.tooltipListing');
+                                return (
+                                  <button
+                                    onClick={(e) => handleBoostJob(e, post.id)}
+                                    disabled={boostingJobId === post.id}
+                                    className="h-7 px-2 flex items-center gap-1 rounded-lg text-xs font-medium transition-colors text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 disabled:opacity-50"
+                                    title={title}
+                                  >
+                                    {boostingJobId === post.id ? <Loader className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
+                                    {boostActive ? t('credits.boost.extend') : t('credits.boost.button')}
+                                  </button>
+                                );
+                              })()}
 
                               {user?.id === post.user_id && (
                                 <DropdownMenu>
