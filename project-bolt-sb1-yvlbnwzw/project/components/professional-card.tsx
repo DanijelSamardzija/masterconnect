@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { Star, MapPin, ArrowRight } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -96,11 +97,12 @@ export function ProfessionalCard({ listing }: ProfessionalCardProps) {
     >
       <div className="relative w-full aspect-square max-h-[280px] bg-gray-200 overflow-hidden">
         {mainImage ? (
-          <img
+          <Image
+            fill
             src={mainImage}
             alt={listing.job_title}
-            className="w-full h-full object-cover rounded-t-xl group-hover:scale-105 transition-transform duration-300"
-            loading="lazy"
+            className="object-cover rounded-t-xl group-hover:scale-105 transition-transform duration-300"
+            sizes="(max-width: 640px) calc(100vw - 32px), (max-width: 1024px) calc(50vw - 32px), 280px"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
@@ -274,10 +275,12 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
             <div className="w-full max-w-[480px] mx-auto lg:mx-0">
               <div className="relative bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden aspect-square w-full">
                 {images.length > 0 ? (
-                  <img
+                  <Image
+                    fill
                     src={images[selectedImageIndex].url}
                     alt={`${service.job_title} - ${selectedImageIndex + 1}`}
-                    className="w-full h-full object-contain"
+                    className="object-contain"
+                    sizes="(max-width: 1024px) 100vw, 480px"
                   />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100 dark:from-gray-800 dark:to-gray-700 gap-3">
@@ -322,16 +325,18 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                     <button
                       key={media.id}
                       onClick={() => setSelectedImageIndex(i)}
-                      className={`flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition-colors ${
+                      className={`relative flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition-colors ${
                         i === selectedImageIndex
                           ? 'border-orange-500'
                           : 'border-transparent hover:border-gray-300 dark:hover:border-gray-600'
                       }`}
                     >
-                      <img
+                      <Image
+                        fill
                         src={media.url}
                         alt={`Thumbnail ${i + 1}`}
-                        className="w-full h-full object-cover"
+                        className="object-cover"
+                        sizes="64px"
                       />
                     </button>
                   ))}
@@ -594,9 +599,15 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                     onClick={() => router.push(`/services/${s.id}`)}
                     className="text-left bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow"
                   >
-                    <div className="aspect-video bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                    <div className="relative aspect-video bg-gray-100 dark:bg-gray-800 overflow-hidden">
                       {s.post_media?.[0] ? (
-                        <img src={s.post_media[0].url} alt={s.job_title} className="w-full h-full object-cover" />
+                        <Image
+                          fill
+                          src={s.post_media[0].url}
+                          alt={s.job_title}
+                          className="object-cover"
+                          sizes="(max-width: 640px) calc(100vw - 32px), (max-width: 1024px) calc(50vw - 32px), calc(25vw - 32px)"
+                        />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <ImageOff className="h-8 w-8 text-gray-300" />
