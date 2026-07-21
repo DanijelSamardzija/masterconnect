@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
@@ -133,7 +134,7 @@ function MediaBlock({ media, count }: { media: { url: string; media_type: string
           </div>
         </>
       ) : (
-        <img src={media.url} alt="" className="w-full h-full object-cover" />
+        <Image fill src={media.url} alt="" className="object-cover" sizes="(max-width: 480px) 100vw, 448px" />
       )}
       {count > 1 && (
         <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded-full">

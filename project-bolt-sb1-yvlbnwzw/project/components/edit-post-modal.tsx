@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -738,7 +739,7 @@ export function EditPostModal({
                   {existingMedia.map((item) => (
                     <div key={item.id} className="group relative aspect-square rounded-lg overflow-hidden bg-slate-100">
                       {item.type === 'image' ? (
-                        <img src={item.url} alt="Media" className="w-full h-full object-cover" />
+                        <Image fill src={item.url} alt="Media" className="object-cover" sizes="(max-width: 640px) calc(33vw - 16px), 150px" />
                       ) : (
                         <video src={item.url} className="w-full h-full object-cover" muted />
                       )}
