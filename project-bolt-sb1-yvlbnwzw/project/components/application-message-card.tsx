@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { format } from 'date-fns';
 import { Phone, Mail, MapPin, FileText, Download, CheckCircle2, XCircle, Clock, Loader2, User } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
@@ -198,7 +199,7 @@ export function ApplicationMessageCard({
         {/* Avatar + name */}
         <div className="flex items-center gap-3">
           {data.imageUrl ? (
-            <img src={data.imageUrl} alt={data.applicantName} className="h-12 w-12 rounded-xl object-cover ring-2 ring-orange-500/40 flex-shrink-0" />
+            <Image src={data.imageUrl} alt={data.applicantName} width={48} height={48} className="rounded-xl object-cover ring-2 ring-orange-500/40 flex-shrink-0" />
           ) : (
             <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-base leading-none">{initials}</span>

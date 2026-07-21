@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/protected-route';
 import { ProfessionalBadge } from '@/components/professional-badge';
@@ -528,7 +529,7 @@ function DashboardContent() {
                       <div className="h-6 w-6 rounded-full bg-orange-100 dark:bg-orange-950 flex items-center justify-center flex-shrink-0 overflow-hidden">
                         {d.anonymous || !d.sender_avatar
                           ? <span className="text-xs">🎭</span>
-                          : <img src={d.sender_avatar} alt="" className="h-6 w-6 object-cover" />
+                          : <Image src={d.sender_avatar} alt="" width={24} height={24} className="h-6 w-6 object-cover" />
                         }
                       </div>
                       <p className="text-[10px] text-foreground truncate flex-1">
@@ -696,7 +697,7 @@ function DashboardContent() {
                         <div className="h-8 w-8 rounded-full bg-orange-100 dark:bg-orange-950 flex items-center justify-center flex-shrink-0 overflow-hidden">
                           {d.anonymous || !d.sender_avatar
                             ? <span className="text-sm">🎭</span>
-                            : <img src={d.sender_avatar} alt="" className="h-8 w-8 object-cover" />
+                            : <Image src={d.sender_avatar} alt="" width={32} height={32} className="h-8 w-8 object-cover" />
                           }
                         </div>
                         <div className="flex-1 min-w-0">
