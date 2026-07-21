@@ -49,6 +49,7 @@ import {
   Search,
   UserCircle,
   CreditCard,
+  MessageCircle,
   X,
 } from 'lucide-react';
 import { CommentsSheet } from '@/components/comments-sheet';
@@ -448,10 +449,13 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
             <a
               href="/contact"
               onClick={() => setBuyCreditsOpen(false)}
-              className="flex-1 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white py-2.5 text-sm font-bold transition-all flex items-center justify-center gap-2"
+              className="flex-1 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white py-2.5 transition-all flex items-center justify-center gap-2"
             >
-              <CreditCard className="h-4 w-4" />
-              {t('credits.buy.contactSupport')}
+              <MessageCircle className="h-4 w-4 shrink-0" />
+              <span className="flex flex-col items-start leading-tight">
+                <span className="text-xs font-semibold">{t('credits.buy.contactSupport')}</span>
+                <span className="text-[10px] opacity-80">{t('credits.buy.contactSupportSub')}</span>
+              </span>
             </a>
           </div>
         </DialogContent>

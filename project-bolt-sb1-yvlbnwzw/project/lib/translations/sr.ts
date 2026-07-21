@@ -1538,6 +1538,7 @@ export default {
   'credits.buy.bonus': 'bonus',
   'credits.buy.stripeNotice': 'Online plaćanje karticom još nije dostupno. Za kupovinu kredita kontaktirajte GigZone podršku i dogovoriće se individualno.',
   'credits.buy.contactSupport': 'Kontaktiraj podršku',
+  'credits.buy.contactSupportSub': 'dogovor individualno',
   'credits.buy.close': 'Zatvori',
   'referral.title': 'Pozovi prijatelje',
   'referral.subtitle': '+20 kredita po registraciji • {count} pozvanih',

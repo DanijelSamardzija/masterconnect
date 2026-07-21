@@ -1538,6 +1538,7 @@ export default {
   'credits.buy.bonus': 'bonus',
   'credits.buy.stripeNotice': 'Online card payment is not yet available. To purchase credits, contact GigZone support and we will arrange it individually.',
   'credits.buy.contactSupport': 'Contact Support',
+  'credits.buy.contactSupportSub': 'individual arrangement',
   'credits.buy.close': 'Close',
   'referral.title': 'Invite friends',
   'referral.subtitle': '+20 credits per registration • {count} invited',
