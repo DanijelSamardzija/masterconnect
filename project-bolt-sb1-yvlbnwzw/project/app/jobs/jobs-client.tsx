@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
@@ -1692,13 +1693,15 @@ function JobsMarketplaceContent() {
                                 </div>
                               </div>
 
-                              <h3
-                                className={`text-slate-900 dark:text-gray-100 leading-tight line-clamp-2 ${
-                                  isServiceRequest ? 'font-semibold text-lg mb-0.5' : 'font-semibold text-base md:text-lg mb-0.5'
-                                }`}
-                              >
-                                {post.job_title || post.category || post.text?.substring(0, 60) || t('jobs.untitledPost')}
-                              </h3>
+                              <Link href={`/posts/${post.id}`} className="group">
+                                <h3
+                                  className={`text-slate-900 dark:text-gray-100 leading-tight line-clamp-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors ${
+                                    isServiceRequest ? 'font-semibold text-lg mb-0.5' : 'font-semibold text-base md:text-lg mb-0.5'
+                                  }`}
+                                >
+                                  {post.job_title || post.category || post.text?.substring(0, 60) || t('jobs.untitledPost')}
+                                </h3>
+                              </Link>
                               <div className="flex items-center gap-1.5 mt-0.5">
                                 {post.post_type === 'hiring_post' && (
                                   <span className="px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider bg-orange-50 text-orange-600 rounded">
