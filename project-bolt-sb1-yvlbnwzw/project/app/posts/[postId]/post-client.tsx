@@ -13,12 +13,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Pin, AlertCircle, MessageSquare, ChevronLeft, ChevronRight, DollarSign, Briefcase, Heart } from 'lucide-react';
+import { ArrowLeft, Pin, AlertCircle, MessageSquare, ChevronLeft, ChevronRight, DollarSign, Briefcase, Heart, Send } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import { SendOfferModal } from '@/components/send-offer-modal-v2';
 import { OfferServiceModal } from '@/components/offer-service-modal';
 import { EditPostModal } from '@/components/edit-post-modal';
+import { JobApplicationModal } from '@/components/job-application-modal';
 import { useLanguage } from '@/lib/contexts/language-context';
 
 type PostMedia = {
@@ -49,6 +50,7 @@ type Post = {
   id: string;
   user_id: string;
   text: string | null;
+  job_title: string | null;
   created_at: string;
   is_pinned: boolean;
   pinned_at: string | null;
@@ -82,6 +84,8 @@ function SinglePostContent() {
   const [commentsModalOpen, setCommentsModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [applicationModalOpen, setApplicationModalOpen] = useState(false);
+  const [selectedHiringPost, setSelectedHiringPost] = useState<{ id: string; title: string; ownerId: string } | null>(null);
   const [likeLoading, setLikeLoading] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
@@ -111,6 +115,7 @@ function SinglePostContent() {
           id,
           user_id,
           text,
+          job_title,
           created_at,
           is_pinned,
           pinned_at,
@@ -450,6 +455,20 @@ function SinglePostContent() {
                   </div>
                   {user && post.user_id !== user.id && (
                     <div className="flex gap-2">
+                      {post.post_type === 'hiring_post' && (
+                        <Button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setSelectedHiringPost({ id: post.id, title: post.job_title || post.text?.substring(0, 60) || 'oglas', ownerId: post.user_id });
+                            setApplicationModalOpen(true);
+                          }}
+                          className="gap-2 bg-orange-600 hover:bg-orange-700"
+                        >
+                          <Send className="h-4 w-4" />
+                          {t('jobs.applyButton')}
+                        </Button>
+                      )}
                       {post.post_type === 'job_seeker_post' && (
                         <Button
                           onClick={(e) => {
@@ -618,6 +637,17 @@ function SinglePostContent() {
           receiverName={post.user.name}
           postId={post.id}
         />
+
+        {selectedHiringPost && (
+          <JobApplicationModal
+            open={applicationModalOpen}
+            onOpenChange={setApplicationModalOpen}
+            postId={selectedHiringPost.id}
+            postTitle={selectedHiringPost.title}
+            postOwnerId={selectedHiringPost.ownerId}
+            onSuccess={() => setApplicationModalOpen(false)}
+          />
+        )}
       </div>
     </div>
   );
