@@ -933,101 +933,72 @@ function DashboardContent() {
               </div>
             )}
 
-            {/* Recent conversations */}
-            {threads.length > 0 && (
-              <div className="space-y-3">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">
-                  {t('dashboard.recentConversations')}
-                </p>
-                {threads.map(thread => (
-                  <button
-                    key={thread.id}
-                    onClick={() => router.push(`/messages`)}
-                    className="w-full bg-card border border-border rounded-2xl px-4 py-3 flex items-center gap-3 hover:border-orange-400/50 hover:bg-accent transition-colors text-left"
-                  >
-                    <div className="p-2 bg-muted rounded-xl">
-                      <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-foreground truncate">
-                        {thread.job?.title || t('dashboard.conversation')}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(thread.created_at), { addSuffix: true })}
-                      </p>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                  </button>
-                ))}
-              </div>
-            )}
           </>
-        ) : (
-          /* Customer: recent jobs */
-          <div className="space-y-3">
-            <div className="flex items-center px-1">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                {t('dashboard.recentJobs')}
-              </p>
-            </div>
-
-            {jobs.length === 0 ? (
-              <div className="bg-card border border-border rounded-2xl px-5 py-10 text-center">
-                <Briefcase className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-40" />
-                <p className="font-semibold text-foreground mb-1">{t('dashboard.noJobsYet')}</p>
-                <p className="text-sm text-muted-foreground">{t('dashboard.noJobsDesc')}</p>
-              </div>
-            ) : (
-              jobs.map(job => (
-                <div key={job.id} className="bg-card border border-border rounded-2xl px-4 py-3 flex items-start gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="text-sm font-semibold text-foreground">{job.title}</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1 ${
-                        job.status === 'open'
-                          ? 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400'
-                          : 'bg-muted text-muted-foreground'
-                      }`}>
-                        {job.status === 'open'
-                          ? <><Clock className="h-3 w-3" />{t('dashboard.statusOpen')}</>
-                          : <><CheckCircle2 className="h-3 w-3" />{t('dashboard.statusClosed')}</>
-                        }
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground line-clamp-1">{job.description}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {job.category} · {job.city} · {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
-                    </p>
-                  </div>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <button className="p-1.5 rounded-xl text-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 transition-colors shrink-0">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>{t('dashboard.deleteJobTitle')}</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          {t('dashboard.deleteJobConfirm')} "{job.title}".
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>{t('dashboard.cancel')}</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => handleDeleteJob(job.id)}
-                          className="bg-red-600 hover:bg-red-700"
-                        >
-                          {t('dashboard.delete')}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              ))
-            )}
-          </div>
         )}
+
+        {/* Recent jobs — isti za sve korisnike */}
+        <div className="space-y-3">
+          <div className="flex items-center px-1">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              {t('dashboard.recentJobs')}
+            </p>
+          </div>
+          {jobs.length === 0 ? (
+            <div className="bg-card border border-border rounded-2xl px-5 py-10 text-center">
+              <Briefcase className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-40" />
+              <p className="font-semibold text-foreground mb-1">{t('dashboard.noJobsYet')}</p>
+              <p className="text-sm text-muted-foreground">{t('dashboard.noJobsDesc')}</p>
+            </div>
+          ) : (
+            jobs.map(job => (
+              <div key={job.id} className="bg-card border border-border rounded-2xl px-4 py-3 flex items-start gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <span className="text-sm font-semibold text-foreground">{job.title}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1 ${
+                      job.status === 'open'
+                        ? 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400'
+                        : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {job.status === 'open'
+                        ? <><Clock className="h-3 w-3" />{t('dashboard.statusOpen')}</>
+                        : <><CheckCircle2 className="h-3 w-3" />{t('dashboard.statusClosed')}</>
+                      }
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground line-clamp-1">{job.description}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {job.category} · {job.city} · {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
+                  </p>
+                </div>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button className="p-1.5 rounded-xl text-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 transition-colors shrink-0">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>{t('dashboard.deleteJobTitle')}</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {t('dashboard.deleteJobConfirm')} "{job.title}".
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{t('dashboard.cancel')}</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleDeleteJob(job.id)}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        {t('dashboard.delete')}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            ))
+          )}
+        </div>
 
       </div>
 
