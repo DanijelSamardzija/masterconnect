@@ -1144,10 +1144,11 @@ function JobsMarketplaceContent() {
           }
         }
 
+        const _jNow = new Date();
         const sorted = [...postsWithData].sort((a, b) => {
-          const aP = a.is_promoted || (a.promoted_until && new Date(a.promoted_until) > new Date()) ? 1 : 0;
-          const bP = b.is_promoted || (b.promoted_until && new Date(b.promoted_until) > new Date()) ? 1 : 0;
-          return bP - aP;
+          const scoreA = a.is_promoted ? 2 : (a.promoted_until && new Date(a.promoted_until) > _jNow ? 1 : 0);
+          const scoreB = b.is_promoted ? 2 : (b.promoted_until && new Date(b.promoted_until) > _jNow ? 1 : 0);
+          return scoreB - scoreA;
         });
 
         setPosts([...sorted, ...DEMO_POSTS]);

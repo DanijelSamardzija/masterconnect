@@ -1433,7 +1433,7 @@ export function ProfileView({
                           onClick={(e) => handleBoostPost(e, post.id, false)}
                           disabled={boostingPostId === post.id || (!!post.promoted_until && new Date(post.promoted_until) > new Date())}
                           className="h-8 w-8 flex items-center justify-center bg-black/50 hover:bg-orange-500/80 text-white backdrop-blur-sm rounded-xl transition-colors disabled:opacity-50"
-                          title={post.promoted_until && new Date(post.promoted_until) > new Date() ? t('credits.boost.active') : 'Boost (15 kr, 3d)'}
+                          title={post.promoted_until && new Date(post.promoted_until) > new Date() ? t('credits.boost.active') : 'Boost (75 kr, 3d)'}
                         >
                           {boostingPostId === post.id
                             ? <Loader2 className="h-4 w-4 animate-spin" />
@@ -1658,7 +1658,7 @@ export function ProfileView({
                                   onClick={(e) => handleBoostPost(e, post.id, true)}
                                   disabled={boostingPostId === post.id || (!!post.promoted_until && new Date(post.promoted_until) > new Date())}
                                   className="h-8 px-2 flex items-center gap-1 text-xs rounded-xl border border-orange-300 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-950 disabled:opacity-40 transition-colors"
-                                  title={post.promoted_until && new Date(post.promoted_until) > new Date() ? t('credits.boost.active') : 'Boost (25 kr, 7d)'}
+                                  title={post.promoted_until && new Date(post.promoted_until) > new Date() ? t('credits.boost.active') : 'Boost (140 kr, 7d)'}
                                 >
                                   {boostingPostId === post.id
                                     ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -1751,7 +1751,7 @@ export function ProfileView({
                                     : <Zap className="h-3.5 w-3.5" />}
                                 {post.promoted_until && new Date(post.promoted_until) > new Date()
                                   ? t('credits.boost.active.label')
-                                  : 'Boost (25 kr, 7d)'}
+                                  : 'Boost (140 kr, 7d)'}
                               </button>
                             </div>
                           )}

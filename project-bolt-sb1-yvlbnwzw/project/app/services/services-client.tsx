@@ -197,8 +197,10 @@ export function ServicesClient() {
       }));
 
       const sorted = applySorting(listingsWithReviews, sortBy);
-      const promoted = sorted.filter((l: any) => l.is_promoted);
-      const rest = sorted.filter((l: any) => !l.is_promoted);
+      const now = new Date();
+      const adminPromoted = sorted.filter((l: any) => l.is_promoted);
+      const userBoosted = sorted.filter((l: any) => !l.is_promoted && l.promoted_until && new Date(l.promoted_until) > now);
+      const rest = sorted.filter((l: any) => !l.is_promoted && !(l.promoted_until && new Date(l.promoted_until) > now));
 
       const effectiveCountry = profile?.country || (() => {
         if (typeof navigator === 'undefined') return '';
@@ -215,7 +217,7 @@ export function ServicesClient() {
           return sa - sb;
         });
       }
-      setListings([...promoted, ...rest]);
+      setListings([...adminPromoted, ...userBoosted, ...rest]);
     } catch (error) {
       console.error('Error loading listings:', error);
     } finally {

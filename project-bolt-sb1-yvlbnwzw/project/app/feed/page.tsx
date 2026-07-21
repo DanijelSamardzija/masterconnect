@@ -411,13 +411,13 @@ function FeedContent() {
       }));
 
       if (reset) {
-        // Server handles location sorting via p_user_city/p_user_country params
-        // Only inject promoted posts at position 2 client-side
         let finalPosts: typeof postsWithData;
-        const promoted = postsWithData.filter((p: any) => p.is_promoted);
-        const nonPromoted = postsWithData.filter((p: any) => !p.is_promoted);
-        if (promoted.length > 0 && nonPromoted.length > 0) {
-          finalPosts = [nonPromoted[0], ...promoted, ...nonPromoted.slice(1)];
+        const _now = new Date();
+        const adminPromoted = postsWithData.filter((p: any) => p.is_promoted);
+        const userBoosted = postsWithData.filter((p: any) => !p.is_promoted && p.promoted_until && new Date(p.promoted_until) > _now);
+        const organic = postsWithData.filter((p: any) => !p.is_promoted && !(p.promoted_until && new Date(p.promoted_until) > _now));
+        if ((adminPromoted.length > 0 || userBoosted.length > 0) && organic.length > 0) {
+          finalPosts = [organic[0], ...adminPromoted, ...userBoosted, ...organic.slice(1)];
         } else {
           finalPosts = postsWithData;
         }
