@@ -52,8 +52,8 @@ import {
   CreditCard,
   X,
 } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { CommentsSheet } from '@/components/comments-sheet';
-import { BoostModal } from '@/components/boost-modal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   AlertDialog,
@@ -67,9 +67,17 @@ import {
 } from '@/components/ui/alert-dialog';
 import { FollowButton } from '@/components/follow-button';
 import { FollowListSheet } from '@/components/follow-list-sheet';
-import { SupportModal } from '@/components/support-modal';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
+
+const BoostModal = dynamic(
+  () => import('@/components/boost-modal').then(m => ({ default: m.BoostModal })),
+  { ssr: false }
+);
+const SupportModal = dynamic(
+  () => import('@/components/support-modal').then(m => ({ default: m.SupportModal })),
+  { ssr: false }
+);
 
 type PostMedia = {
   id: string;
