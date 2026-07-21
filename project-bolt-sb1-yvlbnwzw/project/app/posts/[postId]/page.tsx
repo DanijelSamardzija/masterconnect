@@ -12,7 +12,7 @@ async function fetchPostMeta(postId: string) {
 
   const { data } = await supabase
     .from('posts')
-    .select('id, text, post_type, author:profiles!posts_user_id_fkey(name)')
+    .select('id, text, job_title, post_type, author:profiles!posts_user_id_fkey(name)')
     .eq('id', postId)
     .maybeSingle();
 
@@ -25,14 +25,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const author = Array.isArray(data.author) ? data.author[0] : data.author;
   const name = (author as any)?.name || 'GigZone korisnik';
-  const snippet = (data.text || '').slice(0, 150);
 
   const typeLabel =
-    data.post_type === 'job_seeker_post' ? 'Tražim posao' :
-    data.post_type === 'service_request' ? 'Tražim uslugu' :
-    'Objava na GigZone';
+    data.post_type === 'hiring_post'     ? 'Oglas za posao' :
+    data.post_type === 'job_seeker_post'  ? 'Tražim posao' :
+    data.post_type === 'service_request'  ? 'Tražim uslugu' :
+    data.post_type === 'portfolio_post'   ? 'Portfolio' :
+    'Objava';
 
-  const title = `${name} – ${typeLabel} | GigZone`;
+  // Prefer job_title (set on hiring/service posts), then text snippet, then typeLabel
+  const headlineText = (data as any).job_title || (data.text || '').slice(0, 60) || typeLabel;
+  const title = `${name} – ${headlineText} | GigZone`;
+
+  const snippet = (data.text || '').slice(0, 150);
   const description = snippet || `${typeLabel} od ${name} na GigZone platformi.`;
 
   const ogImage = `https://www.gigzone.app/api/og?postId=${params.postId}`;
@@ -48,6 +53,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       url: `https://www.gigzone.app/posts/${params.postId}`,
       siteName: 'GigZone',
+      type: 'article',
       images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
     },
     twitter: {

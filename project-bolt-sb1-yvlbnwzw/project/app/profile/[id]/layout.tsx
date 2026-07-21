@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const cityPart = data.city ? `${data.city} · ` : '';
   const ratingPart =
     isPro && data.average_rating
-      ? `⭐ ${Number(data.average_rating).toFixed(1)} (${data.review_count ?? 0} ocena) · `
+      ? `${Number(data.average_rating).toFixed(1)}/5 (${data.review_count ?? 0} ocjena) · `
       : '';
   const description = data.bio
     ? `${cityPart}${ratingPart}${data.bio.slice(0, 140).replace(/\n/g, ' ')}`
@@ -53,10 +53,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: `https://www.gigzone.app/profile/${params.id}`,
       siteName: 'GigZone',
       type: 'profile',
+      firstName: data.name,
+      username: params.id,
       ...(image ? { images: [{ url: image, width: 400, height: 400, alt: data.name }] } : {}),
     },
     twitter: {
-      card: image ? 'summary_large_image' : 'summary',
+      card: 'summary',
       title,
       description,
       ...(image ? { images: [image] } : {}),
