@@ -43,12 +43,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .neq('status', 'deleted')
       .limit(1000),
     // Jobs from the jobs table have their own /jobs/[id] detail page
-    // jobs.status values: 'open' | 'closed' | 'completed' — no 'deleted' value exists
+    // jobs.status values: 'open' | 'closed' | 'completed' — include all statuses
     // jobs table has created_at but NOT updated_at
     supabase
       .from('jobs')
       .select('id, created_at')
-      .eq('status', 'open')
       .order('created_at', { ascending: false })
       .limit(2000),
     // All profiles with a public /profile/[id] page
