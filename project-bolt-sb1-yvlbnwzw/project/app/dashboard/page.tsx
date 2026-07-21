@@ -452,7 +452,7 @@ function DashboardContent() {
         )}
 
         {/* Stats row */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {isPro ? (
             <>
               <button
@@ -462,16 +462,6 @@ function DashboardContent() {
                 <MessageSquare className="h-5 w-5 text-green-500 mb-1" />
                 <p className="text-2xl font-bold text-foreground">{threads.length}</p>
                 <p className="text-xs text-muted-foreground">{t('dashboard.activeLeads')}</p>
-              </button>
-              <button
-                onClick={() => router.push(`/profile/${profile.id}`)}
-                className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-1 text-left hover:border-orange-400/50 hover:bg-accent transition-colors"
-              >
-                <Star className="h-5 w-5 text-yellow-500 mb-1" />
-                <p className="text-2xl font-bold text-foreground">{reviews.length}</p>
-                <p className="text-xs text-muted-foreground">
-                  {avgRating ? `⭐ ${avgRating}` : t('dashboard.reviews')}
-                </p>
               </button>
               <button
                 onClick={() => router.push('/messages')}
