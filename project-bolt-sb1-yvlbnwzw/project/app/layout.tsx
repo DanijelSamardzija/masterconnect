@@ -33,8 +33,6 @@ export const metadata: Metadata = {
   viewport: {
     width: 'device-width',
     initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
   },
   appleWebApp: {
     capable: true,
@@ -115,6 +113,12 @@ export default function RootLayout({
       <body className={`${inter.className} flex flex-col h-dvh bg-background text-foreground`}>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-4 focus:left-4 focus:px-4 focus:py-2 focus:rounded-md focus:bg-background focus:text-foreground focus:shadow-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+        >
+          Preskoči na sadržaj
+        </a>
         <LanguageProvider>
           <AuthProvider>
             <PostHogProvider>

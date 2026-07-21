@@ -1526,7 +1526,7 @@ function MessagesContent() {
                         }}
                         placeholder="Type a message..."
                         disabled={sending}
-                        className="rounded-full border-0 bg-transparent py-6 pr-14 text-[15px] shadow-none focus-visible:ring-0"
+                        className="rounded-full border-0 bg-transparent py-6 pr-14 text-[15px] shadow-none"
                       />
 
                       <Button

@@ -264,7 +264,7 @@ export function ReviewModal({ open, onClose, jobId, proId, proName, threadId, on
                   onClick={() => setRating(value)}
                   onMouseEnter={() => setHoveredRating(value)}
                   onMouseLeave={() => setHoveredRating(0)}
-                  className="transition-transform hover:scale-110 focus:outline-none"
+                  className="transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:rounded"
                   disabled={submitting}
                 >
                   <Star

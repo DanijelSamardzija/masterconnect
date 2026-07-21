@@ -657,6 +657,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
                               type="button"
                               size="sm"
                               variant="secondary"
+                              aria-label="Premjesti lijevo"
                               className="h-8 w-8 p-0"
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -672,6 +673,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
                               type="button"
                               size="sm"
                               variant="secondary"
+                              aria-label="Premjesti desno"
                               className="h-8 w-8 p-0"
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -686,6 +688,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
                             type="button"
                             size="sm"
                             variant="destructive"
+                            aria-label="Ukloni sliku"
                             className="h-8 w-8 p-0"
                             onClick={(e) => {
                               e.stopPropagation();

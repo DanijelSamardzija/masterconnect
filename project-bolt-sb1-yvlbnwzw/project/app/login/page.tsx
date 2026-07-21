@@ -325,6 +325,7 @@ export default function LoginPage() {
                       onChange={(e) => setLoginEmail(e.target.value)}
                       className="pl-10 h-11"
                       required
+                      autoComplete="email"
                     />
                   </div>
                 </div>
@@ -348,6 +349,7 @@ export default function LoginPage() {
                       onChange={(e) => setLoginPassword(e.target.value)}
                       className="pl-10 h-11"
                       required
+                      autoComplete="current-password"
                     />
                   </div>
                 </div>
@@ -426,6 +428,7 @@ export default function LoginPage() {
                         onChange={(e) => setRegisterEmail(e.target.value)}
                         className="pl-10 h-11"
                         required
+                        autoComplete="email"
                       />
                     </div>
                   </div>
@@ -444,6 +447,7 @@ export default function LoginPage() {
                         className="pl-10 h-11"
                         required
                         minLength={6}
+                        autoComplete="new-password"
                       />
                     </div>
                     <p className="text-xs text-slate-400 pl-1">{t('login.minChars')}</p>

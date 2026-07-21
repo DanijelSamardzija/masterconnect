@@ -268,7 +268,7 @@ export function LegacyPostCard({
             {showMenu && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-7 w-7 md:h-6 md:w-6 p-0 bg-black/50 backdrop-blur-sm hover:bg-black/70 text-white">
+                  <Button variant="ghost" size="sm" aria-label="Opcije objave" className="h-7 w-7 md:h-6 md:w-6 p-0 bg-black/50 backdrop-blur-sm hover:bg-black/70 text-white">
                     <MoreVertical className="h-3.5 w-3.5 md:h-3 md:w-3" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -359,7 +359,7 @@ export function LegacyPostCard({
             {showMenu && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-7 w-7 md:h-6 md:w-6 p-0">
+                  <Button variant="ghost" size="sm" aria-label="Opcije objave" className="h-7 w-7 md:h-6 md:w-6 p-0">
                     <MoreVertical className="h-3.5 w-3.5 md:h-3 md:w-3" />
                   </Button>
                 </DropdownMenuTrigger>

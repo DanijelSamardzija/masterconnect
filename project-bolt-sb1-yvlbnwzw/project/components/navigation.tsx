@@ -311,6 +311,7 @@ export function Navigation() {
 
   return (
     <nav
+      aria-label="Glavna navigacija"
       className={`${
         isPublicPage && !isLandingPage
           ? 'bg-background/95 border-border'
@@ -422,6 +423,7 @@ export function Navigation() {
                     <Button
                       variant="ghost"
                       size="sm"
+                      aria-label={`Korisnički meni — ${profile.name}`}
                       className="gap-1.5 h-auto py-1.5 text-slate-200 hover:text-white hover:bg-slate-800 rounded-xl transition-all duration-200"
                     >
                       <Avatar className="h-7 w-7">
@@ -569,6 +571,7 @@ export function Navigation() {
                 <Button
                   variant="ghost"
                   size="icon"
+                  aria-label="Otvori meni"
                   className={`${
                     isPublicPage && !isLandingPage
                       ? 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
@@ -609,10 +612,10 @@ export function Navigation() {
                   )}
 
                   <div className="flex justify-center gap-3">
-                    <Button variant="outline" size="icon" onClick={toggleTheme} disabled={!mounted} className="h-11 w-11">
+                    <Button variant="outline" size="icon" onClick={toggleTheme} disabled={!mounted} aria-label="Promijeni temu" className="h-11 w-11">
                       {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                     </Button>
-                    <Button variant="outline" size="icon" onClick={() => { setMobileMenuOpen(false); setSearchOpen(true); }} className="h-11 w-11">
+                    <Button variant="outline" size="icon" onClick={() => { setMobileMenuOpen(false); setSearchOpen(true); }} aria-label="Pretraži" className="h-11 w-11">
                       <Search className="h-5 w-5" />
                     </Button>
                     <LanguageSwitcher className="h-11 w-11 text-sm" />

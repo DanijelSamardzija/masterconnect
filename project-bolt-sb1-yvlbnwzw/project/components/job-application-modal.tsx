@@ -444,6 +444,7 @@ export function JobApplicationModal({ open, onOpenChange, postId, postTitle, pos
                   {!submitting && (
                     <button
                       type="button"
+                      aria-label="Ukloni sliku"
                       onClick={() => { setImageFile(null); setImagePreview(null); setImageUpload('idle'); }}
                       className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5"
                     >
@@ -474,7 +475,7 @@ export function JobApplicationModal({ open, onOpenChange, postId, postTitle, pos
                   <span className="truncate flex-1">{cvFile.name}</span>
                   {cvUpload === 'uploading' && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
                   {!submitting && (
-                    <button type="button" onClick={() => { setCvFile(null); setCvUpload('idle'); }}>
+                    <button type="button" aria-label="Ukloni CV" onClick={() => { setCvFile(null); setCvUpload('idle'); }}>
                       <X className="h-4 w-4 text-red-500" />
                     </button>
                   )}
@@ -507,6 +508,7 @@ export function JobApplicationModal({ open, onOpenChange, postId, postTitle, pos
                   {!submitting && (
                     <button
                       type="button"
+                      aria-label="Ukloni video"
                       onClick={() => { setVideoFile(null); setVideoPreview(null); setVideoUpload('idle'); }}
                       className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"
                     >

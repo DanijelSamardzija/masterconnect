@@ -310,6 +310,7 @@ export function SupportModal({
           <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
           <button
             onClick={() => onOpenChange(false)}
+            aria-label="Zatvori"
             className="absolute top-3 right-3 text-white/70 hover:text-white transition-colors z-10"
           >
             <X className="h-5 w-5" />

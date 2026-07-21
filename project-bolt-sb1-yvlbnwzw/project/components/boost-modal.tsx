@@ -112,6 +112,7 @@ export function BoostModal({
                   key={p.days}
                   onClick={() => setSelected(i)}
                   disabled={!affordable}
+                  aria-pressed={selected === i}
                   className={`w-full rounded-xl border-2 px-4 py-3 text-left transition-all disabled:opacity-40 ${
                     selected === i
                       ? 'border-orange-400 bg-orange-500/8'
