@@ -47,7 +47,7 @@ function CommentRow({ c, isReply = false, parentCommentId, user, likingIds, repl
   return (
     <div className={`flex gap-2.5 ${isReply ? 'ml-9' : ''}`}>
       <Avatar className="h-7 w-7 flex-shrink-0 mt-0.5">
-        <AvatarImage src={c.user.avatar_url} />
+        <AvatarImage src={c.user.avatar_url} alt={c.user.name} />
         <AvatarFallback className="bg-muted text-muted-foreground text-[10px]">
           {c.user.name.substring(0, 2).toUpperCase()}
         </AvatarFallback>

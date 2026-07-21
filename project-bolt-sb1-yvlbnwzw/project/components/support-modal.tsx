@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Coins, X, Star, Sparkles, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useAuth } from '@/lib/contexts/auth-context';
@@ -273,12 +273,15 @@ export function SupportModal({
 
         {/* Anonymous toggle */}
         <label className="flex items-center gap-3 cursor-pointer select-none">
-          <div
+          <button
+            type="button"
+            role="switch"
+            aria-checked={anonymous}
             onClick={() => setAnonymous(v => !v)}
             className={`relative w-9 h-5 rounded-full transition-colors ${anonymous ? 'bg-orange-500' : 'bg-muted-foreground/30'}`}
           >
             <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${anonymous ? 'translate-x-4' : 'translate-x-0'}`} />
-          </div>
+          </button>
           <span className="text-xs text-muted-foreground">Doniraj anonimno</span>
         </label>
 
@@ -323,9 +326,9 @@ export function SupportModal({
               <p className="text-xs font-semibold text-orange-100 uppercase tracking-widest">
                 {t('credits.support.demo')}
               </p>
-              <h2 className="text-lg font-bold leading-tight">
+              <DialogTitle className="text-lg font-bold leading-tight text-white">
                 🧡 {t('credits.support.title')}
-              </h2>
+              </DialogTitle>
               {targetUserName && (
                 <p className="text-xs text-orange-100 mt-0.5 truncate max-w-[200px]">{targetUserName}</p>
               )}

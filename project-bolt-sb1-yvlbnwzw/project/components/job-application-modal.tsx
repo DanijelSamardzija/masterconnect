@@ -391,36 +391,46 @@ export function JobApplicationModal({ open, onOpenChange, postId, postTitle, pos
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <Select value={salaryType} onValueChange={setSalaryType} disabled={submitting}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('apply.salaryType')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="hourly">{t('apply.salaryHourly')}</SelectItem>
-                  <SelectItem value="monthly">{t('apply.salaryMonthly')}</SelectItem>
-                  <SelectItem value="fixed">{t('apply.salaryFixed')}</SelectItem>
-                </SelectContent>
-              </Select>
+              <div>
+                <Label htmlFor="apply-salary-type" className="sr-only">{t('apply.salaryType')}</Label>
+                <Select value={salaryType} onValueChange={setSalaryType} disabled={submitting}>
+                  <SelectTrigger id="apply-salary-type">
+                    <SelectValue placeholder={t('apply.salaryType')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="hourly">{t('apply.salaryHourly')}</SelectItem>
+                    <SelectItem value="monthly">{t('apply.salaryMonthly')}</SelectItem>
+                    <SelectItem value="fixed">{t('apply.salaryFixed')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-              <Input
-                type="number"
-                placeholder={t('apply.salaryAmount')}
-                value={salaryAmount}
-                onChange={e => setSalaryAmount(e.target.value)}
-                disabled={submitting || !salaryType}
-                min="0"
-              />
+              <div>
+                <Label htmlFor="apply-salary-amount" className="sr-only">{t('apply.salaryAmount')}</Label>
+                <Input
+                  id="apply-salary-amount"
+                  type="number"
+                  placeholder={t('apply.salaryAmount')}
+                  value={salaryAmount}
+                  onChange={e => setSalaryAmount(e.target.value)}
+                  disabled={submitting || !salaryType}
+                  min="0"
+                />
+              </div>
 
-              <Select value={salaryCurrency} onValueChange={setSalaryCurrency} disabled={submitting || !salaryType}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="RSD">RSD</SelectItem>
-                  <SelectItem value="EUR">EUR</SelectItem>
-                  <SelectItem value="USD">USD</SelectItem>
-                </SelectContent>
-              </Select>
+              <div>
+                <Label htmlFor="apply-salary-currency" className="sr-only">{t('apply.salaryCurrency')}</Label>
+                <Select value={salaryCurrency} onValueChange={setSalaryCurrency} disabled={submitting || !salaryType}>
+                  <SelectTrigger id="apply-salary-currency">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="RSD">RSD</SelectItem>
+                    <SelectItem value="EUR">EUR</SelectItem>
+                    <SelectItem value="USD">USD</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </section>
 
@@ -432,7 +442,7 @@ export function JobApplicationModal({ open, onOpenChange, postId, postTitle, pos
 
             {/* Profile Image */}
             <div className="space-y-1.5">
-              <Label>{t('apply.profileImage')}</Label>
+              <Label htmlFor="apply-image-input">{t('apply.profileImage')}</Label>
               {imagePreview ? (
                 <div className="relative w-20 h-20">
                   <img src={imagePreview} alt="Preview" className="w-20 h-20 rounded-full object-cover border-2 border-border" />
@@ -463,12 +473,12 @@ export function JobApplicationModal({ open, onOpenChange, postId, postTitle, pos
                   {t('apply.uploadImage')}
                 </button>
               )}
-              <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+              <input ref={imageInputRef} id="apply-image-input" type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
             </div>
 
             {/* CV Upload */}
             <div className="space-y-1.5">
-              <Label>{t('apply.cv')}</Label>
+              <Label htmlFor="apply-cv-input">{t('apply.cv')}</Label>
               {cvFile ? (
                 <div className="flex items-center gap-2 border border-border rounded-lg px-3 py-2 text-sm">
                   <FileText className="h-4 w-4 text-blue-500 flex-shrink-0" />
@@ -491,12 +501,12 @@ export function JobApplicationModal({ open, onOpenChange, postId, postTitle, pos
                   {t('apply.uploadCV')} (PDF, DOC)
                 </button>
               )}
-              <input ref={cvInputRef} type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleCvChange} />
+              <input ref={cvInputRef} id="apply-cv-input" type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleCvChange} />
             </div>
 
             {/* Video Upload */}
             <div className="space-y-1.5">
-              <Label>{t('apply.video')}</Label>
+              <Label htmlFor="apply-video-input">{t('apply.video')}</Label>
               {videoPreview ? (
                 <div className="relative rounded-lg overflow-hidden border border-border">
                   <video src={videoPreview} controls className="w-full max-h-48 object-contain bg-black" />
@@ -527,7 +537,7 @@ export function JobApplicationModal({ open, onOpenChange, postId, postTitle, pos
                   {t('apply.uploadVideo')} (max 50MB)
                 </button>
               )}
-              <input ref={videoInputRef} type="file" accept="video/*" className="hidden" onChange={handleVideoChange} />
+              <input ref={videoInputRef} id="apply-video-input" type="file" accept="video/*" className="hidden" onChange={handleVideoChange} />
             </div>
           </section>
 

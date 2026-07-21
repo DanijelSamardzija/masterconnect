@@ -176,7 +176,7 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
                       >
                         {result.type === 'professional' ? (
                           <Avatar className="h-8 w-8 shrink-0">
-                            <AvatarImage src={result.avatar} />
+                            <AvatarImage src={result.avatar} alt={result.title} />
                             <AvatarFallback className="bg-orange-100 text-orange-700 text-xs font-bold">
                               {result.title.substring(0, 2).toUpperCase()}
                             </AvatarFallback>

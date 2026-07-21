@@ -156,7 +156,7 @@ export function SharePostModal({ postId, open, onOpenChange, urlPath }: SharePos
                       className={`flex items-center gap-3 w-full px-4 py-2.5 hover:bg-accent transition-colors text-left ${i > 0 ? 'border-t border-border' : ''}`}
                     >
                       <Avatar className="h-8 w-8 flex-shrink-0">
-                        <AvatarImage src={u.avatar_url} />
+                        <AvatarImage src={u.avatar_url} alt={u.name} />
                         <AvatarFallback className="bg-orange-600 text-white text-xs">
                           {u.name.substring(0, 2).toUpperCase()}
                         </AvatarFallback>

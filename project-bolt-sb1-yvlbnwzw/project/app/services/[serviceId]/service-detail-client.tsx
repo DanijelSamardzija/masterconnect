@@ -334,7 +334,7 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                       <Image
                         fill
                         src={media.url}
-                        alt={`Thumbnail ${i + 1}`}
+                        alt={`Slika ${i + 1}`}
                         className="object-cover"
                         sizes="64px"
                       />
@@ -538,7 +538,7 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                         <div key={review.id} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
                           <div className="flex items-center gap-2 mb-1.5">
                             <Avatar className="h-7 w-7 flex-shrink-0">
-                              <AvatarImage src={review.customer?.avatar_url || undefined} />
+                              <AvatarImage src={review.customer?.avatar_url || undefined} alt={review.customer?.name || ''} />
                               <AvatarFallback className="bg-orange-100 text-orange-700 text-xs">
                                 {review.customer?.name?.charAt(0).toUpperCase()}
                               </AvatarFallback>

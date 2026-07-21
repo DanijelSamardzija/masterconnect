@@ -537,7 +537,9 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
             </div>
           </div>
 
+          <Label htmlFor="post-content" className="sr-only">Tekst objave</Label>
           <Textarea
+            id="post-content"
             value={postText}
             onChange={(e) => setPostText(e.target.value)}
             onKeyDown={(e) => {
@@ -574,7 +576,7 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
 
           {/* Hashtag input */}
           <div>
-            <Label className="flex items-center gap-1.5 mb-1.5">
+            <Label htmlFor="hashtag-input" className="flex items-center gap-1.5 mb-1.5">
               <Hash className="h-3.5 w-3.5 text-muted-foreground" />
               {t('createPost.hashtagsLabel')}
               <span className="text-xs text-muted-foreground font-normal">{t('createPost.hashtagsMax')}</span>
@@ -602,13 +604,14 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
               {hashtags.length < 10 && (
                 <input
                   ref={hashtagInputRef}
+                  id="hashtag-input"
                   type="text"
                   value={hashtagInput}
                   onChange={(e) => setHashtagInput(e.target.value.replace(/\s/g, ''))}
                   onKeyDown={handleHashtagKeyDown}
                   onBlur={() => { if (hashtagInput.trim()) addHashtag(hashtagInput); }}
                   placeholder={hashtags.length === 0 ? t('createPost.hashtagsPlaceholder') : ''}
-                  className="flex-1 min-w-[120px] bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                  className="flex-1 min-w-[120px] bg-transparent text-sm focus-visible:outline-none placeholder:text-muted-foreground"
                   disabled={uploading}
                 />
               )}

@@ -277,7 +277,7 @@ export default function LoginPage() {
                 )}
 
                 {loginError && (
-                  <Alert variant="destructive" className="border-red-200 bg-red-50">
+                  <Alert id="login-error" variant="destructive" className="border-red-200 bg-red-50">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription className="space-y-3">
                       <div>
@@ -326,6 +326,8 @@ export default function LoginPage() {
                       className="pl-10 h-11"
                       required
                       autoComplete="email"
+                      aria-invalid={!!loginError}
+                      aria-describedby={loginError ? 'login-error' : undefined}
                     />
                   </div>
                 </div>
@@ -350,6 +352,8 @@ export default function LoginPage() {
                       className="pl-10 h-11"
                       required
                       autoComplete="current-password"
+                      aria-invalid={!!loginError}
+                      aria-describedby={loginError ? 'login-error' : undefined}
                     />
                   </div>
                 </div>
@@ -385,7 +389,7 @@ export default function LoginPage() {
               <div className="space-y-3">
 
                 {registerError && (
-                  <Alert variant="destructive" className="border-red-200 bg-red-50">
+                  <Alert id="register-error" variant="destructive" className="border-red-200 bg-red-50">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>{registerError}</AlertDescription>
                   </Alert>
@@ -429,6 +433,8 @@ export default function LoginPage() {
                         className="pl-10 h-11"
                         required
                         autoComplete="email"
+                        aria-invalid={!!registerError}
+                        aria-describedby={registerError ? 'register-error' : undefined}
                       />
                     </div>
                   </div>
@@ -448,6 +454,8 @@ export default function LoginPage() {
                         required
                         minLength={6}
                         autoComplete="new-password"
+                        aria-invalid={!!registerError}
+                        aria-describedby={registerError ? 'register-error' : undefined}
                       />
                     </div>
                     <p className="text-xs text-slate-400 pl-1">{t('login.minChars')}</p>

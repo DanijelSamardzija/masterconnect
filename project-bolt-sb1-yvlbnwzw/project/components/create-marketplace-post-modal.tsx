@@ -569,8 +569,9 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
 
           {postType === 'service_request' && (
             <div>
-              <Label>{t('marketplace.serviceRequestTitle')}</Label>
+              <Label htmlFor="mp-sr-title">{t('marketplace.serviceRequestTitle')}</Label>
               <Input
+                id="mp-sr-title"
                 placeholder={t('marketplace.serviceRequestTitlePlaceholder')}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -589,8 +590,9 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
 
           {postType === 'service_listing' && (
             <div>
-              <Label>{t('marketplace.title')} *</Label>
+              <Label htmlFor="mp-sl-title">{t('marketplace.title')} *</Label>
               <Input
+                id="mp-sl-title"
                 placeholder={t('marketplace.titlePlaceholder')}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -608,8 +610,9 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
 
           {postType === 'job_seeker_post' && (
             <div>
-              <Label>{t('marketplace.jobSeekerTitle')}</Label>
+              <Label htmlFor="mp-js-title">{t('marketplace.jobSeekerTitle')}</Label>
               <Input
+                id="mp-js-title"
                 placeholder={t('marketplace.jobSeekerTitlePlaceholder')}
                 value={jobSeekerTitle}
                 onChange={(e) => setJobSeekerTitle(e.target.value)}
@@ -626,8 +629,9 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
 
           {(postType === 'hiring_post' || postType === 'portfolio_post') && (
             <div>
-              <Label>{t('marketplace.jobTitle')}</Label>
+              <Label htmlFor="mp-job-title">{t('marketplace.jobTitle')}</Label>
               <Input
+                id="mp-job-title"
                 placeholder={t('marketplace.jobTitlePlaceholder')}
                 value={jobTitle}
                 onChange={(e) => setJobTitle(e.target.value)}
@@ -641,7 +645,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
           )}
 
           <div>
-            <Label>
+            <Label htmlFor="mp-description">
               {postType === 'service_request'
                 ? t('marketplace.descriptionOptional')
                 : postType === 'job_seeker_post'
@@ -649,6 +653,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
                 : t('marketplace.description')}
             </Label>
             <Textarea
+              id="mp-description"
               placeholder={
                 postType === 'service_request'
                   ? t('marketplace.descriptionOptionalPlaceholder')
@@ -690,8 +695,9 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>{t('marketplace.country')}</Label>
+              <Label htmlFor="mp-country">{t('marketplace.country')}</Label>
               <select
+                id="mp-country"
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
                 className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 mt-1"
@@ -737,8 +743,9 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
               {(priceType === 'fixed' || priceType === 'hourly') && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>{priceType === 'fixed' ? t('marketplace.priceFixedLabel') : t('marketplace.priceHourlyLabel')}</Label>
+                    <Label htmlFor="mp-price-value">{priceType === 'fixed' ? t('marketplace.priceFixedLabel') : t('marketplace.priceHourlyLabel')}</Label>
                     <Input
+                      id="mp-price-value"
                       type="number"
                       placeholder={t('marketplace.enterAmount')}
                       value={priceValue}
@@ -779,9 +786,9 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
           {(postType === 'job_seeker_post' || postType === 'hiring_post') && (
             <>
               <div>
-                <Label>{t('marketplace.experienceLevelRequired')}</Label>
+                <Label htmlFor="mp-experience">{t('marketplace.experienceLevelRequired')}</Label>
                 <Select value={experienceLevel} onValueChange={setExperienceLevel}>
-                  <SelectTrigger>
+                  <SelectTrigger id="mp-experience">
                     <SelectValue placeholder={t('marketplace.experiencePlaceholder')} />
                   </SelectTrigger>
                   <SelectContent side="bottom" align="start" sideOffset={4}>
@@ -794,11 +801,11 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
               </div>
 
               <div>
-                <Label>
+                <Label htmlFor="mp-availability">
                   {postType === 'hiring_post' ? t('marketplace.hiringAvailability') : t('marketplace.availabilityRequired')}
                 </Label>
                 <Select value={availability} onValueChange={setAvailability}>
-                  <SelectTrigger>
+                  <SelectTrigger id="mp-availability">
                     <SelectValue placeholder={
                       postType === 'hiring_post' ? t('marketplace.hiringAvailabilityPlaceholder') : t('marketplace.availabilityPlaceholder')
                     } />
@@ -818,9 +825,9 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
           {postType === 'job_seeker_post' && (
             <>
               <div>
-                <Label>{t('marketplace.expectedSalary')}</Label>
+                <Label htmlFor="mp-salary-type">{t('marketplace.expectedSalary')}</Label>
                 <Select value={expectedSalaryType} onValueChange={setExpectedSalaryType}>
-                  <SelectTrigger>
+                  <SelectTrigger id="mp-salary-type">
                     <SelectValue placeholder={t('marketplace.salaryTypePlaceholder')} />
                   </SelectTrigger>
                   <SelectContent side="bottom" align="start" sideOffset={4}>
@@ -834,8 +841,9 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
               {expectedSalaryType && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>{t('marketplace.amount')}</Label>
+                    <Label htmlFor="mp-salary-amount">{t('marketplace.amount')}</Label>
                     <Input
+                      id="mp-salary-amount"
                       type="number"
                       placeholder={t('marketplace.enterAmount')}
                       value={expectedSalaryAmount}
@@ -850,9 +858,9 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
                     />
                   </div>
                   <div>
-                    <Label>{t('marketplace.currency')}</Label>
+                    <Label htmlFor="mp-salary-currency">{t('marketplace.currency')}</Label>
                     <Select value={expectedSalaryCurrency} onValueChange={setExpectedSalaryCurrency}>
-                      <SelectTrigger>
+                      <SelectTrigger id="mp-salary-currency">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent side="bottom" align="start" sideOffset={4}>
