@@ -1636,4 +1636,10 @@ export default {
   'notify.dialog.desc': 'E-Mail-Benachrichtigungen erhalten, wenn neue Anzeigen erscheinen für:',
   'notify.dialog.email': 'E-Mail-Adresse',
   'notify.dialog.confirm': 'Abonnieren',
+
+  // 404 Not Found
+  'notFound.title': 'Seite nicht gefunden',
+  'notFound.description': 'Die gesuchte Seite existiert nicht oder wurde verschoben.',
+  'notFound.home': 'Startseite',
+  'notFound.findPros': 'Fachleute finden',
 } as const;

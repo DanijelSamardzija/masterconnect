@@ -1640,4 +1640,10 @@ export default {
   'notify.dialog.desc': 'Receive email notifications when new listings appear for:',
   'notify.dialog.email': 'Email address',
   'notify.dialog.confirm': 'Subscribe',
+
+  // 404 Not Found
+  'notFound.title': 'Page Not Found',
+  'notFound.description': "The page you're looking for doesn't exist or has been moved.",
+  'notFound.home': 'Home',
+  'notFound.findPros': 'Find Pros',
 } as const;

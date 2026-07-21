@@ -1640,4 +1640,10 @@ export default {
   'notify.dialog.desc': 'Primaj email obavještenja kada se pojave novi oglasi za:',
   'notify.dialog.email': 'Email adresa',
   'notify.dialog.confirm': 'Pretplati se',
+
+  // 404 Not Found
+  'notFound.title': 'Stranica nije pronađena',
+  'notFound.description': 'Stranica koju tražiš ne postoji ili je premještena.',
+  'notFound.home': 'Početna',
+  'notFound.findPros': 'Pronađi majstore',
 } as const;
