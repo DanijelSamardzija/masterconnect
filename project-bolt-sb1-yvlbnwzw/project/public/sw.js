@@ -1,46 +1,34 @@
-const CACHE_VERSION = '2026-05-14-v15-badge-bigG';
-const CACHE_NAME = `majstor-servis-v${CACHE_VERSION}`;
+const CACHE_VERSION = '2026-07-21-v16';
+const CACHE_NAME = `gigzone-v${CACHE_VERSION}`;
 const urlsToCache = [
   '/',
   '/feed',
-  '/discover',
   '/messages',
-  '/profile',
   '/manifest.json',
   '/icon.svg',
 ];
 
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing new service worker version:', CACHE_VERSION);
   self.skipWaiting();
 
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('[SW] Pre-caching important routes');
-        return cache.addAll(urlsToCache);
-      })
+      .then((cache) => cache.addAll(urlsToCache))
       .catch(err => console.error('[SW] Install failed:', err))
   );
 });
 
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating new service worker version:', CACHE_VERSION);
-
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
-            console.log('[SW] Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
-    }).then(() => {
-      console.log('[SW] Claiming all clients');
-      return self.clients.claim();
-    })
+    }).then(() => self.clients.claim())
   );
 });
 
@@ -58,18 +46,13 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Don't intercept API routes - they have authentication headers that change
-  // IMPORTANT: Always fetch fresh data for /api/posts (feed)
   if (url.pathname.startsWith('/api/')) {
-    console.log('[SW] Network-only for API route:', url.pathname);
     event.respondWith(
       fetch(event.request)
-        .catch(err => {
-          console.error('[SW] API fetch failed:', err);
-          return new Response(JSON.stringify({ error: 'Network error' }), {
-            status: 503,
-            headers: { 'Content-Type': 'application/json' }
-          });
-        })
+        .catch(() => new Response(JSON.stringify({ error: 'Network error' }), {
+          status: 503,
+          headers: { 'Content-Type': 'application/json' }
+        }))
     );
     return;
   }
@@ -89,7 +72,6 @@ self.addEventListener('fetch', (event) => {
       .catch(() => {
         return caches.match(event.request).then((cachedResponse) => {
           if (cachedResponse) {
-            console.log('[SW] Serving from cache (offline):', event.request.url);
             return cachedResponse;
           }
 
@@ -134,7 +116,7 @@ self.addEventListener('notificationclick', (event) => {
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
-        if ('focus' in client) return client.focus();
+        if (client.url === url && 'focus' in client) return client.focus();
       }
       if (clients.openWindow) return clients.openWindow(url);
     })

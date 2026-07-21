@@ -1,8 +1,11 @@
 {
+  "id": "/",
+  "scope": "/",
+  "lang": "sr",
   "name": "GigZone",
   "short_name": "GigZone",
   "description": "Platforma za pronalaženje majstora i poslova",
-  "start_url": "/?v=2025-02-25-landing-light",
+  "start_url": "/feed",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
