@@ -410,7 +410,7 @@ function AdminContent() {
 
       const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0);
       const weekStart = new Date(now); weekStart.setDate(now.getDate() - 7);
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 
       // Exact year range
       const chosenYearStart = new Date(`${targetYear}-01-01T00:00:00.000Z`);
@@ -426,7 +426,7 @@ function AdminContent() {
         { data: countryProfiles },
         { data: daily7 },
         { data: monthlyActiveRpc },
-        { data: yearlyProfiles },
+        { data: monthlyNewRpc },
         { data: signupSourceData },
         { data: utmSourceData },
         { data: daily30Profiles },
@@ -453,7 +453,11 @@ function AdminContent() {
           year_start: chosenYearStart.toISOString(),
           year_end:   chosenYearEnd.toISOString(),
         }),
-        supabase.from('profiles').select('created_at').gte('created_at', chosenYearStart.toISOString()).lt('created_at', chosenYearEnd.toISOString()).limit(10000),
+        // Monthly new users via RPC — avoids row limit truncation
+        supabase.rpc('get_monthly_new_users', {
+          year_start: chosenYearStart.toISOString(),
+          year_end:   chosenYearEnd.toISOString(),
+        }),
         // Signup sources
         supabase.from('profiles').select('signup_source').not('signup_source', 'is', null),
         // UTM sources
@@ -507,15 +511,14 @@ function AdminContent() {
       const mau = Number(counts.mau ?? 0);
       const yau = Number(counts.yau ?? 0);
 
-      // Monthly new users — svih 12 mjeseci odabrane godine
+      // Monthly new users — from RPC (no row limit issues)
       const monthlyNewMap: Record<string, number> = {};
       for (let m = 0; m < 12; m++) {
         const key = `${targetYear}-${String(m + 1).padStart(2, '0')}`;
         monthlyNewMap[key] = 0;
       }
-      for (const p of yearlyProfiles || []) {
-        const key = (p.created_at as string).slice(0, 7);
-        if (key in monthlyNewMap) monthlyNewMap[key]++;
+      for (const r of (monthlyNewRpc as any[] || [])) {
+        if (r.month in monthlyNewMap) monthlyNewMap[r.month] = Number(r.count);
       }
       const monthlyNewUsers = Object.entries(monthlyNewMap).map(([month, count]) => ({ month, count }));
 
