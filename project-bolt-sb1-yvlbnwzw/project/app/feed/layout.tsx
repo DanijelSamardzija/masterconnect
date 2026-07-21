@@ -14,6 +14,18 @@ export const metadata: Metadata = {
     url: 'https://www.gigzone.app/feed',
     siteName: 'GigZone',
     type: 'website',
+    images: [
+      {
+        url: 'https://www.gigzone.app/icon-512.png',
+        width: 512,
+        height: 512,
+        alt: 'GigZone logo',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary',
+    images: ['https://www.gigzone.app/icon-512.png'],
   },
 };
 
