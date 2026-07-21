@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
@@ -1278,10 +1279,12 @@ export function ProfileView({
                     >
                       {post.media && post.media.length > 0 ? (
                         post.media[0].type === 'image' ? (
-                          <img
+                          <Image
+                            fill
                             src={post.media[0].url}
-                            alt="Post"
-                            className="absolute inset-0 w-full h-full object-cover"
+                            alt={(post.text || '').slice(0, 80) || 'GigZone post'}
+                            className="object-cover"
+                            sizes="(max-width: 768px) calc(50vw - 24px), calc(33vw - 24px)"
                           />
                         ) : (
                           <>
@@ -1544,7 +1547,7 @@ export function ProfileView({
                                   {post.media.map((media: PostMedia) => (
                                     <div key={media.id} className="relative aspect-[4/3] rounded-xl overflow-hidden bg-black">
                                       {media.type === 'image' ? (
-                                        <img src={media.url} alt="Post media" className="w-full h-full object-cover" />
+                                        <Image fill src={media.url} alt="Post media" className="object-cover" sizes="(max-width: 768px) calc(33vw - 16px), 280px" />
                                       ) : (
                                         <video src={media.url} className="w-full h-full object-cover" />
                                       )}
@@ -1749,7 +1752,7 @@ export function ProfileView({
                                       {post.media.map((media: PostMedia) => (
                                         <div key={media.id} className="relative aspect-[4/3] rounded-xl overflow-hidden bg-black">
                                           {media.type === 'image' ? (
-                                            <img src={media.url} alt="Portfolio media" className="w-full h-full object-cover" />
+                                            <Image fill src={media.url} alt="Portfolio media" className="object-cover" sizes="(max-width: 768px) calc(33vw - 16px), 280px" />
                                           ) : (
                                             <video src={media.url} className="w-full h-full object-cover" />
                                           )}
@@ -1894,7 +1897,7 @@ export function ProfileView({
                                       {post.media.map((media: PostMedia) => (
                                         <div key={media.id} className="relative aspect-[4/3] rounded-xl overflow-hidden bg-black">
                                           {media.type === 'image' ? (
-                                            <img src={media.url} alt="Job media" className="w-full h-full object-cover" />
+                                            <Image fill src={media.url} alt="Job media" className="object-cover" sizes="(max-width: 768px) calc(33vw - 16px), 280px" />
                                           ) : (
                                             <video src={media.url} className="w-full h-full object-cover" />
                                           )}
@@ -2065,7 +2068,7 @@ export function ProfileView({
                       >
                         {post.media && post.media.length > 0 ? (
                           post.media[0].type === 'image' ? (
-                            <img src={post.media[0].url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                            <Image fill src={post.media[0].url} alt="" className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 768px) calc(50vw - 24px), calc(33vw - 24px)" />
                           ) : (
                             <video src={post.media[0].url} className="w-full h-full object-cover" muted playsInline />
                           )
@@ -2102,9 +2105,9 @@ export function ProfileView({
                         className="flex gap-3 p-3 rounded-2xl border border-border bg-card hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer"
                         onClick={() => router.push(`/services/${post.id}`)}
                       >
-                        <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted flex-shrink-0">
+                        <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-muted flex-shrink-0">
                           {post.media && post.media.length > 0 ? (
-                            <img src={post.media[0].url} alt="" className="w-full h-full object-cover" />
+                            <Image fill src={post.media[0].url} alt="" className="object-cover" sizes="64px" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-2xl">🔧</div>
                           )}
