@@ -51,15 +51,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .eq('status', 'open')
       .order('created_at', { ascending: false })
       .limit(2000),
-    // Professional profiles with a public /profile/[id] page
+    // All profiles with a public /profile/[id] page
     // profiles table has created_at but NOT updated_at
     supabase
       .from('profiles')
       .select('id, created_at')
-      .eq('account_type', 'professional')
       .not('name', 'is', null)
       .order('created_at', { ascending: false })
-      .limit(5000),
+      .limit(10000),
   ]);
 
   const postUrls: MetadataRoute.Sitemap = (allPostsRes.data || []).map((p) => ({
