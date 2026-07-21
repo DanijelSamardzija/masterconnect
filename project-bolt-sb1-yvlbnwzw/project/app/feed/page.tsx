@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
@@ -141,6 +142,7 @@ function FeedContent() {
   const [boostingPostId, setBoostingPostId] = useState<string | null>(null);
   const [boostTarget, setBoostTarget] = useState<{ postId: string; promotedUntil: string | null } | null>(null);
   const [boostBalance, setBoostBalance] = useState(0);
+  const [imageObjectFits, setImageObjectFits] = useState<Record<string, 'cover' | 'contain'>>({});
   const newestPostTimestamp = useRef<string | null>(null);
   const viewedPostIds = useRef<Set<string>>(new Set());
   const justCreatedRef = useRef(false);
@@ -923,17 +925,19 @@ function FeedContent() {
                   videoRef={el => { if (el) videoRefs.current[`${post.id}-${currentIndex}`] = el; }}
                 />
               ) : (
-                <img
+                <Image
+                  fill
                   src={media.url}
                   alt={(post.text || '').slice(0, 80) || 'GigZone post'}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  onLoad={(e) => {
-                    if (window.innerWidth >= 768) {
-                      const img = e.currentTarget;
-                      const ratio = img.naturalWidth / img.naturalHeight;
-                      img.style.objectFit = ratio > 0.75 ? 'contain' : 'cover';
+                  style={{ objectFit: imageObjectFits[`${post.id}-${currentIndex}`] ?? 'cover' }}
+                  onLoadingComplete={({ naturalWidth, naturalHeight }) => {
+                    if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+                      const fit = naturalWidth / naturalHeight > 0.75 ? 'contain' : 'cover';
+                      setImageObjectFits(prev => ({ ...prev, [`${post.id}-${currentIndex}`]: fit }));
                     }
                   }}
+                  sizes="(max-width: 768px) calc(100vw - 16px), 448px"
+                  priority={postIndex === 0}
                   draggable={false}
                 />
               )}
