@@ -18,6 +18,7 @@ import { SharePostModal } from '@/components/share-post-modal';
 import { Loader2, Search, Filter, X, Bookmark, Share2, ArrowUpDown, Star, Clock, TrendingUp, Plus, Sparkles, Zap } from 'lucide-react';
 import { CreateMarketplacePostModal } from '@/components/create-marketplace-post-modal';
 import { NotifyMeButton } from '@/components/notify-me-button';
+import { BoostModal } from '@/components/boost-modal';
 import { toast } from 'sonner';
 
 export const revalidate = 0;
@@ -67,6 +68,8 @@ export function ServicesClient() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [sortBy, setSortBy] = useState<'rating' | 'newest' | 'price_asc' | 'price_desc'>('rating');
   const [boostingId, setBoostingId] = useState<string | null>(null);
+  const [boostTarget, setBoostTarget] = useState<{ postId: string; promotedUntil: string | null } | null>(null);
+  const [boostBalance, setBoostBalance] = useState(0);
 
   useEffect(() => {
     loadCategories();
@@ -303,25 +306,11 @@ export function ServicesClient() {
     e.stopPropagation();
     if (!user) return;
     setBoostingId(listingId);
-    try {
-      const { data, error } = await (supabase.rpc as any)('boost_post', { p_user_id: user.id, p_post_id: listingId });
-      if (error || !data?.ok) {
-        const err = data?.error || error?.message;
-        if (err === 'insufficient_balance') {
-          toast.error(t('credits.boost.insufficient').replace('{cost}', String(data?.cost ?? '')).replace('{balance}', String(data?.balance ?? '')));
-        } else {
-          toast.error('Greška pri boostu.');
-        }
-      } else {
-        const dateStr = data.promoted_until ? new Date(data.promoted_until).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
-        toast.success(t('credits.boost.successDate').replace('{date}', dateStr));
-        setListings(prev => prev.map(l => l.id === listingId ? { ...l, promoted_until: data.promoted_until } : l));
-      }
-    } catch {
-      toast.error('Greška pri boostu.');
-    } finally {
-      setBoostingId(null);
-    }
+    const { data: balData } = await supabase.from('credits_balance').select('balance').eq('user_id', user.id).maybeSingle();
+    const listing = listings.find(l => l.id === listingId);
+    setBoostBalance(balData?.balance ?? 0);
+    setBoostTarget({ postId: listingId, promotedUntil: (listing as any)?.promoted_until ?? null });
+    setBoostingId(null);
   };
 
   const handleSaveListing = async (e: React.MouseEvent, listingId: string) => {
@@ -531,6 +520,22 @@ export function ServicesClient() {
         urlPath={`/services/${shareModalPostId}`}
         open={!!shareModalPostId}
         onOpenChange={(open) => { if (!open) setShareModalPostId(null); }}
+      />
+    )}
+
+    {boostTarget && user && (
+      <BoostModal
+        open={!!boostTarget}
+        onClose={() => setBoostTarget(null)}
+        postId={boostTarget.postId}
+        isListing={true}
+        currentPromotedUntil={boostTarget.promotedUntil}
+        userId={user.id}
+        balance={boostBalance}
+        onSuccess={(newPromotedUntil) => {
+          setListings(prev => prev.map(l => l.id === boostTarget.postId ? { ...l, promoted_until: newPromotedUntil } : l));
+          setBoostTarget(null);
+        }}
       />
     )}
 

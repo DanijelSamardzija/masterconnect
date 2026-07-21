@@ -52,6 +52,7 @@ import {
   X,
 } from 'lucide-react';
 import { CommentsSheet } from '@/components/comments-sheet';
+import { BoostModal } from '@/components/boost-modal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   AlertDialog,
@@ -153,86 +154,6 @@ type ProfileViewProps = {
 };
 
 
-function BoostModal({
-  open, onClose, onConfirm, isListing, balance, loading, t,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  isListing: boolean;
-  balance: number | null;
-  loading: boolean;
-  t: (k: string) => string;
-}) {
-  const cost = isListing ? 25 : 15;
-  const days = isListing ? 7 : 3;
-  const hasBalance = balance !== null && balance >= cost;
-
-  return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-xs">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-base">
-            <Zap className="h-5 w-5 text-orange-500" />
-            {t('credits.boost.modal.title')}
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-3 mt-1">
-          {/* Plan card */}
-          <div className="rounded-xl border-2 border-orange-400 bg-orange-500/8 p-4 space-y-2.5">
-            <p className="text-sm font-semibold text-foreground">
-              {isListing ? t('credits.boost.modal.listingOption') : t('credits.boost.modal.feedOption')}
-            </p>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="rounded-lg bg-muted/50 px-3 py-2">
-                <p className="text-muted-foreground">{t('credits.boost.modal.cost')}</p>
-                <p className="font-bold text-orange-500 text-base mt-0.5">{cost} {t('credits.unit')}</p>
-              </div>
-              <div className="rounded-lg bg-muted/50 px-3 py-2">
-                <p className="text-muted-foreground">{t('credits.boost.modal.duration')}</p>
-                <p className="font-bold text-foreground text-base mt-0.5">{days} {isListing ? t('credits.boost.modal.days7').split(' ')[1] : t('credits.boost.modal.days3').split(' ')[1]}</p>
-              </div>
-            </div>
-            <div className="rounded-lg bg-muted/50 px-3 py-2 text-xs">
-              <p className="text-muted-foreground">{t('credits.boost.modal.effect')}</p>
-              <p className="font-medium text-foreground mt-0.5">{t('credits.boost.modal.effectDesc')}</p>
-            </div>
-          </div>
-
-          {/* Balance */}
-          <div className="flex items-center justify-between text-xs px-1">
-            <span className="text-muted-foreground">{t('credits.boost.modal.balance')}</span>
-            <span className={`font-semibold ${hasBalance ? 'text-foreground' : 'text-red-500'}`}>
-              {balance ?? '—'} {t('credits.unit')}
-            </span>
-          </div>
-
-          {!hasBalance && balance !== null && (
-            <p className="text-xs text-red-500 text-center">{t('credits.boost.modal.insufficient')} ({cost - balance} {t('credits.unit')} {t('credits.boost.modal.cost').toLowerCase()})</p>
-          )}
-
-          <div className="flex gap-2">
-            <button
-              onClick={onClose}
-              className="flex-1 rounded-xl border border-border py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted transition-colors"
-            >
-              {t('credits.boost.modal.cancel')}
-            </button>
-            <button
-              onClick={onConfirm}
-              disabled={loading || !hasBalance}
-              className="flex-1 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:opacity-40 text-white py-2.5 text-sm font-bold transition-all flex items-center justify-center gap-2"
-            >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
-              {t('credits.boost.modal.confirm')}
-            </button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) => string }) {
   const [balance, setBalance] = useState<number | null>(null);
@@ -584,8 +505,8 @@ export function ProfileView({
   const [commentsSheetPostId, setCommentsSheetPostId] = useState<string | null>(null);
   const [postToDelete, setPostToDelete] = useState<string | null>(null);
   const [boostingPostId, setBoostingPostId] = useState<string | null>(null);
-  const [boostModal, setBoostModal] = useState<{ postId: string; isListing: boolean } | null>(null);
-  const [boostBalance, setBoostBalance] = useState<number | null>(null);
+  const [boostModal, setBoostModal] = useState<{ postId: string; isListing: boolean; promotedUntil: string | null } | null>(null);
+  const [boostBalance, setBoostBalance] = useState<number>(0);
   const [supportModalOpen, setSupportModalOpen] = useState(false);
 
   useEffect(() => {
@@ -1144,42 +1065,23 @@ export function ProfileView({
 
   const handleBoostPost = async (e: React.MouseEvent, postId: string, isListing: boolean) => {
     e.stopPropagation();
-    if (!currentUserId || boostingPostId) return;
-    // Fetch current balance then open confirmation modal
+    if (!currentUserId) return;
     const { data: balData } = await supabase.from('credits_balance').select('balance').eq('user_id', currentUserId).maybeSingle();
+    const allPosts = [...posts, ...marketplacePosts, ...servicePosts, ...hiringPosts];
+    const post = allPosts.find(p => p.id === postId);
     setBoostBalance(balData?.balance ?? 0);
-    setBoostModal({ postId, isListing });
+    setBoostModal({ postId, isListing, promotedUntil: post?.promoted_until ?? null });
   };
 
-  const handleBoostConfirm = async () => {
-    if (!boostModal || !currentUserId) return;
-    const { postId, isListing } = boostModal;
-    setBoostingPostId(postId);
-    try {
-      const { data, error } = await (supabase.rpc as any)('boost_post', { p_user_id: currentUserId, p_post_id: postId });
-      if (error || !data?.ok) {
-        const err = data?.error || error?.message;
-        if (err === 'insufficient_balance') {
-          toast.error(t('credits.boost.insufficient').replace('{cost}', String(data?.cost ?? '')).replace('{balance}', String(data?.balance ?? '')));
-        } else {
-          toast.error(t('credits.boost.error'));
-        }
-      } else {
-        setBoostModal(null);
-        toast.success(isListing ? t('credits.boost.listingSuccess') : t('credits.boost.feedSuccess'));
-        const updater = (prev: Post[]) => prev.map(p => p.id === postId ? { ...p, promoted_until: data.promoted_until } : p);
-        setPosts(updater);
-        setMarketplacePosts(updater);
-        setServicePosts(updater);
-        setHiringPosts(updater);
-        setPortfolioPosts(updater);
-      }
-    } catch {
-      toast.error(t('credits.boost.error'));
-    } finally {
-      setBoostingPostId(null);
-    }
+  const handleBoostSuccess = (postId: string, newPromotedUntil: string) => {
+    setBoostModal(null);
+    const updater = (prev: Post[]) => prev.map(p => p.id === postId ? { ...p, promoted_until: newPromotedUntil } : p);
+    setPosts(updater);
+    setMarketplacePosts(updater);
+    setServicePosts(updater);
+    setHiringPosts(updater);
   };
+
 
   const handleSaveEdit = async () => {
     fetchPosts();
@@ -2456,15 +2358,18 @@ export function ProfileView({
         </AlertDialogContent>
       </AlertDialog>
 
-      <BoostModal
-        open={!!boostModal}
-        onClose={() => setBoostModal(null)}
-        onConfirm={handleBoostConfirm}
-        isListing={boostModal?.isListing ?? false}
-        balance={boostBalance}
-        loading={!!boostingPostId}
-        t={t}
-      />
+      {boostModal && currentUserId && (
+        <BoostModal
+          open={!!boostModal}
+          onClose={() => setBoostModal(null)}
+          postId={boostModal.postId}
+          isListing={boostModal.isListing}
+          currentPromotedUntil={boostModal.promotedUntil}
+          userId={currentUserId}
+          balance={boostBalance}
+          onSuccess={(newPromotedUntil) => handleBoostSuccess(boostModal.postId, newPromotedUntil)}
+        />
+      )}
 
       <SupportModal
         open={supportModalOpen}

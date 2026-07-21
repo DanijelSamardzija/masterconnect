@@ -33,6 +33,7 @@ import { EditPostModal } from '@/components/edit-post-modal';
 import { FeedMedia } from '@/components/FeedMedia';
 import { FollowButton } from '@/components/follow-button';
 import { SharePostModal } from '@/components/share-post-modal';
+import { BoostModal } from '@/components/boost-modal';
 import { usePageTracking } from '@/lib/hooks/use-page-tracking';
 import { useGuestGate } from '@/lib/contexts/guest-gate-context';
 import { GuestWall } from '@/components/guest-wall';
@@ -138,6 +139,8 @@ function FeedContent() {
   const [supportModalOpen, setSupportModalOpen] = useState(false);
   const [supportTarget, setSupportTarget] = useState<{ userId: string; name: string; isCreatorPremium: boolean } | null>(null);
   const [boostingPostId, setBoostingPostId] = useState<string | null>(null);
+  const [boostTarget, setBoostTarget] = useState<{ postId: string; promotedUntil: string | null } | null>(null);
+  const [boostBalance, setBoostBalance] = useState(0);
   const newestPostTimestamp = useRef<string | null>(null);
   const viewedPostIds = useRef<Set<string>>(new Set());
   const justCreatedRef = useRef(false);
@@ -482,25 +485,11 @@ function FeedContent() {
   const handleBoostPost = async (postId: string) => {
     if (!user) return;
     setBoostingPostId(postId);
-    try {
-      const { data, error } = await (supabase.rpc as any)('boost_post', { p_user_id: user.id, p_post_id: postId });
-      if (error || !data?.ok) {
-        const err = data?.error || error?.message;
-        if (err === 'insufficient_balance') {
-          toast.error(t('credits.boost.insufficient').replace('{cost}', String(data?.cost ?? '')).replace('{balance}', String(data?.balance ?? '')));
-        } else {
-          toast.error(t('credits.boost.error'));
-        }
-      } else {
-        const dateStr = data.promoted_until ? new Date(data.promoted_until).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
-        toast.success(t('credits.boost.successDate').replace('{date}', dateStr));
-        setPosts(prev => prev.map(p => p.id === postId ? { ...p, promoted_until: data.promoted_until } : p));
-      }
-    } catch {
-      toast.error('Greška pri boostu.');
-    } finally {
-      setBoostingPostId(null);
-    }
+    const { data: balData } = await supabase.from('credits_balance').select('balance').eq('user_id', user.id).maybeSingle();
+    const post = posts.find(p => p.id === postId);
+    setBoostBalance(balData?.balance ?? 0);
+    setBoostTarget({ postId, promotedUntil: post?.promoted_until ?? null });
+    setBoostingPostId(null);
   };
 
   const handleContact = async (targetUserId: string) => {
@@ -716,6 +705,22 @@ function FeedContent() {
       {reportTarget && <ReportModal open={reportModalOpen} onOpenChange={setReportModalOpen} targetType={reportTarget.type} targetId={reportTarget.id} targetOwnerUserId={reportTarget.userId} />}
 
       {shareModalPostId && <SharePostModal postId={shareModalPostId} open={!!shareModalPostId} onOpenChange={open => { if (!open) setShareModalPostId(null); }} />}
+
+      {boostTarget && user && (
+        <BoostModal
+          open={!!boostTarget}
+          onClose={() => setBoostTarget(null)}
+          postId={boostTarget.postId}
+          isListing={false}
+          currentPromotedUntil={boostTarget.promotedUntil}
+          userId={user.id}
+          balance={boostBalance}
+          onSuccess={(newPromotedUntil) => {
+            setPosts(prev => prev.map(p => p.id === boostTarget.postId ? { ...p, promoted_until: newPromotedUntil } : p));
+            setBoostTarget(null);
+          }}
+        />
+      )}
 
 
       {postToEdit && (

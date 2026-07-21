@@ -41,6 +41,7 @@ import { useGuestGate } from '@/lib/contexts/guest-gate-context';
 import { GuestWall } from '@/components/guest-wall';
 import { CreateMarketplacePostModal } from '@/components/create-marketplace-post-modal';
 import { SharePostModal } from '@/components/share-post-modal';
+import { BoostModal } from '@/components/boost-modal';
 import { CityAutocomplete, cyrillicToLatin } from '@/components/city-autocomplete';
 import { locationScore } from '@/lib/location-sort';
 import { CategoryCombobox } from '@/components/category-combobox';
@@ -964,6 +965,8 @@ function JobsMarketplaceContent() {
   const [selectedJobType, setSelectedJobType] = useState<'service_request' | 'job_seeker_post' | 'hiring_post' | 'service_listing' | null>(null);
   const [deleteConfirmPostId, setDeleteConfirmPostId] = useState<string | null>(null);
   const [boostingJobId, setBoostingJobId] = useState<string | null>(null);
+  const [boostTarget, setBoostTarget] = useState<{ postId: string; promotedUntil: string | null } | null>(null);
+  const [boostBalance, setBoostBalance] = useState(0);
   const [cityFilter, setCityFilter] = useState('');
   const [countryFilter, setCountryFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
@@ -1027,25 +1030,11 @@ function JobsMarketplaceContent() {
     e.stopPropagation();
     if (!user) return;
     setBoostingJobId(postId);
-    try {
-      const { data, error } = await (supabase.rpc as any)('boost_post', { p_user_id: user.id, p_post_id: postId });
-      if (error || !data?.ok) {
-        const err = data?.error || error?.message;
-        if (err === 'insufficient_balance') {
-          toast.error(t('credits.boost.insufficient').replace('{cost}', String(data?.cost ?? '')).replace('{balance}', String(data?.balance ?? '')));
-        } else {
-          toast.error('Greška pri boostu.');
-        }
-      } else {
-        const dateStr = data.promoted_until ? new Date(data.promoted_until).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
-        toast.success(t('credits.boost.successDate').replace('{date}', dateStr));
-        setPosts(prev => prev.map(p => p.id === postId ? { ...p, promoted_until: data.promoted_until } : p));
-      }
-    } catch {
-      toast.error('Greška pri boostu.');
-    } finally {
-      setBoostingJobId(null);
-    }
+    const { data: balData } = await supabase.from('credits_balance').select('balance').eq('user_id', user.id).maybeSingle();
+    const post = posts.find(p => p.id === postId);
+    setBoostBalance(balData?.balance ?? 0);
+    setBoostTarget({ postId, promotedUntil: post?.promoted_until ?? null });
+    setBoostingJobId(null);
   };
 
   const handleSaveJob = async (e: React.MouseEvent, postId: string) => {
@@ -2137,6 +2126,22 @@ function JobsMarketplaceContent() {
           postId={shareModalPostId}
           open={!!shareModalPostId}
           onOpenChange={(open) => { if (!open) setShareModalPostId(null); }}
+        />
+      )}
+
+      {boostTarget && user && (
+        <BoostModal
+          open={!!boostTarget}
+          onClose={() => setBoostTarget(null)}
+          postId={boostTarget.postId}
+          isListing={true}
+          currentPromotedUntil={boostTarget.promotedUntil}
+          userId={user.id}
+          balance={boostBalance}
+          onSuccess={(newPromotedUntil) => {
+            setPosts(prev => prev.map(p => p.id === boostTarget.postId ? { ...p, promoted_until: newPromotedUntil } : p));
+            setBoostTarget(null);
+          }}
         />
       )}
 
