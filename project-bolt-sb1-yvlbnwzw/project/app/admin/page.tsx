@@ -382,8 +382,8 @@ function AdminContent() {
       { count: messages },
     ] = await Promise.all([
       supabase.from('profiles').select('*', { count: 'exact', head: true }),
-      supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_pro', true),
-      supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_pro', false),
+      supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_premium', true),
+      supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_premium', false),
       supabase.from('posts').select('*', { count: 'exact', head: true }),
       supabase.from('reports').select('*', { count: 'exact', head: true }),
       supabase.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'open'),
