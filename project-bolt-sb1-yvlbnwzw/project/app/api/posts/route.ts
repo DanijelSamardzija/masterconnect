@@ -234,20 +234,18 @@ export async function GET(request: NextRequest) {
       return acc;
     }, {} as Record<string, { average_rating: number; review_count: number }>);
 
-    // Fetch is_pro + is_premium for all post authors
+    // Fetch is_premium for all post authors
     const allUserIds = [...new Set([
       ...(postsData?.map(p => p.user_id) || []),
       ...promotedPostsData.map(p => p.user_id),
     ])];
-    const isProMap: Record<string, boolean> = {};
     const isPremiumMap: Record<string, boolean> = {};
     if (allUserIds.length > 0) {
       const { data: premiumData } = await supabase
         .from('profiles')
-        .select('id, is_pro, is_premium')
+        .select('id, is_premium')
         .in('id', allUserIds);
       for (const row of (premiumData || [])) {
-        isProMap[row.id] = row.is_pro ?? false;
         isPremiumMap[row.id] = row.is_premium ?? false;
       }
     }
@@ -296,7 +294,6 @@ export async function GET(request: NextRequest) {
         account_type: post.user_account_type,
         avatar_url: post.user_avatar_url,
         country: post.user_country || null,
-        is_pro: isProMap[post.user_id] ?? false,
         is_premium: isPremiumMap[post.user_id] ?? false,
         ...(reviewStats[post.user_id] || {})
       }
