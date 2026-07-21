@@ -759,6 +759,18 @@ function DashboardContent() {
             {isPro ? (
               <>
                 <button
+                  onClick={() => setShowTypePicker(true)}
+                  className="bg-orange-500 hover:bg-orange-600 text-white rounded-2xl px-4 py-3.5 flex items-center gap-3 transition-colors text-left"
+                >
+                  <div className="p-2 bg-white/20 rounded-xl">
+                    <Plus className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold">{t('dashboard.postAd')}</p>
+                    <p className="text-xs text-white/80">{t('dashboard.postAdDesc')}</p>
+                  </div>
+                </button>
+                <button
                   onClick={() => router.push('/feed')}
                   className="bg-card border border-border rounded-2xl px-4 py-3.5 flex items-center gap-3 hover:border-orange-400/50 hover:bg-accent transition-colors text-left"
                 >
@@ -768,18 +780,6 @@ function DashboardContent() {
                   <div>
                     <p className="text-sm font-semibold text-foreground">Feed</p>
                     <p className="text-xs text-muted-foreground">{t('dashboard.feedDesc')}</p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => router.push('/jobs')}
-                  className="bg-card border border-border rounded-2xl px-4 py-3.5 flex items-center gap-3 hover:border-orange-400/50 hover:bg-accent transition-colors text-left"
-                >
-                  <div className="p-2 bg-blue-100 dark:bg-blue-950 rounded-xl">
-                    <Briefcase className="h-4 w-4 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{t('dashboard.browseJobs')}</p>
-                    <p className="text-xs text-muted-foreground">{t('dashboard.browseJobsShortDesc')}</p>
                   </div>
                 </button>
                 <button
