@@ -382,8 +382,8 @@ function AdminContent() {
       { count: messages },
     ] = await Promise.all([
       supabase.from('profiles').select('*', { count: 'exact', head: true }),
-      supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('account_type', 'professional'),
-      supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('account_type', 'customer'),
+      supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_pro', true),
+      supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_pro', false),
       supabase.from('posts').select('*', { count: 'exact', head: true }),
       supabase.from('reports').select('*', { count: 'exact', head: true }),
       supabase.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'open'),
@@ -396,7 +396,7 @@ function AdminContent() {
       posts: posts || 0,
       reports: reports || 0,
       openReports: openReports || 0,
-      messages: messages || 0, // reusing field for threads count
+      messages: messages || 0,
     });
   };
 
@@ -1229,8 +1229,8 @@ function AdminContent() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { label: 'Ukupno korisnika', value: stats.users, icon: Users, color: 'text-blue-500' },
-              { label: 'Profesionalci', value: stats.professionals, icon: UserCheck, color: 'text-orange-500' },
-              { label: 'Klijenti', value: stats.customers, icon: Users, color: 'text-cyan-500' },
+              { label: 'PRO korisnici', value: stats.professionals, icon: Crown, color: 'text-orange-500' },
+              { label: 'Besplatni', value: stats.customers, icon: Users, color: 'text-cyan-500' },
               { label: 'Postovi', value: stats.posts, icon: FileText, color: 'text-purple-500' },
               { label: 'Razgovori', value: stats.messages, icon: MessageSquare, color: 'text-green-500' },
               { label: 'Svi reportovi', value: stats.reports, icon: AlertTriangle, color: 'text-yellow-500' },
