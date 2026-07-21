@@ -362,23 +362,14 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
         {!isCreatorPremium && (
           <div className="border-t border-orange-300/20 px-4 py-3">
             <p className="text-xs font-semibold text-foreground mb-2">🔶 PRO Premium</p>
-            <ul className="space-y-1 mb-3">
-              {([
-                { key: 'verifiedBadge', soon: false },
-                { key: 'receiveSupport', soon: false },
-                { key: 'moreTrust', soon: false },
-                { key: 'analytics', soon: true },
-                { key: 'futureBenefits', soon: false },
-              ] as { key: string; soon: boolean }[]).map(({ key, soon }) => (
-                <li key={key} className="flex items-center gap-1.5">
-                  <Check className={`h-3 w-3 shrink-0 ${soon ? 'text-muted-foreground/50' : 'text-orange-500'}`} />
-                  <span className={`text-[11px] ${soon ? 'text-muted-foreground/50' : 'text-muted-foreground'}`}>
-                    {t(`credits.creatorPremium.benefits.${key}`)}
-                    {soon && <span className="ml-1 text-[10px] italic">{t('credits.creatorPremium.comingSoon')}</span>}
-                  </span>
-                </li>
+            <div className="flex flex-wrap gap-1 mb-3">
+              {(['verifiedBadge', 'receiveSupport', 'moreTrust', 'analytics', 'futureBenefits'] as const).map((key) => (
+                <span key={key} className="inline-flex items-center gap-0.5 text-[10px] bg-orange-500/10 text-orange-700 dark:text-orange-300 rounded-full px-2 py-0.5">
+                  <Check className="h-2.5 w-2.5 shrink-0" />
+                  {t(`credits.creatorPremium.benefits.${key}`)}
+                </span>
               ))}
-            </ul>
+            </div>
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-bold text-foreground">500 {t('credits.unit')}</p>
