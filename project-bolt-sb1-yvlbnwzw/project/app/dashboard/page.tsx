@@ -593,6 +593,51 @@ function DashboardContent() {
           </div>
         )}
 
+        {/* Rating widget for free users */}
+        {!isPremium && profile?.account_type !== 'customer' && (
+          <div className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-1">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1.5">
+                <Star className="h-4 w-4 text-yellow-400" />
+                <span className="text-xs font-semibold text-muted-foreground">{t('dashboard.rating')}</span>
+              </div>
+              {reviews.length > 0 && (
+                <button onClick={() => setAllReviewsOpen(true)} className="text-[10px] text-orange-500 hover:text-orange-600 font-semibold">Pogledaj sve →</button>
+              )}
+            </div>
+            {avgRating ? (
+              <>
+                <p className="text-3xl font-bold text-foreground">{avgRating}</p>
+                <p className="text-xs text-muted-foreground">{reviews.length} {t('dashboard.reviews')}</p>
+              </>
+            ) : (
+              <>
+                <p className="text-3xl font-bold text-muted-foreground/30">—</p>
+                <p className="text-xs text-muted-foreground">{t('dashboard.noReviewsYet')}</p>
+              </>
+            )}
+            {reviews.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-border space-y-2">
+                {reviews.slice(0, 2).map(review => (
+                  <div key={review.id} className="space-y-0.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-semibold text-foreground truncate">{review.profiles.name}</span>
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className={`h-2.5 w-2.5 ${i < review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-muted'}`} />
+                        ))}
+                      </div>
+                    </div>
+                    {review.comment?.trim() && (
+                      <p className="text-[10px] text-muted-foreground line-clamp-1">{review.comment}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Analytics modal */}
         {/* Donations dialog */}
         <Dialog open={donationsOpen} onOpenChange={setDonationsOpen}>
