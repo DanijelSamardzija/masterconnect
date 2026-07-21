@@ -65,6 +65,29 @@ export const metadata: Metadata = {
   },
 };
 
+const organizationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  '@id': 'https://www.gigzone.app/#organization',
+  name: 'GigZone',
+  url: 'https://www.gigzone.app',
+  logo: {
+    '@type': 'ImageObject',
+    url: 'https://www.gigzone.app/icon-512.png',
+    width: 512,
+    height: 512,
+  },
+  description: 'Marketplace koji povezuje majstore, pružaoce usluga i tražioce poslova u ex-YU zajednici u zemlji i dijaspori.',
+};
+
+const websiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  '@id': 'https://www.gigzone.app/#website',
+  name: 'GigZone',
+  url: 'https://www.gigzone.app',
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -86,6 +109,8 @@ export default function RootLayout({
         ` }} />
       </head>
       <body className={`${inter.className} flex flex-col h-dvh bg-background text-foreground`}>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
         <LanguageProvider>
           <AuthProvider>
             <PostHogProvider>

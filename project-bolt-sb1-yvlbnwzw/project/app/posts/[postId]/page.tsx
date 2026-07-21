@@ -1,10 +1,11 @@
+import { cache } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Metadata } from 'next';
 import { SinglePostClient } from './post-client';
 
 type Props = { params: { postId: string } };
 
-async function fetchPostMeta(postId: string) {
+const fetchPostMeta = cache(async (postId: string) => {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -12,12 +13,12 @@ async function fetchPostMeta(postId: string) {
 
   const { data } = await supabase
     .from('posts')
-    .select('id, text, job_title, post_type, author:profiles!posts_user_id_fkey(name)')
+    .select('id, text, job_title, post_type, city, created_at, author:profiles!posts_user_id_fkey(name)')
     .eq('id', postId)
     .maybeSingle();
 
   return data;
-}
+});
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await fetchPostMeta(params.postId);
@@ -33,7 +34,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     data.post_type === 'portfolio_post'   ? 'Portfolio' :
     'Objava';
 
-  // Prefer job_title (set on hiring/service posts), then text snippet, then typeLabel
   const headlineText = (data as any).job_title || (data.text || '').slice(0, 60) || typeLabel;
   const title = `${name} – ${headlineText} | GigZone`;
 
@@ -65,6 +65,41 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function SinglePostPage() {
-  return <SinglePostClient />;
+export default async function SinglePostPage({ params }: Props) {
+  const data = await fetchPostMeta(params.postId);
+
+  const jsonLd = data?.post_type === 'hiring_post' ? {
+    '@context': 'https://schema.org',
+    '@type': 'JobPosting',
+    title: (data as any).job_title || (data.text || '').slice(0, 100) || 'Oglas za posao',
+    description: data.text || (data as any).job_title || 'Oglas za posao na GigZone platformi.',
+    datePosted: (data as any).created_at,
+    hiringOrganization: {
+      '@type': 'Organization',
+      name: 'GigZone',
+      sameAs: 'https://www.gigzone.app',
+    },
+    url: `https://www.gigzone.app/posts/${data.id}`,
+    ...((data as any).city ? {
+      jobLocation: {
+        '@type': 'Place',
+        address: {
+          '@type': 'PostalAddress',
+          addressLocality: (data as any).city,
+        },
+      },
+    } : {}),
+  } : null;
+
+  return (
+    <>
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
+      <SinglePostClient />
+    </>
+  );
 }

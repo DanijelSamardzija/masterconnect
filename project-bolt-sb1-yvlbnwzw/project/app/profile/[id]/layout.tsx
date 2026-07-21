@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import type { Metadata } from 'next';
 import { createClient } from '@supabase/supabase-js';
 
@@ -6,7 +7,7 @@ type Props = {
   children: React.ReactNode;
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+const fetchProfileMeta = cache(async (id: string) => {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -14,9 +15,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const { data } = await supabase
     .from('profiles')
-    .select('id, name, bio, city, category, account_type, avatar_url, average_rating, review_count')
-    .eq('id', params.id)
+    .select('id, name, bio, city, category, is_premium, avatar_url, average_rating, review_count')
+    .eq('id', id)
     .single();
+
+  return data;
+});
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const data = await fetchProfileMeta(params.id);
 
   if (!data) {
     return {
@@ -25,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const isPro = data.account_type === 'professional';
+  const isPro = data.is_premium === true;
   const title = isPro
     ? `${data.name} — ${data.category ?? 'Profesionalac'} | GigZone`
     : `${data.name} | GigZone`;
@@ -66,6 +73,35 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function ProfileLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+export default async function ProfileLayout({ children, params }: Props) {
+  const data = await fetchProfileMeta(params.id);
+
+  const jsonLd = data ? {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    '@id': `https://www.gigzone.app/profile/${params.id}`,
+    name: data.name,
+    url: `https://www.gigzone.app/profile/${params.id}`,
+    ...(data.avatar_url ? { image: data.avatar_url } : {}),
+    ...(data.bio ? { description: data.bio.slice(0, 200).replace(/\n/g, ' ') } : {}),
+    ...(data.is_premium && data.category ? { jobTitle: data.category } : {}),
+    ...(data.city ? {
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: data.city,
+      },
+    } : {}),
+  } : null;
+
+  return (
+    <>
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
+      {children}
+    </>
+  );
 }
