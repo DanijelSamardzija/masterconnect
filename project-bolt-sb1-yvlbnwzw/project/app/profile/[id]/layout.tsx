@@ -1,4 +1,5 @@
 import { cache } from 'react';
+import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { createClient } from '@supabase/supabase-js';
 
@@ -24,13 +25,7 @@ const fetchProfileMeta = cache(async (id: string) => {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await fetchProfileMeta(params.id);
-
-  if (!data) {
-    return {
-      title: 'Profil — GigZone',
-      description: 'Pogledajte profil na GigZone platformi.',
-    };
-  }
+  if (!data) notFound();
 
   const isPro = data.is_premium === true;
   const title = isPro
@@ -75,8 +70,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProfileLayout({ children, params }: Props) {
   const data = await fetchProfileMeta(params.id);
+  if (!data) notFound();
 
-  const jsonLd = data ? {
+  const personJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Person',
     '@id': `https://www.gigzone.app/profile/${params.id}`,
@@ -86,21 +82,24 @@ export default async function ProfileLayout({ children, params }: Props) {
     ...(data.bio ? { description: data.bio.slice(0, 200).replace(/\n/g, ' ') } : {}),
     ...(data.is_premium && data.category ? { jobTitle: data.category } : {}),
     ...(data.city ? {
-      address: {
-        '@type': 'PostalAddress',
-        addressLocality: data.city,
-      },
+      address: { '@type': 'PostalAddress', addressLocality: data.city },
     } : {}),
-  } : null;
+  };
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'GigZone', item: 'https://www.gigzone.app' },
+      { '@type': 'ListItem', position: 2, name: 'Profili', item: 'https://www.gigzone.app' },
+      { '@type': 'ListItem', position: 3, name: data.name },
+    ],
+  };
 
   return (
     <>
-      {jsonLd && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-      )}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       {children}
     </>
   );

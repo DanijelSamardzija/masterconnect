@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import { ServiceDetailClient } from './service-detail-client';
 
@@ -48,6 +49,7 @@ async function fetchService(serviceId: string) {
 
 export default async function ServiceDetailPage({ params }: Props) {
   const data = await fetchService(params.serviceId);
+  if (!data) notFound();
   const profile = (data as any)?.profiles as any;
 
   const jsonLd = data ? {

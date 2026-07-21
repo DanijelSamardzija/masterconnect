@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import { JobDetailsClient } from './job-details-client';
 
@@ -20,8 +21,9 @@ async function fetchJob(id: string) {
 
 export default async function JobDetailsPage({ params }: Props) {
   const data = await fetchJob(params.id);
+  if (!data) notFound();
 
-  const jsonLd = data ? {
+  const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'JobPosting',
     title: data.title,
@@ -50,16 +52,14 @@ export default async function JobDetailsPage({ params }: Props) {
       },
     } : undefined,
     url: `https://www.gigzone.app/jobs/${data.id}`,
-  } : null;
+  };
 
   return (
     <>
-      {jsonLd && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-      )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <JobDetailsClient jobId={params.id} initialData={data as any} />
     </>
   );
