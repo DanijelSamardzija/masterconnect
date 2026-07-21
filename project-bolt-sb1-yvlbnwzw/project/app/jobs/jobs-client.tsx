@@ -1755,7 +1755,7 @@ function JobsMarketplaceContent() {
                                 const boostActive = !!post.promoted_until && new Date(post.promoted_until) > new Date();
                                 const fmtDate = (d: string) => new Date(d).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' });
                                 const title = boostActive
-                                  ? `${t('credits.boost.activeUntil').replace('{date}', fmtDate(post.promoted_until!))} · ${t('credits.boost.extendInfo').replace('{days}', '7').replace('{cost}', '140')}`
+                                  ? `${t('credits.boost.activeUntil').replace('{date}', fmtDate(post.promoted_until!))} · ${t('credits.boost.extendInfo')}`
                                   : t('credits.boost.tooltipListing');
                                 return (
                                   <button
