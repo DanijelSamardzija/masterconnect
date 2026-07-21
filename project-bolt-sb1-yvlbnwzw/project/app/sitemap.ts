@@ -43,19 +43,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .neq('status', 'deleted')
       .limit(1000),
     // Jobs from the jobs table have their own /jobs/[id] detail page
+    // jobs.status values: 'open' | 'closed' | 'completed' — no 'deleted' value exists
+    // jobs table has created_at but NOT updated_at
     supabase
       .from('jobs')
-      .select('id, updated_at')
-      .neq('status', 'deleted')
-      .order('updated_at', { ascending: false })
+      .select('id, created_at')
+      .eq('status', 'open')
+      .order('created_at', { ascending: false })
       .limit(2000),
     // Professional profiles with a public /profile/[id] page
+    // profiles table has created_at but NOT updated_at
     supabase
       .from('profiles')
-      .select('id, updated_at')
+      .select('id, created_at')
       .eq('account_type', 'professional')
       .not('name', 'is', null)
-      .order('updated_at', { ascending: false })
+      .order('created_at', { ascending: false })
       .limit(5000),
   ]);
 
@@ -75,14 +78,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const jobUrls: MetadataRoute.Sitemap = (jobsRes.data || []).map((j) => ({
     url: `${BASE}/jobs/${j.id}`,
-    lastModified: new Date(j.updated_at),
+    lastModified: new Date(j.created_at),
     changeFrequency: 'weekly' as const,
     priority: 0.8,
   }));
 
   const profileUrls: MetadataRoute.Sitemap = (profilesRes.data || []).map((p) => ({
     url: `${BASE}/profile/${p.id}`,
-    lastModified: new Date(p.updated_at),
+    lastModified: new Date(p.created_at),
     changeFrequency: 'weekly' as const,
     priority: 0.6,
   }));
