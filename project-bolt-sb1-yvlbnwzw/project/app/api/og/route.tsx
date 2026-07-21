@@ -20,14 +20,14 @@ export async function GET(request: NextRequest) {
       );
       const { data } = await supabase
         .from('posts')
-        .select('text, post_type, author:profiles!posts_user_id_fkey(name)')
+        .select('text, job_title, post_type, author:profiles!posts_user_id_fkey(name)')
         .eq('id', postId)
         .maybeSingle();
 
       if (data) {
         const author = Array.isArray(data.author) ? data.author[0] : data.author;
         authorName = (author as any)?.name || 'GigZone korisnik';
-        postText = (data.text || '').slice(0, 120);
+        postText = ((data as any).job_title || (data.text || '')).slice(0, 120);
         typeLabel =
           data.post_type === 'job_seeker_post' ? 'Tražim posao' :
           data.post_type === 'hiring_post' ? 'Tražim radnika' :

@@ -918,14 +918,14 @@ function FeedContent() {
                 <FeedMedia
                   type="video"
                   src={media.url}
-                  alt="Post"
+                  alt={(post.text || '').slice(0, 80) || 'GigZone post'}
                   isMuted={isGlobalMuted}
                   videoRef={el => { if (el) videoRefs.current[`${post.id}-${currentIndex}`] = el; }}
                 />
               ) : (
                 <img
                   src={media.url}
-                  alt="Post"
+                  alt={(post.text || '').slice(0, 80) || 'GigZone post'}
                   className="absolute inset-0 w-full h-full object-cover"
                   onLoad={(e) => {
                     if (window.innerWidth >= 768) {

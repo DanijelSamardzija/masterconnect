@@ -318,7 +318,7 @@ export function Navigation() {
               isPublicPage && !isLandingPage ? 'text-slate-900' : 'text-white'
             }`}
           >
-            <img src="/icon.svg" alt="G" className="h-9 w-9 rounded-xl shadow-md" />
+            <img src="/icon.svg" alt="GigZone" className="h-9 w-9 rounded-xl shadow-md" />
             <span className="tracking-tight">{t('site.name')}</span>
           </Link>
 
@@ -575,7 +575,7 @@ export function Navigation() {
               <SheetContent side="right" className="w-[300px] sm:w-[400px] overflow-y-auto bg-background">
                 <SheetHeader>
                   <SheetTitle className="flex items-center gap-2.5">
-                    <img src="/icon.svg" alt="G" className="h-8 w-8 rounded-xl shadow-sm" />
+                    <img src="/icon.svg" alt="GigZone" className="h-8 w-8 rounded-xl shadow-sm" />
                     {t('site.name')}
                   </SheetTitle>
                 </SheetHeader>

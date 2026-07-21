@@ -352,7 +352,7 @@ function SinglePostContent() {
             ) : (
               <img
                 src={currentMedia.url}
-                alt="Post media"
+                alt={post.job_title || (post.text || '').slice(0, 80) || 'GigZone post'}
                 className="w-full h-auto max-h-[80vh] object-contain"
               />
             )}
@@ -524,7 +524,7 @@ function SinglePostContent() {
                     {post.media[0].type === 'image' ? (
                       <img
                         src={post.media[0].url}
-                        alt="Post media"
+                        alt={post.job_title || (post.text || '').slice(0, 80) || 'GigZone post'}
                         className="w-full h-auto object-cover"
                       />
                     ) : (
@@ -564,7 +564,7 @@ function SinglePostContent() {
                     {post.media[currentMediaIndex].type === 'image' ? (
                       <img
                         src={post.media[currentMediaIndex].url}
-                        alt="Post media"
+                        alt={post.job_title || (post.text || '').slice(0, 80) || 'GigZone post'}
                         className="w-full h-auto object-cover"
                       />
                     ) : (
