@@ -516,9 +516,14 @@ function DashboardContent() {
         {isPremium && (
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-card border border-yellow-200 dark:border-yellow-900 rounded-2xl p-4 flex flex-col gap-1">
-              <div className="flex items-center gap-1.5 mb-1">
-                <Coins className="h-4 w-4 text-yellow-500" />
-                <span className="text-xs font-semibold text-muted-foreground">{t('dashboard.credits')}</span>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5">
+                  <Coins className="h-4 w-4 text-yellow-500" />
+                  <span className="text-xs font-semibold text-muted-foreground">{t('dashboard.credits')}</span>
+                </div>
+                {donations.length > 0 && (
+                  <button onClick={() => setDonationsOpen(true)} className="text-[10px] text-orange-500 hover:text-orange-600 font-semibold">Pogledaj sve →</button>
+                )}
               </div>
               <p className="text-3xl font-bold text-foreground">
                 {creditBalance !== null ? creditBalance : '—'}
@@ -526,10 +531,7 @@ function DashboardContent() {
               <p className="text-xs text-muted-foreground">{t('dashboard.creditBalance')}</p>
               {donations.length > 0 && (
                 <div className="mt-3 pt-3 border-t border-border space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Donacije</p>
-                    <button onClick={() => setDonationsOpen(true)} className="text-[10px] text-orange-500 hover:text-orange-600 font-semibold">Pogledaj sve →</button>
-                  </div>
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Donacije</p>
                   {donations.slice(0, 3).map(d => (
                     <div key={d.id} className="flex items-center gap-2">
                       <div className="h-6 w-6 rounded-full bg-orange-100 dark:bg-orange-950 flex items-center justify-center flex-shrink-0 overflow-hidden">
