@@ -126,25 +126,16 @@ function DashboardContent() {
     try {
       setLoading(true);
       setError('');
-      if (profile.account_type === 'customer') {
-        const { data, error } = await supabase
-          .from('jobs').select('*').eq('customer_id', profile.id)
-          .order('created_at', { ascending: false }).limit(5);
-        if (error) throw error;
-        setJobs(data || []);
-      } else {
-        const [{ data: threadsData, error: threadsError }, { data: reviewsData, error: reviewsError }] = await Promise.all([
-          supabase.from('threads').select(`id, created_at, job:jobs(title), user1:profiles!threads_user1_id_fkey(name), user2:profiles!threads_user2_id_fkey(name)`)
-            .or(`user1_id.eq.${profile.id},user2_id.eq.${profile.id}`)
-            .order('created_at', { ascending: false }).limit(5),
-          supabase.from('reviews').select('*, profiles!reviews_customer_id_fkey(name)')
-            .eq('pro_id', profile.id).order('created_at', { ascending: false }).limit(5),
-        ]);
-        if (threadsError) throw threadsError;
-        if (reviewsError) throw reviewsError;
-        setThreads((threadsData as any) || []);
-        setReviews((reviewsData as Review[]) || []);
-      }
+      const [jobsResult, reviewsResult] = await Promise.all([
+        supabase.from('jobs').select('*').eq('customer_id', profile.id)
+          .order('created_at', { ascending: false }).limit(5),
+        supabase.from('reviews').select('*, profiles!reviews_customer_id_fkey(name)')
+          .eq('pro_id', profile.id).order('created_at', { ascending: false }).limit(5),
+      ]);
+      if (jobsResult.error) throw jobsResult.error;
+      if (reviewsResult.error) throw reviewsResult.error;
+      setJobs(jobsResult.data || []);
+      setReviews((reviewsResult.data as Review[]) || []);
     } catch (err: any) {
       setError(err.message || t('dashboard.failedToLoad'));
     } finally {
@@ -594,7 +585,7 @@ function DashboardContent() {
         )}
 
         {/* Rating widget for free users */}
-        {!isPremium && profile?.account_type !== 'customer' && (
+        {!isPremium && (
           <div className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-1">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-1.5">
