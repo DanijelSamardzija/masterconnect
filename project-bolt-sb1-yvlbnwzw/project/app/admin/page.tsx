@@ -419,9 +419,9 @@ function AdminContent() {
       const [
         { data: allViews },
         { data: activeUserCounts },
-        { data: newWeek },
-        { data: newMonth },
-        { data: newYear },
+        { count: newWeekCount },
+        { count: newMonthCount },
+        { count: newYearCount },
         { data: cityProfiles },
         { data: countryProfiles },
         { data: daily7 },
@@ -440,10 +440,10 @@ function AdminContent() {
           year_start:  chosenYearStart.toISOString(),
           year_end:    chosenYearEnd.toISOString(),
         }),
-        supabase.from('profiles').select('id').gte('created_at', weekStart.toISOString()),
-        supabase.from('profiles').select('id').gte('created_at', monthStart.toISOString()),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', weekStart.toISOString()),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', monthStart.toISOString()),
         // New users for selected year
-        supabase.from('profiles').select('id').gte('created_at', chosenYearStart.toISOString()).lt('created_at', chosenYearEnd.toISOString()),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', chosenYearStart.toISOString()).lt('created_at', chosenYearEnd.toISOString()),
         supabase.from('profiles').select('city').not('city', 'is', null),
         supabase.from('profiles').select('country').not('country', 'is', null),
         // Daily 7 via RPC — avoids row limit truncation
@@ -453,7 +453,7 @@ function AdminContent() {
           year_start: chosenYearStart.toISOString(),
           year_end:   chosenYearEnd.toISOString(),
         }),
-        supabase.from('profiles').select('created_at').gte('created_at', chosenYearStart.toISOString()).lt('created_at', chosenYearEnd.toISOString()),
+        supabase.from('profiles').select('created_at').gte('created_at', chosenYearStart.toISOString()).lt('created_at', chosenYearEnd.toISOString()).limit(10000),
         // Signup sources
         supabase.from('profiles').select('signup_source').not('signup_source', 'is', null),
         // UTM sources
@@ -613,9 +613,9 @@ function AdminContent() {
         wau,
         mau,
         yau,
-        newUsersThisWeek: newWeek?.length || 0,
-        newUsersThisMonth: newMonth?.length || 0,
-        newUsersThisYear: newYear?.length || 0,
+        newUsersThisWeek: newWeekCount || 0,
+        newUsersThisMonth: newMonthCount || 0,
+        newUsersThisYear: newYearCount || 0,
         topCities,
         topCountries,
         dailyActiveUsers,
