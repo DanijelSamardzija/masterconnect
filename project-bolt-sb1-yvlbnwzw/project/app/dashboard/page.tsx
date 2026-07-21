@@ -88,6 +88,7 @@ function DashboardContent() {
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
   const [donations, setDonations] = useState<{ id: string; amount: number; anonymous: boolean; sender_name: string | null; sender_avatar: string | null; created_at: string }[]>([]);
   const [donationsOpen, setDonationsOpen] = useState(false);
+  const [allReviewsOpen, setAllReviewsOpen] = useState(false);
   const [showTypePicker, setShowTypePicker] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedPostType, setSelectedPostType] = useState<'service_listing' | 'service_request' | 'job_seeker_post' | 'hiring_post' | null>(null);
@@ -580,9 +581,14 @@ function DashboardContent() {
               )}
             </div>
             <div className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-1">
-              <div className="flex items-center gap-1.5 mb-1">
-                <Star className="h-4 w-4 text-yellow-400" />
-                <span className="text-xs font-semibold text-muted-foreground">{t('dashboard.rating')}</span>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5">
+                  <Star className="h-4 w-4 text-yellow-400" />
+                  <span className="text-xs font-semibold text-muted-foreground">{t('dashboard.rating')}</span>
+                </div>
+                {reviews.length > 0 && (
+                  <button onClick={() => setAllReviewsOpen(true)} className="text-[10px] text-orange-500 hover:text-orange-600 font-semibold">Pogledaj sve →</button>
+                )}
               </div>
               {avgRating ? (
                 <>
@@ -594,6 +600,25 @@ function DashboardContent() {
                   <p className="text-3xl font-bold text-muted-foreground/30">—</p>
                   <p className="text-xs text-muted-foreground">{t('dashboard.noReviewsYet')}</p>
                 </>
+              )}
+              {reviews.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-border space-y-2">
+                  {reviews.slice(0, 2).map(review => (
+                    <div key={review.id} className="space-y-0.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-semibold text-foreground truncate">{review.profiles.name}</span>
+                        <div className="flex items-center gap-0.5 shrink-0">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} className={`h-2.5 w-2.5 ${i < review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-muted'}`} />
+                          ))}
+                        </div>
+                      </div>
+                      {review.comment?.trim() && (
+                        <p className="text-[10px] text-muted-foreground line-clamp-1">{review.comment}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </div>
@@ -683,6 +708,38 @@ function DashboardContent() {
                   </div>
                 )}
               </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* All reviews dialog */}
+        <Dialog open={allReviewsOpen} onOpenChange={setAllReviewsOpen}>
+          <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Star className="h-5 w-5 text-yellow-400" />
+                {t('dashboard.recentReviews')} ({reviews.length})
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 pt-1">
+              {reviews.map(review => (
+                <div key={review.id} className="bg-muted/50 rounded-xl px-4 py-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-semibold text-foreground">{review.profiles.name}</span>
+                    <div className="flex items-center gap-0.5">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className={`h-3 w-3 ${i < review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-muted'}`} />
+                      ))}
+                    </div>
+                  </div>
+                  {review.comment?.trim() && (
+                    <p className="text-sm text-muted-foreground">{review.comment}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {formatDistanceToNow(new Date(review.created_at), { addSuffix: true })}
+                  </p>
+                </div>
+              ))}
             </div>
           </DialogContent>
         </Dialog>
@@ -872,41 +929,6 @@ function DashboardContent() {
           </div>
         ) : isPro ? (
           <>
-            {/* Recent reviews */}
-            {reviews.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between px-1">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    {t('dashboard.recentReviews')}
-                  </p>
-                  {avgRating && (
-                    <span className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                      {avgRating} ({reviews.length})
-                    </span>
-                  )}
-                </div>
-                {reviews.map(review => (
-                  <div key={review.id} className="bg-card border border-border rounded-2xl px-4 py-3">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-semibold text-foreground">{review.profiles.name}</span>
-                      <div className="flex items-center gap-0.5">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className={`h-3 w-3 ${i < review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-muted'}`} />
-                        ))}
-                      </div>
-                    </div>
-                    {review.comment?.trim() && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">{review.comment}</p>
-                    )}
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {formatDistanceToNow(new Date(review.created_at), { addSuffix: true })}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-
             {/* Professional empty state */}
             {threads.length === 0 && reviews.length === 0 && (
               <div className="space-y-3">
