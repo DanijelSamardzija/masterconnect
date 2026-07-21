@@ -349,7 +349,7 @@ function DashboardContent() {
     );
   }
 
-  const isPro = profile.is_pro === true;
+  const isPro = (profile as any).is_premium === true;
   const isPremium = (profile as any).is_premium === true;
 
   // Profile completeness

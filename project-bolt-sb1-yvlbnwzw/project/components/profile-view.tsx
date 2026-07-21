@@ -1143,7 +1143,7 @@ export function ProfileView({
           category={profile.category}
           bio={profile.bio}
           accountType={profile.account_type}
-          isPro={profile.is_pro}
+          isPro={profile.is_premium}
           isPremium={profile.is_premium}
           skills={profile.skills}
           averageRating={profile.average_rating || (averageRating ? parseFloat(averageRating) : null)}
@@ -1185,7 +1185,7 @@ export function ProfileView({
 
 
         {/* PRO Premium badge */}
-        {(profile as any).is_pro && (
+        {(profile as any).is_premium && (
           <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-gradient-to-r from-orange-500/10 to-amber-500/5 border border-orange-400/30 px-3 py-2">
             <div className="flex items-center gap-2">
               <span className="text-base leading-none">🔶</span>
@@ -2364,7 +2364,7 @@ export function ProfileView({
         onOpenChange={setSupportModalOpen}
         targetUserId={profile.id}
         targetUserName={profile.name}
-        targetIsCreatorPremium={(profile as any).is_pro ?? false}
+        targetIsCreatorPremium={(profile as any).is_premium ?? false}
       />
     </div>
   );

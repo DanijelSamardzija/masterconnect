@@ -88,14 +88,14 @@ export async function POST(request: NextRequest) {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('name, email, account_type, is_pro, country')
+      .select('name, email, account_type, is_premium, country')
       .eq('id', userId)
       .single();
 
     if (!profile?.email) return NextResponse.json({ ok: true });
 
     const firstName = profile.name?.split(' ')[0] || profile.name || 'there';
-    const isPro = profile.is_pro || profile.account_type === 'professional';
+    const isPro = (profile as any).is_premium === true;
 
     let lang: 'sr' | 'de' | 'en' = 'en';
     if (BALKAN_COUNTRIES.includes(profile.country)) lang = 'sr';

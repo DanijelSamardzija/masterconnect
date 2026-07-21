@@ -674,7 +674,7 @@ function AdminContent() {
       const [txRes, balanceRes, premiumRes, recentRes, referralsRes] = await Promise.all([
         supabase.from('credit_transactions').select('amount, platform_fee, description, created_at').gte('created_at', cutoff),
         supabase.from('credits_balance').select('balance'),
-        supabase.from('profiles').select('id, name, avatar_url, is_pro').eq('is_pro', true),
+        supabase.from('profiles').select('id, name, avatar_url, is_premium').eq('is_premium', true),
         supabase.from('credit_transactions')
           .select('user_id, amount, description, created_at, profiles!credit_transactions_user_id_fkey(name, avatar_url)')
           .gte('created_at', cutoff)
