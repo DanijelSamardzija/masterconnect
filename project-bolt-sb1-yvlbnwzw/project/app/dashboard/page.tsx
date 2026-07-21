@@ -889,51 +889,10 @@ function DashboardContent() {
           allowedTypes={['service_listing', 'hiring_post', 'job_seeker_post', 'service_request']}
         />
 
-        {/* Recent content */}
-        {loading ? (
+        {loading && (
           <div className="flex justify-center py-8">
             <div className="h-7 w-7 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
           </div>
-        ) : isPro ? (
-          <>
-            {/* Professional empty state */}
-            {threads.length === 0 && reviews.length === 0 && (
-              <div className="space-y-3">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">
-                  {t('dashboard.getStarted')}
-                </p>
-                <div className="grid grid-cols-1 gap-3">
-                  <button
-                    onClick={() => router.push(`/profile/${profile.id}`)}
-                    className="bg-card border border-dashed border-orange-300 dark:border-orange-800 rounded-2xl px-4 py-4 flex items-center gap-3 hover:border-orange-400 hover:bg-accent transition-colors text-left"
-                  >
-                    <div className="p-2.5 bg-orange-100 dark:bg-orange-950 rounded-xl shrink-0">
-                      <UserCircle className="h-5 w-5 text-orange-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">{t('dashboard.completeProfileTitle')}</p>
-                      <p className="text-xs text-muted-foreground">{t('dashboard.completeProfileDesc')}</p>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto shrink-0" />
-                  </button>
-                  <button
-                    onClick={() => router.push('/jobs')}
-                    className="bg-card border border-dashed border-blue-300 dark:border-blue-800 rounded-2xl px-4 py-4 flex items-center gap-3 hover:border-blue-400 hover:bg-accent transition-colors text-left"
-                  >
-                    <div className="p-2.5 bg-blue-100 dark:bg-blue-950 rounded-xl shrink-0">
-                      <Briefcase className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">{t('dashboard.browseJobsTitle')}</p>
-                      <p className="text-xs text-muted-foreground">{t('dashboard.browseJobsDesc')}</p>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto shrink-0" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-          </>
         )}
 
         {/* Recent jobs — isti za sve korisnike */}
