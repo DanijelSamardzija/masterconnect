@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import { Metadata } from 'next';
 import { JobDetailsClient } from './job-details-client';
 
 type Props = { params: { id: string } };
@@ -17,25 +16,6 @@ async function fetchJob(id: string) {
     .maybeSingle();
 
   return data;
-}
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const data = await fetchJob(params.id);
-  if (!data) return { title: 'Posao | GigZone' };
-
-  const city = data.city || '';
-  const pageTitle = `${data.title}${city ? ` – ${city}` : ''} | GigZone`;
-  const description = `${data.title}${city ? ` u ${city}` : ''}${data.budget ? ` – Budžet: ${data.budget}` : ''}. ${(data.description || '').slice(0, 120)}`;
-
-  return {
-    title: pageTitle,
-    description,
-    openGraph: {
-      title: pageTitle,
-      description,
-      url: `https://gigzone.app/jobs/${params.id}`,
-    },
-  };
 }
 
 export default async function JobDetailsPage({ params }: Props) {
@@ -56,7 +36,7 @@ export default async function JobDetailsPage({ params }: Props) {
     hiringOrganization: {
       '@type': 'Organization',
       name: 'GigZone',
-      sameAs: 'https://gigzone.app',
+      sameAs: 'https://www.gigzone.app',
     },
     datePosted: data.created_at,
     employmentType: 'CONTRACTOR',
@@ -69,7 +49,7 @@ export default async function JobDetailsPage({ params }: Props) {
         value: data.budget,
       },
     } : undefined,
-    url: `https://gigzone.app/jobs/${data.id}`,
+    url: `https://www.gigzone.app/jobs/${data.id}`,
   } : null;
 
   return (

@@ -26,7 +26,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/${lang}/invest`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.7 },
   ]);
 
-  const [allPostsRes, servicesRes] = await Promise.all([
+  const [allPostsRes, servicesRes, jobsRes, profilesRes] = await Promise.all([
     // All post types that have a /posts/[id] detail page
     supabase
       .from('posts')
@@ -42,6 +42,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .eq('post_type', 'service_listing')
       .neq('status', 'deleted')
       .limit(1000),
+    // Jobs from the jobs table have their own /jobs/[id] detail page
+    supabase
+      .from('jobs')
+      .select('id, updated_at')
+      .neq('status', 'deleted')
+      .order('updated_at', { ascending: false })
+      .limit(2000),
+    // Professional profiles with a public /profile/[id] page
+    supabase
+      .from('profiles')
+      .select('id, updated_at')
+      .eq('account_type', 'professional')
+      .not('name', 'is', null)
+      .order('updated_at', { ascending: false })
+      .limit(5000),
   ]);
 
   const postUrls: MetadataRoute.Sitemap = (allPostsRes.data || []).map((p) => ({
@@ -58,5 +73,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...staticRoutes, ...langRoutes, ...postUrls, ...serviceUrls];
+  const jobUrls: MetadataRoute.Sitemap = (jobsRes.data || []).map((j) => ({
+    url: `${BASE}/jobs/${j.id}`,
+    lastModified: new Date(j.updated_at),
+    changeFrequency: 'weekly' as const,
+    priority: 0.8,
+  }));
+
+  const profileUrls: MetadataRoute.Sitemap = (profilesRes.data || []).map((p) => ({
+    url: `${BASE}/profile/${p.id}`,
+    lastModified: new Date(p.updated_at),
+    changeFrequency: 'weekly' as const,
+    priority: 0.6,
+  }));
+
+  return [...staticRoutes, ...langRoutes, ...jobUrls, ...serviceUrls, ...postUrls, ...profileUrls];
 }

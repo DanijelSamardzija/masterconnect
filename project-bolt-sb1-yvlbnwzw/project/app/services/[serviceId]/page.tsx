@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import { Metadata } from 'next';
 import { ServiceDetailClient } from './service-detail-client';
 
 type Props = { params: { serviceId: string } };
@@ -47,30 +46,6 @@ async function fetchService(serviceId: string) {
   return data;
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const data = await fetchService(params.serviceId);
-  if (!data) return { title: 'Usluga | GigZone' };
-
-  const profile = data.profiles as any;
-  const title = data.job_title || data.category || 'Usluga';
-  const city = data.city || '';
-  const name = profile?.name || '';
-  const price = data.price_value ? `${data.price_value} ${data.currency || 'EUR'}` : '';
-
-  const pageTitle = `${title}${city ? ` – ${city}` : ''}${name ? ` | ${name}` : ''} | GigZone`;
-  const description = `${title}${city ? ` u ${city}` : ''}${price ? ` – ${price}` : ''}. ${(data.text || '').slice(0, 120)}`;
-
-  return {
-    title: pageTitle,
-    description,
-    openGraph: {
-      title: pageTitle,
-      description,
-      url: `https://gigzone.app/services/${params.serviceId}`,
-    },
-  };
-}
-
 export default async function ServiceDetailPage({ params }: Props) {
   const data = await fetchService(params.serviceId);
   const profile = (data as any)?.profiles as any;
@@ -95,7 +70,7 @@ export default async function ServiceDetailPage({ params }: Props) {
         priceType: data.price_type === 'hourly' ? 'https://schema.org/MinimumAdvertisedPrice' : undefined,
       },
     } : undefined,
-    url: `https://gigzone.app/services/${data.id}`,
+    url: `https://www.gigzone.app/services/${data.id}`,
   } : null;
 
   return (

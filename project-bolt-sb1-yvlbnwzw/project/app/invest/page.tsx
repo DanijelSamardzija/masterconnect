@@ -8,11 +8,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'GigZone Invest — Ulažite u male biznise i startupe',
     description: 'Povežite kapital sa provjerenim biznisom. ROI 8–35% godišnje. Prijavite se na listu čekanja.',
-    url: 'https://gigzone.app/invest',
+    url: 'https://www.gigzone.app/invest',
     type: 'website',
   },
   alternates: {
-    canonical: 'https://gigzone.app/invest',
+    canonical: 'https://www.gigzone.app/invest',
   },
 };
 
@@ -21,11 +21,11 @@ const jsonLd = {
   '@type': 'FinancialService',
   name: 'GigZone Invest',
   description: 'Platforma za investiranje u male biznise, startupe i projekte. Povežite kapital sa provjerenim biznisom uz ROI 8–35% godišnje.',
-  url: 'https://gigzone.app/invest',
+  url: 'https://www.gigzone.app/invest',
   provider: {
     '@type': 'Organization',
     name: 'GigZone',
-    url: 'https://gigzone.app',
+    url: 'https://www.gigzone.app',
   },
   areaServed: { '@type': 'Place', name: 'Worldwide' },
   serviceType: 'Investment Platform',

@@ -40,6 +40,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
+    alternates: {
+      canonical: `https://www.gigzone.app/posts/${params.postId}`,
+    },
     openGraph: {
       title,
       description,
