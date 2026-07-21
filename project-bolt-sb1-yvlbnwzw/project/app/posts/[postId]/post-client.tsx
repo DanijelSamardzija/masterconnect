@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import Image from 'next/image';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
@@ -350,10 +351,14 @@ function SinglePostContent() {
                 className="w-full max-h-[80vh] object-contain"
               />
             ) : (
-              <img
+              <Image
                 src={currentMedia.url}
                 alt={post.job_title || (post.text || '').slice(0, 80) || 'GigZone post'}
-                className="w-full h-auto max-h-[80vh] object-contain"
+                width={1080}
+                height={1350}
+                style={{ width: '100%', height: 'auto', maxHeight: '80vh', objectFit: 'contain' }}
+                sizes="(max-width: 1024px) 100vw, 512px"
+                priority
               />
             )}
 
@@ -522,10 +527,14 @@ function SinglePostContent() {
                 {post.media.length === 1 ? (
                   <div className="relative">
                     {post.media[0].type === 'image' ? (
-                      <img
+                      <Image
                         src={post.media[0].url}
                         alt={post.job_title || (post.text || '').slice(0, 80) || 'GigZone post'}
-                        className="w-full h-auto object-cover"
+                        width={1200}
+                        height={900}
+                        style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
+                        sizes="(max-width: 768px) calc(100vw - 32px), 720px"
+                        priority
                       />
                     ) : (
                       <video
@@ -562,10 +571,14 @@ function SinglePostContent() {
                     }}
                   >
                     {post.media[currentMediaIndex].type === 'image' ? (
-                      <img
+                      <Image
                         src={post.media[currentMediaIndex].url}
                         alt={post.job_title || (post.text || '').slice(0, 80) || 'GigZone post'}
-                        className="w-full h-auto object-cover"
+                        width={1200}
+                        height={900}
+                        style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
+                        sizes="(max-width: 768px) calc(100vw - 32px), 720px"
+                        priority={currentMediaIndex === 0}
                       />
                     ) : (
                       <video
