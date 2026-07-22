@@ -25,7 +25,7 @@ const LanguageContext = createContext<LanguageContextType>({
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>('en');
-  const [translations, setTranslations] = useState<Record<string, string>>(en);
+  const [translations, setTranslations] = useState<Record<string, string | readonly string[]>>(en);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -110,7 +110,12 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const t = (key: string): string => translations[key] || key;
+  const t = (key: string): string => {
+    const val = translations[key];
+    if (!val) return key;
+    if (Array.isArray(val)) return val[0] as string;
+    return val as string;
+  };
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>

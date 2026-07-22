@@ -49,7 +49,7 @@ export function ReportModal({
   targetId,
   targetOwnerUserId,
 }: ReportModalProps) {
-  const { t, locale } = useLanguage();
+  const { t, language: locale } = useLanguage();
   const [reason, setReason] = useState<string>('');
   const [details, setDetails] = useState('');
   const [submitting, setSubmitting] = useState(false);

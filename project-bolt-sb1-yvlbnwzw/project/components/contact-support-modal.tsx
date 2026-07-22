@@ -130,7 +130,7 @@ export function ContactSupportModal({ open, onOpenChange, onTicketCreated }: Con
         <DialogHeader>
           <DialogTitle>Contact Support</DialogTitle>
           <DialogDescription>
-            Have a question or problem? Send us a message and we'll respond as soon as possible.
+            Have a question or problem? Send us a message and we&apos;ll respond as soon as possible.
           </DialogDescription>
         </DialogHeader>
 

@@ -369,7 +369,7 @@ export function EditPostModal({
 
         if (!response.ok) {
           const error = await response.json();
-          console.error('[EDIT MODAL DEBUG] Error response:', error);
+          console.error('Error response:', error);
           throw new Error(error.message || error.details || error.error || 'Failed to update post');
         }
 
@@ -428,7 +428,7 @@ export function EditPostModal({
 
         if (!response.ok) {
           const error = await response.json();
-          console.error('[EDIT MODAL SOCIAL DEBUG] Error response:', error);
+          console.error('Error response:', error);
           throw new Error(error.message || error.details || error.error || 'Failed to update post');
         }
 

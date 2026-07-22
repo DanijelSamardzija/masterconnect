@@ -175,7 +175,7 @@ export function ApplicationMessageCard({
         thread_id: data.threadId,
         sender_id: data.postOwnerId,
         receiver_id: data.applicantId,
-        content: statusText,
+        text: statusText,
         is_system: true,
       });
     }

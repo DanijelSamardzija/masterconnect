@@ -179,7 +179,7 @@ export function LegacyPostCard({
               {/* Mobile image - cover style */}
               <img
                 src={post.media[0].url}
-                alt={post.content ? post.content.slice(0, 80) : 'Slika objave'}
+                alt={post.text ? post.text.slice(0, 80) : 'Slika objave'}
                 className="absolute inset-0 w-full h-full object-contain cursor-pointer"
               />
               {/* Desktop image - fit/contain style */}

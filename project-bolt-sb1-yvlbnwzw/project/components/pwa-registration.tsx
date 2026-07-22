@@ -39,33 +39,36 @@ export function PWARegistration() {
   const hideOnPage = pathname === '/join' || pathname === '/login' || pathname === '/onboarding' || pathname?.startsWith('/auth');
 
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker
-        .register('/sw.js')
-        .then((registration) => {
-          registration.addEventListener('updatefound', () => {
-            const newWorker = registration.installing;
-            if (newWorker) {
-              newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  toast('Nova verzija GigZone je dostupna', {
-                    duration: Infinity,
-                    action: {
-                      label: 'Osvježi',
-                      onClick: () => window.location.reload(),
-                    },
-                  });
-                }
-              });
-            }
-          });
-          setInterval(() => { registration.update(); }, 3_600_000);
-        })
-        .catch((error) => {
-          console.error('[PWA] Service Worker registration failed:', error);
+    if (!('serviceWorker' in navigator)) return;
+    let swIntervalId: ReturnType<typeof setInterval>;
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((registration) => {
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                toast('Nova verzija GigZone je dostupna', {
+                  duration: Infinity,
+                  action: {
+                    label: 'Osvježi',
+                    onClick: () => window.location.reload(),
+                  },
+                });
+              }
+            });
+          }
         });
-    }
+        swIntervalId = setInterval(() => { registration.update(); }, 3_600_000);
+      })
+      .catch((error) => {
+        console.error('[PWA] Service Worker registration failed:', error);
+      });
+    return () => { clearInterval(swIntervalId); };
+  }, []);
 
+  useEffect(() => {
     // Only show to logged-in users
     if (!user) return;
 

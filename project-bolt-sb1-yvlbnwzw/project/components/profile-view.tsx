@@ -117,6 +117,7 @@ type Post = {
   comments_count?: number;
   views_count?: number;
   user_has_reacted?: boolean;
+  user?: { name?: string; avatar_url?: string | null } | null;
 };
 
 type Review = {
@@ -206,7 +207,8 @@ function CreditsWidget({ profile, t }: { profile: UserProfile; t: (k: string) =>
     if (upgrading || isCreatorPremium) return;
     setUpgrading(true);
     try {
-      const { data } = await supabase.rpc('become_creator_premium', { p_user_id: profile.id });
+      const { data: rawData } = await supabase.rpc('become_creator_premium', { p_user_id: profile.id });
+      const data = rawData as { ok?: boolean; error?: string; balance?: number; have?: number } | null;
       if (data?.ok) {
         setBalance(prev => (prev !== null ? prev - 500 : prev));
         toast.success(t('credits.creatorPremium.activated') + ' ' + t('credits.creatorPremium.reloadNote'));

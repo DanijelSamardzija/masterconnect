@@ -923,7 +923,7 @@ function MessagesContent() {
               </div>
               <h2 className="mb-2 text-2xl font-bold">Conversation Not Found</h2>
               <p className="mb-6 text-muted-foreground">
-                This conversation doesn't exist or you don't have access to it.
+                This conversation doesn&apos;t exist or you don&apos;t have access to it.
               </p>
               <div className="flex w-full gap-2">
                 <Button onClick={() => router.push('/dashboard')} className="flex-1 rounded-full">

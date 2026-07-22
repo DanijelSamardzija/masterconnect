@@ -38,37 +38,25 @@ export function analyzeSpam(params: {
   review_count: number;
   recent_posts: Array<{ created_at: string }>;
 }): SpamAnalysis {
-  const normalized = normalizeText(params.text);
+  const now = Date.now();
+  const oneHourAgo = now - 3_600_000;
+  const oneDayAgo = now - 86_400_000;
 
   const userProfile: UserProfile = {
     created_at: params.user_created_at,
     phone_verified: params.phone_verified,
-    average_rating: params.average_rating,
+    avg_rating: params.average_rating,
     review_count: params.review_count,
   };
 
   const postingStats: PostingStats = {
-    recent_posts: params.recent_posts,
+    posts_last_hour: params.recent_posts.filter(
+      (p) => new Date(p.created_at).getTime() > oneHourAgo
+    ).length,
+    posts_last_24h: params.recent_posts.filter(
+      (p) => new Date(p.created_at).getTime() > oneDayAgo
+    ).length,
   };
 
-  const score = computeSpamScore(
-    params.text,
-    normalized,
-    userProfile,
-    postingStats
-  );
-
-  const { status, rank_penalty } = decideStatus(score);
-
-  return {
-    spam_score: score,
-    status,
-    rank_penalty,
-    duplicate_hash: duplicateHash(normalized),
-    link_count: countLinks(params.text),
-    phone_count: extractPhones(params.text).length,
-    hashtag_count: hashtagCount(params.text),
-    caps_ratio: capsRatio(params.text),
-    moderation_reasons: [],
-  };
+  return computeSpamScore(params.text, userProfile, postingStats, false);
 }

@@ -948,7 +948,7 @@ function DashboardContent() {
                     <AlertDialogHeader>
                       <AlertDialogTitle>{t('dashboard.deleteJobTitle')}</AlertDialogTitle>
                       <AlertDialogDescription>
-                        {t('dashboard.deleteJobConfirm')} "{job.title}".
+                        {t('dashboard.deleteJobConfirm')} &quot;{job.title}&quot;.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

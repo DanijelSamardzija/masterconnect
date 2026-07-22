@@ -25,12 +25,12 @@ const MESSAGE_KEY_MAP: Record<SystemMessageType, string> = {
   payment_placeholder: 'systemMessage.paymentPlaceholder',
 };
 
-function getTranslation(key: string, language: 'en' | 'sr' = 'sr'): string {
-  const translations = language === 'en' ? enTranslations : srTranslations;
-  return translations[key as keyof typeof translations] || key;
+function getTranslation(key: string, language: 'en' | 'sr' | 'de' = 'sr'): string {
+  const translations = language === 'en' || language === 'de' ? enTranslations : srTranslations;
+  return (translations[key as keyof typeof translations] as string) || key;
 }
 
-export function getSystemMessageText(messageType: SystemMessageType | null | undefined, language: 'en' | 'sr' = 'sr'): string | null {
+export function getSystemMessageText(messageType: SystemMessageType | null | undefined, language: 'en' | 'sr' | 'de' = 'sr'): string | null {
   if (!messageType) return null;
   const translationKey = MESSAGE_KEY_MAP[messageType];
   return translationKey ? getTranslation(translationKey, language) : null;
@@ -40,7 +40,7 @@ export async function createSystemMessage(
   threadId: string,
   messageType: SystemMessageType,
   customMessage?: string,
-  language: 'en' | 'sr' = 'sr'
+  language: 'en' | 'sr' | 'de' = 'sr'
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const translationKey = MESSAGE_KEY_MAP[messageType];
@@ -87,39 +87,39 @@ export async function createSystemMessage(
   }
 }
 
-export async function createJobCreatedMessage(threadId: string, language: 'en' | 'sr' = 'sr'): Promise<void> {
+export async function createJobCreatedMessage(threadId: string, language: 'en' | 'sr' | 'de' = 'sr'): Promise<void> {
   await createSystemMessage(threadId, 'job_created', undefined, language);
 }
 
-export async function createProContactedMessage(threadId: string, language: 'en' | 'sr' = 'sr'): Promise<void> {
+export async function createProContactedMessage(threadId: string, language: 'en' | 'sr' | 'de' = 'sr'): Promise<void> {
   await createSystemMessage(threadId, 'pro_contacted', undefined, language);
 }
 
-export async function createJobCompletedMessage(threadId: string, language: 'en' | 'sr' = 'sr'): Promise<void> {
+export async function createJobCompletedMessage(threadId: string, language: 'en' | 'sr' | 'de' = 'sr'): Promise<void> {
   await createSystemMessage(threadId, 'job_completed', undefined, language);
 }
 
-export async function createReviewSubmittedMessage(threadId: string, language: 'en' | 'sr' = 'sr'): Promise<void> {
+export async function createReviewSubmittedMessage(threadId: string, language: 'en' | 'sr' | 'de' = 'sr'): Promise<void> {
   await createSystemMessage(threadId, 'review_submitted', undefined, language);
 }
 
-export async function createCompletionRequestedMessage(threadId: string, language: 'en' | 'sr' = 'sr'): Promise<void> {
+export async function createCompletionRequestedMessage(threadId: string, language: 'en' | 'sr' | 'de' = 'sr'): Promise<void> {
   await createSystemMessage(threadId, 'completion_requested', undefined, language);
 }
 
-export async function createCompletionRequestCanceledMessage(threadId: string, language: 'en' | 'sr' = 'sr'): Promise<void> {
+export async function createCompletionRequestCanceledMessage(threadId: string, language: 'en' | 'sr' | 'de' = 'sr'): Promise<void> {
   await createSystemMessage(threadId, 'completion_request_canceled', undefined, language);
 }
 
-export async function createCompletionReminderMessage(threadId: string, language: 'en' | 'sr' = 'sr'): Promise<void> {
+export async function createCompletionReminderMessage(threadId: string, language: 'en' | 'sr' | 'de' = 'sr'): Promise<void> {
   await createSystemMessage(threadId, 'completion_reminder', undefined, language);
 }
 
-export async function createCompletionDeclinedMessage(threadId: string, language: 'en' | 'sr' = 'sr'): Promise<void> {
+export async function createCompletionDeclinedMessage(threadId: string, language: 'en' | 'sr' | 'de' = 'sr'): Promise<void> {
   await createSystemMessage(threadId, 'completion_declined', undefined, language);
 }
 
-export async function createPaymentPlaceholderMessage(threadId: string, language: 'en' | 'sr' = 'sr'): Promise<void> {
+export async function createPaymentPlaceholderMessage(threadId: string, language: 'en' | 'sr' | 'de' = 'sr'): Promise<void> {
   await createSystemMessage(threadId, 'payment_placeholder', undefined, language);
 }
 

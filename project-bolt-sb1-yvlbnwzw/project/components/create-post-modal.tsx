@@ -209,7 +209,6 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
     if (!validateMediaRules()) return;
 
     if (isSubmitting) {
-      console.warn('[Client] Request already in flight, ignoring duplicate call');
       return;
     }
 

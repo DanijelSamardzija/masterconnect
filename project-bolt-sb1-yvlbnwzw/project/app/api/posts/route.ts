@@ -919,8 +919,6 @@ export async function POST(request: NextRequest) {
         inputText: combinedText,
         textLength: combinedText.length,
         phone_count: spamAnalysis.phone_count,
-        uniquePhones: spamAnalysis.uniquePhones || [],
-        phoneDetails: spamAnalysis.phoneDetails || [],
         link_count: spamAnalysis.link_count,
         hashtag_count: spamAnalysis.hashtag_count,
         caps_ratio: spamAnalysis.caps_ratio,

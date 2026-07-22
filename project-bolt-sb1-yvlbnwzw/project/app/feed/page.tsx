@@ -593,7 +593,7 @@ function FeedContent() {
             {filteredPosts.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-40 text-muted-foreground gap-2">
                 <Search className="h-8 w-8 opacity-40" />
-                <p className="text-sm">Nema rezultata za "<span className="text-foreground">{searchQuery}</span>"</p>
+                <p className="text-sm">Nema rezultata za &quot;<span className="text-foreground">{searchQuery}</span>&quot;</p>
               </div>
             ) : filteredPosts.map((post, postIndex) => renderCard(post, postIndex))}
           </div>

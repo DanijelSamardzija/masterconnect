@@ -75,14 +75,15 @@ export function SupportModal({
 
       if (error) throw error;
 
-      if (data.ok) {
+      const result = data as { ok?: boolean; error?: string } | null;
+      if (result?.ok) {
         setBalance(prev => (prev !== null ? prev - selected : prev));
         setState('success');
       } else {
-        if (data.error === 'insufficient_balance') {
+        if (result?.error === 'insufficient_balance') {
           setState('no_balance');
         } else {
-          setErrorMsg(data.error || 'Greška');
+          setErrorMsg(result?.error || 'Greška');
           setState('error');
         }
       }

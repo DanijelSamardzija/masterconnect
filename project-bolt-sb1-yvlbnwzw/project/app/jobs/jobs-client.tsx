@@ -77,6 +77,7 @@ type Post = {
     account_type: 'professional' | 'customer';
     avatar_url?: string | null;
     is_premium?: boolean;
+    country?: string | null;
   };
 };
 

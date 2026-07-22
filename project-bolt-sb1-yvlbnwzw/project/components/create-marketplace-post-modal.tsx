@@ -176,7 +176,6 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
     }
 
     if (isSubmitting) {
-      console.warn('[Client] Request already in flight, ignoring duplicate call');
       return;
     }
 
@@ -558,7 +557,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
 
           {postType === 'service_request' && (
             <p className="text-xs text-muted-foreground bg-muted/50 border border-border rounded-lg px-3 py-2">
-              🔍 <strong>Tražim uslugu</strong> — objavi šta ti treba (npr. "Trebam molera za stan 60m²") i čekaj ponude od profesionalaca.
+              🔍 <strong>Tražim uslugu</strong> — objavi šta ti treba (npr. &quot;Trebam molera za stan 60m²&quot;) i čekaj ponude od profesionalaca.
             </p>
           )}
           {postType === 'job_seeker_post' && (

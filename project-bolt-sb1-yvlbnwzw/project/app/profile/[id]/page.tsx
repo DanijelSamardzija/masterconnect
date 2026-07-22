@@ -22,17 +22,17 @@ type UserProfile = {
   id: string;
   name: string;
   email: string;
-  account_type: 'professional' | 'customer';
-  city?: string;
-  category?: string;
-  bio?: string;
-  skills?: string[];
-  phone?: string;
+  account_type: string;
+  city?: string | null;
+  category?: string | null;
+  bio?: string | null;
+  skills?: unknown;
+  phone?: string | null;
   show_phone?: boolean;
-  avatar_url?: string;
-  cover_url?: string;
-  average_rating?: number;
-  review_count?: number;
+  avatar_url?: string | null;
+  cover_url?: string | null;
+  average_rating?: number | null;
+  review_count?: number | null;
 };
 
 function UserProfileContent() {
@@ -359,7 +359,7 @@ function UserProfileContent() {
       </div>
 
       <ProfileView
-        profile={profile}
+        profile={profile as typeof profile & { account_type: 'professional' | 'customer'; skills?: string[] }}
         currentUserId={user?.id}
         isOwnProfile={false}
         isLoggedIn={!!user}

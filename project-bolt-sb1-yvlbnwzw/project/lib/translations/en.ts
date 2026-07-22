@@ -1224,8 +1224,6 @@ export default {
   'share.sending': 'Sending...',
   'share.sentToast': 'Message sent!',
   'share.sendError': 'Error sending message',
-  'posts.readMore': 'Read more',
-  'posts.showLess': 'Show less',
 
   // Onboarding
   'onboarding.welcome': 'Welcome to GigZone!',

@@ -1220,8 +1220,6 @@ export default {
   'share.sending': 'Wird gesendet...',
   'share.sentToast': 'Nachricht gesendet!',
   'share.sendError': 'Fehler beim Senden der Nachricht',
-  'posts.readMore': 'Mehr lesen',
-  'posts.showLess': 'Weniger anzeigen',
 
   // Onboarding
   'onboarding.welcome': 'Willkommen bei GigZone!',

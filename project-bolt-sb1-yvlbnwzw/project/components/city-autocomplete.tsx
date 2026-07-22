@@ -344,7 +344,7 @@ export function CityAutocomplete({
                 className="inline-flex items-center gap-1.5 text-sm font-medium text-orange-500 hover:text-orange-600 transition-colors"
               >
                 <PenLine className="h-3.5 w-3.5" />
-                Unesi "{inputValue}" ručno
+                Unesi &quot;{inputValue}&quot; ručno
               </button>
             </div>
           )}

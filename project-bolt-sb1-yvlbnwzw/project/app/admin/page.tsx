@@ -207,7 +207,7 @@ const COUNTRY_LANG_MAP: Record<string, string> = {
   'netherlands': 'nl', 'holland': 'nl', 'holandija': 'nl', 'nederland': 'nl',
   // Portuguese
   'portugal': 'pt',
-  'brazil': 'pt', 'brasil': 'pt', 'brazil': 'pt',
+  'brazil': 'pt', 'brasil': 'pt',
   // Turkish
   'turkey': 'tr', 'turska': 'tr', 'türkiye': 'tr',
   // Russian
@@ -907,7 +907,7 @@ function AdminContent() {
       p_note: 'Admin dodjela',
     });
     setGrantingCredits(false);
-    if (error || !data?.ok) {
+    if (error || !(data as { ok?: boolean } | null)?.ok) {
       toast.error('Greška pri dodjeli kredita');
     } else {
       toast.success(`Dodijeljeno ${amount} kredita korisniku ${creditTarget.name}`);
@@ -1359,7 +1359,7 @@ function AdminContent() {
                             </p>
                             {report.details && (
                               <p className="text-sm text-muted-foreground mt-1 bg-muted rounded-xl px-3 py-2">
-                                "{report.details}"
+                                &quot;{report.details}&quot;
                               </p>
                             )}
                           </div>

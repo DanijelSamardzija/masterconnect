@@ -3,11 +3,12 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import type { NextRequest, NextResponse } from 'next/server';
 import { devLog } from '@/lib/dev-log';
+import type { Database } from './database.types';
 
 export function createClient(cookieStore?: ReturnType<typeof cookies>) {
   const store = cookieStore || cookies();
 
-  return createServerClient(
+  return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -37,7 +38,7 @@ export function createClient(cookieStore?: ReturnType<typeof cookies>) {
 export function createClientFromRequest(request: NextRequest, response?: NextResponse) {
   let responseToUse = response;
 
-  return createServerClient(
+  return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -100,7 +101,7 @@ export async function createClientFromAuthHeader(request: NextRequest) {
     return null;
   }
 
-  const client = createSupabaseClient(
+  const client = createSupabaseClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
