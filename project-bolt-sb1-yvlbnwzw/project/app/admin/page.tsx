@@ -291,6 +291,7 @@ function AdminContent() {
   const [hasMoreUsers, setHasMoreUsers] = useState(false);
   const [loadingMoreUsers, setLoadingMoreUsers] = useState(false);
   const userSearchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const loadedTabs = useRef<Set<ActiveTab>>(new Set());
 
   // Posts state
   const [posts, setPosts] = useState<PostItem[]>([]);
@@ -352,7 +353,7 @@ function AdminContent() {
     if (profile && !profile.is_admin) router.replace('/');
   }, [profile]);
 
-  // ── Initial load ─────────────────────────────────────────────────────────
+  // ── Initial load — samo stats + reports (default tab) ───────────────────
   useEffect(() => {
     if (!profile?.is_admin) return;
     (async () => {
@@ -360,12 +361,8 @@ function AdminContent() {
       await Promise.all([
         fetchStats(),
         loadReports('all', 0, false),
-        loadUsers('', 0, false),
-        loadPosts(0, false),
-        fetchAnnouncements(),
-        fetchLangStats(),
-        fetchTickets(),
       ]);
+      loadedTabs.current.add('reports');
       setLoading(false);
     })();
   }, [profile]);
@@ -929,26 +926,13 @@ function AdminContent() {
   const loadPosts = useCallback(async (offset: number, append: boolean) => {
     const { data, error } = await supabase
       .from('posts')
-      .select('id, text, created_at, views_count, status, user_id, post_type, is_promoted')
+      .select('id, text, created_at, views_count, status, user_id, post_type, is_promoted, author:profiles!user_id(id, name, avatar_url)')
       .order('created_at', { ascending: false })
       .range(offset, offset + PAGE_SIZE - 1);
 
     if (error) { console.error('Posts fetch error:', error); return; }
 
-    const postItems = data || [];
-
-    // Fetch authors separately
-    const userIds = [...new Set(postItems.map((p: any) => p.user_id).filter(Boolean))];
-    let authorsMap: Record<string, { id: string; name: string; avatar_url?: string }> = {};
-    if (userIds.length > 0) {
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, name, avatar_url')
-        .in('id', userIds);
-      (profiles || []).forEach((p: any) => { authorsMap[p.id] = p; });
-    }
-
-    const items: PostItem[] = postItems.map((p: any) => ({
+    const items: PostItem[] = (data || []).map((p: any) => ({
       id: p.id,
       content: p.text,
       created_at: p.created_at,
@@ -956,7 +940,7 @@ function AdminContent() {
       status: p.status,
       post_type: p.post_type || 'social_post',
       is_promoted: p.is_promoted || false,
-      author: authorsMap[p.user_id] || null,
+      author: p.author || null,
     }));
 
     setHasMorePosts(items.length === PAGE_SIZE);
@@ -1065,7 +1049,8 @@ function AdminContent() {
     const { data, error } = await supabase
       .from('support_messages')
       .select(`*, profiles:user_id (name, email)`)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(200);
     if (!error) setTickets(data || []);
   };
 
@@ -1098,7 +1083,7 @@ function AdminContent() {
       .from('profiles')
       .select('email, country, preferred_language')
       .not('email', 'is', null)
-      .limit(100000);
+      .limit(10000);
     if (!data) return;
     const grouped: Record<string, string[]> = {};
     for (const u of data) {
@@ -1261,6 +1246,13 @@ function AdminContent() {
                 key={key}
                 onClick={() => {
                   setActiveTab(key);
+                  if (!loadedTabs.current.has(key)) {
+                    loadedTabs.current.add(key);
+                    if (key === 'users') loadUsers('', 0, false);
+                    if (key === 'posts') loadPosts(0, false);
+                    if (key === 'announcements') { fetchAnnouncements(); fetchLangStats(); }
+                    if (key === 'support') fetchTickets();
+                  }
                   if (key === 'analytics') {
                     if (!analytics) fetchAnalytics(selectedYear);
                     if (!investStats) fetchInvestStats();
