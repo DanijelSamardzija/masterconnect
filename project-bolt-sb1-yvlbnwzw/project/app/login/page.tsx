@@ -316,7 +316,7 @@ export default function LoginPage() {
                     {t('login.emailLabel')}
                   </Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
                       id="login-email"
                       type="email"
@@ -342,7 +342,7 @@ export default function LoginPage() {
                     </Link>
                   </div>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
                       id="login-password"
                       type="password"
@@ -413,7 +413,7 @@ export default function LoginPage() {
                 {/* Divider */}
                 <div className="relative flex items-center py-1">
                   <div className="flex-1 border-t border-slate-200" />
-                  <span className="px-3 text-xs text-slate-400 uppercase tracking-wider">{t('login.orDivider')}</span>
+                  <span className="px-3 text-xs text-muted-foreground uppercase tracking-wider">{t('login.orDivider')}</span>
                   <div className="flex-1 border-t border-slate-200" />
                 </div>
 
@@ -423,7 +423,7 @@ export default function LoginPage() {
                   <div className="space-y-1.5">
                     <Label htmlFor="reg-email" className="text-sm font-medium">{t('login.emailLabel')}</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                       <Input
                         id="reg-email"
                         type="email"
@@ -443,7 +443,7 @@ export default function LoginPage() {
                   <div className="space-y-1.5">
                     <Label htmlFor="reg-password" className="text-sm font-medium">{t('login.passwordLabel')}</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                       <Input
                         id="reg-password"
                         type="password"
@@ -458,7 +458,7 @@ export default function LoginPage() {
                         aria-describedby={registerError ? 'register-error' : undefined}
                       />
                     </div>
-                    <p className="text-xs text-slate-400 pl-1">{t('login.minChars')}</p>
+                    <p className="text-xs text-muted-foreground pl-1">{t('login.minChars')}</p>
                   </div>
 
                   {/* Terms checkbox — kompaktan */}

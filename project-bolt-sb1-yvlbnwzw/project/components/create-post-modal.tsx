@@ -61,7 +61,18 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isPickerOpenRef = useRef(false);
+  const suggestionPanelRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    if (!showSuggestion) return;
+    suggestionPanelRef.current?.focus();
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') dismissSuggestion();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showSuggestion]);
 
   useEffect(() => {
     if (open && profile?.city && !city) {
@@ -817,10 +828,18 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
     {/* Post-publish suggestion */}
     {showSuggestion && (
       <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 pb-8" onClick={() => dismissSuggestion()}>
-        <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md shadow-2xl animate-in slide-in-from-bottom-4 duration-300" onClick={e => e.stopPropagation()}>
+        <div
+          ref={suggestionPanelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="suggestion-title"
+          tabIndex={-1}
+          className="bg-card border border-border rounded-2xl p-6 w-full max-w-md shadow-2xl animate-in slide-in-from-bottom-4 duration-300 focus:outline-none"
+          onClick={e => e.stopPropagation()}
+        >
           <div className="text-center mb-5">
             <p className="text-2xl mb-2">🎉</p>
-            <h3 className="font-bold text-lg text-foreground">{t('createPost.suggestionTitle')}</h3>
+            <h3 id="suggestion-title" className="font-bold text-lg text-foreground">{t('createPost.suggestionTitle')}</h3>
             <p className="text-sm text-muted-foreground mt-1">
               {isPro ? t('createPost.suggestionProText') : t('createPost.suggestionClientText')}
             </p>
