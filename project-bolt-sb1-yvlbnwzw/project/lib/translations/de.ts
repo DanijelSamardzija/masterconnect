@@ -1279,9 +1279,10 @@ export default {
   'profileComplete.editProfile': 'Profil bearbeiten',
 
   // Global Search
-  'search.placeholder': 'Fachleute, Dienste, Jobs suchen...',
+  'search.placeholder': 'Benutzer nach Name, Beruf, Stadt suchen...',
   'search.hint': 'Mindestens 2 Zeichen eingeben',
   'search.noResults': 'Keine Ergebnisse gefunden',
+  'search.profileNoResults': 'Keine Profile gefunden.',
   'search.professional': 'Fachmann',
   'search.customer': 'Kunde',
   'search.users': 'Benutzer',

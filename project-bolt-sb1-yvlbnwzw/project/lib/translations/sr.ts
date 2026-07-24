@@ -1283,9 +1283,10 @@ export default {
   'profileComplete.editProfile': 'Uredi profil',
 
   // Global Search
-  'search.placeholder': 'Pretraži profesionalce, usluge, poslove...',
+  'search.placeholder': 'Pretraži korisnike po imenu, zanatu, gradu...',
   'search.hint': 'Ukucaj najmanje 2 znaka za pretragu',
   'search.noResults': 'Nema rezultata',
+  'search.profileNoResults': 'Nema pronađenih profila.',
   'search.professional': 'Profesionalac',
   'search.customer': 'Korisnik',
   'search.users': 'Korisnici',

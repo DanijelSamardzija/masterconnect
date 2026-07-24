@@ -1534,6 +1534,7 @@ export type Database = {
           referred_by: string | null
           review_count: number | null
           role: string
+          search_vector: string | null
           show_email: boolean
           show_phone: boolean
           signup_source: string | null
@@ -2273,6 +2274,24 @@ export type Database = {
           } | null
           score: number
           total_count: number
+        }[]
+      }
+      search_profiles: {
+        Args: {
+          p_search: string
+          p_limit?: number
+        }
+        Returns: {
+          id: string
+          name: string
+          category: string | null
+          city: string | null
+          country: string | null
+          account_type: string
+          is_premium: boolean
+          average_rating: number | null
+          review_count: number | null
+          avatar_url: string | null
         }[]
       }
       increment_post_views: { Args: { post_id: string }; Returns: undefined }

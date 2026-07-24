@@ -2,20 +2,22 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
-import { Search, User, Briefcase, Wrench, Loader2 } from 'lucide-react';
+import { Search, X, MapPin, Star, CheckCircle, Loader2 } from 'lucide-react';
 
-type SearchResult = {
+type Profile = {
   id: string;
-  type: 'professional' | 'service' | 'job';
-  account_type?: string;
-  title: string;
-  subtitle: string;
-  avatar?: string;
-  path: string;
+  name: string;
+  category: string | null;
+  city: string | null;
+  country: string | null;
+  account_type: string;
+  is_premium: boolean;
+  average_rating: number | null;
+  review_count: number | null;
+  avatar_url: string | null;
 };
 
 type SearchModalProps = {
@@ -26,182 +28,214 @@ type SearchModalProps = {
 export function SearchModal({ open, onClose }: SearchModalProps) {
   const router = useRouter();
   const { t } = useLanguage();
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [loading, setLoading] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const debounceRef = useRef<NodeJS.Timeout>();
 
+  const [input, setInput] = useState('');
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<Profile[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
+
+  // Auto-focus / reset on open toggle
   useEffect(() => {
     if (open) {
-      setTimeout(() => inputRef.current?.focus(), 100);
+      // Delay one tick so the element is visible before focus
+      const id = setTimeout(() => inputRef.current?.focus(), 50);
+      return () => clearTimeout(id);
     } else {
+      setInput('');
       setQuery('');
       setResults([]);
     }
   }, [open]);
 
+  // Debounce raw input → query (350 ms)
   useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
+    const timer = setTimeout(() => setQuery(input), 350);
+    return () => clearTimeout(timer);
+  }, [input]);
+
+  // Run search on debounced query
+  useEffect(() => {
     if (!query.trim() || query.length < 2) {
       setResults([]);
       return;
     }
-    debounceRef.current = setTimeout(() => doSearch(query.trim()), 350);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    doSearch(query.trim());
   }, [query]);
 
-  const doSearch = async (q: string) => {
+  // Escape closes
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onCloseRef.current();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
+
+  // Click outside closes
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        onCloseRef.current();
+      }
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [open]);
+
+  const doSearch = async (term: string) => {
     setLoading(true);
     try {
-      const [prosRes, servicesRes, jobsRes] = await Promise.all([
-        supabase.from('profiles').select('id, name, category, avatar_url, account_type')
-          .ilike('name', `%${q}%`)
-          .limit(4),
-        supabase.from('posts').select('id, title, city, profiles(name)')
-          .eq('post_type', 'service_listing')
-          .ilike('title', `%${q}%`)
-          .limit(4),
-        supabase.from('jobs').select('id, title, city, category')
-          .ilike('title', `%${q}%`)
-          .eq('status', 'open')
-          .limit(3),
-      ]);
-
-      const all: SearchResult[] = [];
-
-      (prosRes.data || []).forEach((p: any) => {
-        all.push({
-          id: p.id,
-          type: 'professional',
-          account_type: p.account_type,
-          title: p.name,
-          subtitle: p.category || '',
-          avatar: p.avatar_url,
-          path: `/profile/${p.id}`,
-        });
+      const { data, error } = await supabase.rpc('search_profiles', {
+        p_search: term,
+        p_limit: 8,
       });
-
-      (servicesRes.data || []).forEach((s: any) => {
-        all.push({
-          id: s.id,
-          type: 'service',
-          title: s.title,
-          subtitle: `${(s.profiles as any)?.name || ''} · ${s.city || ''}`.replace(/^ · | · $/, ''),
-          path: `/services/${s.id}`,
-        });
-      });
-
-      (jobsRes.data || []).forEach((j: any) => {
-        all.push({
-          id: j.id,
-          type: 'job',
-          title: j.title,
-          subtitle: `${j.category || ''} · ${j.city || ''}`.replace(/^ · | · $/, ''),
-          path: `/jobs/${j.id}`,
-        });
-      });
-
-      setResults(all);
+      if (error) throw error;
+      setResults((data ?? []) as Profile[]);
     } catch (err) {
-      console.error(err);
+      console.error('[ProfileSearch]', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSelect = (result: SearchResult) => {
-    onClose();
-    router.push(result.path);
+  const handleSelect = (id: string) => {
+    onCloseRef.current();
+    router.push(`/profile/${id}`);
   };
 
-  const iconFor = (type: SearchResult['type']) => {
-    if (type === 'professional') return <User className="h-4 w-4 text-orange-500" />;
-    if (type === 'service') return <Wrench className="h-4 w-4 text-blue-500" />;
-    return <Briefcase className="h-4 w-4 text-green-500" />;
+  const clearInput = () => {
+    setInput('');
+    setQuery('');
+    setResults([]);
+    inputRef.current?.focus();
   };
 
-  const labelFor = (type: SearchResult['type'], account_type?: string) => {
-    if (type === 'professional') return account_type === 'customer' ? t('search.customer') : t('search.professional');
-    if (type === 'service') return t('search.service');
-    return t('search.job');
-  };
+  if (!open) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg p-0 overflow-hidden gap-0">
-        {/* Search input */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
-          <Search className="h-5 w-5 text-muted-foreground shrink-0" />
-          <input
-            ref={inputRef}
-            type="text"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder={t('search.placeholder')}
-            className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm"
-          />
-          {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />}
-        </div>
+    /* Fixed overlay — appears directly below the sticky nav (top-16 = 64px) */
+    <div className="fixed inset-x-0 top-16 z-50 px-4 pt-2">
+      <div ref={containerRef} className="container mx-auto max-w-2xl">
+        <div className="bg-background border border-border rounded-2xl shadow-2xl overflow-hidden">
 
-        {/* Results */}
-        <div className="max-h-[420px] overflow-y-auto">
-          {query.length >= 2 && results.length === 0 && !loading && (
-            <div className="py-10 text-center text-sm text-muted-foreground">
-              {t('search.noResults')}
-            </div>
-          )}
+          {/* Search input row */}
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
+            <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              placeholder={t('search.placeholder')}
+              className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm"
+            />
+            {loading && (
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />
+            )}
+            {input && !loading && (
+              <button
+                onClick={clearInput}
+                className="text-muted-foreground hover:text-foreground shrink-0 transition-colors"
+                aria-label="Obriši pretragu"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
 
-          {query.length < 2 && (
-            <div className="py-10 text-center text-sm text-muted-foreground">
-              {t('search.hint')}
-            </div>
-          )}
+          {/* Body */}
+          <div className="max-h-[420px] overflow-y-auto">
 
-          {results.length > 0 && (
-            <div className="py-2">
-              {(['professional', 'service', 'job'] as const).map(type => {
-                const group = results.filter(r => r.type === type);
-                if (!group.length) return null;
-                return (
-                  <div key={type}>
-                    <p className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      {type === 'professional' ? t('search.users') : labelFor(type)}
-                    </p>
-                    {group.map(result => (
-                      <button
-                        key={result.id}
-                        onClick={() => handleSelect(result)}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors text-left"
-                      >
-                        {result.type === 'professional' ? (
-                          <Avatar className="h-8 w-8 shrink-0">
-                            <AvatarImage src={result.avatar} alt={result.title} />
-                            <AvatarFallback className="bg-orange-100 text-orange-700 text-xs font-bold">
-                              {result.title.substring(0, 2).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                        ) : (
-                          <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center shrink-0">
-                            {iconFor(result.type)}
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate">{result.title}</p>
-                          <p className="text-xs text-muted-foreground truncate">{result.subtitle}</p>
+            {/* Hint — before user types enough */}
+            {query.length < 2 && (
+              <div className="py-10 text-center text-sm text-muted-foreground">
+                {t('search.hint')}
+              </div>
+            )}
+
+            {/* No results */}
+            {query.length >= 2 && !loading && results.length === 0 && (
+              <div className="py-10 text-center text-sm text-muted-foreground">
+                {t('search.profileNoResults')}
+              </div>
+            )}
+
+            {/* Results list */}
+            {results.length > 0 && (
+              <ul className="py-2">
+                {results.map(profile => (
+                  <li key={profile.id}>
+                    <button
+                      onClick={() => handleSelect(profile.id)}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-accent transition-colors text-left"
+                    >
+                      {/* Avatar */}
+                      <Avatar className="h-10 w-10 shrink-0">
+                        <AvatarImage src={profile.avatar_url ?? undefined} alt={profile.name} />
+                        <AvatarFallback className="bg-orange-100 text-orange-700 text-sm font-bold">
+                          {profile.name.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        {/* Name + PRO badge */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-sm font-semibold text-foreground truncate">
+                            {profile.name}
+                          </span>
+                          {profile.is_premium && (
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 text-white text-[10px] font-bold shrink-0">
+                              <CheckCircle className="h-2.5 w-2.5" />
+                              PRO
+                            </span>
+                          )}
                         </div>
-                        <span className="text-xs text-muted-foreground shrink-0 bg-muted px-2 py-0.5 rounded-full">
-                          {labelFor(result.type, result.account_type)}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+
+                        {/* Profession + Location + Rating */}
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 flex-wrap">
+                          {profile.category && (
+                            <span>{profile.category}</span>
+                          )}
+                          {(profile.city || profile.country) && (
+                            <span className="flex items-center gap-0.5">
+                              <MapPin className="h-3 w-3 shrink-0" />
+                              {[profile.city, profile.country].filter(Boolean).join(', ')}
+                            </span>
+                          )}
+                          {profile.average_rating != null && profile.average_rating > 0 && (
+                            <span className="flex items-center gap-0.5">
+                              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 shrink-0" />
+                              {profile.average_rating.toFixed(1)}
+                              {profile.review_count != null && profile.review_count > 0 && (
+                                <span className="opacity-60">({profile.review_count})</span>
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Account type chip */}
+                      <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full shrink-0">
+                        {profile.account_type === 'professional'
+                          ? t('search.professional')
+                          : t('search.customer')}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }

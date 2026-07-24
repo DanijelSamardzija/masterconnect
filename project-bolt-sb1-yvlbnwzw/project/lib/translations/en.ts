@@ -1283,9 +1283,10 @@ export default {
   'profileComplete.editProfile': 'Edit Profile',
 
   // Global Search
-  'search.placeholder': 'Search professionals, services, jobs...',
+  'search.placeholder': 'Search users by name, skill, city...',
   'search.hint': 'Type at least 2 characters to search',
   'search.noResults': 'No results found',
+  'search.profileNoResults': 'No profiles found.',
   'search.professional': 'Professional',
   'search.customer': 'Customer',
   'search.users': 'Users',
