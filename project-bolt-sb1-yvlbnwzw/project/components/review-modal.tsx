@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Star } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
+import { notificationRepository } from '@/lib/repositories/notificationRepository';
 import { createReviewSubmittedMessage } from '@/lib/system-messages';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
@@ -196,7 +197,7 @@ export function ReviewModal({ open, onClose, jobId, proId, proName, threadId, on
           .maybeSingle();
         const reviewerName = reviewerProfile?.name || 'Neko';
         const stars = '⭐'.repeat(rating);
-        await supabase.from('notifications').insert({
+        await notificationRepository.insert({
           user_id: proId,
           type: 'new_review',
           action_type: 'new_review',

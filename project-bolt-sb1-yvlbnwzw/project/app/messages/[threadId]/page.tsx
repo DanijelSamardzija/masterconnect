@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
+import { notificationRepository } from '@/lib/repositories/notificationRepository';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { ProtectedRoute } from '@/components/protected-route';
@@ -451,13 +452,7 @@ function MessagesContent() {
         .eq('thread_id', threadId)
         .eq('user_id', user.id);
 
-      await supabase
-        .from('notifications')
-        .update({ read_at: now })
-        .eq('user_id', user.id)
-        .eq('type', 'message')
-        .is('read_at', null)
-        .contains('meta', { thread_id: threadId });
+      await notificationRepository.markThreadRead(user.id, threadId);
 
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent('unreadCountChanged'));

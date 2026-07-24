@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
+import { notificationRepository } from '@/lib/repositories/notificationRepository';
 import { ProtectedRoute } from '@/components/protected-route';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -873,14 +874,13 @@ function AdminContent() {
     if (!notifTarget || !notifTitle.trim() || !notifBody.trim()) return;
     setSendingNotif(true);
     try {
-      const { error } = await supabase.from('notifications').insert({
+      await notificationRepository.insert({
         user_id: notifTarget.id,
         type: 'admin',
         title: notifTitle.trim(),
         body: notifBody.trim(),
         meta: notifLink.trim() ? { link: notifLink.trim() } : {},
       });
-      if (error) throw error;
       toast.success(`Notifikacija poslana korisniku "${notifTarget.name}"`);
       setNotifTarget(null);
       setNotifTitle('');
@@ -1137,7 +1137,7 @@ function AdminContent() {
           body_de: newBodyDe.trim() || null,
         },
       }));
-      await supabase.from('notifications').insert(notifs);
+      await notificationRepository.insertMany(notifs);
     }
 
     // Send emails if enabled

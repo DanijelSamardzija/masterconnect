@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { supabase } from '@/lib/supabase/client';
+import { notificationRepository } from '@/lib/repositories/notificationRepository';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -188,19 +189,8 @@ export function Navigation() {
 
   const fetchNotificationUnreadCount = async () => {
     if (!profile) return;
-
-    const { count, error } = await supabase
-      .from('notifications')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', profile.id)
-      .is('read_at', null);
-
-    if (error) {
-      console.error('Error fetching notification unread count:', error);
-      return;
-    }
-
-    setNotificationUnreadCount(count || 0);
+    const count = await notificationRepository.getUnreadCount(profile.id);
+    setNotificationUnreadCount(count);
   };
 
   if (isAuthPage || isFeedPage) {
@@ -209,9 +199,8 @@ export function Navigation() {
 
   const fetchNotificationsData = async () => {
     if (!profile) return;
-    const { data } = await supabase.from('notifications').select('*')
-      .eq('user_id', profile.id).order('created_at', { ascending: false });
-    const mapped: Notification[] = (data || []).map((n: any) => {
+    const data = await notificationRepository.getAll(profile.id);
+    const mapped: Notification[] = data.map((n: any) => {
       const translated = translateNotification({ title: n.title, body: n.body, action_type: n.action_type, meta: n.meta }, language);
       return {
         id: n.id, type: n.type, title: translated.title, body: translated.body,
@@ -229,8 +218,7 @@ export function Navigation() {
     setNotificationsOpen(true);
     setNotificationsList(prev => prev.map(n => ({ ...n, read: true })));
     setNotificationUnreadCount(0);
-    await (supabase.from('notifications') as any).update({ read_at: new Date().toISOString() })
-      .eq('user_id', profile?.id).is('read_at', null);
+    await notificationRepository.markAllRead(profile?.id ?? '');
     window.dispatchEvent(new Event('unreadCountChanged'));
   };
 
@@ -238,8 +226,7 @@ export function Navigation() {
     if (!profile) return;
     setNotificationsList(prev => prev.map(n => ({ ...n, read: true })));
     setNotificationUnreadCount(0);
-    await (supabase.from('notifications') as any).update({ read_at: new Date().toISOString() })
-      .eq('user_id', profile.id).is('read_at', null);
+    await notificationRepository.markAllRead(profile.id);
     window.dispatchEvent(new Event('unreadCountChanged'));
   };
 
@@ -247,7 +234,7 @@ export function Navigation() {
     if (!profile) return;
     setNotificationsList([]);
     setNotificationUnreadCount(0);
-    await supabase.from('notifications').delete().eq('user_id', profile.id);
+    await notificationRepository.deleteAll(profile.id);
     window.dispatchEvent(new Event('unreadCountChanged'));
   };
 

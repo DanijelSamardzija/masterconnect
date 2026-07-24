@@ -8,6 +8,7 @@ import { ProfessionalBadge } from '@/components/professional-badge';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { usePageTracking } from '@/lib/hooks/use-page-tracking';
 import { supabase } from '@/lib/supabase/client';
+import { notificationRepository } from '@/lib/repositories/notificationRepository';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
@@ -261,8 +262,7 @@ function DashboardContent() {
 
   const fetchNotifications = async () => {
     if (!profile) return;
-    const { data } = await supabase.from('notifications').select('*')
-      .eq('user_id', profile.id).order('created_at', { ascending: false });
+    const data = await notificationRepository.getAll(profile.id);
     const mapped: Notification[] = (data || []).map((n: any) => {
       const translated = translateNotification({ title: n.title, body: n.body, action_type: n.action_type, meta: n.meta }, language);
       return {
@@ -279,8 +279,7 @@ function DashboardContent() {
     setNotificationsOpen(true);
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     setNotificationsCount(0);
-    await (supabase.from('notifications') as any).update({ read_at: new Date().toISOString() })
-      .eq('user_id', profile?.id).is('read_at', null);
+    await notificationRepository.markAllRead(profile?.id ?? '');
     window.dispatchEvent(new Event('unreadCountChanged'));
   };
 
@@ -288,8 +287,7 @@ function DashboardContent() {
     if (!profile) return;
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     setNotificationsCount(0);
-    await (supabase.from('notifications') as any).update({ read_at: new Date().toISOString() })
-      .eq('user_id', profile.id).is('read_at', null);
+    await notificationRepository.markAllRead(profile.id);
     window.dispatchEvent(new Event('unreadCountChanged'));
   };
 
@@ -297,7 +295,7 @@ function DashboardContent() {
     if (!profile) return;
     setNotifications([]);
     setNotificationsCount(0);
-    await supabase.from('notifications').delete().eq('user_id', profile.id);
+    await notificationRepository.deleteAll(profile.id);
     window.dispatchEvent(new Event('unreadCountChanged'));
   };
 

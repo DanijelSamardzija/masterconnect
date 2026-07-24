@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
+import { notificationRepository } from '@/lib/repositories/notificationRepository';
 import { useNotificationSound } from '@/lib/hooks/use-notification-sound';
 import { useSoundPreference } from '@/lib/hooks/use-sound-preference';
 import { toast } from 'sonner';
@@ -25,33 +26,23 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     let retryTimeout: NodeJS.Timeout | null = null;
 
     const setupChannel = () => {
-      const channelId = `notifications:${profile.id}:${Date.now()}`;
-
-      notificationsChannel = supabase
-        .channel(channelId)
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${profile.id}`
-          },
-          (payload: any) => {
-          const newNotification = payload.new;
+      notificationsChannel = notificationRepository
+        .createChannel(profile.id, (newNotification) => {
 
           if (processedNotificationIds.current.has(newNotification.id)) {
             return;
           }
           processedNotificationIds.current.add(newNotification.id);
 
+          const meta = newNotification.meta as Record<string, any> | null;
+
           const isViewingThread = newNotification.type === 'message' &&
-            newNotification.meta?.thread_id &&
-            pathname === `/messages/${newNotification.meta.thread_id}`;
+            meta?.thread_id &&
+            pathname === `/messages/${meta.thread_id}`;
 
           const isViewingPost = (newNotification.type === 'comment' || newNotification.type === 'reply' || newNotification.type === 'reaction') &&
-            (newNotification.post_id || newNotification.meta?.post_id) &&
-            pathname === `/posts/${newNotification.post_id || newNotification.meta?.post_id}`;
+            (newNotification.post_id || meta?.post_id) &&
+            pathname === `/posts/${newNotification.post_id || meta?.post_id}`;
 
           if (!isViewingThread && !isViewingPost) {
             const isMessageNotification = newNotification.type === 'message';
@@ -62,29 +53,23 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
             }
 
             const getToastAction = () => {
-              if (newNotification.type === 'message' && newNotification.meta?.thread_id) {
+              if (newNotification.type === 'message' && meta?.thread_id) {
                 return {
                   label: 'Open chat',
                   onClick: () => {
-                    router.push(`/messages/${newNotification.meta.thread_id}`);
-                    supabase
-                      .from('notifications')
-                      .update({ read_at: new Date().toISOString() })
-                      .eq('id', newNotification.id);
+                    router.push(`/messages/${meta.thread_id}`);
+                    notificationRepository.markRead(newNotification.id);
                   }
                 };
               } else if (newNotification.type === 'comment' || newNotification.type === 'reply' || newNotification.type === 'reaction') {
-                const postId = newNotification.post_id || newNotification.meta?.post_id;
+                const postId = newNotification.post_id || meta?.post_id;
                 if (postId) {
                   return {
                     label: 'View post',
                     onClick: () => {
-                      const url = `/posts/${postId}${newNotification.meta?.comment_id ? `?commentId=${newNotification.meta.comment_id}` : ''}`;
+                      const url = `/posts/${postId}${meta?.comment_id ? `?commentId=${meta.comment_id}` : ''}`;
                       router.push(url);
-                      supabase
-                        .from('notifications')
-                        .update({ read_at: new Date().toISOString() })
-                        .eq('id', newNotification.id);
+                      notificationRepository.markRead(newNotification.id);
                     }
                   };
                 }
@@ -93,32 +78,23 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                   label: 'View review',
                   onClick: () => {
                     router.push('/dashboard');
-                    supabase
-                      .from('notifications')
-                      .update({ read_at: new Date().toISOString() })
-                      .eq('id', newNotification.id);
+                    notificationRepository.markRead(newNotification.id);
                   }
                 };
-              } else if (newNotification.type === 'follow' && newNotification.meta?.follower_id) {
+              } else if (newNotification.type === 'follow' && meta?.follower_id) {
                 return {
                   label: 'View profile',
                   onClick: () => {
-                    router.push(`/profile/${newNotification.meta.follower_id}`);
-                    supabase
-                      .from('notifications')
-                      .update({ read_at: new Date().toISOString() })
-                      .eq('id', newNotification.id);
+                    router.push(`/profile/${meta.follower_id}`);
+                    notificationRepository.markRead(newNotification.id);
                   }
                 };
-              } else if (newNotification.meta?.job_id) {
+              } else if (meta?.job_id) {
                 return {
                   label: 'View job',
                   onClick: () => {
-                    router.push(`/jobs/${newNotification.meta.job_id}`);
-                    supabase
-                      .from('notifications')
-                      .update({ read_at: new Date().toISOString() })
-                      .eq('id', newNotification.id);
+                    router.push(`/jobs/${meta.job_id}`);
+                    notificationRepository.markRead(newNotification.id);
                   }
                 };
               }

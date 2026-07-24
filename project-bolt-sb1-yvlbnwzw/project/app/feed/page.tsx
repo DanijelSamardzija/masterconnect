@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
+import { notificationRepository } from '@/lib/repositories/notificationRepository';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -225,9 +226,8 @@ function FeedContent() {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from('notifications').select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id).is('read_at', null)
-      .then(({ count }) => setNotificationUnreadCount(count || 0));
+    notificationRepository.getUnreadCount(user.id)
+      .then(count => setNotificationUnreadCount(count));
   }, [user]);
 
   const fetchSavedPosts = async () => {

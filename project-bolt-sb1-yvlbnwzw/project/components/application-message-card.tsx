@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { format } from 'date-fns';
 import { Phone, Mail, MapPin, FileText, Download, CheckCircle2, XCircle, Clock, Loader2, User } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
+import { notificationRepository } from '@/lib/repositories/notificationRepository';
 import { toast } from 'sonner';
 import { useLanguage } from '@/lib/contexts/language-context';
 
@@ -156,7 +157,7 @@ export function ApplicationMessageCard({
       const titleEn = newStatus === 'accepted'
         ? `${ownerName} accepted your application`
         : `${ownerName} declined your application`;
-      await supabase.from('notifications').insert({
+      await notificationRepository.insert({
         user_id: data.applicantId,
         type: newStatus === 'accepted' ? 'application_accepted' : 'application_declined',
         action_type: newStatus === 'accepted' ? 'application_accepted' : 'application_declined',
