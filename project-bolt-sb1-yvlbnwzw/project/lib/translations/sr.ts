@@ -418,6 +418,7 @@ export default {
   'discover.filterCountry': 'Filtriraj po državi...',
   'discover.noResults': 'Nema pronađenih ponuda usluga',
   'discover.clearFilters': 'Obriši Filtere',
+  'discover.searchKeyword': 'Šta tražite? (klima, vodoinstalater, android...)',
 
   // Find Pros
   'pros.title': 'Pronađi Profesionalce',

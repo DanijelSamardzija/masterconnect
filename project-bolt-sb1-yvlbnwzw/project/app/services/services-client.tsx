@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
@@ -20,6 +20,8 @@ import { CreateMarketplacePostModal } from '@/components/create-marketplace-post
 import { NotifyMeButton } from '@/components/notify-me-button';
 import { BoostModal } from '@/components/boost-modal';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+import { buildFtsQuery } from '@/lib/search/build-fts-query';
 
 export const revalidate = 0;
 
@@ -52,7 +54,11 @@ type ServiceListing = {
   }>;
 };
 
-export function ServicesClient() {
+interface ServicesClientProps {
+  initialSearch?: string;
+}
+
+export function ServicesClient({ initialSearch = '' }: ServicesClientProps) {
   const { profile, user } = useAuth();
   const { t, language } = useLanguage();
   usePageTracking('services');
@@ -70,6 +76,10 @@ export function ServicesClient() {
   const [boostingId, setBoostingId] = useState<string | null>(null);
   const [boostTarget, setBoostTarget] = useState<{ postId: string; promotedUntil: string | null } | null>(null);
   const [boostBalance, setBoostBalance] = useState(0);
+  const router = useRouter();
+  const [searchInput, setSearchInput] = useState(initialSearch);
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
     loadCategories();
@@ -83,8 +93,23 @@ export function ServicesClient() {
 
   useEffect(() => {
     loadListings();
-    setHasFilters(!!selectedCategory || !!cityFilter || !!countryFilter);
-  }, [selectedCategory, cityFilter, countryFilter, sortBy]);
+    setHasFilters(!!selectedCategory || !!cityFilter || !!countryFilter || !!searchQuery);
+  }, [selectedCategory, cityFilter, countryFilter, sortBy, searchQuery]);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    const timer = setTimeout(() => {
+      setSearchQuery(searchInput);
+      const path = searchInput.trim()
+        ? `/services?q=${encodeURIComponent(searchInput.trim())}`
+        : '/services';
+      router.replace(path, { scroll: false });
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   const loadCategories = async () => {
     try {
@@ -157,6 +182,11 @@ export function ServicesClient() {
 
       if (countryFilter) {
         query = query.eq('country', countryFilter);
+      }
+
+      const ftsQuery = searchQuery.trim() ? buildFtsQuery(searchQuery) : null;
+      if (ftsQuery) {
+        query = query.textSearch('search_vector', ftsQuery, { config: 'simple' });
       }
 
       const { data, error } = await query;
@@ -331,6 +361,9 @@ export function ServicesClient() {
     setSelectedCategory('');
     setCityFilter('');
     setCountryFilter('');
+    setSearchInput('');
+    setSearchQuery('');
+    router.replace('/services', { scroll: false });
   };
 
   return (
@@ -364,6 +397,27 @@ export function ServicesClient() {
         <div className="flex items-center gap-2 mb-4">
           <Filter className="h-5 w-5 text-muted-foreground" />
           <h2 className="text-lg font-semibold text-foreground">Filters</h2>
+        </div>
+
+        {/* KEYWORD SEARCH */}
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder={t('discover.searchKeyword')}
+            className="w-full h-10 pl-9 pr-9 rounded-md border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          />
+          {searchInput && (
+            <button
+              onClick={() => setSearchInput('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Clear search"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

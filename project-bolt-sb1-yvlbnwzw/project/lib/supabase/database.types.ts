@@ -1283,6 +1283,7 @@ export type Database = {
           profession: string | null
           promoted_until: string | null
           rank_penalty: number | null
+          search_vector: string | null
           spam_score: number | null
           status: string | null
           text: string | null

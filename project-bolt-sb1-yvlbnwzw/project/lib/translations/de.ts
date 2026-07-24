@@ -419,6 +419,7 @@ export default {
   'discover.filterCountry': 'Nach Land filtern...',
   'discover.noResults': 'Keine Dienstleistungsangebote gefunden',
   'discover.clearFilters': 'Filter zurücksetzen',
+  'discover.searchKeyword': 'Was suchen Sie? (Klima, Installateur, Android...)',
 
   // Find Pros
   'pros.title': 'Fachleute finden',

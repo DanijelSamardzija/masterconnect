@@ -418,6 +418,7 @@ export default {
   'discover.filterCountry': 'Filter by country...',
   'discover.noResults': 'No service listings found',
   'discover.clearFilters': 'Clear Filters',
+  'discover.searchKeyword': 'What are you looking for? (AC, plumber, android...)',
 
   // Find Pros
   'pros.title': 'Find Professionals',
