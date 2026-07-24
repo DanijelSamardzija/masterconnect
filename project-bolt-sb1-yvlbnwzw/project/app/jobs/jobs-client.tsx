@@ -43,7 +43,7 @@ import { GuestWall } from '@/components/guest-wall';
 import { CreateMarketplacePostModal } from '@/components/create-marketplace-post-modal';
 import { SharePostModal } from '@/components/share-post-modal';
 import { BoostModal } from '@/components/boost-modal';
-import { CityAutocomplete, cyrillicToLatin } from '@/components/city-autocomplete';
+import { CityAutocomplete } from '@/components/city-autocomplete';
 import { locationScore } from '@/lib/location-sort';
 import { CategoryCombobox } from '@/components/category-combobox';
 import { countries } from '@/lib/countries';
@@ -51,7 +51,7 @@ import { OfferServiceModal } from '@/components/offer-service-modal';
 import { SendOfferModal } from '@/components/send-offer-modal-v2';
 import { JobApplicationModal } from '@/components/job-application-modal';
 import { NotifyMeButton } from '@/components/notify-me-button';
-import { getSearchWords } from '@/lib/search/build-fts-query';
+import { buildFtsQuery } from '@/lib/search/build-fts-query';
 
 type Post = {
   id: string;
@@ -986,10 +986,18 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
   const [expandedPosts, setExpandedPosts] = useState<Set<string>>(new Set());
   const [searchInput, setSearchInput] = useState(initialSearch);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [totalCount, setTotalCount] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
   const isFirstRender = useRef(true);
+  const PAGE_SIZE = 25;
 
+  // Reload posts on any filter or tab change (server-side filtering)
   useEffect(() => {
-    loadPosts();
+    loadPosts(true);
+  }, [user?.id, activeTab, cityFilter, countryFilter, categoryFilter, searchQuery]);
+
+  // User-specific data — only on auth change
+  useEffect(() => {
     loadCategories();
     if (user) {
       fetchSavedJobs();
@@ -1102,134 +1110,81 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
     }
   };
 
-  const loadPosts = async () => {
+  const loadPosts = async (reset = true) => {
+    if (reset) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
     try {
-      const { data: postsData, error } = await supabase.rpc('get_posts_with_score', {
-        post_types: ['hiring_post', 'service_request', 'job_seeker_post'],
+      const tabPostTypes =
+        activeTab === 'hiring'
+          ? ['hiring_post']
+          : activeTab === 'service-requests'
+          ? ['service_request']
+          : ['job_seeker_post'];
+
+      const ftsQuery = searchQuery.trim() ? buildFtsQuery(searchQuery) : null;
+      const currentOffset = reset ? 0 : posts.length;
+
+      const { data, error } = await supabase.rpc('search_posts', {
+        p_post_types: tabPostTypes,
+        p_search:     ftsQuery,
+        p_city:       cityFilter    || null,
+        p_country:    countryFilter || null,
+        p_category:   categoryFilter || null,
+        p_limit:      PAGE_SIZE,
+        p_offset:     currentOffset,
       });
 
       if (error) {
-        const { data: fallbackData, error: fallbackError } = await supabase
-          .from('posts')
-          .select(`
-            id,
-            user_id,
-            text,
-            post_type,
-            job_title,
-            profession,
-            category,
-            city,
-            country,
-            experience_level,
-            location,
-            availability,
-            price_type,
-            price_value,
-            currency,
-            created_at,
-            status,
-            promoted_until,
-            is_promoted,
-            user:profiles!posts_user_id_fkey(name, email, account_type, avatar_url, country)
-          `)
-          .in('post_type', ['hiring_post', 'service_request', 'job_seeker_post'])
-          .eq('status', 'published')
-          .order('created_at', { ascending: false });
-
-        if (fallbackError) throw fallbackError;
-
-        const postsWithData =
-          fallbackData?.map((post: any) => ({
-            ...post,
-            user: Array.isArray(post.user) ? post.user[0] : post.user,
-          })) || [];
-
-        const fallbackUserIds = [...new Set(postsWithData.map((p: any) => p.user_id))];
-        if (fallbackUserIds.length > 0) {
-          const { data: premiumData } = await supabase.from('profiles').select('id, is_premium').in('id', fallbackUserIds);
-          if (premiumData) {
-            const premiumMap = Object.fromEntries(premiumData.map((p: any) => [p.id, p.is_premium]));
-            postsWithData.forEach((p: any) => { if (p.user) p.user.is_premium = premiumMap[p.user_id] ?? false; });
-          }
-        }
-
-        const _jNow = new Date();
-        const sorted = [...postsWithData].sort((a, b) => {
-          const scoreA = a.is_promoted ? 2 : (a.promoted_until && new Date(a.promoted_until) > _jNow ? 1 : 0);
-          const scoreB = b.is_promoted ? 2 : (b.promoted_until && new Date(b.promoted_until) > _jNow ? 1 : 0);
-          return scoreB - scoreA;
-        });
-
-        setPosts([...sorted, ...DEMO_POSTS]);
-
-        const postIdsToCheck = postsWithData.map((p: any) => p.id);
-        if (postIdsToCheck.length > 0) {
-          await checkAppliedStatus(postIdsToCheck);
-        }
-
-        setLoading(false);
+        console.error('search_posts error:', error);
+        toast.error('Failed to load posts');
         return;
       }
 
-      const postsWithData =
-        postsData?.map((post: any) => ({
-          id: post.id,
-          user_id: post.user_id,
-          text: post.text,
-          post_type: post.post_type,
-          job_title: post.job_title,
-          profession: post.profession,
-          category: post.category,
-          city: post.city,
-          experience_level: post.experience_level,
-          location: post.location,
-          availability: post.availability,
-          price_type: post.price_type,
-          price_value: post.price_value,
-          currency: post.currency,
-          created_at: post.created_at,
-          promoted_until: post.promoted_until || null,
-          is_promoted: false,
-          user: post.user_data,
-        })) || [];
+      const count = data?.[0]?.total_count ?? 0;
+      setTotalCount(Number(count));
 
-      if (postsWithData.length > 0) {
-        const ids = postsWithData.map((p: any) => p.id);
-        const { data: promoData } = await supabase
-          .from('posts')
-          .select('id, is_promoted')
-          .in('id', ids);
-        if (promoData) {
-          const promoMap = Object.fromEntries(promoData.map((p: any) => [p.id, p.is_promoted]));
-          postsWithData.forEach((p: any) => { p.is_promoted = promoMap[p.id] ?? false; });
-        }
+      const mapped: Post[] = (data ?? []).map((post: any) => ({
+        id:               post.id,
+        user_id:          post.user_id,
+        text:             post.text,
+        post_type:        post.post_type,
+        job_title:        post.job_title,
+        profession:       post.profession,
+        category:         post.category,
+        city:             post.city,
+        country:          post.country,
+        experience_level: post.experience_level,
+        location:         post.location,
+        availability:     post.availability,
+        price_type:       post.price_type,
+        price_value:      post.price_value,
+        currency:         post.currency,
+        created_at:       post.created_at,
+        promoted_until:   post.promoted_until ?? null,
+        is_promoted:      post.is_promoted ?? false,
+        user:             post.user_data,
+      }));
 
-        const rpcUserIds = [...new Set(postsWithData.map((p: any) => p.user_id))];
-        const { data: premiumData } = await supabase.from('profiles').select('id, is_premium').in('id', rpcUserIds);
-        if (premiumData) {
-          const premiumMap = Object.fromEntries(premiumData.map((p: any) => [p.id, p.is_premium]));
-          postsWithData.forEach((p: any) => { if (p.user) p.user.is_premium = premiumMap[p.user_id] ?? false; });
-        }
+      if (reset) {
+        setPosts(mapped);
+      } else {
+        setPosts(prev => [...prev, ...mapped]);
       }
 
-      const sorted = [...postsWithData].sort((a, b) => {
-        const aP = a.is_promoted || (a.promoted_until && new Date(a.promoted_until) > new Date()) ? 1 : 0;
-        const bP = b.is_promoted || (b.promoted_until && new Date(b.promoted_until) > new Date()) ? 1 : 0;
-        return bP - aP;
-      });
-
-      setPosts([...sorted, ...DEMO_POSTS]);
-
-      const postIdsToCheck = postsWithData.map((p: any) => p.id);
-      if (postIdsToCheck.length > 0) {
-        await checkAppliedStatus(postIdsToCheck);
+      const idsToCheck = mapped.map(p => p.id);
+      if (idsToCheck.length > 0) {
+        await checkAppliedStatus(idsToCheck);
       }
-    } catch (error: any) {
-      console.error('Error loading posts:', error);
-      toast.error('Failed to load marketplace posts');
+    } catch (err: any) {
+      console.error('Error loading posts:', err);
+      toast.error('Failed to load posts');
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
@@ -1354,51 +1309,24 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
     router.replace('/jobs', { scroll: false });
   };
 
-  const searchWords = searchQuery ? getSearchWords(searchQuery) : [];
+  // Server already filtered; append demo posts only when no active filters
+  const hasActiveFilter = !!(searchQuery || cityFilter || countryFilter || categoryFilter);
 
-  const filteredPosts = posts
-    .filter((post) => {
-      if (activeTab === 'hiring') {
-        if (post.post_type !== 'hiring_post') return false;
-      } else if (activeTab === 'service-requests') {
-        if (post.post_type !== 'service_request') return false;
-      } else if (activeTab === 'job-seekers') {
-        if (post.post_type !== 'job_seeker_post') return false;
-      } else {
+  const demoPosts = hasActiveFilter
+    ? []
+    : DEMO_POSTS.filter(p => {
+        if (activeTab === 'hiring') return p.post_type === 'hiring_post';
+        if (activeTab === 'service-requests') return p.post_type === 'service_request';
+        if (activeTab === 'job-seekers') return p.post_type === 'job_seeker_post';
         return false;
-      }
+      });
 
-      if (cityFilter) {
-        const postCity = cyrillicToLatin(post.city || post.location || '').toLowerCase();
-        if (!postCity.includes(cyrillicToLatin(cityFilter).toLowerCase())) return false;
-      }
-
-      if (countryFilter && post.country) {
-        if (post.country !== countryFilter) return false;
-      }
-
-      if (categoryFilter && post.category) {
-        if (post.category !== categoryFilter) return false;
-      }
-
-      if (searchWords.length > 0) {
-        const haystack = [post.job_title, post.text, post.category, post.city, post.profession]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase();
-        if (!searchWords.every((w) => haystack.includes(w))) return false;
-      }
-
-      return true;
-    })
-    .sort((a, b) => {
-      if (activeTab === 'job-seekers' && sortOrder === 'newest') {
-        return 0;
-      }
-      const dateA = new Date(a.created_at).getTime();
-      const dateB = new Date(b.created_at).getTime();
-      return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
-    });
+  const filteredPosts = [...posts, ...demoPosts].sort((a, b) => {
+    if (activeTab === 'job-seekers' && sortOrder === 'newest') return 0;
+    const dateA = new Date(a.created_at).getTime();
+    const dateB = new Date(b.created_at).getTime();
+    return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+  });
 
   const effectiveCountry = profile?.country || (() => {
     if (typeof navigator === 'undefined') return '';
@@ -1417,9 +1345,14 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
       })
     : filteredPosts;
 
-  const hiringCount = posts.filter((p) => p.post_type === 'hiring_post').length;
-  const serviceRequestCount = posts.filter((p) => p.post_type === 'service_request').length;
-  const jobSeekerCount = posts.filter((p) => p.post_type === 'job_seeker_post').length;
+  const demoCounts = {
+    hiring:          DEMO_POSTS.filter(p => p.post_type === 'hiring_post').length,
+    serviceRequests: DEMO_POSTS.filter(p => p.post_type === 'service_request').length,
+    jobSeekers:      DEMO_POSTS.filter(p => p.post_type === 'job_seeker_post').length,
+  };
+  const hiringCount          = activeTab === 'hiring'           ? Math.max(totalCount, demoCounts.hiring)          : demoCounts.hiring;
+  const serviceRequestCount  = activeTab === 'service-requests' ? Math.max(totalCount, demoCounts.serviceRequests) : demoCounts.serviceRequests;
+  const jobSeekerCount       = activeTab === 'job-seekers'      ? Math.max(totalCount, demoCounts.jobSeekers)      : demoCounts.jobSeekers;
 
   const tabTriggerClass =
   'px-4 py-2.5 text-sm font-medium rounded-xl border border-transparent transition-all duration-200 gap-2 ' +
@@ -1522,7 +1455,7 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
         <CreateMarketplacePostModal
           open={showCreateModal}
           onOpenChange={(open) => { setShowCreateModal(open); if (!open) setSelectedJobType(null); }}
-          onPostCreated={loadPosts}
+          onPostCreated={() => loadPosts(true)}
           initialPostType={selectedJobType || undefined}
           allowedTypes={['service_listing', 'hiring_post', 'job_seeker_post', 'service_request']}
         />
@@ -2136,6 +2069,26 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
                   );
                 })}
                 {!user && boostedPosts.length > 6 && <GuestWall variant="page" />}
+
+                {user && posts.length < totalCount && (
+                  <div className="flex justify-center pt-2 pb-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => loadPosts(false)}
+                      disabled={loadingMore}
+                      className="rounded-xl px-8 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                    >
+                      {loadingMore ? (
+                        <>
+                          <Loader className="h-4 w-4 mr-2 animate-spin" />
+                          Učitavanje...
+                        </>
+                      ) : (
+                        `Učitaj još (${totalCount - posts.length} preostalih)`
+                      )}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>

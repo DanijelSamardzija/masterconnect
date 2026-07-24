@@ -2234,6 +2234,47 @@ export type Database = {
           } | null
         }[]
       }
+      search_posts: {
+        Args: {
+          p_post_types: string[]
+          p_search?: string | null
+          p_city?: string | null
+          p_country?: string | null
+          p_category?: string | null
+          p_limit?: number
+          p_offset?: number
+        }
+        Returns: {
+          id: string
+          user_id: string
+          text: string | null
+          post_type: string
+          job_title: string | null
+          profession: string | null
+          category: string | null
+          city: string | null
+          country: string | null
+          experience_level: string | null
+          location: string | null
+          availability: string | null
+          price_type: string | null
+          price_value: number | null
+          currency: string | null
+          created_at: string
+          promoted_until: string | null
+          is_promoted: boolean
+          user_data: {
+            name: string
+            email: string
+            account_type: string
+            avatar_url: string | null
+            is_premium: boolean
+            country: string | null
+          } | null
+          score: number
+          total_count: number
+        }[]
+      }
       increment_post_views: { Args: { post_id: string }; Returns: undefined }
       send_credits: {
         Args: {
