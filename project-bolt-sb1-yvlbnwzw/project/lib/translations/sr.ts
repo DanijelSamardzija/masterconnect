@@ -1260,6 +1260,9 @@ export default {
   'onboarding.roleTitle': 'Šta želiš?',
 
   'feed.scrollHint': 'Skroluj gore-dole',
+  'feed.searchPlaceholder': 'Šta tražite?',
+  'feed.searchNoResults': 'Nema objava koje odgovaraju vašoj pretrazi.',
+  'feed.searchClear': 'Obriši pretragu',
   'feed.contact': 'Kontaktiraj',
   'feed.ctaBannerTitle': 'Sviđa ti se sadržaj?',
   'feed.ctaBannerDesc': 'Prijavi se da lajkuješ i kontaktiraš majstore',

@@ -1260,6 +1260,9 @@ export default {
   'onboarding.roleTitle': 'What are you looking for?',
 
   'feed.scrollHint': 'Scroll up & down',
+  'feed.searchPlaceholder': 'What are you looking for?',
+  'feed.searchNoResults': 'No posts match your search.',
+  'feed.searchClear': 'Clear search',
   'feed.contact': 'Contact',
   'feed.ctaBannerTitle': 'Enjoying the content?',
   'feed.ctaBannerDesc': 'Log in to like posts and contact professionals',

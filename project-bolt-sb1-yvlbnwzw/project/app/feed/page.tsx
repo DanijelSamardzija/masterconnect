@@ -646,7 +646,7 @@ function FeedContent() {
               value={searchInput}
               onChange={e => setSearchInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Escape') closeSearch(); }}
-              placeholder="Šta tražite?"
+              placeholder={t('feed.searchPlaceholder')}
               className="h-9 w-full rounded-xl border border-border bg-muted pl-9 pr-8 text-sm outline-none focus:border-orange-400"
             />
             {searchInput && (
@@ -704,12 +704,12 @@ function FeedContent() {
         ) : searchQuery.trim() && filteredPosts.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-muted-foreground px-6">
             <Search className="h-10 w-10 opacity-30" />
-            <p className="text-sm text-center">Nema objava koje odgovaraju vašoj pretrazi.</p>
+            <p className="text-sm text-center">{t('feed.searchNoResults')}</p>
             <button
               onClick={() => { setSearchInput(''); setSearchQuery(''); }}
               className="text-sm font-medium text-orange-500 hover:text-orange-600 transition-colors"
             >
-              Obriši pretragu
+              {t('feed.searchClear')}
             </button>
           </div>
         ) : (

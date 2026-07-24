@@ -1256,6 +1256,9 @@ export default {
   'onboarding.roleTitle': 'Was suchst du?',
 
   'feed.scrollHint': 'Hoch und runter scrollen',
+  'feed.searchPlaceholder': 'Was suchen Sie?',
+  'feed.searchNoResults': 'Keine Beiträge entsprechen Ihrer Suche.',
+  'feed.searchClear': 'Suche löschen',
   'feed.contact': 'Kontaktieren',
   'feed.ctaBannerTitle': 'Gefällt dir der Inhalt?',
   'feed.ctaBannerDesc': 'Melde dich an, um zu liken und Profis zu kontaktieren',
