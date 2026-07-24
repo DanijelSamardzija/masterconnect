@@ -79,7 +79,7 @@ BEGIN
     WHERE
       p.post_type = ANY(p_post_types)
       AND p.is_active = true
-      AND p.status   = 'published'
+      AND (p.status IS NULL OR p.status = 'published')
       AND (p_search   IS NULL OR p.search_vector @@ to_tsquery('simple', p_search))
       AND (p_city     IS NULL OR lower(p.city) LIKE '%' || lower(p_city) || '%')
       AND (p_country  IS NULL OR p.country = p_country)

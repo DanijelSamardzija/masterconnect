@@ -987,6 +987,7 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
   const [searchInput, setSearchInput] = useState(initialSearch);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [totalCount, setTotalCount] = useState(0);
+  const [allCounts, setAllCounts] = useState({ hiring: 0, serviceRequests: 0, jobSeekers: 0 });
   const [loadingMore, setLoadingMore] = useState(false);
   const isFirstRender = useRef(true);
   const PAGE_SIZE = 25;
@@ -995,6 +996,23 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
   useEffect(() => {
     loadPosts(true);
   }, [user?.id, activeTab, cityFilter, countryFilter, categoryFilter, searchQuery]);
+
+  // Fetch baseline counts for all tabs once on mount (lightweight — p_limit: 1)
+  useEffect(() => {
+    const fetchAllCounts = async () => {
+      const [r1, r2, r3] = await Promise.all([
+        supabase.rpc('search_posts', { p_post_types: ['hiring_post'],     p_limit: 1, p_offset: 0 }),
+        supabase.rpc('search_posts', { p_post_types: ['service_request'], p_limit: 1, p_offset: 0 }),
+        supabase.rpc('search_posts', { p_post_types: ['job_seeker_post'], p_limit: 1, p_offset: 0 }),
+      ]);
+      setAllCounts({
+        hiring:          Number(r1.data?.[0]?.total_count ?? 0),
+        serviceRequests: Number(r2.data?.[0]?.total_count ?? 0),
+        jobSeekers:      Number(r3.data?.[0]?.total_count ?? 0),
+      });
+    };
+    fetchAllCounts();
+  }, []);
 
   // User-specific data — only on auth change
   useEffect(() => {
@@ -1145,7 +1163,14 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
       }
 
       const count = data?.[0]?.total_count ?? 0;
-      setTotalCount(Number(count));
+      const countNum = Number(count);
+      setTotalCount(countNum);
+      if (activeTab === 'hiring')
+        setAllCounts(prev => ({ ...prev, hiring: countNum }));
+      else if (activeTab === 'service-requests')
+        setAllCounts(prev => ({ ...prev, serviceRequests: countNum }));
+      else
+        setAllCounts(prev => ({ ...prev, jobSeekers: countNum }));
 
       const mapped: Post[] = (data ?? []).map((post: any) => ({
         id:               post.id,
@@ -1350,9 +1375,9 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
     serviceRequests: DEMO_POSTS.filter(p => p.post_type === 'service_request').length,
     jobSeekers:      DEMO_POSTS.filter(p => p.post_type === 'job_seeker_post').length,
   };
-  const hiringCount          = activeTab === 'hiring'           ? Math.max(totalCount, demoCounts.hiring)          : demoCounts.hiring;
-  const serviceRequestCount  = activeTab === 'service-requests' ? Math.max(totalCount, demoCounts.serviceRequests) : demoCounts.serviceRequests;
-  const jobSeekerCount       = activeTab === 'job-seekers'      ? Math.max(totalCount, demoCounts.jobSeekers)      : demoCounts.jobSeekers;
+  const hiringCount         = Math.max(allCounts.hiring, demoCounts.hiring);
+  const serviceRequestCount = Math.max(allCounts.serviceRequests, demoCounts.serviceRequests);
+  const jobSeekerCount      = Math.max(allCounts.jobSeekers, demoCounts.jobSeekers);
 
   const tabTriggerClass =
   'px-4 py-2.5 text-sm font-medium rounded-xl border border-transparent transition-all duration-200 gap-2 ' +
