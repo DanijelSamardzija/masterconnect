@@ -39,6 +39,7 @@ import { usePageTracking } from '@/lib/hooks/use-page-tracking';
 import { useGuestGate } from '@/lib/contexts/guest-gate-context';
 import { GuestWall } from '@/components/guest-wall';
 import { formatDistanceToNow } from 'date-fns';
+import { getSearchWords } from '@/lib/search/build-fts-query';
 
 export const revalidate = 0;
 
@@ -112,6 +113,7 @@ function FeedContent() {
   const [isGlobalMuted, setIsGlobalMuted] = useState(true);
   const [createPostOpen, setCreatePostOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
   const [reportModalOpen, setReportModalOpen] = useState(false);
@@ -155,6 +157,7 @@ function FeedContent() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const loaderRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
   const [audioUnlocked, setAudioUnlocked] = useState(false);
 
   const [pulsedPosts, setPulsedPosts] = useState<Set<string>>(new Set());
@@ -539,6 +542,39 @@ function FeedContent() {
     }
   }, [loading]);
 
+  // Focus the search input when the bar opens
+  useEffect(() => {
+    if (searchOpen) searchInputRef.current?.focus();
+  }, [searchOpen]);
+
+  // Debounce raw input → filter query (350 ms)
+  useEffect(() => {
+    const timer = setTimeout(() => setSearchQuery(searchInput), 350);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  // Close search when tapping the feed area — only if input is empty
+  useEffect(() => {
+    if (!searchOpen) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (headerRef.current && !headerRef.current.contains(e.target as Node)) {
+        if (!searchInput.trim()) {
+          setSearchOpen(false);
+          setSearchInput('');
+          setSearchQuery('');
+        }
+      }
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [searchOpen, searchInput]);
+
+  const closeSearch = () => {
+    setSearchOpen(false);
+    setSearchInput('');
+    setSearchQuery('');
+  };
+
   const handlePostCreated = () => {
     setCreatePostOpen(false);
     justCreatedRef.current = true;
@@ -556,72 +592,73 @@ function FeedContent() {
   const filteredPosts = searchQuery.trim()
     ? posts.filter(p => {
         if (!p.user) return false;
-        const q = searchQuery.toLowerCase();
-        return (p.user.name || '').toLowerCase().includes(q) || (p.text || '').toLowerCase().includes(q) || (p.city || '').toLowerCase().includes(q) || (p.category || '').toLowerCase().includes(q);
+        const words = getSearchWords(searchQuery);
+        const haystack = [p.text, p.category, p.city, ...(p.hashtags ?? [])]
+          .filter(Boolean).join(' ').toLowerCase();
+        return words.every(w => haystack.includes(w));
       })
     : posts.filter(p => !!p.user);
 
   return (
     <>
-      {/* Search overlay */}
-      {searchOpen && (
-        <div className="fixed inset-0 z-50 bg-background/98 backdrop-blur-sm flex flex-col">
-          <div className="flex items-center gap-2 px-3 py-3 border-b border-border">
-            <button onClick={() => { setSearchOpen(false); setSearchQuery(''); }} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted text-muted-foreground">
-              <X className="h-5 w-5" />
-            </button>
-            <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Escape') { setSearchOpen(false); setSearchQuery(''); } }}
-                placeholder="Pretraži korisnike, gradove, kategorije..."
-                autoFocus
-                className="h-10 w-full rounded-xl border border-border bg-muted pl-9 pr-4 text-sm outline-none focus:border-orange-400"
-              />
-              {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-          </div>
-          <div ref={scrollContainerRef} className="flex-1 overflow-y-scroll snap-y snap-mandatory px-2 py-2 space-y-0">
-            {filteredPosts.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-40 text-muted-foreground gap-2">
-                <Search className="h-8 w-8 opacity-40" />
-                <p className="text-sm">Nema rezultata za &quot;<span className="text-foreground">{searchQuery}</span>&quot;</p>
-              </div>
-            ) : filteredPosts.map((post, postIndex) => renderCard(post, postIndex))}
+      {/* Sticky header — fixed height (py-2 + h-9 = 52px = HEADER_H) */}
+      <div
+        ref={headerRef}
+        className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border relative"
+      >
+        {/* Nav buttons — fade out when search opens */}
+        <div className={`flex items-center justify-center gap-3 px-3 py-2 transition-opacity duration-150 ${searchOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+          <button onClick={() => router.push(user ? '/dashboard' : '/')} className="relative w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+            <Home className="h-5 w-5" />
+            {notificationUnreadCount > 0 && (
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500" />
+            )}
+          </button>
+          <button onClick={() => router.push('/services')} className="flex items-center gap-1.5 h-9 px-3 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground border border-border text-xs font-semibold">
+            <Wrench className="h-3.5 w-3.5" />
+            Usluge
+          </button>
+          <button onClick={() => user ? setCreatePostOpen(true) : openGuestGate('post')} className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-500 hover:bg-orange-600 transition-colors text-white shadow-md">
+            <Plus className="h-5 w-5" />
+          </button>
+          <button onClick={() => router.push('/jobs')} className="flex items-center gap-1.5 h-9 px-3 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground border border-border text-xs font-semibold">
+            <Briefcase className="h-3.5 w-3.5" />
+            Poslovi
+          </button>
+          <button onClick={() => setSearchOpen(true)} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+            <Search className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Search bar — overlays nav, fades in when search opens */}
+        <div className={`absolute inset-0 flex items-center gap-2 px-3 transition-opacity duration-150 ${searchOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+          <button
+            onClick={closeSearch}
+            className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground shrink-0"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchInput}
+              onChange={e => setSearchInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Escape') closeSearch(); }}
+              placeholder="Šta tražite?"
+              className="h-9 w-full rounded-xl border border-border bg-muted pl-9 pr-8 text-sm outline-none focus:border-orange-400"
+            />
+            {searchInput && (
+              <button
+                onClick={() => { setSearchInput(''); setSearchQuery(''); }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
         </div>
-      )}
-
-      {/* Sticky header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border py-2 flex items-center justify-center gap-3">
-        <button onClick={() => router.push(user ? '/dashboard' : '/')} className="relative w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
-          <Home className="h-5 w-5" />
-          {notificationUnreadCount > 0 && (
-            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500" />
-          )}
-        </button>
-        <button onClick={() => router.push('/services')} className="flex items-center gap-1.5 h-9 px-3 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground border border-border text-xs font-semibold">
-          <Wrench className="h-3.5 w-3.5" />
-          Usluge
-        </button>
-        <button onClick={() => user ? setCreatePostOpen(true) : openGuestGate('post')} className="w-9 h-9 flex items-center justify-center rounded-xl bg-orange-500 hover:bg-orange-600 transition-colors text-white shadow-md">
-          <Plus className="h-5 w-5" />
-        </button>
-        <button onClick={() => router.push('/jobs')} className="flex items-center gap-1.5 h-9 px-3 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground border border-border text-xs font-semibold">
-          <Briefcase className="h-3.5 w-3.5" />
-          Poslovi
-        </button>
-        <button onClick={() => { setSearchOpen(true); setTimeout(() => searchInputRef.current?.focus(), 50); }} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
-          <Search className="h-5 w-5" />
-        </button>
       </div>
 
       {/* New posts notification */}
@@ -663,6 +700,17 @@ function FeedContent() {
                 </button>
               )}
             </div>
+          </div>
+        ) : searchQuery.trim() && filteredPosts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full gap-4 text-muted-foreground px-6">
+            <Search className="h-10 w-10 opacity-30" />
+            <p className="text-sm text-center">Nema objava koje odgovaraju vašoj pretrazi.</p>
+            <button
+              onClick={() => { setSearchInput(''); setSearchQuery(''); }}
+              className="text-sm font-medium text-orange-500 hover:text-orange-600 transition-colors"
+            >
+              Obriši pretragu
+            </button>
           </div>
         ) : (
           <>
