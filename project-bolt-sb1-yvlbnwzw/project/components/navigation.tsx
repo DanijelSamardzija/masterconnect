@@ -83,9 +83,22 @@ export function Navigation() {
       fetchUnreadCount();
       fetchNotificationUnreadCount();
 
+      let unreadTimer: ReturnType<typeof setTimeout> | null = null;
+      let notifTimer: ReturnType<typeof setTimeout> | null = null;
+
+      const debouncedFetchUnread = () => {
+        if (unreadTimer) clearTimeout(unreadTimer);
+        unreadTimer = setTimeout(() => fetchUnreadCount(), 80);
+      };
+
+      const debouncedFetchNotifUnread = () => {
+        if (notifTimer) clearTimeout(notifTimer);
+        notifTimer = setTimeout(() => fetchNotificationUnreadCount(), 80);
+      };
+
       const handleUnreadCountChanged = () => {
-        fetchUnreadCount();
-        fetchNotificationUnreadCount();
+        debouncedFetchUnread();
+        debouncedFetchNotifUnread();
       };
 
       window.addEventListener('unreadCountChanged', handleUnreadCountChanged);
@@ -100,7 +113,7 @@ export function Navigation() {
             table: 'messages',
           },
           () => {
-            fetchUnreadCount();
+            debouncedFetchUnread();
           }
         )
         .on(
@@ -112,7 +125,7 @@ export function Navigation() {
             filter: `user_id=eq.${profile.id}`,
           },
           () => {
-            fetchUnreadCount();
+            debouncedFetchUnread();
           }
         )
         .subscribe();
@@ -127,9 +140,8 @@ export function Navigation() {
             table: 'notifications',
           },
           (payload: any) => {
-            // Only re-fetch if the new notification belongs to the current user
             if (payload.new?.user_id === profile.id) {
-              fetchNotificationUnreadCount();
+              debouncedFetchNotifUnread();
             }
           }
         )
@@ -142,13 +154,15 @@ export function Navigation() {
           },
           (payload: any) => {
             if (payload.new?.user_id === profile.id) {
-              fetchNotificationUnreadCount();
+              debouncedFetchNotifUnread();
             }
           }
         )
         .subscribe();
 
       return () => {
+        if (unreadTimer) clearTimeout(unreadTimer);
+        if (notifTimer) clearTimeout(notifTimer);
         window.removeEventListener('unreadCountChanged', handleUnreadCountChanged);
         supabase.removeChannel(messagesChannel);
         supabase.removeChannel(notificationsChannel);
