@@ -16,7 +16,7 @@ import {
   ToggleLeft, ToggleRight, BarChart2, Activity, MapPin, CalendarDays, RefreshCw,
   Bell, X, Coins, Crown, Sparkles
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { timeAgo } from '@/lib/utils/date';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
@@ -1340,7 +1340,7 @@ function AdminContent() {
                               {report.target_type === 'post' ? 'Post' : report.target_type === 'profile' ? 'Profil' : report.target_type}
                             </span>
                             <span className="text-xs text-muted-foreground">
-                              {formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}
+                              {timeAgo(report.created_at)}
                             </span>
                           </div>
 
@@ -1697,7 +1697,7 @@ function AdminContent() {
                             </Link>
                           )}
                           <span className="text-xs text-muted-foreground">
-                            {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                            {timeAgo(post.created_at)}
                           </span>
                           <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full flex items-center gap-1">
                             <Eye className="h-3 w-3" />
@@ -1860,7 +1860,7 @@ function AdminContent() {
                               </span>
                             )}
                             <span className="text-xs text-muted-foreground">
-                              {formatDistanceToNow(new Date(ticket.created_at), { addSuffix: true })}
+                              {timeAgo(ticket.created_at)}
                             </span>
                           </div>
                           <p className="text-sm font-semibold text-foreground truncate">{ticket.subject}</p>
@@ -2086,7 +2086,7 @@ function AdminContent() {
                             {a.active ? 'Aktivno' : 'Neaktivno'}
                           </span>
                           <span className="text-xs text-muted-foreground">
-                            {formatDistanceToNow(new Date(a.created_at), { addSuffix: true })}
+                            {timeAgo(a.created_at)}
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-3">{a.body}</p>
@@ -2243,7 +2243,7 @@ function AdminContent() {
                             <p className={`text-sm font-bold ${isPositive ? 'text-green-600' : 'text-red-500'}`}>
                               {isPositive ? '+' : ''}{tx.amount}
                             </p>
-                            <p className="text-[10px] text-muted-foreground">{formatDistanceToNow(new Date(tx.created_at), { addSuffix: true })}</p>
+                            <p className="text-[10px] text-muted-foreground">{timeAgo(tx.created_at)}</p>
                           </div>
                         </div>
                       );
@@ -2298,7 +2298,7 @@ function AdminContent() {
                               <span>{r.referred?.name || '—'}</span>
                             </p>
                           </div>
-                          <p className="text-[10px] text-muted-foreground shrink-0">{formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}</p>
+                          <p className="text-[10px] text-muted-foreground shrink-0">{timeAgo(r.created_at)}</p>
                         </div>
                       ))}
                     </div>
@@ -2793,7 +2793,7 @@ function AdminContent() {
                                     {roleLabels[w.role] || w.role}
                                   </span>
                                   <p className="text-[10px] text-muted-foreground mt-0.5">
-                                    {formatDistanceToNow(new Date(w.created_at), { addSuffix: true })}
+                                    {timeAgo(w.created_at)}
                                   </p>
                                 </div>
                               </div>

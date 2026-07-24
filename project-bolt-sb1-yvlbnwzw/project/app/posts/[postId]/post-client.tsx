@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { ArrowLeft, Pin, AlertCircle, MessageSquare, ChevronLeft, ChevronRight, DollarSign, Briefcase, Heart, Send } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { timeAgo } from '@/lib/utils/date';
 import { toast } from 'sonner';
 import { SendOfferModal } from '@/components/send-offer-modal-v2';
 import { OfferServiceModal } from '@/components/offer-service-modal';
@@ -455,7 +455,7 @@ function SinglePostContent() {
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                      {timeAgo(post.created_at)}
                     </p>
                   </div>
                   {user && post.user_id !== user.id && (

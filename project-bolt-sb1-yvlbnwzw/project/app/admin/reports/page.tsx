@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Shield, AlertTriangle } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { timeAgo } from '@/lib/utils/date';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
@@ -243,7 +243,7 @@ function AdminReportsContent() {
                         </p>
                         <p>
                           <span className="font-medium">Reported:</span>{' '}
-                          {formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}
+                          {timeAgo(report.created_at)}
                         </p>
                       </div>
                       {report.details && (

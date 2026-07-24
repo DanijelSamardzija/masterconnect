@@ -143,7 +143,7 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
               <button
                 onClick={clearInput}
                 className="text-muted-foreground hover:text-foreground shrink-0 transition-colors"
-                aria-label="Obriši pretragu"
+                aria-label={t('feed.searchClear')}
               >
                 <X className="h-4 w-4" />
               </button>

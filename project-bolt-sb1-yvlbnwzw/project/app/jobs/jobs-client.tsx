@@ -33,7 +33,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Briefcase, Users, UserCircle, MessageCircle, Plus, MoreVertical, Trash2, Send, X, Bookmark, Share2, MapPin, Star, Clock, Sparkles, Zap, Loader2 as Loader, Search, Wrench, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { formatDistanceToNow } from 'date-fns';
+import { timeAgo } from '@/lib/utils/date';
 
 export const revalidate = 0;
 
@@ -1628,17 +1628,17 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
 
           {activeTab === 'hiring' && (
             <p className="mt-4 text-sm text-muted-foreground bg-muted/50 border border-border rounded-xl px-4 py-2.5">
-              💼 Ova sekcija je namijenjena isključivo za <strong>oglase za zapošljavanje</strong> — poslodavci objavljuju slobodna radna mjesta i traže radnike.
+              💼 {t('jobs.infoHiring')}
             </p>
           )}
           {activeTab === 'service-requests' && (
             <p className="mt-4 text-sm text-muted-foreground bg-muted/50 border border-border rounded-xl px-4 py-2.5">
-              🔍 Ova sekcija je namijenjena za <strong>traženje usluga</strong> — klijenti objavljuju šta im treba i čekaju ponude od profesionalaca.
+              🔍 {t('jobs.infoServiceRequests')}
             </p>
           )}
           {activeTab === 'job-seekers' && (
             <p className="mt-4 text-sm text-muted-foreground bg-muted/50 border border-border rounded-xl px-4 py-2.5">
-              👤 Ova sekcija je namijenjena za <strong>traženje posla</strong> — kandidati objavljuju da traže zaposlenje i opisuju svoje vještine.
+              👤 {t('jobs.infoJobSeekers')}
             </p>
           )}
 
@@ -1698,7 +1698,7 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
                                   </div>
 
                                   <p className="text-xs text-slate-500 dark:text-gray-400">
-                                    {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                                    {timeAgo(post.created_at)}
                                   </p>
                                 </div>
                               </div>
@@ -1730,7 +1730,7 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
                                 )}
                                 {post.is_promoted && (
                                   <span className="px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider bg-orange-500 text-white rounded">
-                                    ⭐ Sponzorisano
+                                    ⭐ {t('post.sponsored')}
                                   </span>
                                 )}
                                 {!post.is_promoted && post.promoted_until && new Date(post.promoted_until) > new Date() && (

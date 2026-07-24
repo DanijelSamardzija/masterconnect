@@ -38,7 +38,7 @@ import { BoostModal } from '@/components/boost-modal';
 import { usePageTracking } from '@/lib/hooks/use-page-tracking';
 import { useGuestGate } from '@/lib/contexts/guest-gate-context';
 import { GuestWall } from '@/components/guest-wall';
-import { formatDistanceToNow } from 'date-fns';
+
 import { getSearchWords } from '@/lib/search/build-fts-query';
 
 export const revalidate = 0;
@@ -692,11 +692,11 @@ function FeedContent() {
         {posts.length === 0 ? (
           <div className="flex h-full items-center justify-center">
             <div className="text-center px-8">
-              <p className="text-xl font-bold mb-2">Nema postova</p>
-              <p className="text-muted-foreground mb-4 text-sm">Feed je trenutno prazan.</p>
+              <p className="text-xl font-bold mb-2">{t('feed.emptyTitle')}</p>
+              <p className="text-muted-foreground mb-4 text-sm">{t('feed.emptyBody')}</p>
               {user && (
                 <button onClick={() => setCreatePostOpen(true)} className="flex items-center gap-1.5 mx-auto rounded-full bg-orange-500 px-4 py-2 text-sm font-semibold text-white">
-                  <Plus className="h-4 w-4" /> Kreiraj post
+                  <Plus className="h-4 w-4" /> {t('feed.createPost')}
                 </button>
               )}
             </div>
@@ -729,7 +729,7 @@ function FeedContent() {
 
             {!hasMore && posts.length > 0 && (
               <div className="flex items-center justify-center py-8" style={{ minHeight: '120px' }}>
-                <p className="text-sm text-muted-foreground">Nema više postova</p>
+                <p className="text-sm text-muted-foreground">{t('feed.endOfFeed')}</p>
               </div>
             )}
           </>
@@ -860,7 +860,7 @@ function FeedContent() {
                   </span>
                 )}
                 {post.is_promoted && (
-                  <Badge className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 text-[10px] px-1.5 py-0 h-4 shrink-0">Sponzorisano</Badge>
+                  <Badge className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 text-[10px] px-1.5 py-0 h-4 shrink-0">{t('post.sponsored')}</Badge>
                 )}
                 {post.promoted_until && new Date(post.promoted_until) > new Date() && (
                   <Badge className="bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 text-[10px] px-1.5 py-0 h-4 shrink-0">🚀 Boost</Badge>

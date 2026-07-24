@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Bell, CheckCheck, Trash2, Volume2, VolumeX } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { useSoundPreference } from '@/hooks/use-sound-preference';
+import { useSoundPreference } from '@/lib/hooks/use-sound-preference';
 import { useLanguage } from '@/lib/contexts/language-context';
 
 export type Notification = {

@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Edit, Trash2, MoreVertical, MapPin, Briefcase, DollarSign, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { timeAgo } from '@/lib/utils/date';
 import { useLanguage } from '@/lib/contexts/language-context';
 
 type PostMedia = {
@@ -102,7 +102,7 @@ export function ServiceListingCard({
                   {t('marketplace.serviceListing')}
                 </Badge>
                 <span className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                  {timeAgo(post.created_at)}
                 </span>
               </div>
 

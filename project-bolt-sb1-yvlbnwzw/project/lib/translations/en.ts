@@ -802,6 +802,12 @@ export default {
   'jobs.sortNewest': 'Newest',
   'jobs.sortOldest': 'Oldest',
   'jobs.resetFilters': 'Reset',
+  'jobs.infoHiring': 'This section is exclusively for job postings — employers post vacancies and look for workers.',
+  'jobs.infoServiceRequests': 'This section is for service requests — clients post what they need and wait for offers from professionals.',
+  'jobs.infoJobSeekers': 'This section is for job seekers — candidates post that they\'re looking for employment and describe their skills.',
+
+  'post.sponsored': 'Sponsored',
+  'discover.filtersHeading': 'Filters',
 
   // Categories (slug-based)
   'category.construction':  'Construction & Crafts',
@@ -1263,6 +1269,10 @@ export default {
   'feed.searchPlaceholder': 'What are you looking for?',
   'feed.searchNoResults': 'No posts match your search.',
   'feed.searchClear': 'Clear search',
+  'feed.emptyTitle': 'No posts yet',
+  'feed.emptyBody': 'The feed is currently empty.',
+  'feed.createPost': 'Create post',
+  'feed.endOfFeed': 'No more posts',
   'feed.contact': 'Contact',
   'feed.ctaBannerTitle': 'Enjoying the content?',
   'feed.ctaBannerDesc': 'Log in to like posts and contact professionals',

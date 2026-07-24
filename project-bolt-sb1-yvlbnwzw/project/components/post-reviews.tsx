@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Star } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { formatDistanceToNow } from 'date-fns';
+import { timeAgo } from '@/lib/utils/date';
 
 type Review = {
   id: string;
@@ -122,7 +122,7 @@ export function PostReviews({ proId, initialReviewCount = 0 }: PostReviewsProps)
                   </div>
                 </div>
                 <p className="text-xs text-slate-500 mt-1">
-                  {formatDistanceToNow(new Date(review.created_at), { addSuffix: true })}
+                  {timeAgo(review.created_at)}
                 </p>
               </div>
             </div>

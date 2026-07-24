@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { Megaphone, X, ChevronRight } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { sr } from 'date-fns/locale';
+import { timeAgo } from '@/lib/utils/date';
 import { useLanguage } from '@/lib/contexts/language-context';
 
 type Announcement = {
@@ -109,7 +108,7 @@ export function AnnouncementBanner() {
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-foreground text-base">{displayTitle}</p>
                   <p className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(announcement.created_at), { addSuffix: true, locale: language === 'sr' ? sr : undefined })}
+                    {timeAgo(announcement.created_at, language)}
                   </p>
                 </div>
                 <button

@@ -22,10 +22,10 @@ import {
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
 import { Switch } from '@/components/ui/switch';
-import { useSoundPreference } from '@/hooks/use-sound-preference';
-import { useTheme } from '@/hooks/use-theme';
-import { usePushNotifications } from '@/hooks/use-push-notifications';
-import { formatDistanceToNow } from 'date-fns';
+import { useSoundPreference } from '@/lib/hooks/use-sound-preference';
+import { useTheme } from '@/lib/hooks/use-theme';
+import { usePushNotifications } from '@/lib/hooks/use-push-notifications';
+import { timeAgo } from '@/lib/utils/date';
 import Link from 'next/link';
 
 interface SupportTicket {
@@ -481,7 +481,7 @@ function SettingsContent() {
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-sm text-foreground truncate">{ticket.subject}</p>
                               <p className="text-xs text-muted-foreground">
-                                {getCategoryLabel(ticket.category)} · {formatDistanceToNow(new Date(ticket.created_at), { addSuffix: true })}
+                                {getCategoryLabel(ticket.category)} · {timeAgo(ticket.created_at)}
                               </p>
                             </div>
                             <div className="flex items-center gap-2">

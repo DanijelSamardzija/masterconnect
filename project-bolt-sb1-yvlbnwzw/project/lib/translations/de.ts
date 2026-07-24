@@ -800,6 +800,12 @@ export default {
   'jobs.sortNewest': 'Neueste',
   'jobs.sortOldest': 'Älteste',
   'jobs.resetFilters': 'Zurücksetzen',
+  'jobs.infoHiring': 'Dieser Bereich ist ausschließlich für Stellenanzeigen — Arbeitgeber veröffentlichen offene Stellen und suchen Mitarbeiter.',
+  'jobs.infoServiceRequests': 'Dieser Bereich ist für Serviceanfragen — Kunden posten was sie brauchen und warten auf Angebote von Fachleuten.',
+  'jobs.infoJobSeekers': 'Dieser Bereich ist für Jobsuchende — Kandidaten posten dass sie eine Stelle suchen und beschreiben ihre Fähigkeiten.',
+
+  'post.sponsored': 'Gesponsert',
+  'discover.filtersHeading': 'Filter',
 
   // Categories (slug-based)
   'category.construction':  'Bau & Handwerk',
@@ -1259,6 +1265,10 @@ export default {
   'feed.searchPlaceholder': 'Was suchen Sie?',
   'feed.searchNoResults': 'Keine Beiträge entsprechen Ihrer Suche.',
   'feed.searchClear': 'Suche löschen',
+  'feed.emptyTitle': 'Noch keine Beiträge',
+  'feed.emptyBody': 'Der Feed ist derzeit leer.',
+  'feed.createPost': 'Beitrag erstellen',
+  'feed.endOfFeed': 'Keine weiteren Beiträge',
   'feed.contact': 'Kontaktieren',
   'feed.ctaBannerTitle': 'Gefällt dir der Inhalt?',
   'feed.ctaBannerDesc': 'Melde dich an, um zu liken und Profis zu kontaktieren',

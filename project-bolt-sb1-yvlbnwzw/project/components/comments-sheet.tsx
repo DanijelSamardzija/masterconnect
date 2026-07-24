@@ -7,7 +7,7 @@ import { Dialog, DialogPortal, DialogOverlay } from '@/components/ui/dialog';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2, Send, Heart, CornerDownRight, X } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { timeAgo } from '@/lib/utils/date';
 import { toast } from 'sonner';
 
 type Reply = {
@@ -59,7 +59,7 @@ function CommentRow({ c, isReply = false, parentCommentId, user, likingIds, repl
         </div>
         <div className="flex items-center gap-3 mt-1 px-1">
           <span className="text-[10px] text-muted-foreground">
-            {formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}
+            {timeAgo(c.created_at)}
           </span>
           <button
             onClick={() => onLike(c.id, c.liked_by_me)}

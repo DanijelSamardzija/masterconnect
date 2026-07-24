@@ -18,7 +18,7 @@ import { SharePostModal } from '@/components/share-post-modal';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Loader2, MapPin, MessageCircle, Star, ChevronLeft, ChevronRight, Phone, User, Share2, Edit, Trash2, ImageOff, Calendar } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { timeAgo } from '@/lib/utils/date';
 
 type ServiceDetail = {
   id: string;
@@ -554,7 +554,7 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                             <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{review.comment}</p>
                           )}
                           <p className="text-xs text-gray-400 mt-1">
-                            {formatDistanceToNow(new Date(review.created_at), { addSuffix: true })}
+                            {timeAgo(review.created_at)}
                           </p>
                         </div>
                       ))}

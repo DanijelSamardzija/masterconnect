@@ -802,6 +802,12 @@ export default {
   'jobs.sortNewest': 'Najnovije',
   'jobs.sortOldest': 'Najstarije',
   'jobs.resetFilters': 'Reset',
+  'jobs.infoHiring': 'Ova sekcija je namijenjena isključivo za oglase za zapošljavanje — poslodavci objavljuju slobodna radna mjesta i traže radnike.',
+  'jobs.infoServiceRequests': 'Ova sekcija je namijenjena za traženje usluga — klijenti objavljuju šta im treba i čekaju ponude od profesionalaca.',
+  'jobs.infoJobSeekers': 'Ova sekcija je namijenjena za traženje posla — kandidati objavljuju da traže zaposlenje i opisuju svoje vještine.',
+
+  'post.sponsored': 'Sponzorisano',
+  'discover.filtersHeading': 'Filteri',
 
   // Categories (slug-based)
   'category.construction':  'Građevina i zanati',
@@ -1263,6 +1269,10 @@ export default {
   'feed.searchPlaceholder': 'Šta tražite?',
   'feed.searchNoResults': 'Nema objava koje odgovaraju vašoj pretrazi.',
   'feed.searchClear': 'Obriši pretragu',
+  'feed.emptyTitle': 'Nema postova',
+  'feed.emptyBody': 'Feed je trenutno prazan.',
+  'feed.createPost': 'Kreiraj post',
+  'feed.endOfFeed': 'Nema više postova',
   'feed.contact': 'Kontaktiraj',
   'feed.ctaBannerTitle': 'Sviđa ti se sadržaj?',
   'feed.ctaBannerDesc': 'Prijavi se da lajkuješ i kontaktiraš majstore',

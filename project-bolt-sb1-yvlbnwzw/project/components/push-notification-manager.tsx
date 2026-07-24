@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useAuth } from '@/lib/contexts/auth-context';
-import { usePushNotifications } from '@/hooks/use-push-notifications';
+import { usePushNotifications } from '@/lib/hooks/use-push-notifications';
 
 /**
  * Invisible component — automatically requests push permission on first login.

@@ -46,9 +46,8 @@ const NotificationsModal = dynamic(
   () => import('@/components/notifications-modal').then(m => ({ default: m.NotificationsModal })),
   { ssr: false }
 );
-import { useTheme } from '@/hooks/use-theme';
-import { formatDistanceToNow } from 'date-fns';
-import { sr } from 'date-fns/locale';
+import { useTheme } from '@/lib/hooks/use-theme';
+import { timeAgo } from '@/lib/utils/date';
 import { translateNotification } from '@/lib/notification-translations';
 
 export function Navigation() {
@@ -216,7 +215,7 @@ export function Navigation() {
       const translated = translateNotification({ title: n.title, body: n.body, action_type: n.action_type, meta: n.meta }, language);
       return {
         id: n.id, type: n.type, title: translated.title, body: translated.body,
-        time: formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: language === 'sr' ? sr : undefined }),
+        time: timeAgo(n.created_at, language),
         read: !!n.read_at, meta: { ...(n.meta || {}), post_id: n.post_id },
         linkUrl: n.meta?.link_url || undefined,
       };

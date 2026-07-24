@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { sendEmail } from '@/lib/brevo';
-
-type Lang = 'sr' | 'en' | 'de';
+import type { Lang } from '@/lib/i18n-config';
 
 function buildEmail(lang: Lang, category: string | null, city: string | null, postUrl: string, jobTitle: string, email: string) {
   const subject: Record<Lang, string> = {

@@ -67,7 +67,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { FollowButton } from '@/components/follow-button';
 import { FollowListSheet } from '@/components/follow-list-sheet';
-import { formatDistanceToNow } from 'date-fns';
+import { timeAgo } from '@/lib/utils/date';
 import { toast } from 'sonner';
 
 const BoostModal = dynamic(
@@ -1486,7 +1486,7 @@ export function ProfileView({
                                   {post.post_type === 'portfolio_post' && t('jobs.badgePortfolio')}
                                 </Badge>
                                 <span className="text-xs text-muted-foreground">
-                                  {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                                  {timeAgo(post.created_at)}
                                 </span>
                               </div>
 
@@ -1720,7 +1720,7 @@ export function ProfileView({
                                       Portfolio
                                     </Badge>
                                     <span className="text-xs text-muted-foreground">
-                                      {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                                      {timeAgo(post.created_at)}
                                     </span>
                                   </div>
 
@@ -1848,7 +1848,7 @@ export function ProfileView({
                                       {t('jobs.badgeHiring')}
                                     </Badge>
                                     <span className="text-xs text-muted-foreground">
-                                      {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                                      {timeAgo(post.created_at)}
                                     </span>
                                   </div>
 
@@ -1996,7 +1996,7 @@ export function ProfileView({
                                 <div>
                                   <p className="font-semibold text-sm">{review.customer?.name || 'Deleted user'}</p>
                                   <p className="text-xs text-muted-foreground">
-                                    {formatDistanceToNow(new Date(review.created_at), { addSuffix: true })}
+                                    {timeAgo(review.created_at)}
                                   </p>
                                 </div>
                               </div>

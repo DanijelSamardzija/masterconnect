@@ -34,8 +34,7 @@ import { ReviewModal } from '@/components/review-modal';
 import { OnboardingModal } from '@/components/onboarding-modal';
 import { toast } from 'sonner';
 import { useLanguage } from '@/lib/contexts/language-context';
-import { formatDistanceToNow } from 'date-fns';
-import { sr } from 'date-fns/locale';
+import { timeAgo } from '@/lib/utils/date';
 import { translateNotification } from '@/lib/notification-translations';
 
 export const revalidate = 0;
@@ -268,7 +267,7 @@ function DashboardContent() {
       const translated = translateNotification({ title: n.title, body: n.body, action_type: n.action_type, meta: n.meta }, language);
       return {
         id: n.id, type: n.type, title: translated.title, body: translated.body,
-        time: formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: language === 'sr' ? sr : undefined }),
+        time: timeAgo(n.created_at, language),
         read: !!n.read_at, meta: { ...(n.meta || {}), post_id: n.post_id },
       };
     });
@@ -742,7 +741,7 @@ function DashboardContent() {
                     <p className="text-sm text-muted-foreground">{review.comment}</p>
                   )}
                   <p className="text-xs text-muted-foreground mt-1">
-                    {formatDistanceToNow(new Date(review.created_at), { addSuffix: true })}
+                    {timeAgo(review.created_at)}
                   </p>
                 </div>
               ))}
@@ -798,7 +797,7 @@ function DashboardContent() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{viewer.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(viewer.viewed_at), { addSuffix: true })}
+                        {timeAgo(viewer.viewed_at)}
                       </p>
                     </div>
                     <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -935,7 +934,7 @@ function DashboardContent() {
                   </div>
                   <p className="text-xs text-muted-foreground line-clamp-1">{job.description}</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {job.category} · {job.city} · {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
+                    {job.category} · {job.city} · {timeAgo(job.created_at)}
                   </p>
                 </div>
                 <AlertDialog>

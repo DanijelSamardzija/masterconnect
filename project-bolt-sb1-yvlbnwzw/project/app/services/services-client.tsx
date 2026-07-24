@@ -396,7 +396,7 @@ export function ServicesClient({ initialSearch = '' }: ServicesClientProps) {
 
         <div className="flex items-center gap-2 mb-4">
           <Filter className="h-5 w-5 text-muted-foreground" />
-          <h2 className="text-lg font-semibold text-foreground">Filters</h2>
+          <h2 className="text-lg font-semibold text-foreground">{t('discover.filtersHeading')}</h2>
         </div>
 
         {/* KEYWORD SEARCH */}
@@ -411,7 +411,7 @@ export function ServicesClient({ initialSearch = '' }: ServicesClientProps) {
           />
           {searchInput && (
             <button
-              onClick={() => setSearchInput('')}
+              onClick={() => { setSearchInput(''); setSearchQuery(''); router.replace('/services', { scroll: false }); }}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
               aria-label="Clear search"
             >
@@ -512,7 +512,7 @@ export function ServicesClient({ initialSearch = '' }: ServicesClientProps) {
                 <ProfessionalCard listing={listing} />
                 {(listing as any).is_promoted && (
                   <div className="absolute top-3 left-3 z-10">
-                    <span className="bg-yellow-400 text-yellow-900 text-[10px] font-bold px-2 py-0.5 rounded-full shadow">Sponzorisano</span>
+                    <span className="bg-yellow-400 text-yellow-900 text-[10px] font-bold px-2 py-0.5 rounded-full shadow">{t('post.sponsored')}</span>
                   </div>
                 )}
                 {(listing as any).promoted_until && new Date((listing as any).promoted_until) > new Date() && !(listing as any).is_promoted && (

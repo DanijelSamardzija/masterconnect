@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { MoreVertical, Pin, Pencil, Trash2, MapPin, Star, MessageCircle } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { timeAgo } from '@/lib/utils/date';
 import { ProfessionalBadge } from '@/components/professional-badge';
 import { PostReactions } from '@/components/post-reactions';
 import { PostCommentsButton } from '@/components/post-comments-button';
@@ -352,7 +352,7 @@ export function LegacyPostCard({
                   )}
                 </div>
                 <p className="text-xs md:text-[10px] text-slate-500 dark:text-gray-400">
-                  {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                  {timeAgo(post.created_at)}
                 </p>
               </div>
             </div>
@@ -399,7 +399,7 @@ export function LegacyPostCard({
       <CardContent className="space-y-2 md:space-y-2 pt-3 pb-3 flex flex-col flex-grow">
         {!post.media?.length && (
           <p className="text-xs text-slate-500 dark:text-gray-400 -mt-3 mb-1">
-            {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+            {timeAgo(post.created_at)}
           </p>
         )}
 

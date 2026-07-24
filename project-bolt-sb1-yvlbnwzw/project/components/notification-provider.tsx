@@ -4,8 +4,8 @@ import { useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
-import { useNotificationSound } from '@/hooks/use-notification-sound';
-import { useSoundPreference } from '@/hooks/use-sound-preference';
+import { useNotificationSound } from '@/lib/hooks/use-notification-sound';
+import { useSoundPreference } from '@/lib/hooks/use-sound-preference';
 import { toast } from 'sonner';
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {

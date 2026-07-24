@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Star, Loader2 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { timeAgo } from '@/lib/utils/date';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useLanguage } from '@/lib/contexts/language-context';
 
@@ -126,7 +126,7 @@ export function ReviewsModal({
                           ))}
                         </div>
                         <span className="text-xs text-gray-500 dark:text-gray-400">
-                          {formatDistanceToNow(new Date(review.created_at), { addSuffix: true })}
+                          {timeAgo(review.created_at)}
                         </span>
                       </div>
                       {review.comment && (

@@ -11,7 +11,7 @@ import {
   Home, Star, MapPin, Play, MessageSquare, Heart, Eye,
   CheckCircle, Share2, Bookmark, MoreVertical, Flag, Trash2, Phone, UserPlus, Search, Plus
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { timeAgo } from '@/lib/utils/date';
 
 interface Post {
   id: string;
@@ -196,7 +196,7 @@ function ProCard({ post }: { post: Post }) {
               </span>
             )}
             {post.city && <span className="flex items-center gap-0.5"><MapPin className="h-3 w-3" />{post.city}</span>}
-            <span>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</span>
+            <span>{timeAgo(post.created_at)}</span>
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -266,7 +266,7 @@ function CustomerCard({ post }: { post: Post }) {
           <span className="font-semibold text-sm text-foreground truncate block">{post.user.name}</span>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             {post.city && <span className="flex items-center gap-0.5"><MapPin className="h-3 w-3" />{post.city}</span>}
-            <span>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</span>
+            <span>{timeAgo(post.created_at)}</span>
           </div>
         </div>
         <div className="flex items-center gap-1">
