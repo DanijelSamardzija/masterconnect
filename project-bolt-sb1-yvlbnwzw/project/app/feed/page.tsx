@@ -593,7 +593,7 @@ function FeedContent() {
     ? posts.filter(p => {
         if (!p.user) return false;
         const words = getSearchWords(searchQuery);
-        const haystack = [p.text, p.category, p.city, ...(p.hashtags ?? [])]
+        const haystack = [p.text, p.category, p.city, p.user.name, ...(p.hashtags ?? [])]
           .filter(Boolean).join(' ').toLowerCase();
         return words.every(w => haystack.includes(w));
       })
