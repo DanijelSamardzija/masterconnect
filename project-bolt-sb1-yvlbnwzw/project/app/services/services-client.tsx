@@ -194,42 +194,7 @@ export function ServicesClient({ initialSearch = '' }: ServicesClientProps) {
       if (error) throw error;
 
       const postsData = (data as any) || [];
-      const professionalUserIds = postsData
-        .filter((p: any) => p.profiles?.account_type === 'professional')
-        .map((p: any) => p.user_id);
-
-      let reviewsData: any[] = [];
-
-      if (professionalUserIds.length > 0) {
-        const { data: reviews } = await supabase
-          .from('reviews')
-          .select('pro_id, rating')
-          .in('pro_id', professionalUserIds);
-
-        reviewsData = reviews || [];
-      }
-
-      const reviewStats = professionalUserIds.reduce((acc: any, userId: string) => {
-        const userReviews = reviewsData.filter((r: any) => r.pro_id === userId);
-        if (userReviews.length > 0) {
-          const avgRating = userReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / userReviews.length;
-          acc[userId] = {
-            average_rating: Math.round(avgRating * 10) / 10,
-            review_count: userReviews.length
-          };
-        }
-        return acc;
-      }, {});
-
-      const listingsWithReviews = postsData.map((post: any) => ({
-        ...post,
-        profiles: post.profiles ? {
-          ...post.profiles,
-          ...(reviewStats[post.user_id] || {})
-        } : null
-      }));
-
-      const sorted = applySorting(listingsWithReviews, sortBy);
+      const sorted = applySorting(postsData, sortBy);
       const now = new Date();
       const adminPromoted = sorted.filter((l: any) => l.is_promoted);
       const userBoosted = sorted.filter((l: any) => !l.is_promoted && l.promoted_until && new Date(l.promoted_until) > now);
