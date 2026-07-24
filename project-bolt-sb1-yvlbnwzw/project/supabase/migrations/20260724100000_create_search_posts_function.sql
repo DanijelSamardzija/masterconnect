@@ -10,13 +10,14 @@
 --     (eliminates the two extra queries jobs-client used to make)
 
 CREATE OR REPLACE FUNCTION search_posts(
-  p_post_types text[],
-  p_search     text DEFAULT NULL,
-  p_city       text DEFAULT NULL,
-  p_country    text DEFAULT NULL,
-  p_category   text DEFAULT NULL,
-  p_limit      int  DEFAULT 25,
-  p_offset     int  DEFAULT 0
+  p_post_types  text[],
+  p_search      text DEFAULT NULL,
+  p_city        text DEFAULT NULL,
+  p_country     text DEFAULT NULL,
+  p_category    text DEFAULT NULL,
+  p_sort_order  text DEFAULT 'newest',
+  p_limit       int  DEFAULT 25,
+  p_offset      int  DEFAULT 0
 )
 RETURNS TABLE (
   id               uuid,
@@ -139,12 +140,13 @@ BEGIN
   FROM scored s
   ORDER BY
     (s.is_promoted OR (s.promoted_until IS NOT NULL AND s.promoted_until > now())) DESC,
-    s.computed_score DESC,
-    s.created_at     DESC
+    CASE WHEN p_sort_order = 'oldest' THEN s.created_at END ASC  NULLS LAST,
+    CASE WHEN p_sort_order != 'oldest' THEN s.computed_score END DESC NULLS LAST,
+    CASE WHEN p_sort_order != 'oldest' THEN s.created_at END DESC NULLS LAST
   LIMIT  p_limit
   OFFSET p_offset;
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION search_posts(text[], text, text, text, text, int, int) TO authenticated;
-GRANT EXECUTE ON FUNCTION search_posts(text[], text, text, text, text, int, int) TO anon;
+GRANT EXECUTE ON FUNCTION search_posts(text[], text, text, text, text, text, int, int) TO authenticated;
+GRANT EXECUTE ON FUNCTION search_posts(text[], text, text, text, text, text, int, int) TO anon;

@@ -2242,6 +2242,7 @@ export type Database = {
           p_city?: string | null
           p_country?: string | null
           p_category?: string | null
+          p_sort_order?: string
           p_limit?: number
           p_offset?: number
         }

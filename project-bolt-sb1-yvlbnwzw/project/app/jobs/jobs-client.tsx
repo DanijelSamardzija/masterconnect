@@ -995,7 +995,7 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
   // Reload posts on any filter or tab change (server-side filtering)
   useEffect(() => {
     loadPosts(true);
-  }, [user?.id, activeTab, cityFilter, countryFilter, categoryFilter, searchQuery]);
+  }, [user?.id, activeTab, cityFilter, countryFilter, categoryFilter, sortOrder, searchQuery]);
 
   // Fetch baseline counts for all tabs once on mount (lightweight — p_limit: 1)
   useEffect(() => {
@@ -1147,13 +1147,14 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
       const currentOffset = reset ? 0 : posts.length;
 
       const { data, error } = await supabase.rpc('search_posts', {
-        p_post_types: tabPostTypes,
-        p_search:     ftsQuery,
-        p_city:       cityFilter    || null,
-        p_country:    countryFilter || null,
-        p_category:   categoryFilter || null,
-        p_limit:      PAGE_SIZE,
-        p_offset:     currentOffset,
+        p_post_types:  tabPostTypes,
+        p_search:      ftsQuery,
+        p_city:        cityFilter     || null,
+        p_country:     countryFilter  || null,
+        p_category:    categoryFilter || null,
+        p_sort_order:  sortOrder,
+        p_limit:       PAGE_SIZE,
+        p_offset:      currentOffset,
       });
 
       if (error) {
@@ -1346,12 +1347,8 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
         return false;
       });
 
-  const filteredPosts = [...posts, ...demoPosts].sort((a, b) => {
-    if (activeTab === 'job-seekers' && sortOrder === 'newest') return 0;
-    const dateA = new Date(a.created_at).getTime();
-    const dateB = new Date(b.created_at).getTime();
-    return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
-  });
+  // Server handles sort; demo posts appended at the end as fillers
+  const filteredPosts = [...posts, ...demoPosts];
 
   const effectiveCountry = profile?.country || (() => {
     if (typeof navigator === 'undefined') return '';
@@ -1542,7 +1539,7 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
             />
             {searchInput && (
               <button
-                onClick={() => setSearchInput('')}
+                onClick={() => { setSearchInput(''); setSearchQuery(''); router.replace('/jobs', { scroll: false }); }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 aria-label="Clear search"
               >
