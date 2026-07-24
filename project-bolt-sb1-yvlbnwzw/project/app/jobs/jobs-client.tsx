@@ -1372,9 +1372,10 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
     serviceRequests: DEMO_POSTS.filter(p => p.post_type === 'service_request').length,
     jobSeekers:      DEMO_POSTS.filter(p => p.post_type === 'job_seeker_post').length,
   };
-  const hiringCount         = Math.max(allCounts.hiring, demoCounts.hiring);
-  const serviceRequestCount = Math.max(allCounts.serviceRequests, demoCounts.serviceRequests);
-  const jobSeekerCount      = Math.max(allCounts.jobSeekers, demoCounts.jobSeekers);
+  // When no filter active, demo posts are visible — badge must include them
+  const hiringCount         = allCounts.hiring         + (hasActiveFilter ? 0 : demoCounts.hiring);
+  const serviceRequestCount = allCounts.serviceRequests + (hasActiveFilter ? 0 : demoCounts.serviceRequests);
+  const jobSeekerCount      = allCounts.jobSeekers      + (hasActiveFilter ? 0 : demoCounts.jobSeekers);
 
   const tabTriggerClass =
   'px-4 py-2.5 text-sm font-medium rounded-xl border border-transparent transition-all duration-200 gap-2 ' +
