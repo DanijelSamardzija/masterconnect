@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
@@ -51,6 +51,7 @@ import { OfferServiceModal } from '@/components/offer-service-modal';
 import { SendOfferModal } from '@/components/send-offer-modal-v2';
 import { JobApplicationModal } from '@/components/job-application-modal';
 import { NotifyMeButton } from '@/components/notify-me-button';
+import { getSearchWords } from '@/lib/search/build-fts-query';
 
 type Post = {
   id: string;
@@ -952,7 +953,7 @@ const AVAIL_KEYS: Record<string, string> = {
   'Flexible': 'marketplace.availFlexible',
 };
 
-function JobsMarketplaceContent() {
+function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string }) {
   const { user, profile } = useAuth();
   const { t, language } = useLanguage();
   const router = useRouter();
@@ -983,6 +984,9 @@ function JobsMarketplaceContent() {
   const [applicationModalOpen, setApplicationModalOpen] = useState(false);
   const [selectedHiringPost, setSelectedHiringPost] = useState<{ id: string; title: string; ownerId: string } | null>(null);
   const [expandedPosts, setExpandedPosts] = useState<Set<string>>(new Set());
+  const [searchInput, setSearchInput] = useState(initialSearch);
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
     loadPosts();
@@ -1017,6 +1021,21 @@ function JobsMarketplaceContent() {
       window.removeEventListener('focus', handleFocus);
     };
   }, [user, posts]);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    const timer = setTimeout(() => {
+      setSearchQuery(searchInput);
+      const path = searchInput.trim()
+        ? `/jobs?q=${encodeURIComponent(searchInput.trim())}`
+        : '/jobs';
+      router.replace(path, { scroll: false });
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   const fetchSavedJobs = async () => {
     if (!user) return;
@@ -1330,7 +1349,12 @@ function JobsMarketplaceContent() {
     setCountryFilter('');
     setCategoryFilter('');
     setSortOrder('newest');
+    setSearchInput('');
+    setSearchQuery('');
+    router.replace('/jobs', { scroll: false });
   };
+
+  const searchWords = searchQuery ? getSearchWords(searchQuery) : [];
 
   const filteredPosts = posts
     .filter((post) => {
@@ -1355,6 +1379,14 @@ function JobsMarketplaceContent() {
 
       if (categoryFilter && post.category) {
         if (post.category !== categoryFilter) return false;
+      }
+
+      if (searchWords.length > 0) {
+        const haystack = [post.job_title, post.text, post.category, post.city, post.profession]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+        if (!searchWords.every((w) => haystack.includes(w))) return false;
       }
 
       return true;
@@ -1538,6 +1570,27 @@ function JobsMarketplaceContent() {
                 {jobSeekerCount > 0 && <Badge variant="secondary" className="ml-1">{jobSeekerCount}</Badge>}
               </TabsTrigger>
             </TabsList>
+          </div>
+
+          {/* KEYWORD SEARCH */}
+          <div className="relative mt-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder={t('discover.searchKeyword')}
+              className="w-full h-10 pl-9 pr-9 rounded-xl border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            />
+            {searchInput && (
+              <button
+                onClick={() => setSearchInput('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Clear search"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
 
           <Card className="mt-4 bg-card text-card-foreground border border-border rounded-2xl shadow-sm">
@@ -2164,6 +2217,6 @@ function JobsMarketplaceContent() {
   );
 }
 
-export function JobsClient() {
-  return <JobsMarketplaceContent />;
+export function JobsClient({ initialSearch = '' }: { initialSearch?: string }) {
+  return <JobsMarketplaceContent initialSearch={initialSearch} />;
 }
