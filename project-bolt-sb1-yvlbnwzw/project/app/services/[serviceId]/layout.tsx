@@ -22,7 +22,8 @@ const fetchServiceMeta = cache(async (serviceId: string) => {
     .eq('is_active', true)
     .single();
 
-  if (error) console.error('[fetchServiceMeta] supabase error:', JSON.stringify(error));
+  console.error('[fetchServiceMeta] error:', JSON.stringify(error));
+  if (data) console.log('[fetchServiceMeta] data:', JSON.stringify(data));
   return data;
 });
 
