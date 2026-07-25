@@ -14,7 +14,7 @@ const fetchServiceMeta = cache(async (serviceId: string) => {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from('posts')
     .select('id, job_title, category, text, city, post_media(url, order, type), profiles(name, avatar_url)')
     .eq('id', serviceId)
@@ -22,8 +22,6 @@ const fetchServiceMeta = cache(async (serviceId: string) => {
     .eq('is_active', true)
     .single();
 
-  console.error('[fetchServiceMeta] error:', JSON.stringify(error));
-  if (data) console.log('[fetchServiceMeta] data:', JSON.stringify(data));
   return data;
 });
 
