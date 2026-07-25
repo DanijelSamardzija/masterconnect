@@ -1,7 +1,8 @@
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
+  const supabase = createClient();
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -13,7 +14,8 @@ export async function GET() {
     .from('notifications')
     .select('*')
     .eq('user_id', user.id)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .limit(100);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

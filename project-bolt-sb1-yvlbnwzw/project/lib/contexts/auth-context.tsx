@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase/client';
 import { getCachedData, setCachedData, clearCache } from '@/lib/cache-utils';
@@ -55,10 +55,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isFetching, setIsFetching] = useState(false);
+  const isFetchingRef = useRef(false);
 
-  const fetchProfile = async (userId: string, force = false) => {
-    if (isFetching && !force) {
+  const fetchProfile = useCallback(async (userId: string, force = false) => {
+    if (isFetchingRef.current && !force) {
       return false;
     }
 
@@ -69,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      setIsFetching(true);
+      isFetchingRef.current = true;
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -94,9 +94,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('[AuthContext] Exception fetching profile:', err);
       return false;
     } finally {
-      setIsFetching(false);
+      isFetchingRef.current = false;
     }
-  };
+  }, []);
 
   const refreshProfile = async () => {
     if (user) {
@@ -257,7 +257,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [fetchProfile]);
 
   return (
     <AuthContext.Provider value={{ user, profile, session, loading, refreshProfile, signOut }}>

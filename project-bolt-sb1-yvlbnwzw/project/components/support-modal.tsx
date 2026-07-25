@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Coins, X, Star, Sparkles, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/lib/contexts/language-context';
@@ -39,6 +39,16 @@ export function SupportModal({
 
   const effectiveAmount = isCustom ? (parseInt(customInput) || 0) : selected;
 
+  const fetchBalance = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('credits_balance')
+      .select('balance')
+      .eq('user_id', user.id)
+      .single();
+    setBalance(data?.balance ?? 0);
+  }, [user]);
+
   useEffect(() => {
     if (!open || !user) return;
     setState('idle');
@@ -47,17 +57,7 @@ export function SupportModal({
     setIsCustom(false);
     setAnonymous(false);
     fetchBalance();
-  }, [open, user]);
-
-  const fetchBalance = async () => {
-    if (!user) return;
-    const { data } = await supabase
-      .from('credits_balance')
-      .select('balance')
-      .eq('user_id', user.id)
-      .single();
-    setBalance(data?.balance ?? 0);
-  };
+  }, [open, user, fetchBalance]);
 
   const fee = effectiveAmount > 0 ? Math.max(1, Math.round(effectiveAmount * PLATFORM_FEE)) : 0;
   const net = effectiveAmount - fee;

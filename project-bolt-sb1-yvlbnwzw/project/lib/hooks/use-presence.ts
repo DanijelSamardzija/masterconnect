@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase/client';
 
 const PING_INTERVAL = 60 * 1000; // update every 60s
@@ -8,13 +8,13 @@ const PING_INTERVAL = 60 * 1000; // update every 60s
 export function usePresence(userId: string | undefined) {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const ping = async () => {
+  const ping = useCallback(async () => {
     if (!userId) return;
     await supabase
       .from('profiles')
       .update({ last_seen: new Date().toISOString() })
       .eq('id', userId);
-  };
+  }, [userId]);
 
   useEffect(() => {
     if (!userId) return;
@@ -44,5 +44,5 @@ export function usePresence(userId: string | undefined) {
       window.removeEventListener('keydown', handleActivity);
       window.removeEventListener('touchstart', handleActivity);
     };
-  }, [userId]);
+  }, [userId, ping]);
 }

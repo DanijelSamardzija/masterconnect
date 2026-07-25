@@ -51,13 +51,7 @@ export async function GET(request: NextRequest) {
     const userCity = searchParams.get('user_city') || null;
     const userCountry = searchParams.get('user_country') || null;
 
-    // Get total count without filters
-    const { count: totalPostsCount } = await supabase
-      .from('posts')
-      .select('id', { count: 'exact', head: true });
-
-    // Count all published social posts (including demo) — used for hasMore comparison
-    // against rpcFetchedCount which also counts all posts from RPC
+    // Count available posts for hasMore calculation in the client (feed/page.tsx uses meta.totalAvailablePosts)
     let countQuery = supabase
       .from('posts')
       .select('id', { count: 'exact', head: true })
@@ -70,25 +64,6 @@ export async function GET(request: NextRequest) {
     }
 
     const { count: publishedPostsCount } = await countQuery;
-
-    // Check for posts with specific statuses
-    let statusQuery = supabase
-      .from('posts')
-      .select('status, post_type')
-      .eq('post_type', 'social_post');
-
-    if (user) {
-      statusQuery = statusQuery.or(`user_id.eq.${user.id},status.eq.published`);
-    } else {
-      statusQuery = statusQuery.eq('status', 'published');
-    }
-
-    const { data: statusBreakdown } = await statusQuery;
-
-    const statusCounts = (statusBreakdown || []).reduce((acc: any, p: any) => {
-      acc[p.status] = (acc[p.status] || 0) + 1;
-      return acc;
-    }, {});
 
     // Loop fetching from RPC, tracking exact position so no posts are skipped
     let postsData: any[] = [];
@@ -126,28 +101,6 @@ export async function GET(request: NextRequest) {
 
       rpcOffset += batch.length;
       if (batch.length < limit) done = true;
-    }
-
-    const error = null;
-
-    const returnedStatusCounts = (postsData || []).reduce((acc: Record<string, number>, post: any) => {
-      const status = post.status || 'unknown';
-      acc[status] = (acc[status] || 0) + 1;
-      return acc;
-    }, {});
-
-    if (process.env.NODE_ENV !== 'production') {
-      devLog('[Posts GET] Feed statistics:', {
-        totalPostsInDB: totalPostsCount,
-        publishedOrOwnPosts: publishedPostsCount,
-        allPostsStatusBreakdown: statusCounts,
-        requestedLimit: limit,
-        requestedOffset: offset,
-        returnedPosts: postsData?.length || 0,
-        returnedPostsStatusBreakdown: returnedStatusCounts,
-        userId: user?.id || 'anonymous',
-        isAuthenticated: !!user
-      });
     }
 
     // Fetch promoted posts separately using service role to bypass RLS
@@ -372,7 +325,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       data: postsWithMediaSorted,
       meta: {
-        totalPostsInDB: totalPostsCount,
         totalAvailablePosts: publishedPostsCount,
         returnedCount: postsWithMedia.length,
         rpcFetchedCount: totalRpcFetched,

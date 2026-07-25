@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
@@ -526,42 +526,16 @@ export function ProfileView({
     }
   }, []);
 
-  useEffect(() => {
-    if (profile) {
-      fetchPosts();
-      fetchMarketplacePosts();
-      fetchHiringPosts();
-      fetchPortfolioPosts();
-      fetchServicePosts();
-      fetchFollowCounts();
-      if (isOwnProfile) fetchSavedPosts();
-      fetchReviews();
-    }
-  }, [profile?.id]);
-
-  const openLikesDialog = async (postId: string) => {
-    setLikesDialogPostId(postId);
-    setLikedByLoading(true);
-    setLikedByUsers([]);
-    const { data } = await supabase
-      .from('post_reactions')
-      .select('profiles!post_reactions_user_id_fkey(id, name, avatar_url)')
-      .eq('post_id', postId);
-    const users = (data || []).map((r: any) => r.profiles).filter(Boolean);
-    setLikedByUsers(users);
-    setLikedByLoading(false);
-  };
-
-  const fetchFollowCounts = async () => {
+  const fetchFollowCounts = useCallback(async () => {
     const [{ count: followers }, { count: following }] = await Promise.all([
       supabase.from('followers').select('id', { count: 'exact', head: true }).eq('following_id', profile.id),
       supabase.from('followers').select('id', { count: 'exact', head: true }).eq('follower_id', profile.id),
     ]);
     setFollowersCount(followers || 0);
     setFollowingCount(following || 0);
-  };
+  }, [profile]);
 
-  const fetchSavedPosts = async () => {
+  const fetchSavedPosts = useCallback(async () => {
     const { data } = await supabase
       .from('saved_posts')
       .select(`
@@ -587,9 +561,9 @@ export function ProfileView({
       }));
 
     setSavedPosts(posts);
-  };
+  }, [profile]);
 
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async () => {
     if (!profile) return;
 
     try {
@@ -696,9 +670,9 @@ export function ProfileView({
     } finally {
       setLoading(false);
     }
-  };
+  }, [profile, isOwnProfile, currentUserId]);
 
-  const fetchMarketplacePosts = async () => {
+  const fetchMarketplacePosts = useCallback(async () => {
     if (!profile) return;
 
     try {
@@ -764,9 +738,9 @@ export function ProfileView({
     } catch (error: any) {
       console.error('Error fetching marketplace posts:', error);
     }
-  };
+  }, [profile, isOwnProfile]);
 
-  const fetchHiringPosts = async () => {
+  const fetchHiringPosts = useCallback(async () => {
     if (!profile) return;
 
     try {
@@ -832,9 +806,9 @@ export function ProfileView({
     } catch (error: any) {
       console.error('Error fetching hiring posts:', error);
     }
-  };
+  }, [profile, isOwnProfile]);
 
-  const fetchPortfolioPosts = async () => {
+  const fetchPortfolioPosts = useCallback(async () => {
     if (!profile) return;
 
     try {
@@ -898,9 +872,9 @@ export function ProfileView({
     } catch (error: any) {
       console.error('Error fetching portfolio posts:', error);
     }
-  };
+  }, [profile, isOwnProfile]);
 
-  const fetchServicePosts = async () => {
+  const fetchServicePosts = useCallback(async () => {
     if (!profile) return;
 
     try {
@@ -961,9 +935,9 @@ export function ProfileView({
     } catch (error: any) {
       console.error('Error fetching service posts:', error);
     }
-  };
+  }, [profile, isOwnProfile]);
 
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     if (!profile) return;
 
     try {
@@ -1010,6 +984,42 @@ export function ProfileView({
     } catch (error: any) {
       console.error('Error fetching reviews:', error);
     }
+  }, [profile]);
+
+  useEffect(() => {
+    if (!profile) return;
+    fetchPosts();
+    fetchMarketplacePosts();
+    fetchHiringPosts();
+    fetchPortfolioPosts();
+    fetchServicePosts();
+    fetchFollowCounts();
+    if (isOwnProfile) fetchSavedPosts();
+    fetchReviews();
+  }, [
+    profile,
+    isOwnProfile,
+    fetchPosts,
+    fetchMarketplacePosts,
+    fetchHiringPosts,
+    fetchPortfolioPosts,
+    fetchServicePosts,
+    fetchFollowCounts,
+    fetchSavedPosts,
+    fetchReviews,
+  ]);
+
+  const openLikesDialog = async (postId: string) => {
+    setLikesDialogPostId(postId);
+    setLikedByLoading(true);
+    setLikedByUsers([]);
+    const { data } = await supabase
+      .from('post_reactions')
+      .select('profiles!post_reactions_user_id_fkey(id, name, avatar_url)')
+      .eq('post_id', postId);
+    const users = (data || []).map((r: any) => r.profiles).filter(Boolean);
+    setLikedByUsers(users);
+    setLikedByLoading(false);
   };
 
   const handleDeletePost = async (postId: string) => {

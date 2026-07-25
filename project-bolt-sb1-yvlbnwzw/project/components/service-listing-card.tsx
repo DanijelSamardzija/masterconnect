@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Edit, Trash2, MoreVertical, MapPin, Briefcase, DollarSign, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import Image from 'next/image';
 import { timeAgo } from '@/lib/utils/date';
 import { useLanguage } from '@/lib/contexts/language-context';
 
@@ -146,10 +147,11 @@ export function ServiceListingCard({
                       onClick={() => openLightbox(index)}
                     >
                       {media.type === 'image' ? (
-                        <img
+                        <Image
                           src={media.url}
                           alt="Service media"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-200"
                         />
                       ) : (
                         <video
@@ -194,10 +196,13 @@ export function ServiceListingCard({
 
                   <div className="w-full max-w-5xl max-h-[90vh] px-10 sm:px-16" onClick={e => e.stopPropagation()}>
                     {images[lightboxIndex].type === 'image' ? (
-                      <img
+                      <Image
                         src={images[lightboxIndex].url}
                         alt="Service media"
-                        className="w-full max-h-[85vh] object-contain rounded-lg"
+                        width={1920}
+                        height={1080}
+                        className="max-h-[85vh] object-contain rounded-lg"
+                        style={{ width: '100%', height: 'auto' }}
                       />
                     ) : (
                       <video

@@ -143,12 +143,12 @@ function SinglePostContent() {
 
         supabase
           .from('post_reactions')
-          .select('id')
+          .select('*', { count: 'exact', head: true })
           .eq('post_id', postId),
 
         supabase
           .from('post_comments')
-          .select('id')
+          .select('*', { count: 'exact', head: true })
           .eq('post_id', postId),
 
         user ? supabase
@@ -165,8 +165,8 @@ function SinglePostContent() {
         ...postData,
         user: userData,
         media: mediaResult.data || [],
-        reactions_count: reactionsResult.data?.length || 0,
-        comments_count: commentsResult.data?.length || 0,
+        reactions_count: reactionsResult.count ?? 0,
+        comments_count: commentsResult.count ?? 0,
         user_has_reacted: !!userReactionResult.data,
       } as Post;
 

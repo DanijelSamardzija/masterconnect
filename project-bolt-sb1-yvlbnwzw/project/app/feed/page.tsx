@@ -198,9 +198,9 @@ function FeedContent() {
       .subscribe();
 
     const newPostsChannel = supabase.channel('feed-new-posts')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, (payload) => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts', filter: 'post_type=eq.social_post' }, (payload) => {
         const newPost = payload.new;
-        if (newPost.user_id !== user.id && newPost.post_type === 'social_post' && newPost.status === 'published' && newestPostTimestamp.current && newPost.created_at > newestPostTimestamp.current) {
+        if (newPost.user_id !== user.id && newPost.status === 'published' && newestPostTimestamp.current && newPost.created_at > newestPostTimestamp.current) {
           setNewPostsCount(prev => prev + 1);
         }
       })

@@ -5,12 +5,13 @@ type NotificationRow = Database['public']['Tables']['notifications']['Row'];
 type NotificationInsert = Database['public']['Tables']['notifications']['Insert'];
 
 export const notificationRepository = {
-  async getAll(userId: string): Promise<NotificationRow[]> {
+  async getAll(userId: string, limit = 50): Promise<NotificationRow[]> {
     const { data } = await supabase
       .from('notifications')
       .select('*')
       .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(limit);
     return data ?? [];
   },
 

@@ -109,11 +109,9 @@ function DashboardContent() {
     window.addEventListener('unreadCountChanged', handleUnreadCountChanged);
 
     const channel = supabase
-      .channel('dashboard-updates')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => fetchUnreadCount())
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (payload: any) => {
-        if (payload.new?.user_id === profile?.id) fetchNotifications();
-      })
+      .channel(`dashboard-updates:${profile.id}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${profile.id}` }, () => fetchUnreadCount())
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${profile.id}` }, () => fetchNotifications())
       .subscribe();
 
     return () => {
@@ -146,17 +144,8 @@ function DashboardContent() {
 
   const fetchUnreadCount = async () => {
     if (!profile) return;
-    const { data: participants } = await supabase
-      .from('thread_participants').select('thread_id, last_read_at')
-      .eq('user_id', profile.id).is('deleted_at', null);
-    let total = 0;
-    for (const p of participants || []) {
-      const { count } = await supabase.from('messages').select('*', { count: 'exact', head: true })
-        .eq('thread_id', p.thread_id).neq('sender_id', profile.id)
-        .gt('created_at', p.last_read_at || '1970-01-01');
-      total += count || 0;
-    }
-    setUnreadCount(total);
+    const { data, error } = await (supabase as any).rpc('get_unread_count');
+    if (!error) setUnreadCount(Number(data) || 0);
   };
 
   const fetchPendingReview = async () => {
@@ -183,23 +172,14 @@ function DashboardContent() {
 
   const fetchProfileViews = async () => {
     if (!profile) return;
-    const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-    const startOfWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-
-    const { data: allViews } = await supabase
-      .from('profile_views')
-      .select('viewer_id, viewed_at')
-      .eq('profile_id', profile.id);
-
-    const rows = allViews || [];
-    const unique = (list: typeof rows) => new Set(list.map(r => r.viewer_id)).size;
-
-    const total = unique(rows);
-    const week = unique(rows.filter(r => r.viewed_at >= startOfWeek));
-    const today = unique(rows.filter(r => r.viewed_at >= startOfToday));
-
-    setProfileViews({ total, week, today });
+    const { data, error } = await (supabase as any).rpc('get_profile_view_stats');
+    if (error || !data?.[0]) return;
+    const row = data[0];
+    setProfileViews({
+      total: Number(row.total) || 0,
+      week: Number(row.this_week) || 0,
+      today: Number(row.today) || 0,
+    });
   };
 
   const fetchRecentViewers = async () => {

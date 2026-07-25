@@ -189,7 +189,7 @@ export function ServicesClient({ initialSearch = '' }: ServicesClientProps) {
         query = query.textSearch('search_vector', ftsQuery, { config: 'simple' });
       }
 
-      const { data, error } = await query;
+      const { data, error } = await query.limit(200);
 
       if (error) throw error;
 

@@ -166,6 +166,7 @@ function MessagesContent() {
   const [hiddenAt, setHiddenAt] = useState<string | null>(null);
   const hiddenAtRef = useRef<string | null>(null);
   const fetchMessagesRef = useRef<() => Promise<void>>(async () => {});
+  const appendSingleMessageRef = useRef<(id: string) => Promise<void>>(async () => {});
   const [otherUserTyping, setOtherUserTyping] = useState(false);
   const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -291,8 +292,12 @@ function MessagesContent() {
             setHasMarkedAsRead(false);
             setOtherUserTyping(false);
             if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+            // Targeted single-message fetch + append instead of refetching the entire thread
+            appendSingleMessageRef.current(payload.new.id);
+          } else {
+            // UPDATE/DELETE: full refetch needed (offer status, seen_at, is_deleted changes)
+            fetchMessagesRef.current();
           }
-          fetchMessagesRef.current();
         }
       )
       .on(
@@ -311,14 +316,8 @@ function MessagesContent() {
         devLog('[Realtime] channel status:', status);
       });
 
-    // Fallback polling every 3s in case realtime is not working
-    const pollInterval = setInterval(() => {
-      fetchMessagesRef.current();
-    }, 3000);
-
     return () => {
       supabase.removeChannel(messagesChannel);
-      clearInterval(pollInterval);
     };
   }, [threadId, user]);
 
@@ -412,39 +411,20 @@ function MessagesContent() {
   const markMessagesAsRead = async () => {
     if (!user) return;
 
-    const undeliveredMessages = messages
-      .filter((msg) => msg.sender_id !== user.id && !msg.delivered_at && !msg.is_system)
+    const messagesToMark = messages
+      .filter((msg) => msg.sender_id !== user.id && !msg.is_system && !msg.is_deleted)
       .map((msg) => msg.id);
 
-    if (undeliveredMessages.length > 0) {
-      await supabase
-        .from('messages')
-        .update({ delivered_at: new Date().toISOString() })
-        .in('id', undeliveredMessages);
+    if (messagesToMark.length > 0) {
+      await (supabase as any).rpc('mark_messages_read', { p_message_ids: messagesToMark });
     }
 
-    const unseenMessages = messages
-      .filter((msg) => msg.sender_id !== user.id && !msg.seen_at && !msg.is_system)
-      .map((msg) => msg.id);
+    const hasUnread = messages.some(
+      (msg) => msg.sender_id !== user.id && !msg.read_at && !msg.is_system && !msg.is_deleted
+    );
 
-    if (unseenMessages.length > 0) {
-      await supabase
-        .from('messages')
-        .update({ seen_at: new Date().toISOString() })
-        .in('id', unseenMessages);
-    }
-
-    const unreadMessages = messages
-      .filter((msg) => msg.sender_id !== user.id && !msg.read_at && !msg.is_system && !msg.is_deleted)
-      .map((msg) => msg.id);
-
-    if (unreadMessages.length > 0) {
+    if (hasUnread) {
       const now = new Date().toISOString();
-
-      await supabase
-        .from('messages')
-        .update({ read_at: now })
-        .in('id', unreadMessages);
 
       await supabase
         .from('thread_participants')
@@ -541,8 +521,44 @@ function MessagesContent() {
     }
   };
 
-  // Keep ref always pointing to latest fetchMessages so subscription never goes stale
+  // On INSERT: fetch only the new message + attachments and append — avoids full thread refetch
+  const appendSingleMessage = async (messageId: string) => {
+    const { data } = await supabase
+      .from('messages')
+      .select(`
+        id, text, sender_id, created_at, is_deleted, deleted_at,
+        is_system, system_message_type, message_type, offer_id,
+        delivered_at, seen_at, read_at,
+        sender:profiles!messages_sender_id_fkey(name),
+        offer:offers!messages_offer_id_fkey(
+          id, sender_id, receiver_id, offer_type, price, currency,
+          price_type, estimated_start, duration_deadline, note, status,
+          created_at, responded_at
+        )
+      `)
+      .eq('id', messageId)
+      .maybeSingle();
+
+    if (!data) return;
+
+    const { data: attachments } = await supabase
+      .from('message_attachments')
+      .select('*')
+      .eq('message_id', messageId);
+
+    const message = { ...data, attachments: attachments || [] };
+
+    setMessages(prev => {
+      if ((prev as any[]).some((m: any) => m.id === messageId)) return prev;
+      const updated = [...(prev as any[]), message];
+      messagesRef.current = updated as any;
+      return updated as any;
+    });
+  };
+
+  // Keep refs always pointing to latest functions so subscriptions never go stale
   fetchMessagesRef.current = fetchMessages;
+  appendSingleMessageRef.current = appendSingleMessage;
 
   const handleDeleteMessage = async (messageId: string) => {
     setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
@@ -839,6 +855,7 @@ function MessagesContent() {
 
           const isVideo = file.type.startsWith('video/');
           let fileUrl: string | null = null;
+          let filePath: string | null = null;
 
           if (isVideo) {
             const result = await uploadVideoToCloudinary(file, 'gigzone/messages', user.id);
@@ -846,12 +863,14 @@ function MessagesContent() {
           } else {
             const result = await uploadFile(file, user.id);
             fileUrl = result?.url ?? null;
+            filePath = result?.path ?? null;
           }
 
           if (fileUrl) {
             uploadedAttachments.push({
               message_id: messageData.id,
               file_url: fileUrl,
+              file_path: filePath,
               file_name: file.name,
               file_type: file.type,
               file_size: file.size,
@@ -1715,25 +1734,7 @@ function MessagesContent() {
           threadId={threadId}
           onSuccess={async () => {
             await fetchMessages();
-
-            const { data: reviews } = await supabase
-              .from('reviews')
-              .select('rating')
-              .eq('pro_id', thread.pro_id);
-
-            if (reviews && reviews.length > 0) {
-              const avgRating = reviews.reduce((acc: any, r: any) => acc + r.rating, 0) / reviews.length;
-              const reviewCount = reviews.length;
-
-              await supabase
-                .from('profiles')
-                .update({
-                  average_rating: avgRating,
-                  review_count: reviewCount,
-                })
-                .eq('id', thread.pro_id);
-            }
-
+            await (supabase as any).rpc('update_pro_rating', { target_pro_id: thread.pro_id });
             toast.success('Review submitted successfully!');
           }}
         />

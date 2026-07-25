@@ -1335,10 +1335,10 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
     router.replace('/jobs', { scroll: false });
   };
 
-  // Server already filtered; append demo posts only when no active filters
+  // Server already filtered; demo posts shown only in development (never in production)
   const hasActiveFilter = !!(searchQuery || cityFilter || countryFilter || categoryFilter);
 
-  const demoPosts = hasActiveFilter
+  const demoPosts = (process.env.NODE_ENV === 'production' || hasActiveFilter)
     ? []
     : DEMO_POSTS.filter(p => {
         if (activeTab === 'hiring') return p.post_type === 'hiring_post';
@@ -1347,7 +1347,7 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
         return false;
       });
 
-  // Server handles sort; demo posts appended at the end as fillers
+  // Server handles sort; demo posts appended at the end as dev fillers
   const filteredPosts = [...posts, ...demoPosts];
 
   const effectiveCountry = profile?.country || (() => {
@@ -1367,12 +1367,14 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
       })
     : filteredPosts;
 
-  const demoCounts = {
-    hiring:          DEMO_POSTS.filter(p => p.post_type === 'hiring_post').length,
-    serviceRequests: DEMO_POSTS.filter(p => p.post_type === 'service_request').length,
-    jobSeekers:      DEMO_POSTS.filter(p => p.post_type === 'job_seeker_post').length,
-  };
-  // When no filter active, demo posts are visible — badge must include them
+  // In production demo counts are 0; badges reflect only real DB data
+  const demoCounts = process.env.NODE_ENV === 'production'
+    ? { hiring: 0, serviceRequests: 0, jobSeekers: 0 }
+    : {
+        hiring:          DEMO_POSTS.filter(p => p.post_type === 'hiring_post').length,
+        serviceRequests: DEMO_POSTS.filter(p => p.post_type === 'service_request').length,
+        jobSeekers:      DEMO_POSTS.filter(p => p.post_type === 'job_seeker_post').length,
+      };
   const hiringCount         = allCounts.hiring         + (hasActiveFilter ? 0 : demoCounts.hiring);
   const serviceRequestCount = allCounts.serviceRequests + (hasActiveFilter ? 0 : demoCounts.serviceRequests);
   const jobSeekerCount      = allCounts.jobSeekers      + (hasActiveFilter ? 0 : demoCounts.jobSeekers);

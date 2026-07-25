@@ -67,10 +67,21 @@ function MessagesListContent() {
       fetchThreads();
 
       const messagesChannel = supabase
-        .channel('messages-list-updates')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, debouncedFetchThreads)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'thread_participants' }, debouncedFetchThreads)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'threads' }, debouncedFetchThreads)
+        .channel(`messages-list:${user.id}`)
+        // New message received by current user → update last_message + unread count
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `receiver_id=eq.${user.id}`,
+        }, debouncedFetchThreads)
+        // Thread participant row changed for current user → new thread or thread deleted
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'thread_participants',
+          filter: `user_id=eq.${user.id}`,
+        }, debouncedFetchThreads)
         .subscribe();
 
       return () => {
@@ -84,80 +95,33 @@ function MessagesListContent() {
     if (!user) return;
 
     try {
-      // Step 1: get thread_ids the user participates in (not deleted)
-      const { data: participations, error: partError } = await supabase
-        .from('thread_participants')
-        .select('thread_id, last_read_at, deleted_at')
-        .eq('user_id', user.id)
-        .is('deleted_at', null);
+      const { data, error } = await (supabase as any).rpc('get_thread_list');
 
-      if (partError) {
-        console.error('fetchThreads error:', partError);
+      if (error) {
+        console.error('fetchThreads error:', error);
         setLoading(false);
         return;
       }
 
-      if (!participations || participations.length === 0) {
-        setThreads([]);
-        setLoading(false);
-        return;
-      }
+      const rows = (data as any[]) ?? [];
 
-      const threadIds = participations.map((p: any) => p.thread_id);
+      const threads: Thread[] = rows.map((row: any) => ({
+        id: row.thread_id,
+        created_at: row.last_message_at || '',
+        post_id: null,
+        title: 'Conversation',
+        other_person: row.other_name
+          ? {
+              name: row.other_name,
+              avatar_url: row.other_avatar ?? undefined,
+              last_seen: row.other_last_seen ?? undefined,
+            }
+          : null,
+        unread_count: Number(row.unread_count) || 0,
+        last_message: row.last_message || '',
+      }));
 
-      // Step 2: for each thread, fetch other participant + last message + unread count
-      const threads = await Promise.all(
-        participations.map(async (tp: any) => {
-          const threadId = tp.thread_id;
-
-          // Other participant profile
-          const { data: otherParticipant } = await supabase
-            .from('thread_participants')
-            .select('user_id, profiles(name, avatar_url, last_seen)')
-            .eq('thread_id', threadId)
-            .neq('user_id', user.id)
-            .limit(1)
-            .maybeSingle();
-
-          const otherPerson = otherParticipant?.profiles as any;
-
-          // Last message
-          const { data: lastMessage } = await supabase
-            .from('messages')
-            .select('text, created_at')
-            .eq('thread_id', threadId)
-            .eq('is_deleted', false)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-          // Unread count
-          const { count } = await supabase
-            .from('messages')
-            .select('*', { count: 'exact', head: true })
-            .eq('thread_id', threadId)
-            .eq('is_deleted', false)
-            .neq('sender_id', user.id)
-            .gt('created_at', tp.last_read_at || '1970-01-01');
-
-          return {
-            id: threadId,
-            created_at: lastMessage?.created_at || tp.last_read_at || '',
-            post_id: null,
-            title: 'Conversation',
-            other_person: otherPerson,
-            unread_count: count || 0,
-            last_message: lastMessage?.text || '',
-          };
-        })
-      );
-
-      // Sort by most recent message first
-      threads.sort((a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
-
-      setThreads(threads as any);
+      setThreads(threads);
     } catch (err) {
       console.error('fetchThreads exception:', err);
     } finally {

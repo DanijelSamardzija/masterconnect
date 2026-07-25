@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { Volume2, VolumeX, Play, Pause, AlertCircle, X, Maximize2 } from 'lucide-react';
 
 // ─── Shared media dimensions ────────────────────────────────────────────────
@@ -60,9 +61,11 @@ export function ImageMessage({ url, name }: ImageMessageProps) {
         style={{ maxWidth: MEDIA_MAX_WIDTH }}
         onClick={() => setOpen(true)}
       >
-        <img
+        <Image
           src={url}
           alt={name}
+          width={MEDIA_MAX_WIDTH}
+          height={MEDIA_MAX_HEIGHT}
           className={`block w-full object-cover transition-opacity hover:opacity-90 ${MEDIA_RADIUS}`}
           style={{ maxHeight: MEDIA_MAX_HEIGHT }}
         />
@@ -70,10 +73,13 @@ export function ImageMessage({ url, name }: ImageMessageProps) {
 
       {open && (
         <Lightbox onClose={() => setOpen(false)}>
-          <img
+          <Image
             src={url}
             alt={name}
+            width={1200}
+            height={900}
             className="max-h-[90vh] max-w-[90vw] rounded-xl object-contain shadow-2xl"
+            style={{ width: 'auto', height: 'auto' }}
           />
         </Lightbox>
       )}

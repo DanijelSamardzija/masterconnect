@@ -1,27 +1,4 @@
-export type Creator = {
-  id: string;
-  name: string;
-  handle: string;
-  category: 'Creators' | 'Models' | 'Entertainment' | 'Night Clubs' | 'Webcam' | 'Photography' | 'Studios' | 'Agencies';
-  country: string;
-  countryFlag: string;
-  city: string;
-  verified: boolean;
-  isPremium: boolean;
-  isOnline: boolean;
-  followers: number;
-  following: number;
-  rating: number;
-  reviewCount: number;
-  supportPrice: number;
-  bio: string;
-  tags: string[];
-  coverStyle: { background: string };
-  avatarInitials: string;
-  avatarStyle: { background: string };
-  galleryCount: number;
-  videoCount: number;
-};
+import type { Creator } from '@/lib/adult/types';
 
 export const MOCK_CREATORS: Creator[] = [
   {
@@ -42,6 +19,12 @@ export const MOCK_CREATORS: Creator[] = [
     supportPrice: 20,
     bio: 'Professional content creator. Lifestyle, fashion, and exclusive behind-the-scenes content. Premium member since 2023.',
     tags: ['lifestyle', 'fashion', 'travel'],
+    coverUrl: null,
+    avatarUrl: null,
+    languages: ['fr', 'en'],
+    responseTime: 'within 2 hours',
+    joinedAt: '2023-02-14T09:00:00Z',
+    lastActive: '2026-07-25T08:30:00Z',
     coverStyle: { background: 'linear-gradient(135deg, #1a0a14 0%, #8B1E3F 50%, #0d0d0d 100%)' },
     avatarInitials: 'SL',
     avatarStyle: { background: 'linear-gradient(135deg, #8B1E3F, #B43C63)' },
@@ -66,6 +49,12 @@ export const MOCK_CREATORS: Creator[] = [
     supportPrice: 15,
     bio: 'Model and photographer. Collaborating with studios across the Balkans and Europe.',
     tags: ['modeling', 'photography', 'art'],
+    coverUrl: null,
+    avatarUrl: null,
+    languages: ['sr', 'en'],
+    responseTime: 'within 1 hour',
+    joinedAt: '2022-11-05T14:00:00Z',
+    lastActive: '2026-07-24T16:20:00Z',
     coverStyle: { background: 'linear-gradient(135deg, #0d0515 0%, #3d1a6e 50%, #1a0020 100%)' },
     avatarInitials: 'MK',
     avatarStyle: { background: 'linear-gradient(135deg, #5b21b6, #7c3aed)' },
@@ -90,6 +79,12 @@ export const MOCK_CREATORS: Creator[] = [
     supportPrice: 25,
     bio: 'Commercial and artistic photographer. Available for bookings in Germany and Austria.',
     tags: ['photography', 'art', 'commercial'],
+    coverUrl: null,
+    avatarUrl: null,
+    languages: ['de', 'en'],
+    responseTime: 'within 4 hours',
+    joinedAt: '2023-07-20T10:00:00Z',
+    lastActive: '2026-07-25T07:45:00Z',
     coverStyle: { background: 'linear-gradient(135deg, #0a0a0f 0%, #1e3a5f 50%, #0a0a0f 100%)' },
     avatarInitials: 'VS',
     avatarStyle: { background: 'linear-gradient(135deg, #1d4ed8, #3b82f6)' },
@@ -114,6 +109,12 @@ export const MOCK_CREATORS: Creator[] = [
     supportPrice: 10,
     bio: 'Lifestyle content, travel vlogs and cooking. Streaming live every Thursday.',
     tags: ['lifestyle', 'cooking', 'vlogs'],
+    coverUrl: null,
+    avatarUrl: null,
+    languages: ['hr', 'en'],
+    responseTime: 'within 3 hours',
+    joinedAt: '2022-06-01T08:00:00Z',
+    lastActive: '2026-07-25T09:10:00Z',
     coverStyle: { background: 'linear-gradient(135deg, #0f1510 0%, #1a5c2e 50%, #0a0f0a 100%)' },
     avatarInitials: 'NR',
     avatarStyle: { background: 'linear-gradient(135deg, #15803d, #22c55e)' },
@@ -138,6 +139,12 @@ export const MOCK_CREATORS: Creator[] = [
     supportPrice: 50,
     bio: 'Premium nightlife experience in Belgrade. Table reservations, VIP packages, exclusive events.',
     tags: ['nightlife', 'events', 'vip'],
+    coverUrl: null,
+    avatarUrl: null,
+    languages: ['sr', 'en'],
+    responseTime: null,
+    joinedAt: '2022-01-15T12:00:00Z',
+    lastActive: '2026-07-23T20:00:00Z',
     coverStyle: { background: 'linear-gradient(135deg, #0a0505 0%, #8B1E3F 30%, #1a0008 100%)' },
     avatarInitials: 'CE',
     avatarStyle: { background: 'linear-gradient(135deg, #8B1E3F, #dc2626)' },
@@ -162,6 +169,12 @@ export const MOCK_CREATORS: Creator[] = [
     supportPrice: 30,
     bio: 'Live streaming professional. Interactive sessions, Q&A, and premium content daily.',
     tags: ['live', 'streaming', 'interactive'],
+    coverUrl: null,
+    avatarUrl: null,
+    languages: ['de', 'en'],
+    responseTime: 'within 30 minutes',
+    joinedAt: '2023-09-10T16:00:00Z',
+    lastActive: '2026-07-25T10:00:00Z',
     coverStyle: { background: 'linear-gradient(135deg, #0f0a00 0%, #92400e 50%, #0a0a0f 100%)' },
     avatarInitials: 'LW',
     avatarStyle: { background: 'linear-gradient(135deg, #b45309, #f59e0b)' },
@@ -186,6 +199,12 @@ export const MOCK_CREATORS: Creator[] = [
     supportPrice: 100,
     bio: 'Professional production studio. Photo and video shoots, post-production, brand content.',
     tags: ['studio', 'production', 'brand'],
+    coverUrl: null,
+    avatarUrl: null,
+    languages: ['sl', 'en', 'de'],
+    responseTime: 'within 24 hours',
+    joinedAt: '2024-01-08T09:00:00Z',
+    lastActive: '2026-07-22T14:00:00Z',
     coverStyle: { background: 'linear-gradient(135deg, #0a0a0a 0%, #262626 50%, #0a0a0a 100%)' },
     avatarInitials: 'SN',
     avatarStyle: { background: 'linear-gradient(135deg, #374151, #6b7280)' },
@@ -210,6 +229,12 @@ export const MOCK_CREATORS: Creator[] = [
     supportPrice: 15,
     bio: 'Fashion and lifestyle model. Open to collaborations, brand partnerships and editorial work.',
     tags: ['fashion', 'editorial', 'beauty'],
+    coverUrl: null,
+    avatarUrl: null,
+    languages: ['sr', 'en'],
+    responseTime: 'within 2 hours',
+    joinedAt: '2023-04-12T11:00:00Z',
+    lastActive: '2026-07-25T06:50:00Z',
     coverStyle: { background: 'linear-gradient(135deg, #1a0520 0%, #6b21a8 50%, #0d0010 100%)' },
     avatarInitials: 'AP',
     avatarStyle: { background: 'linear-gradient(135deg, #7e22ce, #a855f7)' },
@@ -234,6 +259,12 @@ export const MOCK_CREATORS: Creator[] = [
     supportPrice: 200,
     bio: 'Full-service talent and entertainment agency. Representing creators, models, and performers across Europe.',
     tags: ['agency', 'talent', 'europe'],
+    coverUrl: null,
+    avatarUrl: null,
+    languages: ['de', 'en', 'fr'],
+    responseTime: 'within 24 hours',
+    joinedAt: '2021-10-01T08:00:00Z',
+    lastActive: '2026-07-24T09:30:00Z',
     coverStyle: { background: 'linear-gradient(135deg, #0a0f1a 0%, #1e3a8a 50%, #0a0a0f 100%)' },
     avatarInitials: 'MA',
     avatarStyle: { background: 'linear-gradient(135deg, #1e40af, #3b82f6)' },
@@ -258,6 +289,12 @@ export const MOCK_CREATORS: Creator[] = [
     supportPrice: 10,
     bio: 'Singer and performer. Available for private events, corporate shows and collaborations.',
     tags: ['music', 'performance', 'events'],
+    coverUrl: null,
+    avatarUrl: null,
+    languages: ['bs', 'sr', 'en'],
+    responseTime: null,
+    joinedAt: '2024-03-25T13:00:00Z',
+    lastActive: '2026-07-20T18:00:00Z',
     coverStyle: { background: 'linear-gradient(135deg, #0f0a00 0%, #78350f 50%, #0a0a0f 100%)' },
     avatarInitials: 'IM',
     avatarStyle: { background: 'linear-gradient(135deg, #92400e, #d97706)' },
@@ -282,6 +319,12 @@ export const MOCK_CREATORS: Creator[] = [
     supportPrice: 40,
     bio: 'Award-winning photographer specializing in portrait, fashion and event coverage.',
     tags: ['portrait', 'fashion', 'awards'],
+    coverUrl: null,
+    avatarUrl: null,
+    languages: ['de', 'fr', 'en'],
+    responseTime: 'within 6 hours',
+    joinedAt: '2023-11-30T10:00:00Z',
+    lastActive: '2026-07-25T08:15:00Z',
     coverStyle: { background: 'linear-gradient(135deg, #0f1520 0%, #164e63 50%, #0a0a0f 100%)' },
     avatarInitials: 'KB',
     avatarStyle: { background: 'linear-gradient(135deg, #0e7490, #06b6d4)' },
@@ -306,6 +349,12 @@ export const MOCK_CREATORS: Creator[] = [
     supportPrice: 20,
     bio: 'Top creator. Fitness, wellness and motivational content. Daily posts and weekly live sessions.',
     tags: ['fitness', 'wellness', 'motivation'],
+    coverUrl: null,
+    avatarUrl: null,
+    languages: ['sr', 'en'],
+    responseTime: 'within 30 minutes',
+    joinedAt: '2022-08-20T15:00:00Z',
+    lastActive: '2026-07-25T09:55:00Z',
     coverStyle: { background: 'linear-gradient(135deg, #1a1005 0%, #8B1E3F 40%, #1a0a00 100%)' },
     avatarInitials: 'TS',
     avatarStyle: { background: 'linear-gradient(135deg, #B43C63, #8B1E3F)' },
@@ -313,17 +362,3 @@ export const MOCK_CREATORS: Creator[] = [
     videoCount: 38,
   },
 ];
-
-export const CATEGORIES = [
-  'All',
-  'Creators',
-  'Models',
-  'Entertainment',
-  'Night Clubs',
-  'Webcam',
-  'Photography',
-  'Studios',
-  'Agencies',
-] as const;
-
-export type Category = typeof CATEGORIES[number];

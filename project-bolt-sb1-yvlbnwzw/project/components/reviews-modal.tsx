@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Star, Loader2 } from 'lucide-react';
@@ -41,13 +41,7 @@ export function ReviewsModal({
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (open && proId) {
-      loadReviews();
-    }
-  }, [open, proId]);
-
-  const loadReviews = async () => {
+  const loadReviews = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(`/api/reviews?pro_id=${proId}`);
@@ -61,7 +55,13 @@ export function ReviewsModal({
     } finally {
       setLoading(false);
     }
-  };
+  }, [proId]);
+
+  useEffect(() => {
+    if (open && proId) {
+      loadReviews();
+    }
+  }, [open, proId, loadReviews]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

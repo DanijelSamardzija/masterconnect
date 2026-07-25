@@ -104,11 +104,11 @@ export function Navigation() {
       window.addEventListener('unreadCountChanged', handleUnreadCountChanged);
 
       const messagesChannel = supabase
-        .channel('nav-messages')
+        .channel(`nav-messages:${profile.id}`)
         .on(
           'postgres_changes',
           {
-            event: '*',
+            event: 'INSERT',
             schema: 'public',
             table: 'messages',
           },
@@ -131,18 +131,17 @@ export function Navigation() {
         .subscribe();
 
       const notificationsChannel = supabase
-        .channel('nav-notifications')
+        .channel(`nav-notifications:${profile.id}`)
         .on(
           'postgres_changes',
           {
             event: 'INSERT',
             schema: 'public',
             table: 'notifications',
+            filter: `user_id=eq.${profile.id}`,
           },
-          (payload: any) => {
-            if (payload.new?.user_id === profile.id) {
-              debouncedFetchNotifUnread();
-            }
+          () => {
+            debouncedFetchNotifUnread();
           }
         )
         .on(
@@ -151,11 +150,10 @@ export function Navigation() {
             event: 'UPDATE',
             schema: 'public',
             table: 'notifications',
+            filter: `user_id=eq.${profile.id}`,
           },
-          (payload: any) => {
-            if (payload.new?.user_id === profile.id) {
-              debouncedFetchNotifUnread();
-            }
+          () => {
+            debouncedFetchNotifUnread();
           }
         )
         .subscribe();
@@ -172,33 +170,8 @@ export function Navigation() {
 
   const fetchUnreadCount = async () => {
     if (!profile) return;
-
-    const { data: participants, error } = await supabase
-      .from('thread_participants')
-      .select('thread_id, last_read_at')
-      .eq('user_id', profile.id)
-      .is('deleted_at', null);
-
-    if (error) {
-      console.error('Error fetching unread count:', error);
-      return;
-    }
-
-    let totalUnread = 0;
-    for (const participant of participants || []) {
-      const { count } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('thread_id', participant.thread_id)
-        .neq('sender_id', profile.id)
-        .eq('is_deleted', false)
-        .eq('is_system', false)
-        .gt('created_at', participant.last_read_at || '1970-01-01');
-
-      totalUnread += count || 0;
-    }
-
-    setUnreadCount(totalUnread);
+    const { data, error } = await (supabase as any).rpc('get_unread_count');
+    if (!error) setUnreadCount(Number(data) || 0);
   };
 
   const fetchNotificationUnreadCount = async () => {
