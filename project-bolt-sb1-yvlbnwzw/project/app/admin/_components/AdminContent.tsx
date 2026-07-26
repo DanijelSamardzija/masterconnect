@@ -121,6 +121,17 @@ export function AdminContent() {
     if (profile && !profile.is_admin) router.replace('/');
   }, [profile]);
 
+  // ── Restore active tab from URL on mount ─────────────────────────────────
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab') as ActiveTab | null;
+    const valid: ActiveTab[] = ['reports', 'users', 'posts', 'announcements', 'support', 'analytics', 'credits'];
+    if (tabParam && valid.includes(tabParam) && tabParam !== 'reports') {
+      handleTabClick(tabParam);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // ── Initial load ─────────────────────────────────────────────────────────
   useEffect(() => {
     if (!profile?.is_admin) return;
@@ -225,6 +236,9 @@ export function AdminContent() {
         { data: threadsInRange },
         // Funnel – distinct posters (all-time)
         { data: postersData },
+        // Today KPIs
+        { count: todayNewUsersCount },
+        { count: todayNewReportsCount },
         // Churn
         { count: churnTotalCount },
         { data: churnRecentRaw },
@@ -274,6 +288,9 @@ export function AdminContent() {
         supabase.from('threads').select('created_at').gte('created_at', rangeFrom).lte('created_at', rangeTo),
         // Funnel – all-time distinct posters (deduped client-side; Supabase JS has no COUNT DISTINCT)
         supabase.from('posts').select('user_id'),
+        // Always-current today KPIs (independent of active dateRange)
+        supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', todayStart.toISOString()),
+        supabase.from('reports').select('*', { count: 'exact', head: true }).gte('created_at', todayStart.toISOString()),
         // Churn – all-time count
         supabase.from('deleted_account_analytics').select('*', { count: 'exact', head: true }),
         // Churn – last 30 days (for today/week/month KPI cards)
@@ -539,6 +556,8 @@ export function AdminContent() {
         dailyNewUsers, utmSources,
         contentStats, reportAnalytics,
         comparison, topContent, messageAnalytics, marketingExtended,
+        todayNewUsers:   todayNewUsersCount   ?? 0,
+        todayNewReports: todayNewReportsCount ?? 0,
         funnel: { registeredUsers: stats?.users ?? 0, usersWithPost: uniquePosters },
         churnData,
       });
@@ -1020,6 +1039,10 @@ export function AdminContent() {
   // ── Render ────────────────────────────────────────────────────────────────
   const handleTabClick = (key: ActiveTab) => {
     setActiveTab(key);
+    // Persist active tab in URL so refresh restores the same tab
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', key);
+    window.history.replaceState(null, '', url.toString());
     if (!loadedTabs.current.has(key)) {
       loadedTabs.current.add(key);
       if (key === 'users') loadUsers('', 0, false);

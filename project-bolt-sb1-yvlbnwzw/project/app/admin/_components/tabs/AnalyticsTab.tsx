@@ -233,9 +233,9 @@ export function AnalyticsTab({
   const totalCityUsers    = analytics?.topCities.reduce((s, c)    => s + c.count, 0) || 1;
   const totalCountryUsers = analytics?.topCountries.reduce((s, c) => s + c.count, 0) || 1;
 
-  const newUsersToday   = analytics?.dailyNewUsers.at(-1)?.count ?? 0;
+  const newUsersToday   = analytics?.todayNewUsers ?? 0;
   const newPostsToday   = analytics ? Object.values(analytics.contentStats.todayByType).reduce((s, n) => s + n, 0) : 0;
-  const newReportsToday = analytics?.reportAnalytics.dailyTrend.at(-1)?.count ?? 0;
+  const newReportsToday = analytics?.todayNewReports ?? 0;
 
   const currentContentData = useMemo(() => {
     if (!analytics) return {} as Record<string, number>;
