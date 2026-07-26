@@ -11,6 +11,7 @@ import { CityAutocomplete } from '@/components/city-autocomplete';
 import { trackEvent } from '@/lib/analytics';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { resumeAfterAuth } from '@/lib/guest-intent';
+import { detectGeo } from '@/lib/geo';
 
 type Step = 1 | 2;
 
@@ -70,11 +71,7 @@ export default function OnboardingPage() {
       const signupSource = localStorage.getItem('signup_source') || 'direct';
       localStorage.removeItem('signup_source');
 
-      let detectedCountry: string | undefined;
-      try {
-        const geo = await fetch('https://ipapi.co/json/').then(r => r.json());
-        if (geo.country_name) detectedCountry = geo.country_name;
-      } catch {}
+      const geo = await detectGeo();
 
       const { error: profileError } = await supabase
         .from('profiles')
@@ -86,8 +83,8 @@ export default function OnboardingPage() {
           role: 'customer',
           signup_source: signupSource,
           onboarding_completed: true,
-          city: city.trim(),
-          ...(detectedCountry ? { country: detectedCountry } : {}),
+          ...(city.trim() ? { city: city.trim() } : {}),
+          ...(geo.country  ? { country: geo.country } : {}),
         }, { onConflict: 'id' });
 
       if (profileError) throw profileError;

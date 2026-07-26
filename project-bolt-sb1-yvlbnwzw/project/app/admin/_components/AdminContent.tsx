@@ -31,7 +31,13 @@ export function AdminContent() {
   const { profile } = useAuth();
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<ActiveTab>('reports');
+  const [activeTab, setActiveTab] = useState<ActiveTab>(() => {
+    if (typeof window === 'undefined') return 'reports';
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab') as ActiveTab | null;
+    const valid: ActiveTab[] = ['reports', 'users', 'posts', 'announcements', 'support', 'analytics', 'credits'];
+    return (tab && valid.includes(tab)) ? tab : 'reports';
+  });
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -121,14 +127,16 @@ export function AdminContent() {
     if (profile && !profile.is_admin) router.replace('/');
   }, [profile]);
 
-  // ── Restore active tab from URL on mount ─────────────────────────────────
+  // ── Trigger data load for initial tab (if opened directly via URL) ────────
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const tabParam = params.get('tab') as ActiveTab | null;
-    const valid: ActiveTab[] = ['reports', 'users', 'posts', 'announcements', 'support', 'analytics', 'credits'];
-    if (tabParam && valid.includes(tabParam) && tabParam !== 'reports') {
-      handleTabClick(tabParam);
-    }
+    if (activeTab === 'reports') return;
+    loadedTabs.current.add(activeTab);
+    if (activeTab === 'users')         loadUsers('', 0, false);
+    if (activeTab === 'posts')         loadPosts(0, false);
+    if (activeTab === 'announcements') { fetchAnnouncements(); fetchLangStats(); }
+    if (activeTab === 'support')       fetchTickets();
+    if (activeTab === 'analytics')     { fetchAnalytics(dateRange); fetchInvestStats(); }
+    if (activeTab === 'credits')       fetchCreditsStats();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

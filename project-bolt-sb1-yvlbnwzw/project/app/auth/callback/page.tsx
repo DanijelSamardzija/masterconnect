@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { trackEvent, identifyUser, aliasPreOAuthSession } from '@/lib/analytics';
+import { detectGeo } from '@/lib/geo';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -33,7 +34,7 @@ export default function AuthCallbackPage() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('onboarding_completed, city')
+        .select('onboarding_completed, city, country')
         .eq('id', user.id)
         .maybeSingle();
 
@@ -64,19 +65,16 @@ export default function AuthCallbackPage() {
         trackEvent('google_login_success', { returning: true });
         router.replace('/feed');
       } else {
-        // Auto-detect city/country from IP for new users
-        if (!profile?.city) {
-          fetch('https://ipapi.co/json/')
-            .then(r => r.json())
-            .then(geo => {
-              if (geo.city) {
-                supabase.from('profiles').update({
-                  city: geo.city,
-                  ...(geo.country_name ? { country: geo.country_name } : {}),
-                }).eq('id', user.id);
-              }
-            })
-            .catch(() => {});
+        // Auto-detect city/country from IP — runs if either field is missing
+        if (!profile?.city || !profile?.country) {
+          detectGeo().then(geo => {
+            const update: Record<string, string> = {};
+            if (geo.city    && !profile?.city)    update.city    = geo.city;
+            if (geo.country && !profile?.country) update.country = geo.country;
+            if (Object.keys(update).length > 0) {
+              supabase.from('profiles').update(update).eq('id', user.id);
+            }
+          }).catch(() => {});
         }
 
         trackEvent('google_login_success', { returning: false });
