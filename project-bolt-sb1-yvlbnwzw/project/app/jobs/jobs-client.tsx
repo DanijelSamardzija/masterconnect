@@ -989,21 +989,12 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
   const [totalCount, setTotalCount] = useState(0);
   const [allCounts, setAllCounts] = useState({ hiring: 0, serviceRequests: 0, jobSeekers: 0 });
   const [loadingMore, setLoadingMore] = useState(false);
-  const [isSearchLoading, setIsSearchLoading] = useState(false);
   const isFirstRender = useRef(true);
-  const isFirstSearchEffect = useRef(true);
   const PAGE_SIZE = 25;
 
-  // Tab/filter/user changes → full skeleton
   useEffect(() => {
     loadPosts(true);
-  }, [user?.id, activeTab, cityFilter, countryFilter, categoryFilter, sortOrder]);
-
-  // Search query changes → subtle indicator only, input stays mounted
-  useEffect(() => {
-    if (isFirstSearchEffect.current) { isFirstSearchEffect.current = false; return; }
-    loadPosts(true, true);
-  }, [searchQuery]);
+  }, [user?.id, activeTab, cityFilter, countryFilter, categoryFilter, sortOrder, searchQuery]);
 
   // Fetch baseline counts for all tabs once on mount (lightweight — p_limit: 1)
   useEffect(() => {
@@ -1136,13 +1127,9 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
     }
   };
 
-  const loadPosts = async (reset = true, searchTriggered = false) => {
+  const loadPosts = async (reset = true) => {
     if (reset) {
-      if (searchTriggered) {
-        setIsSearchLoading(true);
-      } else {
-        setLoading(true);
-      }
+      setLoading(true);
     } else {
       setLoadingMore(true);
     }
@@ -1222,7 +1209,6 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
       toast.error('Failed to load posts');
     } finally {
       setLoading(false);
-      setIsSearchLoading(false);
       setLoadingMore(false);
     }
   };
@@ -1397,25 +1383,6 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
   'text-muted-foreground hover:text-foreground hover:bg-accent ' +
   'data-[state=active]:bg-orange-500/5 data-[state=active]:text-orange-600 dark:data-[state=active]:text-orange-400 data-[state=active]:border-orange-300 dark:data-[state=active]:border-orange-500/60 data-[state=active]:shadow-sm';
 
-  if (loading) {
-    return (
-      <div className="bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-[#111827] dark:via-[#0f1419] dark:to-[#111827] py-8 pb-24">
-        <div className="max-w-5xl mx-auto px-4 space-y-4">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="bg-card border border-border rounded-2xl shadow-sm">
-              <CardHeader>
-                <Skeleton className="h-12 w-12 rounded-full" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-20 w-full" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-[#111827] dark:via-[#0f1419] dark:to-[#111827] py-8 pb-24">
       <div className="max-w-5xl mx-auto px-4 space-y-6">
@@ -1545,10 +1512,7 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
 
           {/* KEYWORD SEARCH */}
           <div className="relative mt-4">
-            {isSearchLoading
-              ? <Loader className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin pointer-events-none" />
-              : <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-            }
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
             <input
               type="text"
               value={searchInput}
@@ -1661,7 +1625,11 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
           )}
 
           <div className="mt-6">
-            {boostedPosts.length === 0 ? (
+            {loading ? (
+              <div className="flex justify-center items-center py-16">
+                <Loader className="h-8 w-8 animate-spin text-orange-600" />
+              </div>
+            ) : boostedPosts.length === 0 ? (
               <Card className="bg-card text-card-foreground border border-border rounded-2xl shadow-sm">
                 <CardContent className="py-12 text-center">
                   <p className="text-slate-500">{t('jobs.noPosts')}</p>
