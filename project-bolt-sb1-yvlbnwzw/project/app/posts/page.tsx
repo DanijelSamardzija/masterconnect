@@ -18,6 +18,7 @@ import { uploadFile as uploadFileUtil, validateFile } from '@/lib/attachment-uti
 import { SERBIAN_CITIES } from '@/lib/constants';
 import { CategoryCombobox } from '@/components/category-combobox';
 import { CityAutocomplete } from '@/components/city-autocomplete';
+import { usePageTracking } from '@/lib/hooks/use-page-tracking';
 
 export const revalidate = 0;
 import { Label } from '@/components/ui/label';
@@ -51,6 +52,7 @@ type Post = {
 function PostsContent() {
   const { user, profile } = useAuth();
   const { t } = useLanguage();
+  usePageTracking('posts');
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [postText, setPostText] = useState('');

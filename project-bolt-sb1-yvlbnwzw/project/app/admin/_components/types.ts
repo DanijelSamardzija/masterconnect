@@ -161,6 +161,7 @@ export type AnalyticsData = {
   // Always-current today KPIs (independent of active date range filter)
   todayNewUsers:   number;
   todayNewReports: number;
+  returningUsers30d: number;
   // Activation Funnel
   funnel: {
     registeredUsers: number;

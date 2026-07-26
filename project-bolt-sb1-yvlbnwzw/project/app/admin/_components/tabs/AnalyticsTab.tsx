@@ -393,7 +393,34 @@ export function AnalyticsTab({
             {[
               { label: 'Aktivni danas',      value: analytics.dau,               icon: Activity,     color: 'text-green-500',  tooltip: 'Korisnici koji su imali aktivnost u poslednjih 24h' },
               { label: 'Aktivni (7 dana)',   value: analytics.wau,               icon: TrendingUp,   color: 'text-blue-500',   tooltip: 'Jedinstveni korisnici aktivni u poslednjih 7 dana' },
-              { label: 'Aktivni (30 dana)',  value: analytics.mau,               icon: Users,        color: 'text-purple-500', tooltip: 'Jedinstveni korisnici aktivni u poslednjih 30 dana' },
+            ].map(({ label, value, icon, color, tooltip }) => (
+              <AnalyticsCard key={label} icon={icon} value={value} label={label} color={color} tooltip={tooltip} />
+            ))}
+
+            {/* MAU — custom card with new/returning breakdown */}
+            {(() => {
+              const newActive = Math.max(0, analytics.mau - analytics.returningUsers30d);
+              const retPct    = analytics.mau > 0 ? Math.round((analytics.returningUsers30d / analytics.mau) * 100) : 0;
+              return (
+                <div className="relative bg-card border border-border rounded-2xl p-4 flex flex-col gap-1.5">
+                  <Users className="h-5 w-5 text-purple-500" />
+                  <p className="text-2xl font-bold text-foreground tabular-nums">{analytics.mau}</p>
+                  <p className="text-xs text-muted-foreground">Aktivni (30 dana)</p>
+                  <div className="border-t border-border/60 pt-1.5 space-y-0.5">
+                    <div className="flex justify-between text-[10px]">
+                      <span className="text-muted-foreground">Novi</span>
+                      <span className="text-orange-500 font-semibold tabular-nums">{newActive}</span>
+                    </div>
+                    <div className="flex justify-between text-[10px]">
+                      <span className="text-muted-foreground">Povratni</span>
+                      <span className="text-green-500 font-semibold tabular-nums">{analytics.returningUsers30d} <span className="text-muted-foreground font-normal">({retPct}%)</span></span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {[
               { label: 'Aktivni (godišnje)', value: analytics.yau,               icon: TrendingUp,   color: 'text-indigo-500', tooltip: `Aktivni korisnici u ${selectedYear}. godini` },
               { label: 'Novi ove sedmice',   value: analytics.newUsersThisWeek,  icon: CalendarDays, color: 'text-orange-500', tooltip: 'Novoregistrovani korisnici u poslednjih 7 dana' },
               { label: 'Novi ovog mjeseca',  value: analytics.newUsersThisMonth, icon: CalendarDays, color: 'text-pink-500',   tooltip: 'Novoregistrovani od početka tekućeg mjeseca' },

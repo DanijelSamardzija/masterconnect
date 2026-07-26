@@ -2202,6 +2202,10 @@ export type Database = {
         Args: never
         Returns: number
       }
+      get_returning_user_count: {
+        Args: { month_ago_start: string }
+        Returns: number
+      }
       get_daily_active_users: {
         Args: { week_start: string }
         Returns: {

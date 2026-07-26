@@ -15,6 +15,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowLeft, AlertCircle, MessageCircle, Star, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { ReviewModal } from '@/components/review-modal';
+import { usePageTracking } from '@/lib/hooks/use-page-tracking';
 
 export const revalidate = 0;
 
@@ -42,6 +43,7 @@ function UserProfileContent() {
   const { user, profile: currentUserProfile } = useAuth();
   const { t } = useLanguage();
   const { openGuestGate } = useGuestGate();
+  usePageTracking('profile_view');
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

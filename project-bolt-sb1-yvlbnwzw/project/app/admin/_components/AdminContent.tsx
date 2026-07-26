@@ -197,7 +197,8 @@ export function AdminContent() {
       const now = new Date();
       const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0);
       const weekStart = new Date(now); weekStart.setDate(now.getDate() - 7);
-      const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+      const calendarMonthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+      const rollingMonthStart  = new Date(Date.now() - 30 * 86400000);
       const targetYear = targetRange.preset === 'year' && targetRange.year
         ? targetRange.year
         : new Date().getFullYear();
@@ -242,6 +243,8 @@ export function AdminContent() {
         { data: topPostsData },
         // Phase 10 – message analytics
         { data: threadsInRange },
+        // Returning users (active in rolling 30d, registered > 30d ago)
+        { data: returningUsersData },
         // Funnel – distinct posters (all-time, DB-side)
         { data: uniquePostersData },
         // Funnel – total registered users (all-time, queried locally to avoid stats race)
@@ -258,12 +261,12 @@ export function AdminContent() {
         supabase.rpc('get_active_user_counts', {
           today_start: todayStart.toISOString(),
           week_start:  weekStart.toISOString(),
-          month_start: monthStart.toISOString(),
+          month_start: rollingMonthStart.toISOString(),
           year_start:  chosenYearStart.toISOString(),
           year_end:    chosenYearEnd.toISOString(),
         }),
         supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', weekStart.toISOString()),
-        supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', monthStart.toISOString()),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', calendarMonthStart.toISOString()),
         supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', chosenYearStart.toISOString()).lt('created_at', chosenYearEnd.toISOString()),
         supabase.rpc('get_city_distribution'),
         supabase.rpc('get_country_distribution'),
@@ -275,7 +278,7 @@ export function AdminContent() {
         supabase.from('profiles').select('created_at').gte('created_at', rangeFrom).lte('created_at', rangeTo),
         supabase.from('posts').select('post_type').gte('created_at', todayStart.toISOString()),
         supabase.from('posts').select('post_type').gte('created_at', weekStart.toISOString()),
-        supabase.from('posts').select('post_type').gte('created_at', monthStart.toISOString()),
+        supabase.from('posts').select('post_type').gte('created_at', calendarMonthStart.toISOString()),
         supabase.from('reports')
           .select('reason, status, target_type, created_at, target_owner:target_owner_user_id(id, name, avatar_url)')
           .gte('created_at', rangeFrom)
@@ -296,6 +299,7 @@ export function AdminContent() {
           .limit(10),
         // Phase 10 threads in range (for daily trend)
         supabase.from('threads').select('created_at').gte('created_at', rangeFrom).lte('created_at', rangeTo),
+        supabase.rpc('get_returning_user_count', { month_ago_start: rollingMonthStart.toISOString() }) as any,
         supabase.rpc('get_unique_poster_count') as any,
         // Funnel – total registered users (all-time)
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
@@ -550,7 +554,7 @@ export function AdminContent() {
         totalDeleted:  churnTotalCount ?? 0,
         todayDeleted:  recent30.filter(r => r.deleted_at >= todayStart.toISOString()).length,
         weekDeleted:   recent30.filter(r => r.deleted_at >= weekStart.toISOString()).length,
-        monthDeleted:  recent30.filter(r => r.deleted_at >= monthStart.toISOString()).length,
+        monthDeleted:  recent30.filter(r => r.deleted_at >= rollingMonthStart.toISOString()).length,
         rangeDeleted:  rangeChurn.length,
         byCountry:     Object.entries(churnCountryMap).map(([country, count]) => ({ country, count })).sort((a, b) => b.count - a.count),
         byReason:      Object.entries(churnReasonMap).map(([reason, count]) => ({ reason, count })).sort((a, b) => b.count - a.count),
@@ -559,6 +563,7 @@ export function AdminContent() {
 
       setAnalytics({
         pageViews, dau, wau, mau, yau,
+        returningUsers30d: Number(returningUsersData) || 0,
         newUsersThisWeek:  newWeekCount  || 0,
         newUsersThisMonth: newMonthCount || 0,
         newUsersThisYear:  newYearCount  || 0,

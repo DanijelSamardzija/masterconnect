@@ -22,6 +22,7 @@ import { OfferServiceModal } from '@/components/offer-service-modal';
 import { EditPostModal } from '@/components/edit-post-modal';
 import { JobApplicationModal } from '@/components/job-application-modal';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { usePageTracking } from '@/lib/hooks/use-page-tracking';
 
 type PostMedia = {
   id: string;
@@ -69,6 +70,7 @@ function SinglePostContent() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const { t } = useLanguage();
+  usePageTracking('post');
   const postId = params.postId as string;
   const commentId = searchParams.get('commentId');
   const [post, setPost] = useState<Post | null>(null);
