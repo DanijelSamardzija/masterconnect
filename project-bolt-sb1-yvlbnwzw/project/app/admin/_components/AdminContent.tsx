@@ -313,6 +313,10 @@ export function AdminContent() {
           .limit(5000),
       ]);
 
+      // DEBUG – remove after verifying row counts
+      console.log('[geo-debug] cityProfiles.length:', cityProfiles?.length);
+      console.log('[geo-debug] countryProfiles.length:', countryProfiles?.length);
+
       // Signup source aggregation (range-filtered)
       const sourceCount: Record<string, number> = {};
       for (const p of (signupSourceData as any[] || [])) {
