@@ -6,11 +6,14 @@ import { Navigation } from '@/components/navigation';
 import { Footer } from '@/components/footer';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { notificationRepository } from '@/lib/repositories/notificationRepository';
+import { usePageTracking } from '@/lib/hooks/use-page-tracking';
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, profile, loading } = useAuth();
+
+  usePageTracking('app');
 
   const isMessageThread = pathname.startsWith('/messages/');
   const isMessagesPage = pathname === '/messages';
