@@ -263,8 +263,8 @@ export function AdminContent() {
         supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', weekStart.toISOString()),
         supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', monthStart.toISOString()),
         supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', chosenYearStart.toISOString()).lt('created_at', chosenYearEnd.toISOString()),
-        supabase.from('profiles').select('city').not('city', 'is', null),
-        supabase.from('profiles').select('country').not('country', 'is', null),
+        supabase.from('profiles').select('city').not('city', 'is', null).limit(10000),
+        supabase.from('profiles').select('country').not('country', 'is', null).limit(10000),
         supabase.rpc('get_daily_active_users', { week_start: weekStart.toISOString() }),
         supabase.rpc('get_monthly_active_users', { year_start: chosenYearStart.toISOString(), year_end: chosenYearEnd.toISOString() }),
         supabase.rpc('get_monthly_new_users', { year_start: chosenYearStart.toISOString(), year_end: chosenYearEnd.toISOString() }),
@@ -295,7 +295,7 @@ export function AdminContent() {
         // Phase 10 threads in range (for daily trend)
         supabase.from('threads').select('created_at').gte('created_at', rangeFrom).lte('created_at', rangeTo),
         // Funnel – all-time distinct posters (deduped client-side; Supabase JS has no COUNT DISTINCT)
-        supabase.from('posts').select('user_id'),
+        supabase.from('posts').select('user_id').limit(50000),
         // Always-current today KPIs (independent of active dateRange)
         supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', todayStart.toISOString()),
         supabase.from('reports').select('*', { count: 'exact', head: true }).gte('created_at', todayStart.toISOString()),
