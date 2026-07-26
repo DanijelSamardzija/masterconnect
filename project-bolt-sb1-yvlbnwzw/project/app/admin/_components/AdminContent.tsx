@@ -244,6 +244,8 @@ export function AdminContent() {
         { data: threadsInRange },
         // Funnel – distinct posters (all-time, DB-side)
         { data: uniquePostersData },
+        // Funnel – total registered users (all-time, queried locally to avoid stats race)
+        { count: totalUsersCount },
         // Today KPIs
         { count: todayNewUsersCount },
         { count: todayNewReportsCount },
@@ -295,6 +297,8 @@ export function AdminContent() {
         // Phase 10 threads in range (for daily trend)
         supabase.from('threads').select('created_at').gte('created_at', rangeFrom).lte('created_at', rangeTo),
         supabase.rpc('get_unique_poster_count') as any,
+        // Funnel – total registered users (all-time)
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
         // Always-current today KPIs (independent of active dateRange)
         supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', todayStart.toISOString()),
         supabase.from('reports').select('*', { count: 'exact', head: true }).gte('created_at', todayStart.toISOString()),
@@ -565,7 +569,7 @@ export function AdminContent() {
         comparison, topContent, messageAnalytics, marketingExtended,
         todayNewUsers:   todayNewUsersCount   ?? 0,
         todayNewReports: todayNewReportsCount ?? 0,
-        funnel: { registeredUsers: stats?.users ?? 0, usersWithPost: uniquePosters },
+        funnel: { registeredUsers: totalUsersCount ?? 0, usersWithPost: uniquePosters },
         churnData,
       });
     } finally {
