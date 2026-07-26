@@ -13,7 +13,6 @@ type Profile = {
   category: string | null;
   city: string | null;
   country: string | null;
-  account_type: string;
   is_premium: boolean;
   average_rating: number | null;
   review_count: number | null;
@@ -222,12 +221,7 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
                         </div>
                       </div>
 
-                      {/* Account type chip */}
-                      <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full shrink-0">
-                        {profile.account_type === 'professional'
-                          ? t('search.professional')
-                          : t('search.customer')}
-                      </span>
+
                     </button>
                   </li>
                 ))}
