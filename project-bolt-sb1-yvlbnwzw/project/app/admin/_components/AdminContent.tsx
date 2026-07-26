@@ -14,8 +14,8 @@ import {
 import { toast } from 'sonner';
 
 import {
-  ActiveTab, AnalyticsData, Announcement, CreditsStats, InvestStats,
-  LangStat, PostItem, Report, ReportFilter, Stats, SupportTicket, UserProfile,
+  ActiveTab, AnalyticsData, Announcement, CreditsStats, DateRange,
+  InvestStats, LangStat, PostItem, Report, ReportFilter, Stats, SupportTicket, UserProfile,
 } from './types';
 import { COUNTRY_LANG_MAP, LANG_INFO, PAGE_SIZE } from './constants';
 import { ReportsTab } from './tabs/ReportsTab';
@@ -89,6 +89,11 @@ export function AdminContent() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [dateRange, setDateRange] = useState<DateRange>({
+    preset: '30d',
+    from: new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10),
+    to: new Date().toISOString().slice(0, 10),
+  });
 
   // Invest analytics state
   const [investStats, setInvestStats] = useState<InvestStats | null>(null);
@@ -166,16 +171,28 @@ export function AdminContent() {
   };
 
   // ── Analytics ─────────────────────────────────────────────────────────────
-  const fetchAnalytics = async (year?: number) => {
-    const targetYear = year ?? selectedYear;
+  const fetchAnalytics = async (range?: DateRange) => {
+    const targetRange: DateRange = range ?? dateRange;
     setAnalyticsLoading(true);
     try {
       const now = new Date();
       const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0);
       const weekStart = new Date(now); weekStart.setDate(now.getDate() - 7);
       const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+      const targetYear = targetRange.preset === 'year' && targetRange.year
+        ? targetRange.year
+        : new Date().getFullYear();
       const chosenYearStart = new Date(`${targetYear}-01-01T00:00:00.000Z`);
       const chosenYearEnd = new Date(`${targetYear + 1}-01-01T00:00:00.000Z`);
+
+      // Date range ISO boundaries
+      const rangeFrom = targetRange.from + 'T00:00:00.000Z';
+      const rangeTo = targetRange.to + 'T23:59:59.999Z';
+
+      // Previous period: same duration, immediately before current range
+      const rangeMs = new Date(rangeTo).getTime() - new Date(rangeFrom).getTime();
+      const prevTo = rangeFrom;
+      const prevFrom = new Date(new Date(rangeFrom).getTime() - rangeMs).toISOString();
 
       const [
         { data: allViews },
@@ -190,11 +207,22 @@ export function AdminContent() {
         { data: monthlyNewRpc },
         { data: signupSourceData },
         { data: utmSourceData },
-        { data: daily30Profiles },
+        { data: rangeProfilesData },
         { data: todayPostsData },
         { data: weekPostsData },
         { data: monthPostsData },
         { data: reportsRawData },
+        // Phase 3 – comparison counts
+        { count: prevUsersCount },
+        { count: rangeUsersCount },
+        { count: prevPostsCount },
+        { count: rangePostsCount },
+        { count: prevThreadsCount },
+        { count: rangeThreadsCount },
+        // Phase 9 – top content
+        { data: topPostsData },
+        // Phase 10 – message analytics
+        { data: threadsInRange },
       ] = await Promise.all([
         supabase.rpc('get_page_view_counts'),
         supabase.rpc('get_active_user_counts', {
@@ -212,20 +240,35 @@ export function AdminContent() {
         supabase.rpc('get_daily_active_users', { week_start: weekStart.toISOString() }),
         supabase.rpc('get_monthly_active_users', { year_start: chosenYearStart.toISOString(), year_end: chosenYearEnd.toISOString() }),
         supabase.rpc('get_monthly_new_users', { year_start: chosenYearStart.toISOString(), year_end: chosenYearEnd.toISOString() }),
-        supabase.from('profiles').select('signup_source').not('signup_source', 'is', null),
-        supabase.from('profiles').select('utm_source, utm_medium, utm_campaign').not('utm_source', 'is', null),
-        supabase.from('profiles').select('created_at').gte('created_at', monthStart.toISOString()),
+        supabase.from('profiles').select('signup_source').not('signup_source', 'is', null).gte('created_at', rangeFrom).lte('created_at', rangeTo),
+        supabase.from('profiles').select('utm_source, utm_medium, utm_campaign').not('utm_source', 'is', null).gte('created_at', rangeFrom).lte('created_at', rangeTo),
+        supabase.from('profiles').select('created_at').gte('created_at', rangeFrom).lte('created_at', rangeTo),
         supabase.from('posts').select('post_type').gte('created_at', todayStart.toISOString()),
         supabase.from('posts').select('post_type').gte('created_at', weekStart.toISOString()),
         supabase.from('posts').select('post_type').gte('created_at', monthStart.toISOString()),
         supabase.from('reports')
           .select('reason, status, target_type, created_at, target_owner:target_owner_user_id(id, name, avatar_url)')
-          .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+          .gte('created_at', rangeFrom)
+          .lte('created_at', rangeTo)
           .order('created_at', { ascending: false })
           .limit(500),
+        // Phase 3 comparison
+        supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', prevFrom).lt('created_at', prevTo),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', rangeFrom).lte('created_at', rangeTo),
+        supabase.from('posts').select('*', { count: 'exact', head: true }).gte('created_at', prevFrom).lt('created_at', prevTo),
+        supabase.from('posts').select('*', { count: 'exact', head: true }).gte('created_at', rangeFrom).lte('created_at', rangeTo),
+        supabase.from('threads').select('*', { count: 'exact', head: true }).gte('created_at', prevFrom).lt('created_at', prevTo),
+        supabase.from('threads').select('*', { count: 'exact', head: true }).gte('created_at', rangeFrom).lte('created_at', rangeTo),
+        // Phase 9 top posts by views (all-time)
+        supabase.from('posts')
+          .select('id, text, views_count, created_at, post_type, author:profiles!user_id(id, name, avatar_url)')
+          .order('views_count', { ascending: false })
+          .limit(10),
+        // Phase 10 threads in range (for daily trend)
+        supabase.from('threads').select('created_at').gte('created_at', rangeFrom).lte('created_at', rangeTo),
       ]);
 
-      // Signup source aggregation
+      // Signup source aggregation (range-filtered)
       const sourceCount: Record<string, number> = {};
       for (const p of (signupSourceData as any[] || [])) {
         const s = p.signup_source || 'direct';
@@ -233,21 +276,30 @@ export function AdminContent() {
       }
       const signupSources = Object.entries(sourceCount).map(([source, count]) => ({ source, count })).sort((a, b) => b.count - a.count);
 
-      // UTM source aggregation
+      // UTM aggregation — source + campaign + medium (Phase 6)
       const utmCount: Record<string, number> = {};
+      const campaignCount: Record<string, number> = {};
+      const mediumCount: Record<string, number> = {};
       for (const p of (utmSourceData as any[] || [])) {
-        const s = p.utm_source || 'direct';
+        const s = p.utm_source || 'other';
         utmCount[s] = (utmCount[s] || 0) + 1;
+        if (p.utm_campaign) { campaignCount[p.utm_campaign] = (campaignCount[p.utm_campaign] || 0) + 1; }
+        if (p.utm_medium)   { mediumCount[p.utm_medium]     = (mediumCount[p.utm_medium]   || 0) + 1; }
       }
       const utmSources = Object.entries(utmCount).map(([source, count]) => ({ source, count })).sort((a, b) => b.count - a.count);
+      const marketingExtended = {
+        utmCampaigns: Object.entries(campaignCount).map(([campaign, count]) => ({ campaign, count })).sort((a, b) => b.count - a.count),
+        utmMediums:   Object.entries(mediumCount).map(([medium, count]) => ({ medium, count })).sort((a, b) => b.count - a.count),
+      };
 
-      // Daily new users (last 30 days)
+      // Daily new users (date range, variable length)
       const dailyNewMap: Record<string, number> = {};
-      for (let i = 29; i >= 0; i--) {
-        const d = new Date(now); d.setDate(d.getDate() - i);
+      const rangeStart = new Date(targetRange.from);
+      const rangeEnd = new Date(targetRange.to);
+      for (let d = new Date(rangeStart); d <= rangeEnd; d.setDate(d.getDate() + 1)) {
         dailyNewMap[d.toISOString().slice(0, 10)] = 0;
       }
-      for (const p of (daily30Profiles as any[] || [])) {
+      for (const p of (rangeProfilesData as any[] || [])) {
         const date = (p.created_at as string).slice(0, 10);
         if (date in dailyNewMap) dailyNewMap[date]++;
       }
@@ -263,24 +315,21 @@ export function AdminContent() {
       const mau = Number(counts.mau ?? 0);
       const yau = Number(counts.yau ?? 0);
 
-      // Monthly new users
+      // Monthly new/active users (for year preset charts)
       const monthlyNewMap: Record<string, number> = {};
+      const rpcActiveMap: Record<string, number> = {};
       for (let m = 0; m < 12; m++) {
-        monthlyNewMap[`${targetYear}-${String(m + 1).padStart(2, '0')}`] = 0;
+        const key = `${targetYear}-${String(m + 1).padStart(2, '0')}`;
+        monthlyNewMap[key] = 0;
+        rpcActiveMap[key] = 0;
       }
       for (const r of (monthlyNewRpc as any[] || [])) {
         if (r.month in monthlyNewMap) monthlyNewMap[r.month] = Number(r.count);
       }
-      const monthlyNewUsers = Object.entries(monthlyNewMap).map(([month, count]) => ({ month, count }));
-
-      // Monthly active users
-      const rpcActiveMap: Record<string, number> = {};
-      for (let m = 0; m < 12; m++) {
-        rpcActiveMap[`${targetYear}-${String(m + 1).padStart(2, '0')}`] = 0;
-      }
       for (const r of (monthlyActiveRpc as any[] || [])) {
         if (r.month in rpcActiveMap) rpcActiveMap[r.month] = Number(r.count);
       }
+      const monthlyNewUsers    = Object.entries(monthlyNewMap).map(([month, count]) => ({ month, count }));
       const monthlyActiveUsers = Object.entries(rpcActiveMap).map(([month, count]) => ({ month, count }));
 
       // City aggregation
@@ -329,7 +378,7 @@ export function AdminContent() {
       }
       const topCountries = Object.entries(countryCount).map(([country, count]) => ({ country, count })).sort((a, b) => b.count - a.count);
 
-      // Daily active users (last 7 days)
+      // Daily active users (last 7 days — always current state)
       const dailyRpcMap: Record<string, number> = {};
       for (let i = 6; i >= 0; i--) {
         const d = new Date(now); d.setDate(d.getDate() - i);
@@ -351,19 +400,18 @@ export function AdminContent() {
       };
       const contentStats = {
         todayByType: countByType(todayPostsData || []),
-        weekByType: countByType(weekPostsData || []),
+        weekByType:  countByType(weekPostsData  || []),
         monthByType: countByType(monthPostsData || []),
       };
 
-      // Report analytics (last 30 days)
+      // Report analytics (date-range filtered)
       const reports30 = (reportsRawData as any[] || []);
       const rStatusMap: Record<string, number> = {};
       const rReasonMap: Record<string, number> = {};
-      const rTypeMap: Record<string, number> = {};
-      const rOwnerMap: Record<string, { id: string; name: string; avatar_url?: string; count: number }> = {};
-      const rDailyMap: Record<string, number> = {};
-      for (let i = 29; i >= 0; i--) {
-        const d = new Date(now); d.setDate(d.getDate() - i);
+      const rTypeMap:   Record<string, number> = {};
+      const rOwnerMap:  Record<string, { id: string; name: string; avatar_url?: string; count: number }> = {};
+      const rDailyMap:  Record<string, number> = {};
+      for (let d = new Date(rangeStart); d <= rangeEnd; d.setDate(d.getDate() + 1)) {
         rDailyMap[d.toISOString().slice(0, 10)] = 0;
       }
       for (const r of reports30) {
@@ -379,22 +427,64 @@ export function AdminContent() {
         if (date in rDailyMap) rDailyMap[date]++;
       }
       const reportAnalytics = {
-        byStatus: Object.entries(rStatusMap).map(([status, count]) => ({ status, count })).sort((a, b) => b.count - a.count),
-        byReason: Object.entries(rReasonMap).map(([reason, count]) => ({ reason, count })).sort((a, b) => b.count - a.count),
-        byType: Object.entries(rTypeMap).map(([type, count]) => ({ type, count })),
+        byStatus:    Object.entries(rStatusMap).map(([status, count]) => ({ status, count })).sort((a, b) => b.count - a.count),
+        byReason:    Object.entries(rReasonMap).map(([reason, count]) => ({ reason, count })).sort((a, b) => b.count - a.count),
+        byType:      Object.entries(rTypeMap).map(([type, count]) => ({ type, count })),
         topReported: Object.values(rOwnerMap).sort((a, b) => b.count - a.count).slice(0, 10),
-        dailyTrend: Object.entries(rDailyMap).map(([date, count]) => ({ date, count })),
+        dailyTrend:  Object.entries(rDailyMap).map(([date, count]) => ({ date, count })),
+      };
+
+      // Phase 3 – comparison object
+      const PRESET_LABELS: Record<string, string> = {
+        '7d': '7 dana', '30d': '30 dana', '90d': '90 dana',
+        'year': `${targetYear}. god.`, 'custom': 'odabranog perioda',
+      };
+      const comparison = {
+        rangeNewUsers:     rangeUsersCount   || 0,
+        prevRangeNewUsers: prevUsersCount    || 0,
+        rangeNewPosts:     rangePostsCount   || 0,
+        prevRangeNewPosts: prevPostsCount    || 0,
+        rangeNewThreads:   rangeThreadsCount || 0,
+        prevRangeNewThreads: prevThreadsCount || 0,
+        rangeLabel: PRESET_LABELS[targetRange.preset] || 'periodu',
+      };
+
+      // Phase 9 – top content
+      const topContent = (topPostsData as any[] || []).map((p: any) => ({
+        id:          p.id,
+        content:     (p.text || '') as string,
+        post_type:   p.post_type || 'social_post',
+        views_count: p.views_count || 0,
+        created_at:  p.created_at,
+        author: p.author
+          ? (Array.isArray(p.author) ? p.author[0] : p.author)
+          : null,
+      }));
+
+      // Phase 10 – message analytics (threads daily trend in range)
+      const threadDailyMap: Record<string, number> = {};
+      for (let d = new Date(rangeStart); d <= rangeEnd; d.setDate(d.getDate() + 1)) {
+        threadDailyMap[d.toISOString().slice(0, 10)] = 0;
+      }
+      for (const t of (threadsInRange as any[] || [])) {
+        const date = (t.created_at as string).slice(0, 10);
+        if (date in threadDailyMap) threadDailyMap[date]++;
+      }
+      const messageAnalytics = {
+        newThreadsInRange: rangeThreadsCount || 0,
+        dailyTrend: Object.entries(threadDailyMap).map(([date, count]) => ({ date, count })),
       };
 
       setAnalytics({
         pageViews, dau, wau, mau, yau,
-        newUsersThisWeek: newWeekCount || 0,
+        newUsersThisWeek:  newWeekCount  || 0,
         newUsersThisMonth: newMonthCount || 0,
-        newUsersThisYear: newYearCount || 0,
+        newUsersThisYear:  newYearCount  || 0,
         topCities, topCountries, dailyActiveUsers,
         monthlyNewUsers, monthlyActiveUsers, signupSources,
         dailyNewUsers, utmSources,
         contentStats, reportAnalytics,
+        comparison, topContent, messageAnalytics, marketingExtended,
       });
     } finally {
       setAnalyticsLoading(false);
@@ -882,7 +972,7 @@ export function AdminContent() {
       if (key === 'support') fetchTickets();
     }
     if (key === 'analytics') {
-      if (!analytics) fetchAnalytics(selectedYear);
+      if (!analytics) fetchAnalytics(dateRange);
       if (!investStats) fetchInvestStats();
     }
     if (key === 'credits') {
@@ -1084,11 +1174,15 @@ export function AdminContent() {
             <AnalyticsTab
               analytics={analytics}
               analyticsLoading={analyticsLoading}
-              selectedYear={selectedYear}
+              dateRange={dateRange}
               investStats={investStats}
               investLoading={investLoading}
-              onFetchAnalytics={fetchAnalytics}
-              onYearChange={(year) => { setSelectedYear(year); setAnalytics(null); }}
+              onFetchAnalytics={(range) => {
+                setDateRange(range);
+                if (range.preset === 'year' && range.year) setSelectedYear(range.year);
+                setAnalytics(null);
+                fetchAnalytics(range);
+              }}
               onFetchInvestStats={() => { setInvestStats(null); fetchInvestStats(); }}
             />
           )}

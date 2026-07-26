@@ -80,12 +80,23 @@ export type DailyActiveUsers = {
   count: number;
 };
 
+// ── Phase 18 – Global Date Filter ────────────────────────────────────────────
+export type DatePreset = '7d' | '30d' | '90d' | 'year' | 'custom';
+
+export type DateRange = {
+  preset: DatePreset;
+  from: string; // YYYY-MM-DD
+  to: string;   // YYYY-MM-DD
+  year?: number; // set when preset === 'year'
+};
+
 export type AnalyticsData = {
   pageViews: PageViewStat[];
   dau: number;
   wau: number;
   mau: number;
   yau: number;
+  // kept for KPI cards (current calendar week/month/year, always "now")
   newUsersThisWeek: number;
   newUsersThisMonth: number;
   newUsersThisYear: number;
@@ -94,9 +105,9 @@ export type AnalyticsData = {
   dailyActiveUsers: DailyActiveUsers[];
   monthlyNewUsers: { month: string; count: number }[];
   monthlyActiveUsers: { month: string; count: number }[];
-  signupSources: { source: string; count: number }[];
-  dailyNewUsers: { date: string; count: number }[];
-  utmSources: { source: string; count: number }[];
+  signupSources: { source: string; count: number }[]; // filtered by dateRange
+  dailyNewUsers: { date: string; count: number }[];   // filtered by dateRange
+  utmSources: { source: string; count: number }[];    // filtered by dateRange
   contentStats: {
     todayByType: Record<string, number>;
     weekByType: Record<string, number>;
@@ -107,6 +118,35 @@ export type AnalyticsData = {
     byReason: { reason: string; count: number }[];
     byType: { type: string; count: number }[];
     topReported: { id: string; name: string; avatar_url?: string; count: number }[];
+    dailyTrend: { date: string; count: number }[];
+  };
+  // Phase 3 – Period comparison
+  comparison: {
+    rangeNewUsers: number;
+    prevRangeNewUsers: number;
+    rangeNewPosts: number;
+    prevRangeNewPosts: number;
+    rangeNewThreads: number;
+    prevRangeNewThreads: number;
+    rangeLabel: string;
+  };
+  // Phase 6 – Extended marketing
+  marketingExtended: {
+    utmCampaigns: { campaign: string; count: number }[];
+    utmMediums: { medium: string; count: number }[];
+  };
+  // Phase 9 – Top content
+  topContent: {
+    id: string;
+    content: string;
+    post_type: string;
+    views_count: number;
+    created_at: string;
+    author: { id: string; name: string; avatar_url?: string } | null;
+  }[];
+  // Phase 10 – Message analytics
+  messageAnalytics: {
+    newThreadsInRange: number;
     dailyTrend: { date: string; count: number }[];
   };
 };
