@@ -19,6 +19,8 @@ export default function robots(): MetadataRoute.Robots {
         '/profile/edit',
         '/auth/',
         '/account-deleted',
+        '/adult',
+        '/adult-preview',
       ],
     },
     sitemap: 'https://www.gigzone.app/sitemap.xml',
