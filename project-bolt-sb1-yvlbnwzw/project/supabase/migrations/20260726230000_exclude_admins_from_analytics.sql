@@ -71,25 +71,22 @@ AS $$
   ORDER BY count DESC;
 $$;
 
--- Returning users: first page_view was before the period (visit-based definition).
--- Novi = first page_view within the period. Invariant: MAU = Novi + Povratni.
+-- Returning users: visited on 2+ distinct calendar days within the period, admins excluded.
+-- A user who registered today and returns tomorrow counts as returning.
 CREATE OR REPLACE FUNCTION get_returning_user_count(month_ago_start timestamptz)
 RETURNS bigint
 LANGUAGE sql
 SECURITY DEFINER
 SET search_path = public
 AS $$
-  WITH first_visit AS (
-    SELECT pv.user_id, MIN(pv.created_at) AS prva_posjeta
+  SELECT COUNT(*) FROM (
+    SELECT pv.user_id
     FROM page_views pv
     JOIN profiles p ON p.id = pv.user_id
-    WHERE pv.user_id IS NOT NULL
+    WHERE pv.created_at >= month_ago_start
+      AND pv.user_id IS NOT NULL
       AND (p.is_admin IS NULL OR p.is_admin = false)
     GROUP BY pv.user_id
-  )
-  SELECT COUNT(DISTINCT pv.user_id)
-  FROM page_views pv
-  JOIN first_visit fv ON fv.user_id = pv.user_id
-  WHERE pv.created_at >= month_ago_start
-    AND fv.prva_posjeta < month_ago_start;
+    HAVING COUNT(DISTINCT pv.created_at::date) > 1
+  ) t;
 $$;
