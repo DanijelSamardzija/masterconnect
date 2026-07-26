@@ -39,45 +39,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Cannot message yourself' }, { status: 400 });
     }
 
-    // Find existing direct thread between these two users
-    const { data: existingThreads, error: searchError } = await supabase
-      .from('thread_participants')
-      .select(`
-        thread_id,
-        deleted_at,
-        threads!inner(
-          id,
-          thread_type,
-          job_id,
-          post_id
-        )
-      `)
-      .eq('user_id', user.id)
-      .is('deleted_at', null);
+    // Find existing direct thread between these two users — regardless of deleted_at.
+    // Deletion is per-user (hidden_before cutoff); we never create a second thread
+    // between the same pair. The message INSERT trigger handles restoring visibility.
+    const { data: existingThread, error: searchError } = await supabase
+      .from('threads')
+      .select('id')
+      .eq('thread_type', 'direct')
+      .is('job_id', null)
+      .is('post_id', null)
+      .or(
+        `and(user1_id.eq.${user.id},user2_id.eq.${targetUserId}),` +
+        `and(user1_id.eq.${targetUserId},user2_id.eq.${user.id})`
+      )
+      .limit(1)
+      .maybeSingle();
 
     if (searchError) {
       console.error('Error searching for threads:', searchError);
       return NextResponse.json({ error: 'Failed to search for threads' }, { status: 500 });
-    }
-
-    let existingThread = null;
-    if (existingThreads) {
-      for (const tp of existingThreads) {
-        const thread = Array.isArray(tp.threads) ? tp.threads[0] : tp.threads;
-        if (thread?.thread_type === 'direct' && !thread?.job_id && !thread?.post_id) {
-          const { data: otherParticipants } = await supabase
-            .from('thread_participants')
-            .select('user_id, deleted_at')
-            .eq('thread_id', thread.id)
-            .neq('user_id', user.id);
-
-          const targetParticipant = otherParticipants?.find(p => p.user_id === targetUserId);
-          if (targetParticipant && !targetParticipant.deleted_at) {
-            existingThread = thread;
-            break;
-          }
-        }
-      }
     }
 
     let threadId: string;
