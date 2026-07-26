@@ -188,11 +188,13 @@ export function PostsTab({
                       <Bell className="h-4 w-4" />
                     </Button>
                   )}
-                  <Link href={`/posts/${post.id}`} target="_blank">
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-xl" title="Pogledaj post">
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
-                  </Link>
+                  {!(post.post_type === 'social_post' && !post.content && !post.has_media) && (
+                    <Link href={`/posts/${post.id}`} target="_blank">
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-xl" title="Pogledaj post">
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                  )}
                   <Button
                     variant="ghost"
                     size="sm"

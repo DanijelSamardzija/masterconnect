@@ -648,20 +648,22 @@ export function ProfileView({
 
         const userReactedPosts = new Set((userReactionsResult.data || []).map((r: any) => r.post_id));
 
-        const postsWithMedia = postsData.map((post: any) => {
-          const userData = Array.isArray(post.user) ? post.user[0] : post.user;
-          const media = mediaByPostId[post.id] || [];
+        const postsWithMedia = postsData
+          .map((post: any) => {
+            const userData = Array.isArray(post.user) ? post.user[0] : post.user;
+            const media = mediaByPostId[post.id] || [];
 
-          return {
-            ...post,
-            user: userData,
-            media,
-            reactions_count: reactionsCounts[post.id] || 0,
-            comments_count: commentsCounts[post.id] || 0,
-            views_count: post.views_count || 0,
-            user_has_reacted: userReactedPosts.has(post.id),
-          };
-        });
+            return {
+              ...post,
+              user: userData,
+              media,
+              reactions_count: reactionsCounts[post.id] || 0,
+              comments_count: commentsCounts[post.id] || 0,
+              views_count: post.views_count || 0,
+              user_has_reacted: userReactedPosts.has(post.id),
+            };
+          })
+          .filter((post: any) => post.text?.trim() || post.media.length > 0);
 
         setPosts(postsWithMedia as Post[]);
       }

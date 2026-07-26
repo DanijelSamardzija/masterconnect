@@ -858,7 +858,7 @@ export function AdminContent() {
   const loadPosts = useCallback(async (offset: number, append: boolean) => {
     const { data, error } = await supabase
       .from('posts')
-      .select('id, text, created_at, views_count, status, user_id, post_type, is_promoted, author:profiles!user_id(id, name, avatar_url)')
+      .select('id, text, created_at, views_count, status, user_id, post_type, is_promoted, author:profiles!user_id(id, name, avatar_url), post_media(id)')
       .order('created_at', { ascending: false })
       .range(offset, offset + PAGE_SIZE - 1);
     if (error) { console.error('Posts fetch error:', error); return; }
@@ -866,6 +866,7 @@ export function AdminContent() {
       id: p.id, content: p.text, created_at: p.created_at,
       views_count: p.views_count || 0, status: p.status,
       post_type: p.post_type || 'social_post', is_promoted: p.is_promoted || false,
+      has_media: (p.post_media || []).length > 0,
       author: p.author || null,
     }));
     setHasMorePosts(items.length === PAGE_SIZE);

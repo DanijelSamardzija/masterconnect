@@ -31,6 +31,7 @@ export type PostItem = {
   status: string;
   post_type: string;
   is_promoted: boolean;
+  has_media: boolean;
   author: { id: string; name: string; avatar_url?: string } | null;
 };
 
