@@ -989,13 +989,21 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
   const [totalCount, setTotalCount] = useState(0);
   const [allCounts, setAllCounts] = useState({ hiring: 0, serviceRequests: 0, jobSeekers: 0 });
   const [loadingMore, setLoadingMore] = useState(false);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
   const isFirstRender = useRef(true);
+  const isFirstSearchEffect = useRef(true);
   const PAGE_SIZE = 25;
 
-  // Reload posts on any filter or tab change (server-side filtering)
+  // Tab/filter/user changes → full skeleton
   useEffect(() => {
     loadPosts(true);
-  }, [user?.id, activeTab, cityFilter, countryFilter, categoryFilter, sortOrder, searchQuery]);
+  }, [user?.id, activeTab, cityFilter, countryFilter, categoryFilter, sortOrder]);
+
+  // Search query changes → subtle indicator only, input stays mounted
+  useEffect(() => {
+    if (isFirstSearchEffect.current) { isFirstSearchEffect.current = false; return; }
+    loadPosts(true, true);
+  }, [searchQuery]);
 
   // Fetch baseline counts for all tabs once on mount (lightweight — p_limit: 1)
   useEffect(() => {
@@ -1128,9 +1136,13 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
     }
   };
 
-  const loadPosts = async (reset = true) => {
+  const loadPosts = async (reset = true, searchTriggered = false) => {
     if (reset) {
-      setLoading(true);
+      if (searchTriggered) {
+        setIsSearchLoading(true);
+      } else {
+        setLoading(true);
+      }
     } else {
       setLoadingMore(true);
     }
@@ -1210,6 +1222,7 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
       toast.error('Failed to load posts');
     } finally {
       setLoading(false);
+      setIsSearchLoading(false);
       setLoadingMore(false);
     }
   };
@@ -1532,7 +1545,10 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
 
           {/* KEYWORD SEARCH */}
           <div className="relative mt-4">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            {isSearchLoading
+              ? <Loader className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin pointer-events-none" />
+              : <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            }
             <input
               type="text"
               value={searchInput}
