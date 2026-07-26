@@ -904,6 +904,7 @@ export function AdminContent() {
       id: p.id, content: p.text, created_at: p.created_at,
       views_count: p.views_count || 0, status: p.status,
       post_type: p.post_type || 'social_post', is_promoted: p.is_promoted || false,
+      has_media: false,
       author: profilesMap[p.user_id] || null,
     }));
     setSearchedPosts(items);
