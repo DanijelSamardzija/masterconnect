@@ -787,6 +787,7 @@ export function AdminContent() {
       toast.success(`Korisnik "${name}" obrisan`);
       setUsers(prev => prev.filter(u => u.id !== userId));
       fetchStats();
+      fetchAnalytics(dateRange);
     } catch (e: any) {
       toast.error('Greška pri brisanju: ' + e.message);
     }
