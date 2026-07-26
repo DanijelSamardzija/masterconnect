@@ -344,8 +344,8 @@ function MessagesContent() {
         thread_type,
         post_id,
         job:jobs(id, title, description, status, completion_requested, completion_requested_at, completion_request_dismissed_at),
-        user1:profiles!threads_user1_id_fkey(name, email, avatar_url, account_type, last_seen),
-        user2:profiles!threads_user2_id_fkey(name, email, avatar_url, account_type, last_seen)
+        user1:profiles!threads_user1_id_fkey(name, email, avatar_url, account_type, is_premium, last_seen),
+        user2:profiles!threads_user2_id_fkey(name, email, avatar_url, account_type, is_premium, last_seen)
       `)
       .eq('id', threadId)
       .maybeSingle();
@@ -1012,7 +1012,7 @@ function MessagesContent() {
                       {otherPerson?.name?.charAt(0).toUpperCase() || '?'}
                     </AvatarFallback>
                   </Avatar>
-                  {(otherPerson as any)?.account_type === 'professional' ? (
+                  {(otherPerson as any)?.is_premium ? (
                     <div className="absolute -bottom-0.5 -right-0.5 rounded-full bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 p-0.5 shadow-lg ring-2 ring-white dark:ring-gray-900">
                       <CheckCircle2 className="h-3 w-3 text-white" />
                     </div>
@@ -1026,7 +1026,7 @@ function MessagesContent() {
                     <h2 className="truncate text-sm font-semibold text-gray-900 dark:text-white">
                       {otherPerson?.name || otherPerson?.email || 'Nepoznato ime'}
                     </h2>
-                    {(otherPerson as any)?.account_type === 'professional' && (
+                    {(otherPerson as any)?.is_premium && (
                       <Badge className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 px-1.5 py-0 text-[9px] font-bold text-white shadow-md">
                         PRO
                       </Badge>
@@ -1084,7 +1084,7 @@ function MessagesContent() {
                           {otherPerson?.name?.charAt(0).toUpperCase() || '?'}
                         </AvatarFallback>
                       </Avatar>
-                      {(otherPerson as any)?.account_type === 'professional' && (
+                      {(otherPerson as any)?.is_premium && (
                         <div className="absolute -bottom-1 -right-1 rounded-full bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 p-1 shadow-lg ring-2 ring-white dark:ring-gray-900">
                           <CheckCircle2 className="h-3 w-3 text-white" />
                         </div>
@@ -1094,7 +1094,7 @@ function MessagesContent() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <p className="truncate font-semibold">{otherPerson?.name}</p>
-                        {(otherPerson as any)?.account_type === 'professional' && (
+                        {(otherPerson as any)?.is_premium && (
                           <Badge className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 px-2 py-0.5 text-xs font-bold text-white shadow-md">
                             PRO
                           </Badge>

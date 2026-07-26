@@ -27,6 +27,7 @@ async function fetchService(serviceId: string) {
         name,
         avatar_url,
         account_type,
+        is_premium,
         average_rating,
         review_count,
         phone,

@@ -386,8 +386,8 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                     >
                       {service.profiles.name}
                     </button>
-                    {service.profiles.account_type === 'professional' && (
-                      <ProfessionalBadge size="sm" />
+                    {(service.profiles as any).is_premium && (
+                      <ProfessionalBadge size="sm" variant="premium" />
                     )}
                   </div>
 
