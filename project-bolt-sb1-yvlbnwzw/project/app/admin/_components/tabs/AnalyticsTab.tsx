@@ -13,7 +13,9 @@ import { AnalyticsCard } from '../analytics/AnalyticsCard';
 import { AnalyticsBarRow } from '../analytics/AnalyticsBarRow';
 import { AnalyticsBarChart } from '../analytics/AnalyticsBarChart';
 import { AnalyticsSection } from '../analytics/AnalyticsSection';
-import { AnalyticsData, DatePreset, DateRange, InvestStats } from '../types';
+import { ActivationFunnel } from '../analytics/ActivationFunnel';
+import { ExportPanel } from '../analytics/ExportPanel';
+import { AnalyticsData, DatePreset, DateRange, FunnelStep, InvestStats } from '../types';
 import { COUNTRY_FLAGS, POST_TYPE_LABELS, REASON_LABELS } from '../constants';
 import { timeAgo } from '@/lib/utils/date';
 
@@ -242,6 +244,14 @@ export function AnalyticsTab({
 
   const showDailyTrend = !isYearPreset && !!analytics && analytics.dailyNewUsers.length <= 90;
 
+  const funnelSteps = useMemo((): FunnelStep[] => [
+    { key: 'visitor',       label: 'Posjetilac',   sublabel: 'Anonimni posjet',      count: 0,                                      available: false, color: 'bg-slate-400'  },
+    { key: 'registered',    label: 'Registrovan',  sublabel: 'Kreiran nalog',         count: analytics?.funnel.registeredUsers ?? 0, available: true,  color: 'bg-orange-500' },
+    { key: 'posted',        label: 'Objavio post', sublabel: 'Bar 1 objava',          count: analytics?.funnel.usersWithPost  ?? 0,  available: true,  color: 'bg-purple-500' },
+    { key: 'active30d',     label: 'Aktivan 30d',  sublabel: 'U poslednjih 30 dana',  count: analytics?.mau                   ?? 0,  available: true,  color: 'bg-green-500'  },
+    { key: 'first_message', label: 'Prva poruka',  sublabel: 'Pokrenuo razgovor',     count: 0,                                      available: false, color: 'bg-slate-400'  },
+  ], [analytics]);
+
   // ── Handlers ─────────────────────────────────────────────────────────────
 
   const handlePreset = (preset: DatePreset) => {
@@ -376,6 +386,11 @@ export function AnalyticsTab({
               ))}
             </div>
           </div>
+
+          {/* ── Activation Funnel ─────────────────────────────────────── */}
+          <AnalyticsSection icon={Users} iconColor="text-orange-500" title="Activation Funnel — konverzija korisnika">
+            <ActivationFunnel steps={funnelSteps} />
+          </AnalyticsSection>
 
           {/* Today's activity snapshot */}
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
@@ -885,6 +900,9 @@ export function AnalyticsTab({
               </div>
             )}
           </div>
+
+          {/* ── Export podataka ───────────────────────────────────────── */}
+          <ExportPanel analytics={analytics} />
         </>
       ) : (
         <div className="flex flex-col items-center justify-center py-20 gap-3 text-muted-foreground">

@@ -223,6 +223,8 @@ export function AdminContent() {
         { data: topPostsData },
         // Phase 10 – message analytics
         { data: threadsInRange },
+        // Funnel – distinct posters (all-time)
+        { data: postersData },
       ] = await Promise.all([
         supabase.rpc('get_page_view_counts'),
         supabase.rpc('get_active_user_counts', {
@@ -266,6 +268,8 @@ export function AdminContent() {
           .limit(10),
         // Phase 10 threads in range (for daily trend)
         supabase.from('threads').select('created_at').gte('created_at', rangeFrom).lte('created_at', rangeTo),
+        // Funnel – all-time distinct posters (deduped client-side; Supabase JS has no COUNT DISTINCT)
+        supabase.from('posts').select('user_id'),
       ]);
 
       // Signup source aggregation (range-filtered)
@@ -475,6 +479,9 @@ export function AdminContent() {
         dailyTrend: Object.entries(threadDailyMap).map(([date, count]) => ({ date, count })),
       };
 
+      // Activation Funnel – unique posters (client-side dedup)
+      const uniquePosters = new Set((postersData as any[] || []).map((p: any) => p.user_id)).size;
+
       setAnalytics({
         pageViews, dau, wau, mau, yau,
         newUsersThisWeek:  newWeekCount  || 0,
@@ -485,6 +492,7 @@ export function AdminContent() {
         dailyNewUsers, utmSources,
         contentStats, reportAnalytics,
         comparison, topContent, messageAnalytics, marketingExtended,
+        funnel: { registeredUsers: stats?.users ?? 0, usersWithPost: uniquePosters },
       });
     } finally {
       setAnalyticsLoading(false);

@@ -80,6 +80,15 @@ export type DailyActiveUsers = {
   count: number;
 };
 
+export type FunnelStep = {
+  key: string;
+  label: string;
+  sublabel: string;
+  count: number;
+  available: boolean;
+  color: string;
+};
+
 // ── Phase 18 – Global Date Filter ────────────────────────────────────────────
 export type DatePreset = '7d' | '30d' | '90d' | 'year' | 'custom';
 
@@ -148,6 +157,11 @@ export type AnalyticsData = {
   messageAnalytics: {
     newThreadsInRange: number;
     dailyTrend: { date: string; count: number }[];
+  };
+  // Activation Funnel
+  funnel: {
+    registeredUsers: number;
+    usersWithPost: number;
   };
 };
 
