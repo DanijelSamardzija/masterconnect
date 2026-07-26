@@ -104,6 +104,49 @@ export const COUNTRY_LANG_MAP: Record<string, string> = {
   'philippines': 'en', 'filipini': 'en',
 };
 
+export const POST_TYPE_LABELS: Record<string, string> = {
+  social_post: 'Feed',
+  service_listing: 'Usluga',
+  hiring_post: 'Tražim radnika',
+  service_request: 'Tražim uslugu',
+  job_seeker_post: 'Tražim posao',
+};
+
+export const COUNTRY_FLAGS: Record<string, string> = {
+  'Srbija': '🇷🇸', 'Serbia': '🇷🇸',
+  'Hrvatska': '🇭🇷', 'Croatia': '🇭🇷',
+  'Bosna i Hercegovina': '🇧🇦', 'Bosnia and Herzegovina': '🇧🇦',
+  'Crna Gora': '🇲🇪', 'Montenegro': '🇲🇪',
+  'Slovenija': '🇸🇮', 'Slovenia': '🇸🇮',
+  'Sjeverna Makedonija': '🇲🇰', 'North Macedonia': '🇲🇰', 'Makedonija': '🇲🇰',
+  'Kosovo': '🇽🇰',
+  'Albanija': '🇦🇱', 'Albania': '🇦🇱',
+  'Njemačka': '🇩🇪', 'Germany': '🇩🇪', 'Deutschland': '🇩🇪',
+  'Austrija': '🇦🇹', 'Austria': '🇦🇹',
+  'Švajcarska': '🇨🇭', 'Švicarska': '🇨🇭', 'Switzerland': '🇨🇭',
+  'Slovačka': '🇸🇰', 'Slovakia': '🇸🇰',
+  'Češka': '🇨🇿', 'Czech Republic': '🇨🇿', 'Czechia': '🇨🇿',
+  'Poljska': '🇵🇱', 'Poland': '🇵🇱',
+  'Mađarska': '🇭🇺', 'Hungary': '🇭🇺',
+  'Rumunija': '🇷🇴', 'Romania': '🇷🇴',
+  'Bugarska': '🇧🇬', 'Bulgaria': '🇧🇬',
+  'Holandija': '🇳🇱', 'Netherlands': '🇳🇱', 'Holland': '🇳🇱',
+  'Belgija': '🇧🇪', 'Belgium': '🇧🇪',
+  'Francuska': '🇫🇷', 'France': '🇫🇷',
+  'Italija': '🇮🇹', 'Italy': '🇮🇹',
+  'Španija': '🇪🇸', 'Spain': '🇪🇸',
+  'Portugal': '🇵🇹',
+  'Turska': '🇹🇷', 'Turkey': '🇹🇷',
+  'Grčka': '🇬🇷', 'Greece': '🇬🇷',
+  'Rusija': '🇷🇺', 'Russia': '🇷🇺',
+  'Ukrajina': '🇺🇦', 'Ukraine': '🇺🇦',
+  'SAD': '🇺🇸', 'United States': '🇺🇸', 'USA': '🇺🇸',
+  'Velika Britanija': '🇬🇧', 'United Kingdom': '🇬🇧', 'UK': '🇬🇧',
+  'Kanada': '🇨🇦', 'Canada': '🇨🇦',
+  'Australija': '🇦🇺', 'Australia': '🇦🇺',
+  'Novi Zeland': '🇳🇿', 'New Zealand': '🇳🇿',
+};
+
 export const LANG_INFO: Record<string, { name: string; flag: string }> = {
   sr: { name: 'Srpski', flag: '🇷🇸' },
   de: { name: 'Njemački', flag: '🇩🇪' },

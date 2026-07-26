@@ -191,6 +191,10 @@ export function AdminContent() {
         { data: signupSourceData },
         { data: utmSourceData },
         { data: daily30Profiles },
+        { data: todayPostsData },
+        { data: weekPostsData },
+        { data: monthPostsData },
+        { data: reportsRawData },
       ] = await Promise.all([
         supabase.rpc('get_page_view_counts'),
         supabase.rpc('get_active_user_counts', {
@@ -211,6 +215,14 @@ export function AdminContent() {
         supabase.from('profiles').select('signup_source').not('signup_source', 'is', null),
         supabase.from('profiles').select('utm_source, utm_medium, utm_campaign').not('utm_source', 'is', null),
         supabase.from('profiles').select('created_at').gte('created_at', monthStart.toISOString()),
+        supabase.from('posts').select('post_type').gte('created_at', todayStart.toISOString()),
+        supabase.from('posts').select('post_type').gte('created_at', weekStart.toISOString()),
+        supabase.from('posts').select('post_type').gte('created_at', monthStart.toISOString()),
+        supabase.from('reports')
+          .select('reason, status, target_type, created_at, target_owner:target_owner_user_id(id, name, avatar_url)')
+          .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+          .order('created_at', { ascending: false })
+          .limit(500),
       ]);
 
       // Signup source aggregation
@@ -331,6 +343,49 @@ export function AdminContent() {
         .map(([date, count]) => ({ date, count }))
         .sort((a, b) => a.date.localeCompare(b.date));
 
+      // Content stats by post type
+      const countByType = (data: any[]) => {
+        const map: Record<string, number> = {};
+        for (const p of data) map[p.post_type] = (map[p.post_type] || 0) + 1;
+        return map;
+      };
+      const contentStats = {
+        todayByType: countByType(todayPostsData || []),
+        weekByType: countByType(weekPostsData || []),
+        monthByType: countByType(monthPostsData || []),
+      };
+
+      // Report analytics (last 30 days)
+      const reports30 = (reportsRawData as any[] || []);
+      const rStatusMap: Record<string, number> = {};
+      const rReasonMap: Record<string, number> = {};
+      const rTypeMap: Record<string, number> = {};
+      const rOwnerMap: Record<string, { id: string; name: string; avatar_url?: string; count: number }> = {};
+      const rDailyMap: Record<string, number> = {};
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(now); d.setDate(d.getDate() - i);
+        rDailyMap[d.toISOString().slice(0, 10)] = 0;
+      }
+      for (const r of reports30) {
+        rStatusMap[r.status] = (rStatusMap[r.status] || 0) + 1;
+        rReasonMap[r.reason] = (rReasonMap[r.reason] || 0) + 1;
+        rTypeMap[r.target_type] = (rTypeMap[r.target_type] || 0) + 1;
+        const owner = Array.isArray(r.target_owner) ? r.target_owner[0] : r.target_owner;
+        if (owner?.id) {
+          if (!rOwnerMap[owner.id]) rOwnerMap[owner.id] = { id: owner.id, name: owner.name || '—', avatar_url: owner.avatar_url, count: 0 };
+          rOwnerMap[owner.id].count++;
+        }
+        const date = (r.created_at as string).slice(0, 10);
+        if (date in rDailyMap) rDailyMap[date]++;
+      }
+      const reportAnalytics = {
+        byStatus: Object.entries(rStatusMap).map(([status, count]) => ({ status, count })).sort((a, b) => b.count - a.count),
+        byReason: Object.entries(rReasonMap).map(([reason, count]) => ({ reason, count })).sort((a, b) => b.count - a.count),
+        byType: Object.entries(rTypeMap).map(([type, count]) => ({ type, count })),
+        topReported: Object.values(rOwnerMap).sort((a, b) => b.count - a.count).slice(0, 10),
+        dailyTrend: Object.entries(rDailyMap).map(([date, count]) => ({ date, count })),
+      };
+
       setAnalytics({
         pageViews, dau, wau, mau, yau,
         newUsersThisWeek: newWeekCount || 0,
@@ -339,6 +394,7 @@ export function AdminContent() {
         topCities, topCountries, dailyActiveUsers,
         monthlyNewUsers, monthlyActiveUsers, signupSources,
         dailyNewUsers, utmSources,
+        contentStats, reportAnalytics,
       });
     } finally {
       setAnalyticsLoading(false);
@@ -858,15 +914,19 @@ export function AdminContent() {
           ) : stats && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { label: 'Ukupno korisnika', value: stats.users, icon: Users, color: 'text-blue-500' },
-                { label: 'PRO korisnici', value: stats.professionals, icon: Crown, color: 'text-orange-500' },
-                { label: 'Besplatni', value: stats.customers, icon: Users, color: 'text-cyan-500' },
-                { label: 'Postovi', value: stats.posts, icon: FileText, color: 'text-purple-500' },
-                { label: 'Razgovori', value: stats.messages, icon: MessageSquare, color: 'text-green-500' },
-                { label: 'Svi reportovi', value: stats.reports, icon: AlertTriangle, color: 'text-yellow-500' },
-                { label: 'Otvoreni reportovi', value: stats.openReports, icon: TrendingUp, color: 'text-red-500' },
-              ].map(({ label, value, icon: Icon, color }) => (
-                <div key={label} className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-2">
+                { label: 'Ukupno korisnika', value: stats.users, icon: Users, color: 'text-blue-500', tab: 'users' as const },
+                { label: 'PRO korisnici', value: stats.professionals, icon: Crown, color: 'text-orange-500', tab: 'users' as const },
+                { label: 'Besplatni', value: stats.customers, icon: Users, color: 'text-cyan-500', tab: 'users' as const },
+                { label: 'Postovi', value: stats.posts, icon: FileText, color: 'text-purple-500', tab: 'posts' as const },
+                { label: 'Razgovori', value: stats.messages, icon: MessageSquare, color: 'text-green-500', tab: undefined },
+                { label: 'Svi reportovi', value: stats.reports, icon: AlertTriangle, color: 'text-yellow-500', tab: 'reports' as const },
+                { label: 'Otvoreni reportovi', value: stats.openReports, icon: TrendingUp, color: 'text-red-500', tab: 'reports' as const },
+              ].map(({ label, value, icon: Icon, color, tab }) => (
+                <div
+                  key={label}
+                  onClick={() => tab && handleTabClick(tab)}
+                  className={`bg-card border border-border rounded-2xl p-4 flex flex-col gap-2 ${tab ? 'cursor-pointer hover:border-orange-300 dark:hover:border-orange-700 transition-colors' : ''}`}
+                >
                   <Icon className={`h-5 w-5 ${color}`} />
                   <p className="text-2xl font-bold text-foreground">{value}</p>
                   <p className="text-xs text-muted-foreground">{label}</p>

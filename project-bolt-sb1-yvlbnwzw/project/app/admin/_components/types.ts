@@ -97,6 +97,18 @@ export type AnalyticsData = {
   signupSources: { source: string; count: number }[];
   dailyNewUsers: { date: string; count: number }[];
   utmSources: { source: string; count: number }[];
+  contentStats: {
+    todayByType: Record<string, number>;
+    weekByType: Record<string, number>;
+    monthByType: Record<string, number>;
+  };
+  reportAnalytics: {
+    byStatus: { status: string; count: number }[];
+    byReason: { reason: string; count: number }[];
+    byType: { type: string; count: number }[];
+    topReported: { id: string; name: string; avatar_url?: string; count: number }[];
+    dailyTrend: { date: string; count: number }[];
+  };
 };
 
 export type InvestStats = {
