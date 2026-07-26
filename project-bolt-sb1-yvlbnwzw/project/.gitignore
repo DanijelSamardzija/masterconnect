@@ -38,3 +38,10 @@ coverage/
 
 # Claude settings (sadrži ključeve)
 .claude/
+
+# Adult sekcija — isključivo lokalni razvoj, ne ide na produkciju
+app/adult/
+app/adult-preview/
+components/adult/
+lib/adult/
+mock/adult/
