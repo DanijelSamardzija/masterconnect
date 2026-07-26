@@ -2184,6 +2184,24 @@ export type Database = {
           yau: number
         }[]
       }
+      get_city_distribution: {
+        Args: never
+        Returns: {
+          city: string
+          cnt: number
+        }[]
+      }
+      get_country_distribution: {
+        Args: never
+        Returns: {
+          country: string
+          cnt: number
+        }[]
+      }
+      get_unique_poster_count: {
+        Args: never
+        Returns: number
+      }
       get_daily_active_users: {
         Args: { week_start: string }
         Returns: {

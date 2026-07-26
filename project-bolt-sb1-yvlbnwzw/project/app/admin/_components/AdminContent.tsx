@@ -219,8 +219,8 @@ export function AdminContent() {
         { count: newWeekCount },
         { count: newMonthCount },
         { count: newYearCount },
-        { data: cityProfiles },
-        { data: countryProfiles },
+        { data: cityDistribution },
+        { data: countryDistribution },
         { data: daily7 },
         { data: monthlyActiveRpc },
         { data: monthlyNewRpc },
@@ -242,8 +242,8 @@ export function AdminContent() {
         { data: topPostsData },
         // Phase 10 – message analytics
         { data: threadsInRange },
-        // Funnel – distinct posters (all-time)
-        { data: postersData },
+        // Funnel – distinct posters (all-time, DB-side)
+        { data: uniquePostersData },
         // Today KPIs
         { count: todayNewUsersCount },
         { count: todayNewReportsCount },
@@ -263,8 +263,8 @@ export function AdminContent() {
         supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', weekStart.toISOString()),
         supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', monthStart.toISOString()),
         supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', chosenYearStart.toISOString()).lt('created_at', chosenYearEnd.toISOString()),
-        supabase.from('profiles').select('city').not('city', 'is', null).limit(10000),
-        supabase.from('profiles').select('country').not('country', 'is', null).limit(10000),
+        supabase.rpc('get_city_distribution'),
+        supabase.rpc('get_country_distribution'),
         supabase.rpc('get_daily_active_users', { week_start: weekStart.toISOString() }),
         supabase.rpc('get_monthly_active_users', { year_start: chosenYearStart.toISOString(), year_end: chosenYearEnd.toISOString() }),
         supabase.rpc('get_monthly_new_users', { year_start: chosenYearStart.toISOString(), year_end: chosenYearEnd.toISOString() }),
@@ -294,8 +294,7 @@ export function AdminContent() {
           .limit(10),
         // Phase 10 threads in range (for daily trend)
         supabase.from('threads').select('created_at').gte('created_at', rangeFrom).lte('created_at', rangeTo),
-        // Funnel – all-time distinct posters (deduped client-side; Supabase JS has no COUNT DISTINCT)
-        supabase.from('posts').select('user_id').limit(50000),
+        supabase.rpc('get_unique_poster_count') as any,
         // Always-current today KPIs (independent of active dateRange)
         supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', todayStart.toISOString()),
         supabase.from('reports').select('*', { count: 'exact', head: true }).gte('created_at', todayStart.toISOString()),
@@ -312,10 +311,6 @@ export function AdminContent() {
           .lte('deleted_at', rangeTo)
           .limit(5000),
       ]);
-
-      // DEBUG – remove after verifying row counts
-      console.log('[geo-debug] cityProfiles.length:', cityProfiles?.length);
-      console.log('[geo-debug] countryProfiles.length:', countryProfiles?.length);
 
       // Signup source aggregation (range-filtered)
       const sourceCount: Record<string, number> = {};
@@ -395,10 +390,10 @@ export function AdminContent() {
       };
       const normalizeCity = (city: string) => cityAliases[city.toLowerCase().trim()] || city.trim();
       const cityCount: Record<string, number> = {};
-      for (const p of cityProfiles || []) {
-        if (p.city) {
-          const normalized = normalizeCity(p.city);
-          cityCount[normalized] = (cityCount[normalized] || 0) + 1;
+      for (const r of (cityDistribution as any[] || [])) {
+        if (r.city) {
+          const normalized = normalizeCity(r.city);
+          cityCount[normalized] = (cityCount[normalized] || 0) + Number(r.cnt);
         }
       }
       const topCities = Object.entries(cityCount).map(([city, count]) => ({ city, count })).sort((a, b) => b.count - a.count);
@@ -419,10 +414,10 @@ export function AdminContent() {
         'united kingdom': 'Velika Britanija', 'uk': 'Velika Britanija',
       };
       const countryCount: Record<string, number> = {};
-      for (const p of countryProfiles || []) {
-        if (p.country) {
-          const normalized = countryAliases[p.country.toLowerCase()] ?? p.country;
-          countryCount[normalized] = (countryCount[normalized] || 0) + 1;
+      for (const r of (countryDistribution as any[] || [])) {
+        if (r.country) {
+          const normalized = countryAliases[r.country.toLowerCase()] ?? r.country;
+          countryCount[normalized] = (countryCount[normalized] || 0) + Number(r.cnt);
         }
       }
       const topCountries = Object.entries(countryCount).map(([country, count]) => ({ country, count })).sort((a, b) => b.count - a.count);
@@ -524,8 +519,8 @@ export function AdminContent() {
         dailyTrend: Object.entries(threadDailyMap).map(([date, count]) => ({ date, count })),
       };
 
-      // Activation Funnel – unique posters (client-side dedup)
-      const uniquePosters = new Set((postersData as any[] || []).map((p: any) => p.user_id)).size;
+      // Activation Funnel – unique posters (DB-side COUNT DISTINCT)
+      const uniquePosters = Number(uniquePostersData) || 0;
 
       // Churn analytics aggregation
       const recent30   = (churnRecentRaw  as any[] || []);
