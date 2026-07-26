@@ -229,6 +229,60 @@ export type Database = {
           },
         ]
       }
+      deleted_account_analytics: {
+        Row: {
+          id:                    string
+          deleted_at:            string
+          country:               string | null
+          signup_source:         string | null
+          utm_source:            string | null
+          was_premium:           boolean
+          account_age_days:      number
+          social_post_count:     number
+          service_listing_count: number
+          job_post_count:        number
+          thread_count:          number
+          credit_balance:        number
+          deletion_reason:       string | null
+          deletion_comment:      string | null
+          deleted_by:            string
+        }
+        Insert: {
+          id?:                    string
+          deleted_at?:            string
+          country?:               string | null
+          signup_source?:         string | null
+          utm_source?:            string | null
+          was_premium?:           boolean
+          account_age_days?:      number
+          social_post_count?:     number
+          service_listing_count?: number
+          job_post_count?:        number
+          thread_count?:          number
+          credit_balance?:        number
+          deletion_reason?:       string | null
+          deletion_comment?:      string | null
+          deleted_by?:            string
+        }
+        Update: {
+          id?:                    string
+          deleted_at?:            string
+          country?:               string | null
+          signup_source?:         string | null
+          utm_source?:            string | null
+          was_premium?:           boolean
+          account_age_days?:      number
+          social_post_count?:     number
+          service_listing_count?: number
+          job_post_count?:        number
+          thread_count?:          number
+          credit_balance?:        number
+          deletion_reason?:       string | null
+          deletion_comment?:      string | null
+          deleted_by?:            string
+        }
+        Relationships: []
+      }
       followers: {
         Row: {
           created_at: string | null

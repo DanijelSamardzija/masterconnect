@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import {
   Activity, BarChart2, CalendarDays, ExternalLink, Eye,
   Loader2, MapPin, MessageSquare, RefreshCw, Search, Shield,
-  Sparkles, Star, TrendingDown, TrendingUp, Users, X,
+  Sparkles, Star, TrendingDown, TrendingUp, Users, UserX, X,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -94,6 +94,19 @@ const REPORT_STATUS_LABELS: Record<string, string> = {
 
 const POST_TYPE_ORDER = ['social_post', 'service_listing', 'hiring_post', 'service_request', 'job_seeker_post'];
 
+const CHURN_REASON_LABELS: Record<string, string> = {
+  nisam_nasao_posao:         'Nisam pronašao posao',
+  nema_oglasa:                'Nema dovoljno oglasa',
+  nema_korisnika:            'Nema dovoljno korisnika',
+  novi_nalog:                 'Novi nalog',
+  presao_na_drugu_platformu: 'Druga platforma',
+  privremeno_odlazim:        'Privremeno odlazim',
+  komplikovana_aplikacija:   'Komplikovana aplikacija',
+  tehnicki_problem:          'Tehnički problem',
+  privatnost:                 'Zabrinutost za privatnost',
+  ostalo:                     'Drugo',
+};
+
 const PRESET_META: Record<DatePreset, { label: string }> = {
   '7d':     { label: '7 dana'     },
   '30d':    { label: '30 dana'    },
@@ -182,13 +195,14 @@ export function AnalyticsTab({
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: currentYear - 2024 + 1 }, (_, i) => 2025 + i);
 
-  const [citySearch,       setCitySearch]      = useState('');
-  const [countrySearch,    setCountrySearch]   = useState('');
-  const [citySortAlpha,    setCitySortAlpha]   = useState(false);
-  const [countrySortAlpha, setCountrySortAlpha]= useState(false);
-  const [contentPeriod,    setContentPeriod]   = useState<ContentPeriod>('today');
-  const [customFrom,       setCustomFrom]      = useState('');
-  const [customTo,         setCustomTo]        = useState('');
+  const [citySearch,          setCitySearch]         = useState('');
+  const [countrySearch,       setCountrySearch]      = useState('');
+  const [citySortAlpha,       setCitySortAlpha]      = useState(false);
+  const [countrySortAlpha,    setCountrySortAlpha]   = useState(false);
+  const [contentPeriod,       setContentPeriod]      = useState<ContentPeriod>('today');
+  const [churnCountrySearch,  setChurnCountrySearch] = useState('');
+  const [customFrom,          setCustomFrom]         = useState('');
+  const [customTo,            setCustomTo]           = useState('');
 
   // ── Derived ──────────────────────────────────────────────────────────────
 
@@ -243,6 +257,31 @@ export function AnalyticsTab({
     contentEntries.reduce((m, e) => Math.max(m, e.count), 1), [contentEntries]);
 
   const showDailyTrend = !isYearPreset && !!analytics && analytics.dailyNewUsers.length <= 90;
+
+  // Churn rate: range deletions / relevant active user count
+  const churnActiveBase =
+    dateRange.preset === '7d'   ? (analytics?.wau ?? 0) :
+    dateRange.preset === 'year' ? (analytics?.yau ?? 0) :
+    (analytics?.mau ?? 0);
+  const churnRate = churnActiveBase > 0 && analytics
+    ? ((analytics.churnData.rangeDeleted / churnActiveBase) * 100).toFixed(1)
+    : '0.0';
+
+  const filteredChurnCountries = useMemo(() => {
+    if (!analytics) return [];
+    const q = normalizeStr(churnCountrySearch);
+    return analytics.churnData.byCountry
+      .filter(c => normalizeStr(c.country).includes(q))
+      .slice(0, 50);
+  }, [analytics, churnCountrySearch]);
+
+  const maxChurnCountry = useMemo(() =>
+    filteredChurnCountries.reduce((m, c) => Math.max(m, c.count), 1),
+  [filteredChurnCountries]);
+
+  const maxChurnReason = useMemo(() =>
+    analytics ? analytics.churnData.byReason.reduce((m, r) => Math.max(m, r.count), 1) : 1,
+  [analytics]);
 
   const funnelSteps = useMemo((): FunnelStep[] => [
     { key: 'visitor',       label: 'Posjetilac',   sublabel: 'Anonimni posjet',      count: 0,                                      available: false, color: 'bg-slate-400'  },
@@ -898,6 +937,130 @@ export function AnalyticsTab({
               <div className="flex justify-center py-8 text-muted-foreground text-sm">
                 Klikni Osvježi za učitavanje podataka
               </div>
+            )}
+          </div>
+
+          {/* ── Churn analytics ───────────────────────────────────────── */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <UserX className="h-4 w-4 text-red-500" />
+              <h3 className="font-semibold text-sm text-foreground">Churn — odliv korisnika</h3>
+              <span className="text-[10px] text-muted-foreground ml-auto">period: {periodLabel}</span>
+            </div>
+
+            {/* KPI strip — always current, not range-filtered */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { label: 'Napustili danas',      value: analytics.churnData.todayDeleted,  color: 'text-orange-500', tooltip: 'Obrisani nalozi počevši od ponoći danas' },
+                { label: 'Napustili (7 dana)',   value: analytics.churnData.weekDeleted,   color: 'text-yellow-500', tooltip: 'Obrisani nalozi u poslednjih 7 dana' },
+                { label: 'Napustili (30 dana)',  value: analytics.churnData.monthDeleted,  color: 'text-red-400',    tooltip: 'Obrisani nalozi u poslednjih 30 dana' },
+                { label: 'Ukupno napustilo',     value: analytics.churnData.totalDeleted,  color: 'text-red-600',    tooltip: 'Ukupan broj obrisanih naloga od lansiranja' },
+              ].map(({ label, value, color }) => (
+                <div key={label} className="bg-card border border-border rounded-2xl p-4 text-center">
+                  <p className={`text-2xl font-black ${color}`}>{value}</p>
+                  <p className="text-xs text-muted-foreground mt-1 leading-snug">{label}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Churn rate card */}
+            <div className="bg-card border border-border rounded-2xl p-4 flex items-center gap-4">
+              <UserX className="h-10 w-10 text-red-400 opacity-50 shrink-0" />
+              <div className="flex-1">
+                <p className="text-3xl font-black text-red-500">{churnRate}%</p>
+                <p className="text-sm text-muted-foreground">Churn rate — {periodLabel}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  {analytics.churnData.rangeDeleted} obrisanih / {churnActiveBase.toLocaleString()} aktivnih (
+                  {dateRange.preset === '7d' ? 'WAU' : dateRange.preset === 'year' ? 'YAU' : 'MAU'})
+                </p>
+              </div>
+              {analytics.churnData.rangeDeleted === 0 && (
+                <span className="text-xs text-green-600 font-semibold bg-green-50 dark:bg-green-950/30 px-3 py-1.5 rounded-full">
+                  Nema odliva
+                </span>
+              )}
+            </div>
+
+            {/* By country + By reason */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <AnalyticsSection icon={MapPin} iconColor="text-red-500" title="Odliv po državama">
+                <div className="relative mb-3">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                  <input
+                    value={churnCountrySearch}
+                    onChange={e => setChurnCountrySearch(e.target.value)}
+                    placeholder="Pretraži državu..."
+                    className="w-full pl-8 pr-7 py-1.5 text-xs bg-muted border border-border rounded-xl outline-none focus:border-orange-500/50 transition-colors"
+                  />
+                  {churnCountrySearch && (
+                    <button onClick={() => setChurnCountrySearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+                {filteredChurnCountries.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-4 text-center">
+                    {analytics.churnData.byCountry.length === 0 ? 'Nema obrisanih naloga u ovom periodu' : 'Nema rezultata'}
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                    {filteredChurnCountries.map(({ country, count }) => {
+                      const total = analytics.churnData.rangeDeleted || 1;
+                      const pct   = Math.round((count / total) * 100);
+                      const flag  = COUNTRY_FLAGS[country];
+                      return (
+                        <AnalyticsBarRow
+                          key={country}
+                          label={`${flag ? flag + ' ' : ''}${country}`}
+                          count={count}
+                          maxCount={maxChurnCountry}
+                          color="bg-red-400"
+                          suffix={` (${pct}%)`}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+              </AnalyticsSection>
+
+              <AnalyticsSection icon={BarChart2} iconColor="text-red-500" title="Razlozi odliva">
+                {analytics.churnData.byReason.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-4 text-center">
+                    {analytics.churnData.rangeDeleted === 0
+                      ? 'Nema obrisanih naloga u ovom periodu'
+                      : 'Korisnici nisu naveli razlog'}
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {analytics.churnData.byReason.map(({ reason, count }) => (
+                      <AnalyticsBarRow
+                        key={reason}
+                        label={CHURN_REASON_LABELS[reason] || reason}
+                        count={count}
+                        maxCount={maxChurnReason}
+                        color="bg-red-500"
+                      />
+                    ))}
+                  </div>
+                )}
+              </AnalyticsSection>
+            </div>
+
+            {/* Daily trend chart (range-filtered) */}
+            {!isYearPreset && (
+              <AnalyticsSection icon={Activity} iconColor="text-red-500" title={`Trend odliva — ${periodLabel}`}>
+                {analytics.churnData.dailyTrend.every(d => d.count === 0) ? (
+                  <p className="text-sm text-muted-foreground py-4 text-center">Nema odliva u ovom periodu</p>
+                ) : (
+                  <>
+                    <AnalyticsBarChart color="bg-red-400" barHeightPx={80} gap="gap-0.5" showLabels={false}
+                      data={analytics.churnData.dailyTrend.map(({ date, count }) => ({
+                        key: date, tooltip: `${count} — ${date.slice(5)}`, count, minHeightPct: 4,
+                      }))} />
+                    <p className="text-[10px] text-muted-foreground text-center mt-1">Hover za detalje · svaki stub = 1 dan</p>
+                  </>
+                )}
+              </AnalyticsSection>
             )}
           </div>
 

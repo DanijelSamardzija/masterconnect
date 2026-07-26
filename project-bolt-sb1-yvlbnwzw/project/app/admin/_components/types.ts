@@ -163,6 +163,17 @@ export type AnalyticsData = {
     registeredUsers: number;
     usersWithPost: number;
   };
+  // Churn Analytics
+  churnData: {
+    totalDeleted:  number;
+    todayDeleted:  number;
+    weekDeleted:   number;
+    monthDeleted:  number;
+    rangeDeleted:  number;
+    byCountry:     { country: string; count: number }[];
+    byReason:      { reason: string; count: number }[];
+    dailyTrend:    { date: string; count: number }[];
+  };
 };
 
 export type InvestStats = {

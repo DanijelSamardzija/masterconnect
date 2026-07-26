@@ -3,12 +3,11 @@ import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request: NextRequest) {
   try {
-    const { confirmText } = await request.json();
+    const { confirmText, reason, comment } = await request.json();
     if (!confirmText || confirmText.trim() !== 'DELETE') {
       return NextResponse.json({ error: 'Invalid confirmation text' }, { status: 400 });
     }
 
-    // Read Bearer token from Authorization header
     const authHeader = request.headers.get('authorization');
     const token = authHeader?.replace('Bearer ', '').trim();
 
@@ -16,7 +15,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Build a user-scoped client so auth.uid() works in the RPC function
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -32,7 +30,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data, error } = await supabase.rpc('delete_user_account');
+    const { data, error } = await supabase.rpc('delete_user_account', {
+      p_reason:  reason  || null,
+      p_comment: comment || null,
+    });
 
     if (error) {
       return NextResponse.json({ error: 'Failed to delete account' }, { status: 500 });

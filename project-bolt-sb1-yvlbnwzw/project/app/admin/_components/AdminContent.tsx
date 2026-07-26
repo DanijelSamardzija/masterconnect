@@ -225,6 +225,10 @@ export function AdminContent() {
         { data: threadsInRange },
         // Funnel – distinct posters (all-time)
         { data: postersData },
+        // Churn
+        { count: churnTotalCount },
+        { data: churnRecentRaw },
+        { data: churnRangeRaw },
       ] = await Promise.all([
         supabase.rpc('get_page_view_counts'),
         supabase.rpc('get_active_user_counts', {
@@ -270,6 +274,18 @@ export function AdminContent() {
         supabase.from('threads').select('created_at').gte('created_at', rangeFrom).lte('created_at', rangeTo),
         // Funnel – all-time distinct posters (deduped client-side; Supabase JS has no COUNT DISTINCT)
         supabase.from('posts').select('user_id'),
+        // Churn – all-time count
+        supabase.from('deleted_account_analytics').select('*', { count: 'exact', head: true }),
+        // Churn – last 30 days (for today/week/month KPI cards)
+        supabase.from('deleted_account_analytics')
+          .select('deleted_at')
+          .gte('deleted_at', new Date(Date.now() - 30 * 86400000).toISOString()),
+        // Churn – range-filtered (for trend chart, country, reason breakdown)
+        supabase.from('deleted_account_analytics')
+          .select('deleted_at, country, deletion_reason, deleted_by')
+          .gte('deleted_at', rangeFrom)
+          .lte('deleted_at', rangeTo)
+          .limit(5000),
       ]);
 
       // Signup source aggregation (range-filtered)
@@ -482,6 +498,37 @@ export function AdminContent() {
       // Activation Funnel – unique posters (client-side dedup)
       const uniquePosters = new Set((postersData as any[] || []).map((p: any) => p.user_id)).size;
 
+      // Churn analytics aggregation
+      const recent30   = (churnRecentRaw  as any[] || []);
+      const rangeChurn = (churnRangeRaw   as any[] || []);
+
+      const churnCountryMap: Record<string, number> = {};
+      const churnReasonMap:  Record<string, number> = {};
+      const churnDailyMap:   Record<string, number> = {};
+      for (let d = new Date(rangeStart); d <= rangeEnd; d.setDate(d.getDate() + 1)) {
+        churnDailyMap[d.toISOString().slice(0, 10)] = 0;
+      }
+      for (const r of rangeChurn) {
+        const c = (r.country as string) || 'Nepoznato';
+        churnCountryMap[c] = (churnCountryMap[c] || 0) + 1;
+        if (r.deletion_reason) {
+          churnReasonMap[r.deletion_reason] = (churnReasonMap[r.deletion_reason] || 0) + 1;
+        }
+        const date = (r.deleted_at as string).slice(0, 10);
+        if (date in churnDailyMap) churnDailyMap[date]++;
+      }
+
+      const churnData = {
+        totalDeleted:  churnTotalCount ?? 0,
+        todayDeleted:  recent30.filter(r => r.deleted_at >= todayStart.toISOString()).length,
+        weekDeleted:   recent30.filter(r => r.deleted_at >= weekStart.toISOString()).length,
+        monthDeleted:  recent30.filter(r => r.deleted_at >= monthStart.toISOString()).length,
+        rangeDeleted:  rangeChurn.length,
+        byCountry:     Object.entries(churnCountryMap).map(([country, count]) => ({ country, count })).sort((a, b) => b.count - a.count),
+        byReason:      Object.entries(churnReasonMap).map(([reason, count]) => ({ reason, count })).sort((a, b) => b.count - a.count),
+        dailyTrend:    Object.entries(churnDailyMap).map(([date, count]) => ({ date, count })),
+      };
+
       setAnalytics({
         pageViews, dau, wau, mau, yau,
         newUsersThisWeek:  newWeekCount  || 0,
@@ -493,6 +540,7 @@ export function AdminContent() {
         contentStats, reportAnalytics,
         comparison, topContent, messageAnalytics, marketingExtended,
         funnel: { registeredUsers: stats?.users ?? 0, usersWithPost: uniquePosters },
+        churnData,
       });
     } finally {
       setAnalyticsLoading(false);
