@@ -1,0 +1,125 @@
+export type Report = {
+  id: string;
+  target_type: string;
+  target_id: string;
+  reason: string;
+  details: string | null;
+  status: string;
+  created_at: string;
+  reporter: { id: string; name: string; avatar_url?: string };
+  target_owner: { id: string; name: string; avatar_url?: string };
+};
+
+export type UserProfile = {
+  id: string;
+  name: string;
+  email: string;
+  account_type: string;
+  avatar_url?: string;
+  is_admin: boolean;
+  is_banned?: boolean;
+  created_at: string;
+  city?: string;
+  country?: string;
+};
+
+export type PostItem = {
+  id: string;
+  content: string;
+  created_at: string;
+  views_count: number;
+  status: string;
+  post_type: string;
+  is_promoted: boolean;
+  author: { id: string; name: string; avatar_url?: string } | null;
+};
+
+export type Stats = {
+  users: number;
+  professionals: number;
+  customers: number;
+  posts: number;
+  reports: number;
+  openReports: number;
+  messages: number;
+};
+
+export type SupportTicket = {
+  id: string;
+  subject: string;
+  message: string;
+  category: string;
+  status: string;
+  created_at: string;
+  attachment_url?: string;
+  attachment_name?: string;
+  profiles: { name: string; email: string } | null;
+};
+
+export type Announcement = {
+  id: string;
+  title: string;
+  body: string;
+  title_en?: string;
+  body_en?: string;
+  title_de?: string;
+  body_de?: string;
+  active: boolean;
+  created_at: string;
+};
+
+export type ActiveTab = 'reports' | 'users' | 'posts' | 'announcements' | 'support' | 'analytics' | 'credits';
+
+export type PageViewStat = {
+  page: string;
+  count: number;
+};
+
+export type DailyActiveUsers = {
+  date: string;
+  count: number;
+};
+
+export type AnalyticsData = {
+  pageViews: PageViewStat[];
+  dau: number;
+  wau: number;
+  mau: number;
+  yau: number;
+  newUsersThisWeek: number;
+  newUsersThisMonth: number;
+  newUsersThisYear: number;
+  topCities: { city: string; count: number }[];
+  topCountries: { country: string; count: number }[];
+  dailyActiveUsers: DailyActiveUsers[];
+  monthlyNewUsers: { month: string; count: number }[];
+  monthlyActiveUsers: { month: string; count: number }[];
+  signupSources: { source: string; count: number }[];
+  dailyNewUsers: { date: string; count: number }[];
+  utmSources: { source: string; count: number }[];
+};
+
+export type InvestStats = {
+  waitlistTotal: number;
+  byRole: { role: string; count: number }[];
+  recent: { name: string; email: string; role: string; created_at: string }[];
+  interestsTotal: number;
+  projectsTotal: number;
+};
+
+export type CreditsStats = {
+  totalBalance: number;
+  premiumCount: number;
+  premiumUsers: { id: string; name: string; avatar_url?: string; is_premium: boolean }[];
+  txCount: number;
+  platformEarnings: number;
+  breakdown: Record<string, { count: number; total: number }>;
+  recent: { amount: number; description: string; created_at: string; profile?: { name?: string; avatar_url?: string } }[];
+  referrals: { referrer_id: string; created_at: string; referrer?: { name?: string; avatar_url?: string }; referred?: { name?: string; avatar_url?: string } }[];
+  topReferrers: { id: string; name: string; avatar_url?: string; count: number }[];
+  referralTotal: number;
+};
+
+export type ReportFilter = 'all' | 'open' | 'reviewed' | 'resolved';
+
+export type LangStat = { lang: string; count: number; emails: string[] };
