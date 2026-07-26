@@ -50,7 +50,30 @@ export async function findOrCreateThread(params: {
     }
 
     if (existingThreads && existingThreads.length > 0) {
-      return { threadId: existingThreads[0].id, error: null, isNewThread: false };
+      const threadId = existingThreads[0].id;
+      const currentUserId = session.user.id;
+
+      // Restore sender's participation if they had previously deleted this thread,
+      // so messages RLS (requires deleted_at IS NULL) passes on INSERT.
+      const { data: senderParticipant } = await supabase
+        .from('thread_participants')
+        .select('deleted_at, hidden_before')
+        .eq('thread_id', threadId)
+        .eq('user_id', currentUserId)
+        .maybeSingle();
+
+      if (senderParticipant?.deleted_at) {
+        await supabase
+          .from('thread_participants')
+          .update({
+            hidden_before: senderParticipant.hidden_before ?? senderParticipant.deleted_at,
+            deleted_at: null,
+          })
+          .eq('thread_id', threadId)
+          .eq('user_id', currentUserId);
+      }
+
+      return { threadId, error: null, isNewThread: false };
     }
 
     const { data: newThread, error: createError } = await supabase

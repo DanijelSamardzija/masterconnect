@@ -64,6 +64,27 @@ export async function POST(request: NextRequest) {
 
     if (existingThread) {
       threadId = existingThread.id;
+
+      // If sender had previously deleted this thread, restore their participation
+      // so the messages RLS policy (requires deleted_at IS NULL) passes on INSERT.
+      // Preserve hidden_before so they only see messages after their deletion cutoff.
+      const { data: senderParticipant } = await supabase
+        .from('thread_participants')
+        .select('deleted_at, hidden_before')
+        .eq('thread_id', threadId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (senderParticipant?.deleted_at) {
+        await supabase
+          .from('thread_participants')
+          .update({
+            hidden_before: senderParticipant.hidden_before ?? senderParticipant.deleted_at,
+            deleted_at: null,
+          })
+          .eq('thread_id', threadId)
+          .eq('user_id', user.id);
+      }
     } else {
       const { data: newThread, error: createError } = await supabase
         .from('threads')
