@@ -1654,6 +1654,12 @@ export default {
   'notify.dialog.email': 'Email address',
   'notify.dialog.confirm': 'Subscribe',
 
+  // Push notification soft prompt
+  'push.prompt.title': 'Enable notifications',
+  'push.prompt.desc': 'Get notified when someone replies to your message or reacts to your post.',
+  'push.prompt.notNow': 'Not now',
+  'push.prompt.allow': 'Allow',
+
   // 404 Not Found
   'notFound.title': 'Page Not Found',
   'notFound.description': "The page you're looking for doesn't exist or has been moved.",

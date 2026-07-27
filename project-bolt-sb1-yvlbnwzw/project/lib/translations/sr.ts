@@ -1654,6 +1654,12 @@ export default {
   'notify.dialog.email': 'Email adresa',
   'notify.dialog.confirm': 'Pretplati se',
 
+  // Push notification soft prompt
+  'push.prompt.title': 'Uključi obaveštenja',
+  'push.prompt.desc': 'Dobijaj obaveštenja kada neko odgovori na tvoju poruku ili reaguje na tvoju objavu.',
+  'push.prompt.notNow': 'Ne sada',
+  'push.prompt.allow': 'Dozvoli',
+
   // 404 Not Found
   'notFound.title': 'Stranica nije pronađena',
   'notFound.description': 'Stranica koju tražiš ne postoji ili je premještena.',

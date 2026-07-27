@@ -1650,6 +1650,12 @@ export default {
   'notify.dialog.email': 'E-Mail-Adresse',
   'notify.dialog.confirm': 'Abonnieren',
 
+  // Push notification soft prompt
+  'push.prompt.title': 'Benachrichtigungen aktivieren',
+  'push.prompt.desc': 'Erhalte Benachrichtigungen, wenn jemand auf deine Nachricht antwortet oder auf deinen Beitrag reagiert.',
+  'push.prompt.notNow': 'Jetzt nicht',
+  'push.prompt.allow': 'Zulassen',
+
   // 404 Not Found
   'notFound.title': 'Seite nicht gefunden',
   'notFound.description': 'Die gesuchte Seite existiert nicht oder wurde verschoben.',
