@@ -12,12 +12,8 @@ export default function JoinPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [userCount, setUserCount] = useState<number | null>(null);
 
   useEffect(() => {
-    supabase.from('profiles').select('id', { count: 'exact', head: true }).then(({ count }) => {
-      if (count) setUserCount(count);
-    });
     // Save referral code from URL to localStorage
     const params = new URLSearchParams(window.location.search);
     const ref = params.get('ref');
@@ -70,21 +66,9 @@ export default function JoinPage() {
         <h1 className="text-3xl font-black text-white leading-tight mb-1">
           Napravi nalog<br />za 30 sekundi
         </h1>
-        <p className="text-slate-400 text-sm mb-3">
+        <p className="text-slate-400 text-sm mb-5">
           Besplatno. Bez obaveza. Direktan kontakt.
         </p>
-        {userCount && (
-          <div className="flex items-center justify-center gap-2 mb-5">
-            <div className="flex -space-x-2">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="w-7 h-7 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 border-2 border-[#1a1a1a]" />
-              ))}
-            </div>
-            <span className="text-slate-300 text-sm">
-              <span className="text-white font-bold">{userCount}+</span> korisnika već na platformi
-            </span>
-          </div>
-        )}
 
         {/* Benefits */}
         <div className="space-y-2.5 mb-5 text-left">
