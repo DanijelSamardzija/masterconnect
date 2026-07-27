@@ -265,7 +265,7 @@ export default function LoginPage() {
 
             {/* ── PRIJAVA ────────────────────────────────────────────────── */}
             <TabsContent value="login" className="mt-0">
-              <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-3">
 
                 {showResetSuccess && (
                   <Alert className="border-green-200 bg-green-50">
@@ -276,105 +276,130 @@ export default function LoginPage() {
                   </Alert>
                 )}
 
-                {loginError && (
-                  <Alert id="login-error" variant="destructive" className="border-red-200 bg-red-50">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription className="space-y-3">
-                      <div>
-                        {loginError}
-                        {rateLimitSeconds > 0 && (
-                          <span className="font-bold ml-1 text-lg">{rateLimitSeconds}s</span>
-                        )}
-                      </div>
-                      {loginError.includes('Previše pokušaja') && (
-                        <div className="space-y-2 pt-2 border-t border-red-200">
-                          <Button
-                            type="button" size="sm" variant="outline"
-                            onClick={() => {
-                              clearRateLimitCooldown();
-                              try { clearLocalStorageSafe(); } catch {}
-                              setLoginError('');
-                              setRateLimitSeconds(0);
-                              window.location.reload();
-                            }}
-                            className="w-full"
-                          >
-                            Resetuj Session i Pokušaj Ponovo
-                          </Button>
-                          <ul className="text-xs text-red-700 space-y-1 list-disc list-inside">
-                            <li>Kliknite dugme iznad da resetujete sesiju</li>
-                            <li>Promenite mrežu (WiFi → mobilni podaci)</li>
-                          </ul>
-                        </div>
-                      )}
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="login-email" className="text-sm font-medium">
-                    {t('login.emailLabel')}
-                  </Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input
-                      id="login-email"
-                      type="email"
-                      placeholder={t('login.emailPlaceholder')}
-                      value={loginEmail}
-                      onChange={(e) => setLoginEmail(e.target.value)}
-                      className="pl-10 h-11"
-                      required
-                      autoComplete="email"
-                      aria-invalid={!!loginError}
-                      aria-describedby={loginError ? 'login-error' : undefined}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="login-password" className="text-sm font-medium">
-                      {t('login.passwordLabel')}
-                    </Label>
-                    <Link href="/forgot-password" className="text-sm text-orange-600 hover:text-orange-700 font-medium transition-colors">
-                      {t('login.forgotPassword')}
-                    </Link>
-                  </div>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input
-                      id="login-password"
-                      type="password"
-                      placeholder={t('login.passwordPlaceholder')}
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      className="pl-10 h-11"
-                      required
-                      autoComplete="current-password"
-                      aria-invalid={!!loginError}
-                      aria-describedby={loginError ? 'login-error' : undefined}
-                    />
-                  </div>
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full h-12 text-base font-semibold bg-orange-600 hover:bg-orange-700 shadow-md disabled:opacity-50"
-                  disabled={loginLoading || rateLimitSeconds > 0}
+                {/* Google button */}
+                <button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  disabled={googleLoading}
+                  className="w-full h-12 flex items-center justify-center gap-3 rounded-xl border-2 border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all font-semibold text-slate-700 text-sm shadow-sm disabled:opacity-60"
                 >
-                  {loginLoading ? (
-                    <span className="flex items-center gap-2">
-                      <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      {t('login.signingIn')}
-                    </span>
-                  ) : rateLimitSeconds > 0 ? (
-                    t('login.waitSeconds').replace('{s}', String(rateLimitSeconds))
+                  {googleLoading ? (
+                    <div className="h-5 w-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
                   ) : (
-                    t('login.signInButton')
+                    <GoogleIcon />
                   )}
-                </Button>
-              </form>
+                  {t('login.continueWithGoogle')}
+                </button>
+
+                {/* Divider */}
+                <div className="relative flex items-center py-1">
+                  <div className="flex-1 border-t border-slate-200" />
+                  <span className="px-3 text-xs text-muted-foreground uppercase tracking-wider">{t('login.orDivider')}</span>
+                  <div className="flex-1 border-t border-slate-200" />
+                </div>
+
+                <form onSubmit={handleLogin} className="space-y-4">
+
+                  {loginError && (
+                    <Alert id="login-error" variant="destructive" className="border-red-200 bg-red-50">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription className="space-y-3">
+                        <div>
+                          {loginError}
+                          {rateLimitSeconds > 0 && (
+                            <span className="font-bold ml-1 text-lg">{rateLimitSeconds}s</span>
+                          )}
+                        </div>
+                        {loginError.includes('Previše pokušaja') && (
+                          <div className="space-y-2 pt-2 border-t border-red-200">
+                            <Button
+                              type="button" size="sm" variant="outline"
+                              onClick={() => {
+                                clearRateLimitCooldown();
+                                try { clearLocalStorageSafe(); } catch {}
+                                setLoginError('');
+                                setRateLimitSeconds(0);
+                                window.location.reload();
+                              }}
+                              className="w-full"
+                            >
+                              Resetuj Session i Pokušaj Ponovo
+                            </Button>
+                            <ul className="text-xs text-red-700 space-y-1 list-disc list-inside">
+                              <li>Kliknite dugme iznad da resetujete sesiju</li>
+                              <li>Promenite mrežu (WiFi → mobilni podaci)</li>
+                            </ul>
+                          </div>
+                        )}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="login-email" className="text-sm font-medium">
+                      {t('login.emailLabel')}
+                    </Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                      <Input
+                        id="login-email"
+                        type="email"
+                        placeholder={t('login.emailPlaceholder')}
+                        value={loginEmail}
+                        onChange={(e) => setLoginEmail(e.target.value)}
+                        className="pl-10 h-11"
+                        required
+                        autoComplete="email"
+                        aria-invalid={!!loginError}
+                        aria-describedby={loginError ? 'login-error' : undefined}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="login-password" className="text-sm font-medium">
+                        {t('login.passwordLabel')}
+                      </Label>
+                      <Link href="/forgot-password" className="text-sm text-orange-600 hover:text-orange-700 font-medium transition-colors">
+                        {t('login.forgotPassword')}
+                      </Link>
+                    </div>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                      <Input
+                        id="login-password"
+                        type="password"
+                        placeholder={t('login.passwordPlaceholder')}
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        className="pl-10 h-11"
+                        required
+                        autoComplete="current-password"
+                        aria-invalid={!!loginError}
+                        aria-describedby={loginError ? 'login-error' : undefined}
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full h-12 text-base font-semibold bg-orange-600 hover:bg-orange-700 shadow-md disabled:opacity-50"
+                    disabled={loginLoading || rateLimitSeconds > 0}
+                  >
+                    {loginLoading ? (
+                      <span className="flex items-center gap-2">
+                        <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        {t('login.signingIn')}
+                      </span>
+                    ) : rateLimitSeconds > 0 ? (
+                      t('login.waitSeconds').replace('{s}', String(rateLimitSeconds))
+                    ) : (
+                      t('login.signInButton')
+                    )}
+                  </Button>
+                </form>
+              </div>
             </TabsContent>
 
             {/* ── REGISTRACIJA ───────────────────────────────────────────── */}
