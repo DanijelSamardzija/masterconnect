@@ -461,53 +461,57 @@ function SinglePostContent() {
                     </p>
                   </div>
                   {user && post.user_id !== user.id && (
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       {post.post_type === 'hiring_post' && (
                         <Button
+                          size="sm"
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
                             setSelectedHiringPost({ id: post.id, title: post.job_title || post.text?.substring(0, 60) || 'oglas', ownerId: post.user_id });
                             setApplicationModalOpen(true);
                           }}
-                          className="gap-2 bg-orange-600 hover:bg-orange-700"
+                          className="gap-1.5 bg-orange-600 hover:bg-orange-700"
                         >
-                          <Send className="h-4 w-4" />
+                          <Send className="h-3.5 w-3.5" />
                           {t('jobs.applyButton')}
                         </Button>
                       )}
                       {post.post_type === 'job_seeker_post' && (
                         <Button
+                          size="sm"
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
                             setOfferModalOpen(true);
                           }}
-                          className="gap-2 bg-green-600 hover:bg-green-700"
+                          className="gap-1.5 bg-green-600 hover:bg-green-700"
                         >
-                          <DollarSign className="h-4 w-4" />
+                          <DollarSign className="h-3.5 w-3.5" />
                           {t('jobs.offerJobButton')}
                         </Button>
                       )}
                       {post.post_type === 'service_request' && (
                         <Button
+                          size="sm"
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
                             setOfferServiceModalOpen(true);
                           }}
-                          className="gap-2 bg-blue-600 hover:bg-blue-700"
+                          className="gap-1.5 bg-blue-600 hover:bg-blue-700"
                         >
-                          <Briefcase className="h-4 w-4" />
+                          <Briefcase className="h-3.5 w-3.5" />
                           {t('jobs.offerServiceButton')}
                         </Button>
                       )}
                       <Button
+                        size="sm"
                         onClick={handleContactAuthor}
                         disabled={contactLoading}
-                        className="gap-2 bg-orange-600 hover:bg-orange-700"
+                        className="gap-1.5 bg-orange-600 hover:bg-orange-700"
                       >
-                        <MessageSquare className="h-4 w-4" />
+                        <MessageSquare className="h-3.5 w-3.5" />
                         {contactLoading ? t('common.loading') : t('jobs.sendMessageButton')}
                       </Button>
                     </div>
