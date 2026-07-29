@@ -2,6 +2,7 @@ import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import { isValidCategory, getCategoryLabel, type CategorySlug } from '@/lib/seo/categories';
 
 type Props = {
   params: { serviceId: string };
@@ -92,6 +93,9 @@ export default async function ServiceDetailLayout({ children, params }: Props) {
 
   const providerName = (data.profiles as any)?.name ?? 'GigZone';
   const serviceTitle = (data as any).job_title || (data as any).category || 'Usluga';
+  const rawCategory: string = (data as any).category ?? '';
+  const validCategory = isValidCategory(rawCategory);
+  const categoryLabel = validCategory ? getCategoryLabel(rawCategory as CategorySlug, 'sr') : null;
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
@@ -99,7 +103,10 @@ export default async function ServiceDetailLayout({ children, params }: Props) {
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'GigZone', item: 'https://www.gigzone.app' },
       { '@type': 'ListItem', position: 2, name: 'Usluge', item: 'https://www.gigzone.app/services' },
-      { '@type': 'ListItem', position: 3, name: `${serviceTitle} — ${providerName}` },
+      ...(validCategory && categoryLabel
+        ? [{ '@type': 'ListItem', position: 3, name: categoryLabel, item: `https://www.gigzone.app/sr/services/${rawCategory}` }]
+        : []),
+      { '@type': 'ListItem', position: validCategory ? 4 : 3, name: `${serviceTitle} — ${providerName}` },
     ],
   };
 

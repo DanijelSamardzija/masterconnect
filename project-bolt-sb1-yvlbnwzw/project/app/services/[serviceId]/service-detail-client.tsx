@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { isValidCategory, getCategoryLabel, type CategorySlug } from '@/lib/seo/categories';
 import { useGuestGate } from '@/lib/contexts/guest-gate-context';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -57,7 +58,7 @@ type Props = {
 export function ServiceDetailClient({ serviceId, initialData }: Props) {
   const router = useRouter();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { openGuestGate } = useGuestGate();
   const [service] = useState<ServiceDetail | null>(initialData);
   const [similarServices, setSimilarServices] = useState<ServiceDetail[]>([]);
@@ -284,12 +285,15 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                 {t('nav.discover')}
               </Link>
             </li>
-            {service.category && (
+            {service.category && isValidCategory(service.category) && (
               <>
                 <li aria-hidden="true" className="text-gray-300 dark:text-gray-600">›</li>
                 <li>
-                  <Link href={`/services?category=${encodeURIComponent(service.category)}`} className="hover:text-orange-500 transition-colors">
-                    {service.category}
+                  <Link
+                    href={`/${language}/services/${service.category}`}
+                    className="hover:text-orange-500 transition-colors"
+                  >
+                    {getCategoryLabel(service.category as CategorySlug, language)}
                   </Link>
                 </li>
               </>
@@ -399,13 +403,15 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                     <span className="text-sm font-medium">{service.city}</span>
                   </Link>
                 )}
-                <Link
-                  href={`/services?category=${encodeURIComponent(service.category)}`}
-                  prefetch={false}
-                  className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
-                >
-                  {service.category}
-                </Link>
+                {isValidCategory(service.category) && (
+                  <Link
+                    href={`/${language}/services/${service.category}`}
+                    prefetch={false}
+                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
+                  >
+                    {getCategoryLabel(service.category as CategorySlug, language)}
+                  </Link>
+                )}
               </div>
 
               <div className="flex items-center gap-3 pb-4 border-b border-gray-200 dark:border-gray-700">

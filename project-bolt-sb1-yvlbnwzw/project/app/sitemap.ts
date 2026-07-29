@@ -31,35 +31,45 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/${lang}/invest`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.7 },
   ]);
 
-  // Category landing pages — all 14 categories × 3 languages = 42 static URLs
-  const categoryLandingUrls: MetadataRoute.Sitemap = LANGS.flatMap((lang) =>
-    CATEGORY_SLUGS.map((category) => ({
-      url: `${BASE}/${lang}/services/${category}`,
-      lastModified: new Date(),
-      changeFrequency: 'daily' as const,
-      priority: 0.8,
-    }))
-  );
-
-  // City landing pages — only category+city combinations with MIN_LISTINGS_FOR_CITY_PAGE
-  // active listings are included to prevent thin content from being indexed.
+  // City and category landing pages — fetch listings once, compute max dates and counts in one pass.
   const { data: listingsForCities } = await supabase
     .from('posts')
-    .select('category, city')
+    .select('category, city, created_at')
     .eq('post_type', 'service_listing')
     .eq('is_active', true)
     .not('city', 'is', null)
     .not('category', 'is', null);
 
-  // Group by category+citySlug in JS; ':::' separator is safe (neither field uses it)
+  // Group by category+citySlug in JS; ':::' separator is safe (neither field uses it).
+  // Also track max(created_at) per category and per category+city for meaningful lastModified.
   const cityCounts = new Map<string, number>();
+  const maxDateByCategory = new Map<string, Date>();
+  const maxDateByCityKey = new Map<string, Date>();
+
   for (const listing of listingsForCities ?? []) {
     if (!listing.city?.trim() || !isValidCategory(listing.category)) continue;
     const citySlug = slugifyCity(listing.city.trim());
     if (!citySlug) continue;
     const key = `${listing.category}:::${citySlug}`;
     cityCounts.set(key, (cityCounts.get(key) ?? 0) + 1);
+
+    const listingDate = new Date(listing.created_at);
+    const catDate = maxDateByCategory.get(listing.category);
+    if (!catDate || listingDate > catDate) maxDateByCategory.set(listing.category, listingDate);
+    const keyDate = maxDateByCityKey.get(key);
+    if (!keyDate || listingDate > keyDate) maxDateByCityKey.set(key, listingDate);
   }
+
+  // 14 categories × 3 languages = 42 static URLs.
+  // lastModified: most recent listing in that category (falls back to now if no listings yet).
+  const categoryLandingUrls: MetadataRoute.Sitemap = LANGS.flatMap((lang) =>
+    CATEGORY_SLUGS.map((category) => ({
+      url: `${BASE}/${lang}/services/${category}`,
+      lastModified: maxDateByCategory.get(category) ?? new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.8,
+    }))
+  );
 
   const cityLandingUrls: MetadataRoute.Sitemap = [...cityCounts.entries()]
     .filter(([, count]) => count >= MIN_LISTINGS_FOR_CITY_PAGE)
@@ -69,7 +79,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const citySlug = key.slice(sepIdx + 3);
       return LANGS.map((lang) => ({
         url: `${BASE}/${lang}/services/${category}/${citySlug}`,
-        lastModified: new Date(),
+        lastModified: maxDateByCityKey.get(key) ?? new Date(),
         changeFrequency: 'daily' as const,
         priority: 0.75,
       }));
