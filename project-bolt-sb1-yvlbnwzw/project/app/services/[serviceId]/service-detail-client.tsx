@@ -270,6 +270,37 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
           </div>
         </div>
 
+        {/* Breadcrumb */}
+        <nav aria-label="Breadcrumb" className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-0">
+          <ol className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
+            <li>
+              <Link href="/" className="hover:text-orange-500 transition-colors">
+                {t('login.homeLink')}
+              </Link>
+            </li>
+            <li aria-hidden="true" className="text-gray-300 dark:text-gray-600">›</li>
+            <li>
+              <Link href="/services" className="hover:text-orange-500 transition-colors">
+                {t('nav.discover')}
+              </Link>
+            </li>
+            {service.category && (
+              <>
+                <li aria-hidden="true" className="text-gray-300 dark:text-gray-600">›</li>
+                <li>
+                  <Link href={`/services?category=${encodeURIComponent(service.category)}`} className="hover:text-orange-500 transition-colors">
+                    {service.category}
+                  </Link>
+                </li>
+              </>
+            )}
+            <li aria-hidden="true" className="text-gray-300 dark:text-gray-600">›</li>
+            <li className="text-gray-700 dark:text-gray-200 font-medium truncate max-w-[180px]" aria-current="page">
+              {service.profiles.name}
+            </li>
+          </ol>
+        </nav>
+
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="grid grid-cols-1 lg:grid-cols-[45%_55%] gap-8">
             {/* LEFT COLUMN - Image gallery */}
@@ -359,14 +390,22 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
 
               <div className="flex flex-wrap items-center gap-2">
                 {service.city && (
-                  <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-200">
+                  <Link
+                    href={`/services?city=${encodeURIComponent(service.city)}`}
+                    prefetch={false}
+                    className="flex items-center gap-1.5 text-gray-600 dark:text-gray-200 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
+                  >
                     <MapPin className="h-4 w-4" />
                     <span className="text-sm font-medium">{service.city}</span>
-                  </div>
+                  </Link>
                 )}
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300">
+                <Link
+                  href={`/services?category=${encodeURIComponent(service.category)}`}
+                  prefetch={false}
+                  className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
+                >
                   {service.category}
-                </span>
+                </Link>
               </div>
 
               <div className="flex items-center gap-3 pb-4 border-b border-gray-200 dark:border-gray-700">
