@@ -156,7 +156,7 @@ export default async function SinglePostPage({ params }: Props) {
   if (isJobPost && validCategory && categoryLabel) {
     breadcrumbItems.push({
       '@type': 'ListItem', position: 3, name: categoryLabel,
-      item: `https://www.gigzone.app/sr/services/${rawCategory}`,
+      item: `https://www.gigzone.app/sr/jobs/${rawCategory}`,
     });
     breadcrumbItems.push({ '@type': 'ListItem', position: 4, name: `${name} – ${headlineText}` });
   } else {
