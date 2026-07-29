@@ -4,7 +4,8 @@ import { ReactNode } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ProfessionalBadge } from '@/components/professional-badge';
-import { MapPin, Star, Phone, Mail, Globe, Briefcase, Lock } from 'lucide-react';
+import { MapPin, Star, Phone, Mail, Globe, Briefcase, Lock, MessageSquare } from 'lucide-react';
+import { parsePhone } from '@/lib/utils/parse-phone';
 import { useLanguage } from '@/lib/contexts/language-context';
 
 type ProfileHeaderProps = {
@@ -69,6 +70,7 @@ export function ProfileHeader({
 }: ProfileHeaderProps) {
   const { t } = useLanguage();
   const isPro = isProOverride === true;
+  const phoneContactData = !isOwnProfile && isLoggedIn ? parsePhone(phone ?? null) : null;
 
   return (
     <div className="rounded-2xl overflow-hidden shadow-sm border border-border bg-card">
@@ -221,6 +223,26 @@ export function ProfileHeader({
                   </a>
                   {isOwnProfile && !showPhone && (
                     <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground">{t('profile.private')}</span>
+                  )}
+                  {phoneContactData && (
+                    <div className="ml-auto flex items-center gap-1.5">
+                      <a
+                        href={`https://wa.me/${phoneContactData.wa}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="h-7 w-7 flex items-center justify-center rounded-full bg-[#25D366]/15 text-[#128C7E] dark:text-[#25D366] hover:bg-[#25D366]/25 transition-colors"
+                        title="WhatsApp"
+                      >
+                        <MessageSquare className="h-3.5 w-3.5" />
+                      </a>
+                      <a
+                        href={`viber://chat?number=${encodeURIComponent(phoneContactData.tel)}`}
+                        className="h-7 w-7 flex items-center justify-center rounded-full bg-[#7360F2]/15 text-[#7360F2] dark:text-[#9B8BF4] hover:bg-[#7360F2]/25 transition-colors"
+                        title="Viber"
+                      >
+                        <Phone className="h-3.5 w-3.5" />
+                      </a>
+                    </div>
                   )}
                 </div>
               )}

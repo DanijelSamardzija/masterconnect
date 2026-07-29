@@ -19,7 +19,8 @@ import { ReviewsModal } from '@/components/reviews-modal';
 import { SharePostModal } from '@/components/share-post-modal';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
-import { Loader2, MapPin, MessageCircle, Star, ChevronLeft, ChevronRight, Phone, User, Share2, Edit, Trash2, ImageOff, Calendar } from 'lucide-react';
+import { Loader2, MapPin, MessageCircle, Star, ChevronLeft, ChevronRight, User, Share2, Edit, Trash2, ImageOff, Calendar } from 'lucide-react';
+import { ContactCard } from '@/components/contact-card';
 import { timeAgo } from '@/lib/utils/date';
 
 type ServiceDetail = {
@@ -507,27 +508,17 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                           {t('serviceDetail.sendMessage')}
                         </Button>
 
-                        {service.profiles?.show_phone && service.profiles?.phone ? (
-                          <a
-                            href={`tel:${service.profiles.phone}`}
-                            className="inline-flex items-center justify-center gap-2 h-11 w-full rounded-md border-2 border-green-500 bg-green-500 hover:bg-green-600 text-white font-semibold text-sm transition-colors"
-                          >
-                            <Phone className="h-4 w-4" />
-                            {t('profile.callUser')}
-                          </a>
-                        ) : (
-                          <Button
-                            size="lg"
-                            variant="outline"
-                            className="w-full gap-2 h-11 border-2 font-semibold"
-                            asChild
-                          >
-                            <Link href={`/profile/${service.user_id}`} prefetch={false}>
-                              <User className="h-4 w-4" />
-                              {t('serviceDetail.viewProfile')}
-                            </Link>
-                          </Button>
-                        )}
+                        <Button
+                          size="lg"
+                          variant="outline"
+                          className="w-full gap-2 h-11 border-2 font-semibold"
+                          asChild
+                        >
+                          <Link href={`/profile/${service.user_id}`} prefetch={false}>
+                            <User className="h-4 w-4" />
+                            {t('serviceDetail.viewProfile')}
+                          </Link>
+                        </Button>
                       </div>
                     </div>
                   )}
@@ -554,6 +545,12 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                   </div>
                 </CardContent>
               </Card>
+
+              <ContactCard
+                phone={service.profiles?.phone}
+                showPhone={service.profiles?.show_phone}
+                className="mt-3"
+              />
 
               {service.profiles?.account_type === 'professional' && (
                 <div className="mt-2">
