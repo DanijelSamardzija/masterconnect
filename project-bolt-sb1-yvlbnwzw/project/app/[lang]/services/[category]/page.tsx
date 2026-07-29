@@ -1,8 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/server';
 import type { Lang } from '@/lib/i18n-config';
-import { BASE_URL } from '@/lib/i18n-config';
 import {
   isValidCategory,
   CATEGORY_SEO,
@@ -62,10 +61,7 @@ export default async function CategoryLandingPage({
   const meta = CATEGORY_SEO[slug][lang];
   const ui = UI_STRINGS[lang];
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const supabase = createClient();
 
   const { data } = await supabase
     .from('posts')
