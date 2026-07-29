@@ -96,7 +96,7 @@ export default function CityLayout({
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'GigZone', item: BASE_URL },
-      { '@type': 'ListItem', position: 2, name: 'Usluge', item: `${BASE_URL}/services` },
+      { '@type': 'ListItem', position: 2, name: lang === 'sr' ? 'Usluge' : lang === 'de' ? 'Dienstleistungen' : 'Services', item: `${BASE_URL}/${lang}/services` },
       { '@type': 'ListItem', position: 3, name: categoryLabel, item: categoryUrl },
       { '@type': 'ListItem', position: 4, name: cityLabel, item: canonical },
     ],

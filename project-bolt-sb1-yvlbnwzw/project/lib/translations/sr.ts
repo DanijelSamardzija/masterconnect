@@ -684,6 +684,8 @@ export default {
   'common.optional': 'Opciono',
   'common.success': 'Uspeh',
   'common.error': 'Greška',
+  'common.listing': 'Oglas',
+  'jobs.postNotFound': 'Oglas nije pronađen',
 
   // Report
   'report.title': 'Prijavi Sadržaj',

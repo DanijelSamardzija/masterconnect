@@ -304,11 +304,11 @@ function SinglePostContent({ initialData, relatedPosts }: { initialData: PostIni
         <div className="container mx-auto px-4 max-w-3xl">
           <Button variant="ghost" onClick={() => handleBack()} className="mb-6 gap-2">
             <ArrowLeft className="h-4 w-4" />
-            Back
+            {t('common.back')}
           </Button>
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error || 'Post not found'}</AlertDescription>
+            <AlertDescription>{error || t('jobs.postNotFound')}</AlertDescription>
           </Alert>
         </div>
       </div>
@@ -459,7 +459,7 @@ function SinglePostContent({ initialData, relatedPosts }: { initialData: PostIni
       <div className="container mx-auto px-4 max-w-3xl">
         <Button variant="ghost" onClick={() => handleBack()} className="mb-4 gap-2">
           <ArrowLeft className="h-4 w-4" />
-          Back
+          {t('common.back')}
         </Button>
 
         {/* HTML breadcrumb — only for job post types */}
@@ -490,7 +490,7 @@ function SinglePostContent({ initialData, relatedPosts }: { initialData: PostIni
               )}
               <li aria-hidden="true">›</li>
               <li aria-current="page" className="font-medium text-gray-700 dark:text-gray-200 truncate max-w-[200px]">
-                {post.job_title || (post.text || '').slice(0, 40) || 'Oglas'}
+                {post.job_title || (post.text || '').slice(0, 40) || t('common.listing')}
               </li>
             </ol>
           </nav>
@@ -743,7 +743,7 @@ function SinglePostContent({ initialData, relatedPosts }: { initialData: PostIni
                   className="block p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/10 transition-colors"
                 >
                   <p className="font-medium text-sm text-gray-900 dark:text-gray-100 line-clamp-1">
-                    {rp.job_title || (rp.text || '').slice(0, 60) || 'Oglas'}
+                    {rp.job_title || (rp.text || '').slice(0, 60) || t('common.listing')}
                   </p>
                   <div className="flex items-center gap-2 mt-1 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
                     <span>{rp.author_name}</span>

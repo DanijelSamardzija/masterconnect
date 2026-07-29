@@ -682,6 +682,8 @@ export default {
   'common.optional': 'Optional',
   'common.success': 'Erfolg',
   'common.error': 'Fehler',
+  'common.listing': 'Anzeige',
+  'jobs.postNotFound': 'Beitrag nicht gefunden',
 
   // Report
   'report.title': 'Inhalt melden',

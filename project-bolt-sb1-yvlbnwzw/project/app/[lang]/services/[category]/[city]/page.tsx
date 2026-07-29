@@ -121,14 +121,14 @@ export default async function CityLandingPage({
           </li>
           <li aria-hidden="true">›</li>
           <li>
-            <Link href="/services" className="hover:text-orange-500 transition-colors">
+            <Link href={`/${lang}/services`} className="hover:text-orange-500 transition-colors">
               {ui.services}
             </Link>
           </li>
           <li aria-hidden="true">›</li>
           <li>
             <Link
-              href={`/services/${slug}`}
+              href={`/${lang}/services/${slug}`}
               className="hover:text-orange-500 transition-colors"
             >
               {categoryLabel}
@@ -150,7 +150,7 @@ export default async function CityLandingPage({
         <div className="text-center py-16 text-muted-foreground">
           <p className="mb-4">{ui.noResults}</p>
           <Link
-            href={`/services/${slug}`}
+            href={`/${lang}/services/${slug}`}
             className="text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
           >
             ← {categoryLabel} ({ui.backToCategory})
