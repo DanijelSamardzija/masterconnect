@@ -85,6 +85,56 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }));
     });
 
+  // Jobs category/city landing pages — same approach as services, but for job post types.
+  const { data: jobPostsForCities } = await supabase
+    .from('posts')
+    .select('category, city, created_at')
+    .in('post_type', ['hiring_post', 'job_seeker_post', 'service_request'])
+    .not('city', 'is', null)
+    .not('category', 'is', null);
+
+  const jobCityCounts = new Map<string, number>();
+  const jobMaxDateByCategory = new Map<string, Date>();
+  const jobMaxDateByCityKey = new Map<string, Date>();
+
+  for (const post of jobPostsForCities ?? []) {
+    if (!(post as any).city?.trim() || !isValidCategory((post as any).category)) continue;
+    const citySlug = slugifyCity(((post as any).city as string).trim());
+    if (!citySlug) continue;
+    const key = `${(post as any).category}:::${citySlug}`;
+    jobCityCounts.set(key, (jobCityCounts.get(key) ?? 0) + 1);
+
+    const postDate = new Date((post as any).created_at);
+    const catDate = jobMaxDateByCategory.get((post as any).category);
+    if (!catDate || postDate > catDate) jobMaxDateByCategory.set((post as any).category, postDate);
+    const keyDate = jobMaxDateByCityKey.get(key);
+    if (!keyDate || postDate > keyDate) jobMaxDateByCityKey.set(key, postDate);
+  }
+
+  // 14 categories × 3 languages = 42 static jobs landing URLs.
+  const jobCategoryLandingUrls: MetadataRoute.Sitemap = LANGS.flatMap((lang) =>
+    CATEGORY_SLUGS.map((category) => ({
+      url: `${BASE}/${lang}/jobs/${category}`,
+      lastModified: jobMaxDateByCategory.get(category) ?? new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.8,
+    }))
+  );
+
+  const jobCityLandingUrls: MetadataRoute.Sitemap = [...jobCityCounts.entries()]
+    .filter(([, count]) => count >= MIN_LISTINGS_FOR_CITY_PAGE)
+    .flatMap(([key]) => {
+      const sepIdx = key.indexOf(':::');
+      const category = key.slice(0, sepIdx);
+      const citySlug = key.slice(sepIdx + 3);
+      return LANGS.map((lang) => ({
+        url: `${BASE}/${lang}/jobs/${category}/${citySlug}`,
+        lastModified: jobMaxDateByCityKey.get(key) ?? new Date(),
+        changeFrequency: 'daily' as const,
+        priority: 0.75,
+      }));
+    });
+
   const [allPostsRes, servicesRes, jobsRes, profilesRes] = await Promise.all([
     // All post types that have a /posts/[id] detail page
     supabase
@@ -152,6 +202,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...langRoutes,
     ...categoryLandingUrls,
     ...cityLandingUrls,
+    ...jobCategoryLandingUrls,
+    ...jobCityLandingUrls,
     ...jobUrls,
     ...serviceUrls,
     ...postUrls,
