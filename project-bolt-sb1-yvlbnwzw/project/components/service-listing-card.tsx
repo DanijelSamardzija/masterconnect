@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -108,7 +109,11 @@ export function ServiceListingCard({
               </div>
 
               {post.job_title && (
-                <h3 className="font-semibold text-base mb-2 break-words line-clamp-2">{post.job_title}</h3>
+                <h3 className="font-semibold text-base mb-2 break-words line-clamp-2">
+                  <Link href={`/services/${post.id}`} prefetch={false} className="hover:text-orange-500 transition-colors">
+                    {post.job_title}
+                  </Link>
+                </h3>
               )}
 
               {post.text && (

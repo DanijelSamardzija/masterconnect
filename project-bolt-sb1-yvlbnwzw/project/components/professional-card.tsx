@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { Star, MapPin, ArrowRight } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -95,54 +96,51 @@ export function ProfessionalCard({ listing }: ProfessionalCardProps) {
       className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer group flex flex-col h-full"
       onClick={() => router.push(`/services/${listing.id}`)}
     >
-      <div className="relative w-full aspect-square max-h-[280px] bg-gray-200 overflow-hidden">
-        {mainImage ? (
-          <Image
-            fill
-            src={mainImage}
-            alt={listing.job_title}
-            className="object-cover rounded-t-xl group-hover:scale-105 transition-transform duration-300"
-            sizes="(max-width: 640px) calc(100vw - 32px), (max-width: 1024px) calc(50vw - 32px), 280px"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-            <span className="text-4xl text-gray-400">🔧</span>
-          </div>
-        )}
-      </div>
+      <Link href={`/services/${listing.id}`} prefetch={false} className="block">
+        <div className="relative w-full aspect-square max-h-[280px] bg-gray-200 overflow-hidden">
+          {mainImage ? (
+            <Image
+              fill
+              src={mainImage}
+              alt={listing.job_title}
+              className="object-cover rounded-t-xl group-hover:scale-105 transition-transform duration-300"
+              sizes="(max-width: 640px) calc(100vw - 32px), (max-width: 1024px) calc(50vw - 32px), 280px"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+              <span className="text-4xl text-gray-400">🔧</span>
+            </div>
+          )}
+        </div>
+      </Link>
 
       <CardContent className="p-2.5 md:p-4 flex flex-col flex-1">
         <div className="mb-1.5 md:mb-2">
           {/* User Info at Top */}
           <div className="flex items-center gap-2 mb-2">
             <div className="relative shrink-0">
-              <Avatar
-                className="h-9 w-9 cursor-pointer ring-2 ring-gray-100"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  router.push(`/profile/${listing.user_id}`);
-                }}
-              >
-                <AvatarImage src={listing.profiles.avatar_url} alt={listing.profiles.name} />
-                <AvatarFallback className="bg-orange-500 text-white text-sm">
-                  {listing.profiles.name.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              <Link href={`/profile/${listing.user_id}`} prefetch={false} onClick={(e) => e.stopPropagation()}>
+                <Avatar className="h-9 w-9 cursor-pointer ring-2 ring-gray-100">
+                  <AvatarImage src={listing.profiles.avatar_url} alt={listing.profiles.name} />
+                  <AvatarFallback className="bg-orange-500 text-white text-sm">
+                    {listing.profiles.name.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </Link>
               {isOnline(listing.profiles.last_seen) && (
                 <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white dark:ring-card" />
               )}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <button
+                <Link
+                  href={`/profile/${listing.user_id}`}
+                  prefetch={false}
+                  onClick={(e) => e.stopPropagation()}
                   className="text-sm font-semibold text-gray-900 dark:text-white hover:text-orange-600 dark:hover:text-orange-400 transition-colors truncate"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    router.push(`/profile/${listing.user_id}`);
-                  }}
                 >
                   {listing.profiles.name}
-                </button>
+                </Link>
                 {listing.profiles.is_premium && <ProfessionalBadge size="sm" variant="premium" />}
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -153,7 +151,9 @@ export function ProfessionalCard({ listing }: ProfessionalCardProps) {
 
           {/* Job Title */}
           <h3 className="font-bold text-base md:text-lg text-gray-900 dark:text-gray-100 mb-1 md:mb-1.5 line-clamp-1">
-            {listing.job_title || 'Usluga'}
+            <Link href={`/services/${listing.id}`} prefetch={false} className="hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
+              {listing.job_title || 'Usluga'}
+            </Link>
           </h3>
 
           {/* Category • City in one line */}
@@ -214,13 +214,12 @@ export function ProfessionalCard({ listing }: ProfessionalCardProps) {
         <Button
           size="sm"
           className="w-full bg-orange-600 hover:bg-orange-700 text-white group/btn h-8 md:h-9 text-xs md:text-sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            router.push(`/services/${listing.id}`);
-          }}
+          asChild
         >
-          {t('services.viewService')}
-          <ArrowRight className="ml-1.5 md:ml-2 h-3.5 w-3.5 md:h-4 md:w-4 group-hover/btn:translate-x-1 transition-transform" />
+          <Link href={`/services/${listing.id}`} prefetch={false} onClick={(e) => e.stopPropagation()}>
+            {t('services.viewService')}
+            <ArrowRight className="ml-1.5 md:ml-2 h-3.5 w-3.5 md:h-4 md:w-4 group-hover/btn:translate-x-1 transition-transform" />
+          </Link>
         </Button>
         </div>
       </CardContent>
