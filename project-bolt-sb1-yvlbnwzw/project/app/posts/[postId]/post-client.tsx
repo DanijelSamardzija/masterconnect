@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
@@ -320,14 +321,14 @@ function SinglePostContent() {
             <button onClick={() => handleBack()} className="text-muted-foreground hover:text-foreground">
               <ArrowLeft className="h-5 w-5" />
             </button>
-            <button onClick={() => router.push(`/profile/${post.user_id}`)} className="flex items-center gap-2 flex-1 min-w-0">
+            <Link href={`/profile/${post.user_id}`} prefetch={false} className="flex items-center gap-2 flex-1 min-w-0">
               <Avatar className="h-8 w-8 shrink-0">
                 <AvatarFallback className="bg-orange-500 text-white text-xs">
                   {post.user.name.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <p className="font-semibold text-sm truncate hover:text-orange-500 transition-colors">{post.user.name}</p>
-            </button>
+            </Link>
           </div>
 
           <div
@@ -437,18 +438,18 @@ function SinglePostContent() {
         <Card>
           <CardHeader>
             <div className="flex items-start gap-3">
-              <button onClick={() => router.push(`/profile/${post.user_id}`)}>
+              <Link href={`/profile/${post.user_id}`} prefetch={false}>
                 <Avatar className="h-10 w-10 hover:opacity-80 transition-opacity">
                   <AvatarFallback className="bg-blue-600 text-white">
                     {post.user.name.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-              </button>
+              </Link>
               <div className="flex-1">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => router.push(`/profile/${post.user_id}`)} className="font-semibold hover:text-orange-500 transition-colors">{post.user.name}</button>
+                      <Link href={`/profile/${post.user_id}`} prefetch={false} className="font-semibold hover:text-orange-500 transition-colors">{post.user.name}</Link>
                       {post.is_pinned && (
                         <Badge variant="secondary" className="text-xs gap-1">
                           <Pin className="h-3 w-3" />

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
@@ -369,23 +370,24 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
               </div>
 
               <div className="flex items-center gap-3 pb-4 border-b border-gray-200 dark:border-gray-700">
-                <button onClick={() => router.push(`/profile/${service.user_id}`)}>
+                <Link href={`/profile/${service.user_id}`} prefetch={false}>
                   <Avatar className="h-12 w-12 ring-2 ring-gray-200 dark:ring-gray-700 flex-shrink-0 hover:opacity-80 transition-opacity">
                     <AvatarImage src={service.profiles.avatar_url} alt={service.profiles.name} />
                     <AvatarFallback className="bg-orange-500 text-white text-base">
                       {service.profiles.name.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                </button>
+                </Link>
 
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
-                    <button
-                      onClick={() => router.push(`/profile/${service.user_id}`)}
+                    <Link
+                      href={`/profile/${service.user_id}`}
+                      prefetch={false}
                       className="font-semibold text-gray-900 dark:text-white text-base hover:text-orange-600 dark:hover:text-orange-400 transition-colors truncate"
                     >
                       {service.profiles.name}
-                    </button>
+                    </Link>
                     {(service.profiles as any).is_premium && (
                       <ProfessionalBadge size="sm" variant="premium" />
                     )}

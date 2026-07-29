@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
@@ -841,18 +842,17 @@ function FeedContent() {
 
           {/* Card header */}
           <div className="flex items-center gap-2.5 p-3 shrink-0">
-            <Avatar
-              className="h-9 w-9 shrink-0 cursor-pointer"
-              onClick={() => router.push(`/profile/${post.user_id}`)}
-            >
-              <AvatarImage src={post.user.avatar_url} />
-              <AvatarFallback>{post.user.name?.[0]}</AvatarFallback>
-            </Avatar>
+            <Link href={`/profile/${post.user_id}`} prefetch={false}>
+              <Avatar className="h-9 w-9 shrink-0 cursor-pointer">
+                <AvatarImage src={post.user.avatar_url} />
+                <AvatarFallback>{post.user.name?.[0]}</AvatarFallback>
+              </Avatar>
+            </Link>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <button className="font-semibold text-sm text-foreground hover:text-orange-500 transition-colors truncate max-w-[140px] sm:max-w-none" onClick={() => router.push(`/profile/${post.user_id}`)}>
+                <Link href={`/profile/${post.user_id}`} prefetch={false} className="font-semibold text-sm text-foreground hover:text-orange-500 transition-colors truncate max-w-[140px] sm:max-w-none">
                   {post.user.name}
-                </button>
+                </Link>
                 {isPremium && (
                   <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold shadow-sm text-[10px] shrink-0">
                     <CheckCircle className="h-2.5 w-2.5 shrink-0" />
@@ -952,7 +952,9 @@ function FeedContent() {
                 el.style.pointerEvents = 'auto';
               }}
             >
-              <p className="text-foreground text-base leading-relaxed whitespace-pre-line">{post.text}</p>
+              <Link href={`/posts/${post.id}`} prefetch={false} className="block no-underline">
+                <p className="text-foreground text-base leading-relaxed whitespace-pre-line">{post.text}</p>
+              </Link>
             </div>
           )}
 
@@ -1050,7 +1052,9 @@ function FeedContent() {
                 const isExpanded = expandedText[post.id];
                 return (
                   <>
-                    <p className={`text-sm text-foreground ${isLong && !isExpanded ? 'line-clamp-2' : ''}`}>{post.text}</p>
+                    <Link href={`/posts/${post.id}`} prefetch={false} className="block no-underline">
+                      <p className={`text-sm text-foreground ${isLong && !isExpanded ? 'line-clamp-2' : ''}`}>{post.text}</p>
+                    </Link>
                     {isLong && (
                       <button onClick={() => setExpandedText(prev => ({ ...prev, [post.id]: !prev[post.id] }))} className="text-xs text-orange-500 font-semibold mt-0.5">
                         {isExpanded ? t('posts.showLess') : t('posts.readMore')}
