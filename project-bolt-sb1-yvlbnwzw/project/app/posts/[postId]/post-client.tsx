@@ -11,11 +11,10 @@ import { CommentsSheet } from '@/components/comments-sheet';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Pin, AlertCircle, MessageSquare, ChevronLeft, ChevronRight, DollarSign, Briefcase, Heart, Send } from 'lucide-react';
+import { ArrowLeft, Pin, AlertCircle, MessageSquare, ChevronLeft, ChevronRight, DollarSign, Briefcase, Heart, Send, Pencil, Share2 } from 'lucide-react';
 import { timeAgo } from '@/lib/utils/date';
 import { toast } from 'sonner';
 import { SendOfferModal } from '@/components/send-offer-modal-v2';
@@ -24,6 +23,10 @@ import { EditPostModal } from '@/components/edit-post-modal';
 import { JobApplicationModal } from '@/components/job-application-modal';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { usePageTracking } from '@/lib/hooks/use-page-tracking';
+import { isValidCategory, getCategoryLabel, type CategorySlug } from '@/lib/seo/categories';
+import { slugifyCity } from '@/lib/seo/slugify';
+
+const JOB_POST_TYPES = ['hiring_post', 'job_seeker_post', 'service_request'] as const;
 
 type PostMedia = {
   id: string;
@@ -43,7 +46,7 @@ type PostUser = {
   id: string;
   name: string;
   email: string;
-  avatar_url?: string;
+  avatar_url?: string | null;
   account_type: 'professional' | 'customer';
   average_rating?: number;
   review_count?: number;
@@ -58,6 +61,11 @@ type Post = {
   is_pinned: boolean;
   pinned_at: string | null;
   post_type: string;
+  city: string | null;
+  country: string | null;
+  category: string | null;
+  experience_level: string | null;
+  availability: string | null;
   user: PostUser;
   media: PostMedia[];
   reactions_count: number;
@@ -65,15 +73,42 @@ type Post = {
   user_has_reacted: boolean;
 };
 
-function SinglePostContent() {
+export type PostInitialData = Omit<Post, 'media' | 'reactions_count' | 'comments_count' | 'user_has_reacted'>;
+
+export type RelatedPost = {
+  id: string;
+  job_title: string | null;
+  text: string | null;
+  post_type: string;
+  city: string | null;
+  category: string | null;
+  created_at: string;
+  author_name: string;
+};
+
+function getExperienceLabel(value: string | null, t: (k: string) => string): string | null {
+  if (value === 'Entry') return t('marketplace.expEntry');
+  if (value === 'Mid') return t('marketplace.expMid');
+  if (value === 'Senior') return t('marketplace.expSenior');
+  if (value === 'Expert') return t('marketplace.expExpert');
+  return null;
+}
+
+function getAvailabilityLabel(value: string | null, t: (k: string) => string): string | null {
+  if (value === 'Immediately') return t('marketplace.availImmediately');
+  if (value === 'Within 1 week') return t('marketplace.avail1Week');
+  if (value === 'Within 2 weeks') return t('marketplace.avail2Weeks');
+  return null;
+}
+
+function SinglePostContent({ initialData, relatedPosts }: { initialData: PostInitialData; relatedPosts: RelatedPost[] }) {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   usePageTracking('post');
   const postId = params.postId as string;
-  const commentId = searchParams.get('commentId');
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -95,7 +130,7 @@ function SinglePostContent() {
   const touchEndX = useRef<number | null>(null);
 
   useEffect(() => {
-    fetchPost();
+    fetchInteractiveData();
   }, [postId]);
 
   useEffect(() => {
@@ -111,32 +146,8 @@ function SinglePostContent() {
     }
   }, [post]);
 
-  const fetchPost = async () => {
+  const fetchInteractiveData = async () => {
     try {
-      const { data: postData, error: postError } = await supabase
-        .from('posts')
-        .select(`
-          id,
-          user_id,
-          text,
-          job_title,
-          created_at,
-          is_pinned,
-          pinned_at,
-          post_type,
-          user:profiles!posts_user_id_fkey(id, name, email, avatar_url, account_type, average_rating, review_count)
-        `)
-        .eq('id', postId)
-        .maybeSingle();
-
-      if (postError) throw postError;
-
-      if (!postData) {
-        setError('Post not found');
-        setLoading(false);
-        return;
-      }
-
       const [mediaResult, reactionsResult, commentsResult, userReactionResult] = await Promise.all([
         supabase
           .from('post_media')
@@ -159,26 +170,28 @@ function SinglePostContent() {
           .select('id')
           .eq('post_id', postId)
           .eq('user_id', user.id)
-          .maybeSingle() : Promise.resolve({ data: null })
+          .maybeSingle() : Promise.resolve({ data: null }),
       ]);
 
-      const userData = Array.isArray(postData.user) ? postData.user[0] : postData.user;
-
-      const finalPost = {
-        ...postData,
-        user: userData,
-        media: mediaResult.data || [],
+      setPost({
+        ...initialData,
+        media: (mediaResult.data ?? []) as unknown as PostMedia[],
         reactions_count: reactionsResult.count ?? 0,
         comments_count: commentsResult.count ?? 0,
         user_has_reacted: !!userReactionResult.data,
-      } as Post;
-
-      setPost(finalPost);
+      });
 
       supabase.rpc('increment_post_views', { post_id: postId });
-    } catch (error: any) {
-      console.error('[PostDetail] Error fetching post:', error);
-      setError('Failed to load post');
+    } catch (err: any) {
+      console.error('[PostDetail] Error fetching interactive data:', err);
+      // Degrade gracefully — show post from initialData without interactive counts
+      setPost({
+        ...initialData,
+        media: [],
+        reactions_count: 0,
+        comments_count: 0,
+        user_has_reacted: false,
+      });
     } finally {
       setLoading(false);
     }
@@ -213,8 +226,8 @@ function SinglePostContent() {
       } else {
         toast.error(data.error || 'Greška pri kreiranju razgovora');
       }
-    } catch (error: any) {
-      console.error('Error creating conversation:', error);
+    } catch (err: any) {
+      console.error('Error creating conversation:', err);
       toast.error('Greška pri kreiranju razgovora');
     } finally {
       setContactLoading(false);
@@ -239,65 +252,34 @@ function SinglePostContent() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background" />
-    );
-  }
-
-  if (error || !post) {
-    return (
-      <div className="min-h-screen bg-background py-8">
-        <div className="container mx-auto px-4 max-w-3xl">
-          <Button
-            variant="ghost"
-            onClick={() => handleBack()}
-            className="mb-6 gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              {error || 'Post not found'}
-            </AlertDescription>
-          </Alert>
-        </div>
-      </div>
-    );
-  }
-
-  const handleReport = (type: 'post' | 'profile', id: string, userId: string) => {
-    setReportType(type);
-    setReportTargetId(id);
-    setReportTargetUserId(userId);
-    setReportModalOpen(true);
+  const handleShare = async () => {
+    if (!post) return;
+    const url = `https://www.gigzone.app/posts/${post.id}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: post.job_title || 'GigZone oglas', url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast.success(t('share.successToast'));
+      }
+    } catch {
+      // User cancelled share or clipboard unavailable
+    }
   };
 
-  const handleEdit = (post: Post) => {
-    setEditModalOpen(true);
-  };
-
-  const handleDelete = async (postId: string) => {
+  const handleDelete = async () => {
     setDeleteDialogOpen(true);
   };
 
   const confirmDelete = async () => {
     if (!post) return;
-
     try {
-      const { error } = await supabase
-        .from('posts')
-        .delete()
-        .eq('id', post.id);
-
-      if (error) throw error;
-
+      const { error: delError } = await supabase.from('posts').delete().eq('id', post.id);
+      if (delError) throw delError;
       toast.success(t('posts.deleteSuccess'));
       router.push('/feed');
-    } catch (error) {
-      console.error('Error deleting post:', error);
+    } catch (err) {
+      console.error('Error deleting post:', err);
       toast.error(t('posts.deleteError'));
     } finally {
       setDeleteDialogOpen(false);
@@ -312,7 +294,29 @@ function SinglePostContent() {
     }
   };
 
-  if (post?.post_type === 'social_post' && post.media.length > 0) {
+  if (loading) {
+    return <div className="min-h-screen bg-background" />;
+  }
+
+  if (error || !post) {
+    return (
+      <div className="min-h-screen bg-background py-8">
+        <div className="container mx-auto px-4 max-w-3xl">
+          <Button variant="ghost" onClick={() => handleBack()} className="mb-6 gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error || 'Post not found'}</AlertDescription>
+          </Alert>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Social post media viewer (separate layout) ──────────────────────────────
+  if (post.post_type === 'social_post' && post.media.length > 0) {
     const currentMedia = post.media[currentMediaIndex];
     return (
       <div className="min-h-screen bg-background">
@@ -347,12 +351,7 @@ function SinglePostContent() {
             }}
           >
             {currentMedia.type === 'video' ? (
-              <video
-                src={currentMedia.url}
-                controls
-                playsInline
-                className="w-full max-h-[80vh] object-contain"
-              />
+              <video src={currentMedia.url} controls playsInline className="w-full max-h-[80vh] object-contain" />
             ) : (
               <Image
                 src={currentMedia.url}
@@ -404,9 +403,9 @@ function SinglePostContent() {
           </div>
         </div>
 
-        <CommentsSheet open={commentsModalOpen} onOpenChange={setCommentsModalOpen} postId={post.id} commentsCount={post.comments_count || 0} onCommentAdded={fetchPost} />
+        <CommentsSheet open={commentsModalOpen} onOpenChange={setCommentsModalOpen} postId={post.id} commentsCount={post.comments_count || 0} onCommentAdded={fetchInteractiveData} />
         <ReportModal open={reportModalOpen} onOpenChange={setReportModalOpen} targetType={reportType} targetId={reportTargetId} targetOwnerUserId={reportTargetUserId} />
-        <EditPostModal open={editModalOpen} onOpenChange={setEditModalOpen} postId={post.id} postType={post.post_type as any} initialText={post.text} media={post.media} onSave={async () => { await fetchPost(); }} />
+        <EditPostModal open={editModalOpen} onOpenChange={setEditModalOpen} postId={post.id} postType={post.post_type as any} initialText={post.text} media={post.media} onSave={async () => { await fetchInteractiveData(); }} />
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -423,17 +422,79 @@ function SinglePostContent() {
     );
   }
 
+  // ── Job / regular post view ──────────────────────────────────────────────────
+  const isJobPost = JOB_POST_TYPES.includes(post.post_type as any);
+  const isOwner = !!user && post.user_id === user.id;
+
+  // Info chips data
+  const chips: { key: string; label: string; href: string | null }[] = [];
+  if (post.category && isValidCategory(post.category)) {
+    chips.push({
+      key: 'category',
+      label: getCategoryLabel(post.category as CategorySlug, language as any),
+      href: `/${language}/services/${post.category}`,
+    });
+  }
+  if (post.city) {
+    const citySlug = slugifyCity(post.city);
+    const cityHref = citySlug && post.category && isValidCategory(post.category)
+      ? `/${language}/services/${post.category}/${citySlug}`
+      : null;
+    chips.push({ key: 'city', label: post.city, href: cityHref });
+  }
+  if (post.country) {
+    chips.push({ key: 'country', label: post.country, href: null });
+  }
+  const expLabel = getExperienceLabel(post.experience_level, t);
+  if (expLabel) {
+    chips.push({ key: 'experience', label: `${t('jobs.experience')}: ${expLabel}`, href: null });
+  }
+  const availLabel = getAvailabilityLabel(post.availability, t);
+  if (availLabel) {
+    chips.push({ key: 'availability', label: `${t('jobs.availability')}: ${availLabel}`, href: null });
+  }
+
   return (
     <div className="bg-background py-8 pb-24">
       <div className="container mx-auto px-4 max-w-3xl">
-        <Button
-          variant="ghost"
-          onClick={() => handleBack()}
-          className="mb-6 gap-2"
-        >
+        <Button variant="ghost" onClick={() => handleBack()} className="mb-4 gap-2">
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
+
+        {/* HTML breadcrumb — only for job post types */}
+        {isJobPost && (
+          <nav aria-label="Breadcrumb" className="mb-5">
+            <ol className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
+              <li>
+                <Link href="/" className="hover:text-orange-500 transition-colors">GigZone</Link>
+              </li>
+              <li aria-hidden="true">›</li>
+              <li>
+                <Link href={`/${language}/jobs`} className="hover:text-orange-500 transition-colors">
+                  {t('nav.jobs')}
+                </Link>
+              </li>
+              {post.category && isValidCategory(post.category) && (
+                <>
+                  <li aria-hidden="true">›</li>
+                  <li>
+                    <Link
+                      href={`/${language}/services/${post.category}`}
+                      className="hover:text-orange-500 transition-colors"
+                    >
+                      {getCategoryLabel(post.category as CategorySlug, language as any)}
+                    </Link>
+                  </li>
+                </>
+              )}
+              <li aria-hidden="true">›</li>
+              <li aria-current="page" className="font-medium text-gray-700 dark:text-gray-200 truncate max-w-[200px]">
+                {post.job_title || (post.text || '').slice(0, 40) || 'Oglas'}
+              </li>
+            </ol>
+          </nav>
+        )}
 
         <Card>
           <CardHeader>
@@ -446,10 +507,12 @@ function SinglePostContent() {
                 </Avatar>
               </Link>
               <div className="flex-1">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div>
                     <div className="flex items-center gap-2">
-                      <Link href={`/profile/${post.user_id}`} prefetch={false} className="font-semibold hover:text-orange-500 transition-colors">{post.user.name}</Link>
+                      <Link href={`/profile/${post.user_id}`} prefetch={false} className="font-semibold hover:text-orange-500 transition-colors">
+                        {post.user.name}
+                      </Link>
                       {post.is_pinned && (
                         <Badge variant="secondary" className="text-xs gap-1">
                           <Pin className="h-3 w-3" />
@@ -457,11 +520,25 @@ function SinglePostContent() {
                         </Badge>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {timeAgo(post.created_at)}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{timeAgo(post.created_at)}</p>
                   </div>
-                  {user && post.user_id !== user.id && (
+
+                  {/* Owner CTAs */}
+                  {isOwner && (
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => setEditModalOpen(true)} className="gap-1.5">
+                        <Pencil className="h-3.5 w-3.5" />
+                        {t('common.edit')}
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={handleShare} className="gap-1.5">
+                        <Share2 className="h-3.5 w-3.5" />
+                        {t('share.copyLink')}
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Non-owner CTAs */}
+                  {user && !isOwner && (
                     <div className="flex gap-2 flex-wrap">
                       {post.post_type === 'hiring_post' && (
                         <Button
@@ -522,8 +599,41 @@ function SinglePostContent() {
             </div>
           </CardHeader>
 
+          {/* Job title + info chips — only for job post types */}
+          {isJobPost && (post.job_title || chips.length > 0) && (
+            <CardContent className="pt-0 pb-3">
+              {post.job_title && (
+                <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">
+                  {post.job_title}
+                </h1>
+              )}
+              {chips.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {chips.map(chip =>
+                    chip.href ? (
+                      <Link
+                        key={chip.key}
+                        href={chip.href}
+                        className="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-orange-50 hover:text-orange-600 dark:hover:bg-orange-900/20 dark:hover:text-orange-400 transition-colors font-medium"
+                      >
+                        {chip.label}
+                      </Link>
+                    ) : (
+                      <span
+                        key={chip.key}
+                        className="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                      >
+                        {chip.label}
+                      </span>
+                    )
+                  )}
+                </div>
+              )}
+            </CardContent>
+          )}
+
           {post.text && (
-            <CardContent>
+            <CardContent className={isJobPost && (post.job_title || chips.length > 0) ? 'pt-0' : undefined}>
               <p className="whitespace-pre-wrap leading-relaxed">{post.text}</p>
             </CardContent>
           )}
@@ -544,35 +654,21 @@ function SinglePostContent() {
                         priority
                       />
                     ) : (
-                      <video
-                        src={post.media[0].url}
-                        controls
-                        className="w-full h-auto"
-                      />
+                      <video src={post.media[0].url} controls className="w-full h-auto" />
                     )}
                   </div>
                 ) : (
                   <div
                     className="relative"
-                    onTouchStart={(e) => {
-                      touchStartX.current = e.touches[0].clientX;
-                    }}
-                    onTouchMove={(e) => {
-                      touchEndX.current = e.touches[0].clientX;
-                    }}
+                    onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+                    onTouchMove={(e) => { touchEndX.current = e.touches[0].clientX; }}
                     onTouchEnd={() => {
                       if (touchStartX.current === null || touchEndX.current === null) return;
                       const diff = touchStartX.current - touchEndX.current;
-                      const minSwipeDistance = 50;
-
-                      if (Math.abs(diff) > minSwipeDistance) {
-                        if (diff > 0 && currentMediaIndex < post.media.length - 1) {
-                          setCurrentMediaIndex(prev => prev + 1);
-                        } else if (diff < 0 && currentMediaIndex > 0) {
-                          setCurrentMediaIndex(prev => prev - 1);
-                        }
+                      if (Math.abs(diff) > 50) {
+                        if (diff > 0 && currentMediaIndex < post.media.length - 1) setCurrentMediaIndex(prev => prev + 1);
+                        else if (diff < 0 && currentMediaIndex > 0) setCurrentMediaIndex(prev => prev - 1);
                       }
-
                       touchStartX.current = null;
                       touchEndX.current = null;
                     }}
@@ -588,11 +684,7 @@ function SinglePostContent() {
                         priority={currentMediaIndex === 0}
                       />
                     ) : (
-                      <video
-                        src={post.media[currentMediaIndex].url}
-                        controls
-                        className="w-full h-auto"
-                      />
+                      <video src={post.media[currentMediaIndex].url} controls className="w-full h-auto" />
                     )}
 
                     {currentMediaIndex > 0 && (
@@ -621,11 +713,7 @@ function SinglePostContent() {
                         <button
                           key={index}
                           onClick={() => setCurrentMediaIndex(index)}
-                          className={`h-2 rounded-full transition-all ${
-                            index === currentMediaIndex
-                              ? 'w-6 bg-white'
-                              : 'w-2 bg-white/50'
-                          }`}
+                          className={`h-2 rounded-full transition-all ${index === currentMediaIndex ? 'w-6 bg-white' : 'w-2 bg-white/50'}`}
                           aria-label={`Go to image ${index + 1}`}
                         />
                       ))}
@@ -639,8 +727,34 @@ function SinglePostContent() {
               </div>
             </CardContent>
           )}
-
         </Card>
+
+        {/* Related jobs — same category, prioritised by same city */}
+        {isJobPost && relatedPosts.length > 0 && (
+          <section className="mt-6">
+            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3">
+              {t('serviceDetail.similarServices')}
+            </h2>
+            <div className="space-y-2">
+              {relatedPosts.map(rp => (
+                <Link
+                  key={rp.id}
+                  href={`/posts/${rp.id}`}
+                  className="block p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/10 transition-colors"
+                >
+                  <p className="font-medium text-sm text-gray-900 dark:text-gray-100 line-clamp-1">
+                    {rp.job_title || (rp.text || '').slice(0, 60) || 'Oglas'}
+                  </p>
+                  <div className="flex items-center gap-2 mt-1 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
+                    <span>{rp.author_name}</span>
+                    {rp.city && <span>· {rp.city}</span>}
+                    <span>· {timeAgo(rp.created_at)}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         <SendOfferModal
           open={offerModalOpen && post.post_type === 'job_seeker_post'}
@@ -668,11 +782,52 @@ function SinglePostContent() {
             onSuccess={() => setApplicationModalOpen(false)}
           />
         )}
+
+        <CommentsSheet
+          open={commentsModalOpen}
+          onOpenChange={setCommentsModalOpen}
+          postId={post.id}
+          commentsCount={post.comments_count || 0}
+          onCommentAdded={fetchInteractiveData}
+        />
+
+        <ReportModal
+          open={reportModalOpen}
+          onOpenChange={setReportModalOpen}
+          targetType={reportType}
+          targetId={reportTargetId}
+          targetOwnerUserId={reportTargetUserId}
+        />
+
+        <EditPostModal
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          postId={post.id}
+          postType={post.post_type as any}
+          initialText={post.text}
+          media={post.media}
+          onSave={async () => { await fetchInteractiveData(); }}
+        />
+
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('posts.deleteConfirmTitle')}</AlertDialogTitle>
+              <AlertDialogDescription>{t('posts.deleteConfirmDescription')}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t('posts.cancel')}</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+                {t('posts.confirmDelete')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
 }
 
-export function SinglePostClient() {
-  return <SinglePostContent />;
+export function SinglePostClient({ initialData, relatedPosts }: { initialData: PostInitialData; relatedPosts: RelatedPost[] }) {
+  return <SinglePostContent initialData={initialData} relatedPosts={relatedPosts} />;
 }
