@@ -269,3 +269,9 @@ export const CATEGORY_SEO: Record<CategorySlug, Record<Lang, CategoryMeta>> = {
     },
   },
 };
+
+// Returns the human-readable category name for h1, breadcrumbs, and JSON-LD.
+// Extracted from CATEGORY_SEO titles (the part before ' — ').
+export function getCategoryLabel(slug: CategorySlug, lang: Lang): string {
+  return CATEGORY_SEO[slug][lang].title.split(' — ')[0];
+}
