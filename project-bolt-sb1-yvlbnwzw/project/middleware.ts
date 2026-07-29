@@ -3,6 +3,9 @@ import { detectLang, SUPPORTED_LANGS } from '@/lib/i18n-config';
 
 const PUBLIC_PATHS = ['/jobs', '/services', '/invest'];
 
+// UUID v4 pattern — detail pages (services, jobs) use UUIDs and have canonical URLs without lang prefix
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -18,11 +21,16 @@ export function middleware(request: NextRequest) {
   );
   if (!isPublic) return NextResponse.next();
 
+  // Detail pages (/services/{uuid}, /jobs/{uuid}) are served directly without lang prefix —
+  // their canonical URLs have no lang segment, so don't redirect them.
+  const detailSlug = pathname.split('/')[2];
+  if (detailSlug && UUID_RE.test(detailSlug)) return NextResponse.next();
+
   const lang = detectLang(request.headers.get('accept-language') || '');
   const url = request.nextUrl.clone();
   url.pathname = `/${lang}${pathname}`;
 
-  return NextResponse.redirect(url, { status: 302 });
+  return NextResponse.redirect(url, { status: 301 });
 }
 
 export const config = {

@@ -98,7 +98,7 @@ export default async function ServiceDetailLayout({ children, params }: Props) {
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'GigZone', item: 'https://www.gigzone.app' },
-      { '@type': 'ListItem', position: 2, name: 'Usluge', item: 'https://www.gigzone.app/sr/services' },
+      { '@type': 'ListItem', position: 2, name: 'Usluge', item: 'https://www.gigzone.app/services' },
       { '@type': 'ListItem', position: 3, name: `${serviceTitle} — ${providerName}` },
     ],
   };
