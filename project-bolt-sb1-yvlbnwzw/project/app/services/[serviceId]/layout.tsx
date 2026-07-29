@@ -29,13 +29,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await fetchServiceMeta(params.serviceId);
   if (!data) notFound();
 
-  const providerName = (data.profiles as any)?.name ?? 'GigZone';
+  const providerName = (data.profiles as any)?.name ?? '';
   const serviceTitle = (data as any).job_title || (data as any).category || 'Usluga';
-  const title = `${serviceTitle} — ${providerName}`;
+  const city: string = (data as any).city ?? '';
+
+  const titleParts = [
+    city ? `${serviceTitle} u ${city}` : serviceTitle,
+    providerName || null,
+    'GigZone',
+  ].filter(Boolean);
+  const title = titleParts.join(' | ');
+
+  const intro = city
+    ? `Pronađite profesionalnog ${serviceTitle.toLowerCase()} u ${city}.`
+    : `Pronađite profesionalnog ${serviceTitle.toLowerCase()}.`;
 
   const description = data.text
-    ? data.text.slice(0, 160).replace(/\n/g, ' ')
-    : `${data.city ? data.city + ' · ' : ''}Usluga na GigZone platformi.`;
+    ? `${intro} ${data.text.replace(/\n/g, ' ')}`.slice(0, 155).trimEnd()
+    : `${intro} Pogledajte uslugu, fotografije i kontaktirajte direktno preko GigZone.`;
 
   const mediaList = (data.post_media as any[]) ?? [];
   const firstImage = mediaList
