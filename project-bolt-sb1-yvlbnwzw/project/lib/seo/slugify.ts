@@ -51,3 +51,24 @@ export function slugifyCity(city: string): string {
 export function unslugifyCity(slug: string): string {
   return slug.replace(/-/g, ' ');
 }
+
+/**
+ * Converts a city slug to a human-readable display name.
+ * "banja-luka" → "Banja Luka"
+ * "sao-paulo"  → "Sao Paulo"
+ * Used in page titles, h1, and breadcrumbs.
+ */
+export function humanizeCity(slug: string): string {
+  return unslugifyCity(slug)
+    .split(' ')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+}
+
+// Country names follow the same Unicode rules as city names.
+// Separate exports for semantic clarity in calling code.
+// When /services/{category}/{country}/{city} routing is needed,
+// import slugifyCountry, unslugifyCountry, humanizeCountry from here.
+export const slugifyCountry = slugifyCity;
+export const unslugifyCountry = unslugifyCity;
+export const humanizeCountry = humanizeCity;

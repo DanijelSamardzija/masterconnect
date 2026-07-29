@@ -1,0 +1,114 @@
+import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
+import { BASE_URL, hreflang, type Lang } from '@/lib/i18n-config';
+import { isValidCategory, getCategoryLabel, type CategorySlug } from '@/lib/seo/categories';
+import { humanizeCity } from '@/lib/seo/slugify';
+
+// City slugs are open (not from a whitelist), but must meet basic safety criteria.
+// A UUID in the city segment means someone bookmarked /{lang}/services/{category}/{uuid},
+// which is not a valid city page — return 404 rather than redirect.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const MAX_CITY_SLUG_LEN = 100;
+
+// Title templates per language.
+// When country is added: extend to accept { category, city, country } and adjust phrasing.
+const TITLE_TEMPLATE = {
+  sr: (cat: string, city: string) => `${cat} u ${city} — GigZone`,
+  en: (cat: string, city: string) => `${cat} in ${city} — GigZone`,
+  de: (cat: string, city: string) => `${cat} in ${city} — GigZone`,
+} as const;
+
+const DESC_TEMPLATE = {
+  sr: (cat: string, city: string) =>
+    `Pronađite ${cat.toLowerCase()} u ${city}. Direktan kontakt s pružaocima usluga bez posrednika — GigZone.`,
+  en: (cat: string, city: string) =>
+    `Find ${cat.toLowerCase()} in ${city}. Direct contact with service providers, no middlemen — GigZone.`,
+  de: (cat: string, city: string) =>
+    `Finden Sie ${cat.toLowerCase()} in ${city}. Direktkontakt mit Dienstleistern ohne Vermittler — GigZone.`,
+} as const;
+
+type Params = { lang: Lang; category: string; city: string };
+
+function isCitySlugValid(city: string): boolean {
+  return (
+    city.length > 0 &&
+    city.length <= MAX_CITY_SLUG_LEN &&
+    !UUID_RE.test(city)
+  );
+}
+
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const { lang, category, city } = params;
+
+  if (!isValidCategory(category) || !isCitySlugValid(city)) return {};
+
+  const slug = category as CategorySlug;
+  const categoryLabel = getCategoryLabel(slug, lang);
+  const cityLabel = humanizeCity(city);
+  const canonical = `${BASE_URL}/${lang}/services/${slug}/${city}`;
+
+  const title = TITLE_TEMPLATE[lang](categoryLabel, cityLabel);
+  const description = DESC_TEMPLATE[lang](categoryLabel, cityLabel);
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical,
+      languages: hreflang(`/services/${slug}/${city}`),
+    },
+    openGraph: {
+      title,
+      description,
+      url: canonical,
+      siteName: 'GigZone',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary',
+      title,
+      description,
+    },
+  };
+}
+
+export default function CityLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Params;
+}) {
+  const { lang, category, city } = params;
+
+  if (!isValidCategory(category) || !isCitySlugValid(city)) {
+    notFound();
+  }
+
+  const slug = category as CategorySlug;
+  const categoryLabel = getCategoryLabel(slug, lang);
+  const cityLabel = humanizeCity(city);
+  const canonical = `${BASE_URL}/${lang}/services/${slug}/${city}`;
+  const categoryUrl = `${BASE_URL}/${lang}/services/${slug}`;
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'GigZone', item: BASE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Usluge', item: `${BASE_URL}/services` },
+      { '@type': 'ListItem', position: 3, name: categoryLabel, item: categoryUrl },
+      { '@type': 'ListItem', position: 4, name: cityLabel, item: canonical },
+    ],
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      {children}
+    </>
+  );
+}
