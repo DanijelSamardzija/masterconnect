@@ -514,10 +514,12 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                             size="lg"
                             variant="outline"
                             className="w-full gap-2 h-11 border-2 font-semibold"
-                            onClick={() => router.push(`/profile/${service.user_id}`)}
+                            asChild
                           >
-                            <User className="h-4 w-4" />
-                            {t('serviceDetail.viewProfile')}
+                            <Link href={`/profile/${service.user_id}`} prefetch={false}>
+                              <User className="h-4 w-4" />
+                              {t('serviceDetail.viewProfile')}
+                            </Link>
                           </Button>
                         )}
                       </div>
@@ -635,10 +637,11 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
               <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">{t('serviceDetail.similarServices')}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {similarServices.map((s: any) => (
-                  <button
+                  <Link
                     key={s.id}
-                    onClick={() => router.push(`/services/${s.id}`)}
-                    className="text-left bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow"
+                    href={`/services/${s.id}`}
+                    prefetch={false}
+                    className="text-left bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow block"
                   >
                     <div className="relative aspect-video bg-gray-100 dark:bg-gray-800 overflow-hidden">
                       {s.post_media?.[0] ? (
@@ -668,7 +671,7 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                         </div>
                       )}
                     </div>
-                  </button>
+                  </Link>
                 ))}
               </div>
             </div>
