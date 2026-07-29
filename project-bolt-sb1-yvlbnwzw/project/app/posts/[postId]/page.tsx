@@ -20,7 +20,7 @@ const fetchPostMeta = cache(async (postId: string) => {
   const supabase = makeSupabase();
   const { data } = await supabase
     .from('posts')
-    .select('id, user_id, text, job_title, post_type, city, country, category, experience_level, availability, created_at, is_pinned, pinned_at, author:profiles!posts_user_id_fkey(id, name, email, avatar_url, account_type, average_rating, review_count)')
+    .select('id, user_id, text, job_title, post_type, city, country, category, experience_level, availability, created_at, is_pinned, pinned_at, author:profiles!posts_user_id_fkey(id, name, email, avatar_url, account_type, average_rating, review_count, phone, show_phone)')
     .eq('id', postId)
     .maybeSingle();
   return data;
@@ -220,6 +220,8 @@ export default async function SinglePostPage({ params }: Props) {
       account_type: (((author as any)?.account_type as string) ?? 'professional') as 'professional' | 'customer',
       average_rating: (author as any)?.average_rating as number | undefined,
       review_count: (author as any)?.review_count as number | undefined,
+      phone: ((author as any)?.phone as string | null) ?? null,
+      show_phone: ((author as any)?.show_phone as boolean) ?? true,
     },
   };
 

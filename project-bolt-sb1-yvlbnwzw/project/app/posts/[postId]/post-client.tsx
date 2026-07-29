@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Pin, AlertCircle, MessageSquare, ChevronLeft, ChevronRight, DollarSign, Briefcase, Heart, Send, Pencil, Share2 } from 'lucide-react';
+import { ArrowLeft, Pin, AlertCircle, MessageSquare, ChevronLeft, ChevronRight, DollarSign, Briefcase, Heart, Send, Pencil, Share2, Phone } from 'lucide-react';
 import { timeAgo } from '@/lib/utils/date';
 import { toast } from 'sonner';
 import { SendOfferModal } from '@/components/send-offer-modal-v2';
@@ -50,6 +50,8 @@ type PostUser = {
   account_type: 'professional' | 'customer';
   average_rating?: number;
   review_count?: number;
+  phone?: string | null;
+  show_phone?: boolean;
 };
 
 type Post = {
@@ -99,6 +101,18 @@ function getAvailabilityLabel(value: string | null, t: (k: string) => string): s
   if (value === 'Within 1 week') return t('marketplace.avail1Week');
   if (value === 'Within 2 weeks') return t('marketplace.avail2Weeks');
   return null;
+}
+
+// Returns cleaned phone variants for tel:, wa.me, and viber:// links.
+// Uses the structured profiles.phone field — never parses free text.
+function parsePhone(raw: string | null | undefined): { display: string; tel: string; wa: string } | null {
+  if (!raw?.trim()) return null;
+  const display = raw.trim();
+  const tel = display.replace(/[\s\-().]/g, ''); // strip spaces/dashes/parens; keep leading +
+  const digits = tel.replace(/\D/g, '');
+  if (digits.length < 7) return null;            // guard against garbage values
+  const wa = tel.replace(/^\+/, '');             // wa.me uses number without leading +
+  return { display, tel, wa };
 }
 
 function SinglePostContent({ initialData, relatedPosts }: { initialData: PostInitialData; relatedPosts: RelatedPost[] }) {
@@ -425,6 +439,7 @@ function SinglePostContent({ initialData, relatedPosts }: { initialData: PostIni
   // ── Job / regular post view ──────────────────────────────────────────────────
   const isJobPost = JOB_POST_TYPES.includes(post.post_type as any);
   const isOwner = !!user && post.user_id === user.id;
+  const phoneData = isJobPost && post.user.show_phone !== false ? parsePhone(post.user.phone) : null;
 
   // Info chips data
   const chips: { key: string; label: string; href: string | null }[] = [];
@@ -728,6 +743,42 @@ function SinglePostContent({ initialData, relatedPosts }: { initialData: PostIni
             </CardContent>
           )}
         </Card>
+
+        {/* Contact section — phone from poster's profile, only shown when show_phone is enabled */}
+        {phoneData && (
+          <section className="mt-4">
+            <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+              {t('profile.contactInformation')}
+            </h2>
+            <div className="space-y-2">
+              <a
+                href={`tel:${phoneData.tel}`}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+              >
+                <Phone className="h-4 w-4 shrink-0" />
+                <span className="font-medium text-sm">{phoneData.display}</span>
+              </a>
+              <div className="flex gap-2">
+                <a
+                  href={`https://wa.me/${phoneData.wa}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border border-[#25D366]/40 bg-[#25D366]/10 text-[#128C7E] dark:text-[#25D366] hover:bg-[#25D366]/20 transition-colors font-medium text-sm"
+                >
+                  <MessageSquare className="h-4 w-4 shrink-0" />
+                  WhatsApp
+                </a>
+                <a
+                  href={`viber://chat?number=${encodeURIComponent(phoneData.tel)}`}
+                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border border-[#7360F2]/40 bg-[#7360F2]/10 text-[#7360F2] dark:text-[#9B8BF4] hover:bg-[#7360F2]/20 transition-colors font-medium text-sm"
+                >
+                  <Phone className="h-4 w-4 shrink-0" />
+                  Viber
+                </a>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Related jobs — same category, prioritised by same city */}
         {isJobPost && relatedPosts.length > 0 && (
