@@ -1557,7 +1557,7 @@ export default {
   'credits.buy.contactSupportSub': 'dogovor individualno',
   'credits.buy.close': 'Zatvori',
   'referral.title': 'Pozovi prijatelje',
-  'referral.subtitle': '+20 kredita po registraciji • {count} pozvanih',
+  'referral.subtitle': '+50 kredita po registraciji • {count} pozvanih',
   'referral.copy': 'Kopiraj',
   'referral.copied': 'Kopirano!',
 

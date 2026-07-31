@@ -1557,7 +1557,7 @@ export default {
   'credits.buy.contactSupportSub': 'individual arrangement',
   'credits.buy.close': 'Close',
   'referral.title': 'Invite friends',
-  'referral.subtitle': '+20 credits per registration • {count} invited',
+  'referral.subtitle': '+50 credits per registration • {count} invited',
   'referral.copy': 'Copy',
   'referral.copied': 'Copied!',
 

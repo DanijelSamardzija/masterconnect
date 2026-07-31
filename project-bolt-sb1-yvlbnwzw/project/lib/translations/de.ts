@@ -1553,7 +1553,7 @@ export default {
   'credits.buy.contactSupportSub': 'individuelle Absprache',
   'credits.buy.close': 'Schließen',
   'referral.title': 'Freunde einladen',
-  'referral.subtitle': '+20 Credits pro Registrierung • {count} eingeladen',
+  'referral.subtitle': '+50 Credits pro Registrierung • {count} eingeladen',
   'referral.copy': 'Kopieren',
   'referral.copied': 'Kopiert!',
 
