@@ -20,7 +20,7 @@ const fetchPostMeta = cache(async (postId: string) => {
   const supabase = makeSupabase();
   const { data } = await supabase
     .from('posts')
-    .select('id, user_id, text, job_title, post_type, city, country, category, experience_level, availability, created_at, is_pinned, pinned_at, author:profiles!posts_user_id_fkey(id, name, email, avatar_url, account_type, average_rating, review_count, phone, show_phone)')
+    .select('id, user_id, text, job_title, post_type, city, country, category, experience_level, availability, created_at, is_pinned, pinned_at, price_type, price_value, currency, author:profiles!posts_user_id_fkey(id, name, email, avatar_url, account_type, average_rating, review_count, phone, show_phone)')
     .eq('id', postId)
     .maybeSingle();
   return data;
@@ -196,6 +196,25 @@ export default async function SinglePostPage({ params }: Props) {
       },
     } : {}),
     ...(rawCategory && validCategory ? { occupationalCategory: getCategoryLabel(rawCategory as CategorySlug, 'sr') } : {}),
+    ...(() => {
+      const priceType = (rawData as any).price_type as string | null;
+      const priceValue = (rawData as any).price_value as number | null;
+      const currency = (rawData as any).currency as string | null;
+      if (priceType === 'hourly' && priceValue != null && priceValue > 0 && currency) {
+        return {
+          baseSalary: {
+            '@type': 'MonetaryAmount',
+            currency,
+            value: {
+              '@type': 'QuantitativeValue',
+              value: priceValue,
+              unitText: 'HOUR',
+            },
+          },
+        };
+      }
+      return {};
+    })(),
   } : null;
 
   const initialData = {
