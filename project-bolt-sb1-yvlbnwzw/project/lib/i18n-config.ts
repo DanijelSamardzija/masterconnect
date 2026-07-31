@@ -19,6 +19,23 @@ export function detectLang(acceptLanguage: string): Lang {
 }
 
 export const pageMeta = {
+  homepage: {
+    sr: {
+      title: 'GigZone – Platforma za profesionalce, usluge i poslove',
+      description: 'Objavite posao, pronađite profesionalce, ponudite usluge ili predstavite svoj rad. GigZone povezuje firme, freelancere, kreatore sadržaja i korisnike na jednom mjestu.',
+      keywords: ['profesionalci', 'usluge', 'poslovi', 'freelance', 'kreatori sadržaja', 'marketplace', 'gigzone'],
+    },
+    en: {
+      title: 'GigZone – Platform for Professionals, Services & Jobs',
+      description: 'Post a job, find professionals, offer services or showcase your work. GigZone connects businesses, freelancers, content creators and users in one place.',
+      keywords: ['professionals', 'services', 'jobs', 'freelance', 'content creators', 'marketplace', 'gigzone'],
+    },
+    de: {
+      title: 'GigZone – Plattform für Fachleute, Dienstleistungen & Jobs',
+      description: 'Job inserieren, Fachleute finden, Dienstleistungen anbieten oder Ihre Arbeit präsentieren. GigZone verbindet Unternehmen, Freelancer, Content Creator und Nutzer auf einer Plattform.',
+      keywords: ['Fachleute', 'Dienstleistungen', 'Jobs', 'Freelancer', 'Content Creator', 'Marktplatz', 'gigzone'],
+    },
+  },
   jobs: {
     sr: {
       title: 'Poslovi i zapošljavanje — GigZone',

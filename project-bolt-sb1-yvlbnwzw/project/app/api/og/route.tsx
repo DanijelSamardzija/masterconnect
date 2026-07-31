@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
             flex: 1,
           }}
         >
-          {postText || 'GigZone — Platforma za majstore i poslove'}
+          {postText || 'GigZone – Platforma za profesionalce, usluge i poslove'}
         </div>
 
         {/* Bottom */}

@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import { HomeClient } from './home-client';
 
 export const metadata: Metadata = {
-  title: 'GigZone - Platforma za majstore i poslove',
+  title: 'GigZone – Platforma za profesionalce, usluge i poslove',
   description:
-    'Pronađite majstore, objavite poslove ili ponudite svoje usluge. Marketplace koji povezuje korisnike, pružaoce usluga i tražioce poslova u ex-YU zajednici.',
+    'Objavite posao, pronađite profesionalce, ponudite usluge ili predstavite svoj rad. GigZone povezuje firme, freelancere, kreatore sadržaja i korisnike na jednom mjestu.',
   alternates: {
     canonical: 'https://www.gigzone.app',
   },

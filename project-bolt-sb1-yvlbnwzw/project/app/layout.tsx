@@ -18,10 +18,10 @@ import { Suspense } from 'react';
 const inter = Inter({ subsets: ['latin', 'latin-ext'] });
 
 export const metadata: Metadata = {
-  title: 'GigZone - Platforma za majstore i poslove',
+  title: 'GigZone – Platforma za profesionalce, usluge i poslove',
   description:
-    'Pronađite majstore, objavite poslove ili ponudite svoje usluge. Marketplace koji povezuje korisnike, pružaoce usluga i tražioce poslova.',
-  keywords: ['majstori', 'poslovi', 'usluge', 'marketplace', 'zaposljavanje', 'gigzone'],
+    'Objavite posao, pronađite profesionalce, ponudite usluge ili predstavite svoj rad. GigZone povezuje firme, freelancere, kreatore sadržaja i korisnike na jednom mjestu.',
+  keywords: ['profesionalci', 'usluge', 'poslovi', 'freelance', 'kreatori sadržaja', 'marketplace', 'gigzone'],
   authors: [{ name: 'GigZone' }],
   metadataBase: new URL('https://www.gigzone.app'),
   alternates: { canonical: 'https://www.gigzone.app' },
@@ -40,8 +40,8 @@ export const metadata: Metadata = {
     title: 'GigZone',
   },
   openGraph: {
-    title: 'GigZone - Platforma za majstore i poslove',
-    description: 'Pronađite majstore, objavite poslove ili ponudite svoje usluge. Marketplace za ex-YU zajednicu u zemlji i dijaspori.',
+    title: 'GigZone – Platforma za profesionalce, usluge i poslove',
+    description: 'Objavite posao, pronađite profesionalce, ponudite usluge ili predstavite svoj rad. GigZone povezuje firme, freelancere, kreatore sadržaja i korisnike na jednom mjestu.',
     url: 'https://www.gigzone.app',
     siteName: 'GigZone',
     locale: 'sr_RS',
@@ -57,8 +57,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary',
-    title: 'GigZone - Platforma za majstore i poslove',
-    description: 'Pronađite majstore, objavite poslove ili ponudite svoje usluge.',
+    title: 'GigZone – Platforma za profesionalce, usluge i poslove',
+    description: 'Objavite posao, pronađite profesionalce ili ponudite usluge. GigZone na jednom mjestu.',
     images: ['https://www.gigzone.app/icon-512.png'],
   },
 };
