@@ -23,6 +23,7 @@ import { toast } from 'sonner';
 import { Loader2, MapPin, MessageCircle, Star, ChevronLeft, ChevronRight, User, Share2, Edit, Trash2, ImageOff, Calendar } from 'lucide-react';
 import { ContactCard } from '@/components/contact-card';
 import { timeAgo } from '@/lib/utils/date';
+import { trackView } from '@/lib/recently-viewed';
 
 type ServiceDetail = {
   id: string;
@@ -86,6 +87,8 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
     if ((initialData.profiles as any)?.account_type === 'professional') {
       loadRecentReviews(initialData.user_id);
     }
+    const title = initialData.job_title || initialData.text?.slice(0, 60) || 'Usluga';
+    trackView({ id: initialData.id, title, url: `/services/${initialData.id}` });
   }, []);
 
   const loadSimilarServices = async (category: string, currentServiceId: string) => {

@@ -12,18 +12,20 @@ import { trackEvent } from '@/lib/analytics';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { resumeAfterAuth } from '@/lib/guest-intent';
 import { detectGeo } from '@/lib/geo';
+import { CATEGORY_SLUGS, getCategoryLabel } from '@/lib/seo/categories';
 
-type Step = 1 | 2;
+type Step = 1 | 2 | 3;
 
 export default function OnboardingPage() {
   const { user, loading, refreshProfile } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
 
   const [step, setStep] = useState<Step>(1);
   const [name, setName] = useState('');
   const [hasGoogleName, setHasGoogleName] = useState(false);
   const [city, setCity] = useState('');
+  const [interests, setInterests] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -61,10 +63,20 @@ export default function OnboardingPage() {
     setStep(2);
   };
 
-  const handleFinish = async () => {
+  const handleStep2 = () => {
+    trackEvent('onboarding_step_2_completed', { role: 'customer' });
+    setStep(3);
+  };
+
+  const toggleInterest = (slug: string) => {
+    setInterests(prev =>
+      prev.includes(slug) ? prev.filter(s => s !== slug) : [...prev, slug]
+    );
+  };
+
+  const handleFinish = async (skipInterests = false) => {
     setSaving(true);
     setError('');
-    trackEvent('onboarding_step_2_completed', { role: 'customer' });
     try {
       await supabase.auth.updateUser({ data: { full_name: name, account_type: 'customer' } });
 
@@ -83,13 +95,14 @@ export default function OnboardingPage() {
           role: 'customer',
           signup_source: signupSource,
           onboarding_completed: true,
+          feed_interests: skipInterests ? [] : interests,
           ...(city.trim() ? { city: city.trim() } : {}),
           ...(geo.country  ? { country: geo.country } : {}),
         }, { onConflict: 'id' });
 
       if (profileError) throw profileError;
 
-      trackEvent('onboarding_complete', { role: 'customer' });
+      trackEvent('onboarding_complete', { role: 'customer', interests_count: skipInterests ? 0 : interests.length });
       trackEvent('register_success', { source: 'google' });
       fetch('/api/email/welcome', {
         method: 'POST',
@@ -127,9 +140,15 @@ export default function OnboardingPage() {
         <div className="flex gap-2 mb-8">
           <div className={`h-2 w-8 rounded-full transition-all ${step >= 1 ? 'bg-orange-500' : 'bg-white/10'}`} />
           <div className={`h-2 w-8 rounded-full transition-all ${step >= 2 ? 'bg-orange-500' : 'bg-white/10'}`} />
+          <div className={`h-2 w-8 rounded-full transition-all ${step >= 3 ? 'bg-orange-500' : 'bg-white/10'}`} />
         </div>
       )}
-      {hasGoogleName && <div className="mb-8" />}
+      {hasGoogleName && (
+        <div className="flex gap-2 mb-8">
+          <div className={`h-2 w-8 rounded-full transition-all ${step >= 2 ? 'bg-orange-500' : 'bg-white/10'}`} />
+          <div className={`h-2 w-8 rounded-full transition-all ${step >= 3 ? 'bg-orange-500' : 'bg-white/10'}`} />
+        </div>
+      )}
 
       <div className="w-full max-w-sm">
 
@@ -183,11 +202,11 @@ export default function OnboardingPage() {
             {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
 
             <Button
-              onClick={handleFinish}
+              onClick={handleStep2}
               disabled={saving}
               className="w-full h-14 text-base font-bold bg-orange-600 hover:bg-orange-500 rounded-2xl shadow-lg shadow-orange-600/30 disabled:opacity-50"
             >
-              {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <>Nastavi <ArrowRight className="ml-2 h-5 w-5" /></>}
+              Nastavi <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
 
             {!hasGoogleName && (
@@ -199,6 +218,51 @@ export default function OnboardingPage() {
                 ← Nazad
               </button>
             )}
+          </div>
+        )}
+
+        {/* ── STEP 3: Interests ── */}
+        {step === 3 && (
+          <div className="bg-[#1a1a1a] border border-white/10 rounded-3xl p-7 shadow-2xl">
+            <h1 className="text-2xl font-black text-white mb-1">{t('interests.title')}</h1>
+            <p className="text-slate-400 text-sm mb-5">{t('interests.subtitle')}</p>
+
+            <div className="flex flex-wrap gap-2 mb-6">
+              {CATEGORY_SLUGS.filter(s => s !== 'other').map((slug) => {
+                const selected = interests.includes(slug);
+                return (
+                  <button
+                    key={slug}
+                    onClick={() => toggleInterest(slug)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                      selected
+                        ? 'bg-orange-500/20 border-orange-500 text-orange-400'
+                        : 'bg-white/5 border-white/10 text-slate-400 hover:border-white/30'
+                    }`}
+                  >
+                    {getCategoryLabel(slug, language)}
+                  </button>
+                );
+              })}
+            </div>
+
+            {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
+
+            <Button
+              onClick={() => handleFinish(false)}
+              disabled={saving || interests.length === 0}
+              className="w-full h-14 text-base font-bold bg-orange-600 hover:bg-orange-500 rounded-2xl shadow-lg shadow-orange-600/30 disabled:opacity-50"
+            >
+              {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <>Nastavi <ArrowRight className="ml-2 h-5 w-5" /></>}
+            </Button>
+
+            <button
+              onClick={() => handleFinish(true)}
+              disabled={saving}
+              className="w-full text-center text-slate-500 text-sm mt-4 hover:text-slate-300 transition-colors disabled:opacity-50"
+            >
+              {t('interests.skip')} →
+            </button>
           </div>
         )}
 

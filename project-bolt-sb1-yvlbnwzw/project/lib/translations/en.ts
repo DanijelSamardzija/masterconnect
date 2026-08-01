@@ -1234,6 +1234,20 @@ export default {
   'share.sending': 'Sending...',
   'share.sentToast': 'Message sent!',
   'share.sendError': 'Error sending message',
+  'share.viber': 'Share on Viber',
+  'share.telegram': 'Share on Telegram',
+
+  // Interests
+  'interests.title': "What are you interested in?",
+  'interests.subtitle': 'Choose the areas that interest you. You can change this in your profile settings.',
+  'interests.skip': 'Skip',
+  'interests.label': 'Areas of interest',
+  'interests.hint': 'Choose one or more areas',
+  'interests.saved': 'Interests saved',
+
+  // Recently viewed
+  'recentlyViewed.title': 'Continue where you left off',
+  'recentlyViewed.dismiss': 'Dismiss',
 
   // Onboarding
   'onboarding.welcome': 'Welcome to GigZone!',

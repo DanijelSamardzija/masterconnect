@@ -42,6 +42,7 @@ import { useGuestGate } from '@/lib/contexts/guest-gate-context';
 import { GuestWall } from '@/components/guest-wall';
 
 import { getSearchWords } from '@/lib/search/build-fts-query';
+import { getRecentlyViewed, type RecentItem } from '@/lib/recently-viewed';
 
 export const revalidate = 0;
 
@@ -166,6 +167,8 @@ function FeedContent() {
   const pulseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const watchStartRef = useRef<{ id: string; ts: number } | null>(null);
   const watchTimesRef = useRef<Record<string, number>>({});
+  const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
+  const [recentDismissed, setRecentDismissed] = useState(false);
 
   const OWNER_USER_ID = 'c5e87d26-7e51-4c05-9c4f-13e39e002c48';
   const PREFETCH_THRESHOLD = 5;
@@ -173,7 +176,29 @@ function FeedContent() {
   useEffect(() => {
     loadPosts(true);
     if (user) fetchSavedPosts();
+    setRecentItems(getRecentlyViewed());
+    const dismissed = sessionStorage.getItem('gz_rv_dismissed') === '1';
+    setRecentDismissed(dismissed);
   }, [user]);
+
+  const dismissRecentItems = () => {
+    sessionStorage.setItem('gz_rv_dismissed', '1');
+    setRecentDismissed(true);
+  };
+
+  function applyDiversityClamp<T extends { user_id: string }>(items: T[]): T[] {
+    const result: T[] = [];
+    const deferred: T[] = [];
+    for (const item of items) {
+      const tail = result.slice(-2);
+      if (tail.length === 2 && tail.every(p => p.user_id === item.user_id)) {
+        deferred.push(item);
+      } else {
+        result.push(item);
+      }
+    }
+    return [...result, ...deferred];
+  }
 
   useEffect(() => {
     loadPosts(true);
@@ -440,11 +465,12 @@ function FeedContent() {
           }
         }
 
-        setPosts(finalPosts);
+        setPosts(applyDiversityClamp(finalPosts));
       } else {
         setPosts(prev => {
           const existingIds = new Set(prev.map(p => p.id));
-          return [...prev, ...postsWithData.filter((p: any) => !existingIds.has(p.id))];
+          const fresh = postsWithData.filter((p: any) => !existingIds.has(p.id));
+          return applyDiversityClamp([...prev, ...fresh]);
         });
       }
       setOffset(nextOffset);
@@ -681,6 +707,35 @@ function FeedContent() {
             <span className="text-orange-500">#{activeHashtag}</span>
             <X className="h-3.5 w-3.5 text-muted-foreground" />
           </button>
+        </div>
+      )}
+
+      {/* Recently viewed strip */}
+      {recentItems.length > 0 && !recentDismissed && (
+        <div className="fixed bottom-0 left-0 right-0 z-20 bg-background/90 backdrop-blur-md border-t border-border">
+          <div className="flex items-center gap-2 px-3 py-2">
+            <span className="text-xs font-medium text-muted-foreground whitespace-nowrap shrink-0">
+              {t('recentlyViewed.title')}
+            </span>
+            <div className="flex gap-2 overflow-x-auto scrollbar-none flex-1 min-w-0">
+              {recentItems.map((item) => (
+                <Link
+                  key={item.id}
+                  href={item.url}
+                  className="shrink-0 px-3 py-1.5 rounded-full bg-muted border border-border text-xs text-foreground hover:border-orange-500/60 hover:text-orange-500 transition-colors max-w-[180px] truncate"
+                >
+                  {item.title}
+                </Link>
+              ))}
+            </div>
+            <button
+              onClick={dismissRecentItems}
+              className="shrink-0 p-1 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+              aria-label={t('recentlyViewed.dismiss')}
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
       )}
 

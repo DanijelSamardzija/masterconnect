@@ -26,6 +26,7 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { usePageTracking } from '@/lib/hooks/use-page-tracking';
 import { isValidCategory, getCategoryLabel, type CategorySlug } from '@/lib/seo/categories';
 import { slugifyCity } from '@/lib/seo/slugify';
+import { trackView } from '@/lib/recently-viewed';
 
 const JOB_POST_TYPES = ['hiring_post', 'job_seeker_post', 'service_request'] as const;
 
@@ -135,6 +136,8 @@ function SinglePostContent({ initialData, relatedPosts }: { initialData: PostIni
 
   useEffect(() => {
     fetchInteractiveData();
+    const title = initialData.job_title || initialData.text?.slice(0, 60) || 'Post';
+    trackView({ id: postId, title, url: `/posts/${postId}` });
   }, [postId]);
 
   useEffect(() => {

@@ -20,11 +20,13 @@ import { Loader2, Upload, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { countries } from '@/lib/countries';
+import { CATEGORY_SLUGS, getCategoryLabel, type CategorySlug } from '@/lib/seo/categories';
 
 function EditProfileContent() {
   const router = useRouter();
   const { user, profile, refreshProfile } = useAuth();
   const { t, language } = useLanguage();
+  const [feedInterests, setFeedInterests] = useState<string[]>([]);
   const [name, setName] = useState('');
   const [city, setCity] = useState('');
   const [country, setCountry] = useState('');
@@ -66,6 +68,7 @@ function EditProfileContent() {
       setShowPhone(profile.show_phone ?? true);
       setShowEmail(profile.show_email ?? false);
       setAvatarUrl(profile.avatar_url || '');
+      setFeedInterests((profile as any).feed_interests || []);
       setLoading(false);
     }
   }, [profile]);
@@ -159,6 +162,7 @@ function EditProfileContent() {
           show_phone: showPhone,
           show_email: showEmail,
           avatar_url: avatarUrl || null,
+          feed_interests: feedInterests,
         })
         .eq('id', user!.id);
 
@@ -412,6 +416,35 @@ function EditProfileContent() {
                   disabled={saving}
                   maxLength={MAX_BIO_LENGTH}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t('interests.label')}</Label>
+                <p className="text-xs text-muted-foreground">{t('interests.hint')}</p>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {CATEGORY_SLUGS.filter(s => s !== 'other').map((slug) => {
+                    const selected = feedInterests.includes(slug);
+                    return (
+                      <button
+                        key={slug}
+                        type="button"
+                        onClick={() =>
+                          setFeedInterests(prev =>
+                            prev.includes(slug) ? prev.filter(s => s !== slug) : [...prev, slug]
+                          )
+                        }
+                        disabled={saving}
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all disabled:opacity-50 ${
+                          selected
+                            ? 'bg-orange-500/15 border-orange-500 text-orange-600 dark:text-orange-400'
+                            : 'bg-background border-border text-muted-foreground hover:border-orange-500/50'
+                        }`}
+                      >
+                        {getCategoryLabel(slug as CategorySlug, language)}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="flex gap-3 pt-4">

@@ -30,6 +30,18 @@ const WhatsAppIcon = () => (
   </svg>
 );
 
+const ViberIcon = () => (
+  <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current" xmlns="http://www.w3.org/2000/svg">
+    <path d="M11.4 0h1.1c4.3.2 8.3 2.8 10.2 6.7 1.1 2.2 1.5 4.7 1.3 7.1-.4 4.2-3 8-6.8 9.9-2.1 1.1-4.5 1.5-6.9 1.2L5.5 24l-.1-3.4C2.3 18.9.3 15.7 0 12.3-.3 8.8 1.3 5.3 4.1 3 6.2 1.2 8.8.1 11.4 0zm.5 2c-2.2.1-4.3.9-6 2.3C3.6 5.8 2.3 8.5 2.5 11.3c.2 2.8 1.8 5.3 4.1 6.7l.4.2.1 2 1.8-.5.5.1c2.1.4 4.3.1 6.2-.9 3-1.5 5-4.6 5.3-7.9.2-2.1-.2-4.3-1.1-6.1C17.9 2.7 14.7.8 11.9 2zm1 3.7c.3 0 .7.1 1 .2.7.2 1.5.6 2.1 1.1 1 .8 1.6 1.9 1.8 3.1.1.7.1 1.5-.1 2.2-.4 1.5-1.5 2.8-2.9 3.3-.4.2-.9.3-1.4.3-.5 0-1-.1-1.5-.3l-1.1.3-.3-1c-.8-.4-1.5-1-2-1.8-.6-.9-.9-2-.8-3.1.1-1.1.5-2.2 1.3-3C9.8 6.3 11 5.7 12.4 5.7zm.1 1.2c-1 0-1.9.4-2.6 1.1-.6.6-.9 1.5-1 2.3-.1.9.2 1.8.7 2.5.4.6.9 1 1.5 1.3l.2.1.2.7.7-.2.2.1c.4.1.8.2 1.2.2.4 0 .7-.1 1.1-.2 1-.4 1.8-1.3 2.1-2.4.2-.5.2-1.1.1-1.6-.1-.9-.6-1.8-1.3-2.4-.7-.5-1.4-.8-2.2-.8-.3 0-.6 0-.9.1v-.8h-.2z"/>
+  </svg>
+);
+
+const TelegramIcon = () => (
+  <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current" xmlns="http://www.w3.org/2000/svg">
+    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+  </svg>
+);
+
 export function SharePostModal({ postId, open, onOpenChange, urlPath }: SharePostModalProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
@@ -90,6 +102,14 @@ export function SharePostModal({ postId, open, onOpenChange, urlPath }: SharePos
 
   const handleWhatsAppShare = () => {
     window.open(`https://wa.me/?text=${encodeURIComponent(postUrl)}`, '_blank');
+  };
+
+  const handleViberShare = () => {
+    window.open(`viber://forward?text=${encodeURIComponent(postUrl)}`, '_blank');
+  };
+
+  const handleTelegramShare = () => {
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(postUrl)}`, '_blank');
   };
 
   const handleSendToUser = async (recipient: UserResult) => {
@@ -194,6 +214,16 @@ export function SharePostModal({ postId, open, onOpenChange, urlPath }: SharePos
             <button onClick={handleWhatsAppShare} className="flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl bg-[#25D366]/10 hover:bg-[#25D366]/20 border border-[#25D366]/30 transition-colors text-[#25D366] text-sm font-medium">
               <WhatsAppIcon />
               <span>{t('share.whatsapp')}</span>
+            </button>
+
+            <button onClick={handleViberShare} className="flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl bg-[#7360F2]/10 hover:bg-[#7360F2]/20 border border-[#7360F2]/30 transition-colors text-[#7360F2] text-sm font-medium">
+              <ViberIcon />
+              <span>{t('share.viber')}</span>
+            </button>
+
+            <button onClick={handleTelegramShare} className="flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl bg-[#26A5E4]/10 hover:bg-[#26A5E4]/20 border border-[#26A5E4]/30 transition-colors text-[#26A5E4] text-sm font-medium">
+              <TelegramIcon />
+              <span>{t('share.telegram')}</span>
             </button>
 
             {canShare && (

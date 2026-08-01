@@ -1230,6 +1230,20 @@ export default {
   'share.sending': 'Wird gesendet...',
   'share.sentToast': 'Nachricht gesendet!',
   'share.sendError': 'Fehler beim Senden der Nachricht',
+  'share.viber': 'Auf Viber teilen',
+  'share.telegram': 'Auf Telegram teilen',
+
+  // Interests
+  'interests.title': 'Was interessiert dich?',
+  'interests.subtitle': 'Wähle Bereiche aus, die dich interessieren. Du kannst dies in den Profileinstellungen ändern.',
+  'interests.skip': 'Überspringen',
+  'interests.label': 'Interessengebiete',
+  'interests.hint': 'Wähle einen oder mehrere Bereiche',
+  'interests.saved': 'Interessen gespeichert',
+
+  // Recently viewed
+  'recentlyViewed.title': 'Weitermachen wo du aufgehört hast',
+  'recentlyViewed.dismiss': 'Schließen',
 
   // Onboarding
   'onboarding.welcome': 'Willkommen bei GigZone!',

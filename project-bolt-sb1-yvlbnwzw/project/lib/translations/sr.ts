@@ -1234,6 +1234,20 @@ export default {
   'share.sending': 'Slanje...',
   'share.sentToast': 'Poruka poslata!',
   'share.sendError': 'Greška pri slanju poruke',
+  'share.viber': 'Podijeli na Viber',
+  'share.telegram': 'Podijeli na Telegram',
+
+  // Interests
+  'interests.title': 'Šta te zanima?',
+  'interests.subtitle': 'Odaberi oblasti koje te zanimaju. Možeš promijeniti u podešavanjima profila.',
+  'interests.skip': 'Preskoči',
+  'interests.label': 'Oblasti interesovanja',
+  'interests.hint': 'Odaberi jednu ili više oblasti',
+  'interests.saved': 'Interesovanja sačuvana',
+
+  // Recently viewed
+  'recentlyViewed.title': 'Nastavi gdje si stao',
+  'recentlyViewed.dismiss': 'Odbaci',
 
   // Onboarding
   'onboarding.welcome': 'Dobrodošao na GigZone!',

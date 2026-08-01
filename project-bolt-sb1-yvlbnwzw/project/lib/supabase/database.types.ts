@@ -1572,6 +1572,7 @@ export type Database = {
           cover_url: string | null
           created_at: string | null
           email: string
+          feed_interests: string[]
           id: string
           is_admin: boolean | null
           is_banned: boolean | null
@@ -1609,6 +1610,7 @@ export type Database = {
           cover_url?: string | null
           created_at?: string | null
           email?: string
+          feed_interests?: string[]
           id: string
           is_admin?: boolean | null
           is_banned?: boolean | null
@@ -1645,6 +1647,7 @@ export type Database = {
           cover_url?: string | null
           created_at?: string | null
           email?: string
+          feed_interests?: string[]
           id?: string
           is_admin?: boolean | null
           is_banned?: boolean | null
