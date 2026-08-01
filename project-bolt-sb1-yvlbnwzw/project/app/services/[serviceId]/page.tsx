@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import { ServiceDetailClient } from './service-detail-client';
+import { isValidCategory, getCategoryLabel, type CategorySlug } from '@/lib/seo/categories';
 
 type Props = { params: { serviceId: string } };
 
@@ -53,13 +54,17 @@ export default async function ServiceDetailPage({ params }: Props) {
   if (!data) notFound();
   const profile = (data as any)?.profiles as any;
 
+  const rawCat: string = (data as any).category ?? '';
+  const validCat = isValidCategory(rawCat);
+  const categoryLabel = validCat ? getCategoryLabel(rawCat as CategorySlug, 'sr') : null;
+
   const jsonLd = data ? {
     '@context': 'https://schema.org',
     '@type': 'Service',
-    name: data.job_title || data.category || 'Usluga',
+    name: data.job_title || categoryLabel || 'Usluga',
     description: data.text || '',
     areaServed: data.city || undefined,
-    serviceType: data.category || undefined,
+    serviceType: categoryLabel || undefined,
     provider: {
       '@type': 'Person',
       name: profile?.name || 'GigZone korisnik',

@@ -31,7 +31,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!data) notFound();
 
   const providerName = (data.profiles as any)?.name ?? '';
-  const serviceTitle = (data as any).job_title || (data as any).category || 'Usluga';
+  const rawCat: string = (data as any).category ?? '';
+  const validCat = isValidCategory(rawCat);
+  const categoryLabel = validCat ? getCategoryLabel(rawCat as CategorySlug, 'sr') : null;
+  const serviceTitle = (data as any).job_title || categoryLabel || 'Usluga';
   const city: string = (data as any).city ?? '';
 
   const titleParts = [
@@ -42,12 +45,25 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = titleParts.join(' | ');
 
   const intro = city
-    ? `Pronađite profesionalnog ${serviceTitle.toLowerCase()} u ${city}.`
-    : `Pronađite profesionalnog ${serviceTitle.toLowerCase()}.`;
+    ? `Pronađite ${serviceTitle.toLowerCase()} u ${city}.`
+    : `Pronađite ${serviceTitle.toLowerCase()}.`;
 
-  const description = data.text
-    ? `${intro} ${data.text.replace(/\n/g, ' ')}`.slice(0, 155).trimEnd()
-    : `${intro} Pogledajte uslugu, fotografije i kontaktirajte direktno preko GigZone.`;
+  const fallbackCta = providerName
+    ? `Pogledajte fotografije, opis usluge i kontaktirajte ${providerName} direktno preko GigZone.`
+    : 'Pogledajte fotografije, opis usluge i kontaktirajte pružaoca direktno preko GigZone.';
+
+  const rawDesc = data.text
+    ? `${intro} ${data.text.replace(/\n/g, ' ').trim()}`
+    : `${intro} ${fallbackCta}`;
+
+  const descCut = rawDesc.lastIndexOf(' ', 155);
+  const description = rawDesc.length <= 155
+    ? rawDesc
+    : rawDesc.slice(0, descCut > 0 ? descCut : 155).trimEnd() + '…';
+
+  const keywords = Array.from(new Set(
+    [serviceTitle, categoryLabel, city, providerName, 'GigZone'].filter(Boolean)
+  )) as string[];
 
   const mediaList = (data.post_media as any[]) ?? [];
   const firstImage = mediaList
@@ -60,6 +76,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
+    keywords,
     robots: { index: true, follow: true },
     alternates: {
       canonical: `https://www.gigzone.app/services/${params.serviceId}`,
