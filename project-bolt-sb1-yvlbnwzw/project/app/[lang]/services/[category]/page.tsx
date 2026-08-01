@@ -17,9 +17,9 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 const MIN_CITY_LINKS = 2;
 
 const UI_STRINGS = {
-  sr: { home: 'Početna', services: 'Usluge', noResults: 'Nema usluga u ovoj kategoriji.', topCities: 'Top gradovi' },
-  en: { home: 'Home', services: 'Services', noResults: 'No services in this category.', topCities: 'Top cities' },
-  de: { home: 'Startseite', services: 'Dienstleistungen', noResults: 'Keine Dienstleistungen in dieser Kategorie.', topCities: 'Top-Städte' },
+  sr: { home: 'Početna', services: 'Usluge', noResults: 'Nema usluga u ovoj kategoriji.', topCities: 'Top gradovi', crossLinkText: 'Tražiš posao u ovoj oblasti?', crossLinkLabel: 'Oglasi za posao' },
+  en: { home: 'Home', services: 'Services', noResults: 'No services in this category.', topCities: 'Top cities', crossLinkText: 'Looking for work in this field?', crossLinkLabel: 'Job listings' },
+  de: { home: 'Startseite', services: 'Dienstleistungen', noResults: 'Keine Dienstleistungen in dieser Kategorie.', topCities: 'Top-Städte', crossLinkText: 'Arbeit in diesem Bereich gesucht?', crossLinkLabel: 'Stellenangebote' },
 } as const;
 
 type Listing = {
@@ -168,6 +168,17 @@ export default async function CategoryLandingPage({
           </ul>
         </section>
       )}
+
+      <p className="mt-8 text-sm text-muted-foreground">
+        {ui.crossLinkText}{' '}
+        <Link
+          href={`/${lang}/jobs/${slug}`}
+          className="font-medium text-orange-600 hover:underline"
+        >
+          {ui.crossLinkLabel} — {categoryLabel}
+        </Link>
+        .
+      </p>
     </div>
   );
 }

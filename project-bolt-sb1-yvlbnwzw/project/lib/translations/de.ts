@@ -250,6 +250,7 @@ export default {
   'serviceDetail.beFirstReview': 'Sei der Erste, der eine Bewertung hinterlässt',
   'serviceDetail.postedOn': 'Gepostet',
   'serviceDetail.similarServices': 'Ähnliche Einträge',
+  'serviceDetail.moreFromProvider': 'Weitere Angebote von',
   'serviceDetail.ownerBanner': 'Dies ist dein Eintrag',
   'serviceDetail.ownerBannerDesc': 'Nur du kannst diese Optionen sehen',
   'serviceDetail.editListing': 'Eintrag bearbeiten',

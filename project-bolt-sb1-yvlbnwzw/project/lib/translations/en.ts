@@ -249,6 +249,7 @@ export default {
   'serviceDetail.beFirstReview': 'Be the first to leave a review',
   'serviceDetail.postedOn': 'Posted',
   'serviceDetail.similarServices': 'Similar listings',
+  'serviceDetail.moreFromProvider': 'More from',
   'serviceDetail.ownerBanner': 'This is your listing',
   'serviceDetail.ownerBannerDesc': 'Only you can see these options',
   'serviceDetail.editListing': 'Edit listing',

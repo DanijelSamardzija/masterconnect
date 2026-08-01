@@ -21,14 +21,17 @@ const UI_STRINGS = {
   sr: {
     home: 'Početna', jobs: 'Poslovi', noResults: 'Nema oglasa u ovoj kategoriji.',
     topCities: 'Top gradovi', allJobs: 'Sve kategorije',
+    crossLinkText: 'Tražiš stručnjaka za ovu oblast?', crossLinkLabel: 'Pogledaj usluge',
   },
   en: {
     home: 'Home', jobs: 'Jobs', noResults: 'No listings in this category.',
     topCities: 'Top cities', allJobs: 'All categories',
+    crossLinkText: 'Looking for a professional?', crossLinkLabel: 'Browse services',
   },
   de: {
     home: 'Startseite', jobs: 'Jobs', noResults: 'Keine Einträge in dieser Kategorie.',
     topCities: 'Top-Städte', allJobs: 'Alle Kategorien',
+    crossLinkText: 'Suchen Sie einen Fachmann?', crossLinkLabel: 'Dienstleistungen ansehen',
   },
 } as const;
 
@@ -171,6 +174,17 @@ export default async function JobCategoryPage({
           </ul>
         </section>
       )}
+
+      <p className="mt-8 text-sm text-muted-foreground">
+        {ui.crossLinkText}{' '}
+        <Link
+          href={`/${lang}/services/${slug}`}
+          className="font-medium text-orange-600 hover:underline"
+        >
+          {ui.crossLinkLabel} — {categoryLabel}
+        </Link>
+        .
+      </p>
     </div>
   );
 }

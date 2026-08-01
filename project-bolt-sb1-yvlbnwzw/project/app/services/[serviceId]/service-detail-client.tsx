@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { isValidCategory, getCategoryLabel, type CategorySlug } from '@/lib/seo/categories';
+import { slugifyCity } from '@/lib/seo/slugify';
 import { useGuestGate } from '@/lib/contexts/guest-gate-context';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -63,6 +64,7 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
   const { openGuestGate } = useGuestGate();
   const [service] = useState<ServiceDetail | null>(initialData);
   const [similarServices, setSimilarServices] = useState<ServiceDetail[]>([]);
+  const [providerServices, setProviderServices] = useState<ServiceDetail[]>([]);
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [showReviewsModal, setShowReviewsModal] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -80,6 +82,7 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
   useEffect(() => {
     if (!initialData) return;
     if (initialData.category) loadSimilarServices(initialData.category, initialData.id);
+    loadProviderServices(initialData.user_id, initialData.id);
     if ((initialData.profiles as any)?.account_type === 'professional') {
       loadRecentReviews(initialData.user_id);
     }
@@ -126,6 +129,21 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
     } catch (error) {
       console.error('Error loading similar services:', error);
     }
+  };
+
+  const loadProviderServices = async (userId: string, currentId: string) => {
+    try {
+      const { data } = await supabase
+        .from('posts')
+        .select('id, job_title, city, post_media(id, type, url, order)')
+        .eq('post_type', 'service_listing')
+        .eq('is_active', true)
+        .eq('user_id', userId)
+        .neq('id', currentId)
+        .order('created_at', { ascending: false })
+        .limit(3);
+      if (data) setProviderServices(data as any);
+    } catch {}
   };
 
   const handleDelete = async () => {
@@ -252,6 +270,11 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
   const hasRating = service.profiles?.average_rating && service.profiles.average_rating > 0;
   const reviewCount = service.profiles?.review_count || 0;
   const isOwner = user?.id === service.user_id;
+
+  const citySlug = service.city ? slugifyCity(service.city) : null;
+  const cityHref = citySlug && isValidCategory(service.category)
+    ? `/${language}/services/${service.category}/${citySlug}`
+    : service.city ? `/services?city=${encodeURIComponent(service.city)}` : null;
 
   const goToPrev = () => setSelectedImageIndex(i => (i - 1 + images.length) % images.length);
   const goToNext = () => setSelectedImageIndex(i => (i + 1) % images.length);
@@ -394,9 +417,9 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                {service.city && (
+                {cityHref && (
                   <Link
-                    href={`/services?city=${encodeURIComponent(service.city)}`}
+                    href={cityHref}
                     prefetch={false}
                     className="flex items-center gap-1.5 text-gray-600 dark:text-gray-200 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
                   >
@@ -634,6 +657,46 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
               )}
             </div>
           </div>
+
+          {providerServices.length > 0 && (
+            <div className="mt-10">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+                {t('serviceDetail.moreFromProvider')} {service.profiles.name}
+              </h2>
+              <div className="flex flex-col gap-2">
+                {providerServices.map((s: any) => {
+                  const firstImage = s.post_media?.find((m: any) => m.type === 'image');
+                  return (
+                    <Link
+                      key={s.id}
+                      href={`/services/${s.id}`}
+                      prefetch={false}
+                      className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/10 transition-colors"
+                    >
+                      {firstImage ? (
+                        <div className="relative h-12 w-12 flex-shrink-0 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-800">
+                          <Image fill src={firstImage.url} alt={s.job_title || ''} className="object-cover" sizes="48px" />
+                        </div>
+                      ) : (
+                        <div className="h-12 w-12 flex-shrink-0 rounded-md bg-gray-100 dark:bg-gray-800" />
+                      )}
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm text-gray-900 dark:text-white line-clamp-1">
+                          {s.job_title || t('common.listing')}
+                        </p>
+                        {s.city && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-0.5">
+                            <MapPin className="h-3 w-3" />
+                            {s.city}
+                          </p>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {similarServices.length > 0 && (
             <div className="mt-10">

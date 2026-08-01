@@ -249,6 +249,7 @@ export default {
   'serviceDetail.beFirstReview': 'Budite prvi koji će ostaviti recenziju',
   'serviceDetail.postedOn': 'Objavljeno',
   'serviceDetail.similarServices': 'Slični oglasi',
+  'serviceDetail.moreFromProvider': 'Ostale usluge —',
   'serviceDetail.ownerBanner': 'Ovo je vaš oglas',
   'serviceDetail.ownerBannerDesc': 'Samo vi vidite ove opcije',
   'serviceDetail.editListing': 'Izmeni oglas',

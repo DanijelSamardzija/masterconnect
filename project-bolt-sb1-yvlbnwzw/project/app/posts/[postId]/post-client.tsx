@@ -436,13 +436,13 @@ function SinglePostContent({ initialData, relatedPosts }: { initialData: PostIni
     chips.push({
       key: 'category',
       label: getCategoryLabel(post.category as CategorySlug, language as any),
-      href: `/${language}/services/${post.category}`,
+      href: `/${language}/jobs/${post.category}`,
     });
   }
   if (post.city) {
     const citySlug = slugifyCity(post.city);
     const cityHref = citySlug && post.category && isValidCategory(post.category)
-      ? `/${language}/services/${post.category}/${citySlug}`
+      ? `/${language}/jobs/${post.category}/${citySlug}`
       : null;
     chips.push({ key: 'city', label: post.city, href: cityHref });
   }
