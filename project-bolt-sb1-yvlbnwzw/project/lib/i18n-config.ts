@@ -19,6 +19,57 @@ export function detectLang(acceptLanguage: string): Lang {
 }
 
 export const pageMeta = {
+  feed: {
+    sr: {
+      title: 'Feed — GigZone',
+      description: 'Pratite radove, objave i novosti profesionalaca na GigZone. Povežite se sa freelancerima, kreatorima sadržaja i stručnjacima iz vaše oblasti.',
+      keywords: ['feed', 'objave', 'radovi', 'profesionalci', 'freelanceri', 'kreatori sadržaja', 'gigzone'],
+    },
+    en: {
+      title: 'Feed — GigZone',
+      description: 'Follow the work, posts and updates of professionals on GigZone. Connect with freelancers, content creators and experts in your field.',
+      keywords: ['feed', 'posts', 'work', 'professionals', 'freelancers', 'content creators', 'gigzone'],
+    },
+    de: {
+      title: 'Feed — GigZone',
+      description: 'Verfolgen Sie Arbeiten, Beiträge und Neuigkeiten von Fachleuten auf GigZone. Vernetzen Sie sich mit Freelancern, Content Creatorn und Experten.',
+      keywords: ['Feed', 'Beiträge', 'Arbeiten', 'Fachleute', 'Freelancer', 'Content Creator', 'gigzone'],
+    },
+  },
+  help: {
+    sr: {
+      title: 'Pomoć i podrška — GigZone',
+      description: 'Pronađite odgovore na česta pitanja o GigZone platformi. Krediti, objave, usluge, poslovi i sve što trebate znati.',
+      keywords: ['pomoć', 'podrška', 'FAQ', 'pitanja', 'uputstvo', 'gigzone'],
+    },
+    en: {
+      title: 'Help & Support — GigZone',
+      description: 'Find answers to frequently asked questions about GigZone. Credits, posts, services, jobs and everything you need to know.',
+      keywords: ['help', 'support', 'FAQ', 'questions', 'guide', 'gigzone'],
+    },
+    de: {
+      title: 'Hilfe & Support — GigZone',
+      description: 'Finden Sie Antworten auf häufig gestellte Fragen zu GigZone. Credits, Beiträge, Dienstleistungen, Jobs und alles Wissenswerte.',
+      keywords: ['Hilfe', 'Support', 'FAQ', 'Fragen', 'Anleitung', 'gigzone'],
+    },
+  },
+  terms: {
+    sr: {
+      title: 'Uslovi korišćenja — GigZone',
+      description: 'Pročitajte uslove korišćenja GigZone platforme. Pravila i obaveze za korisnike, profesionalce i kompanije.',
+      keywords: ['uslovi korišćenja', 'pravila', 'politika', 'gigzone'],
+    },
+    en: {
+      title: 'Terms of Service — GigZone',
+      description: 'Read the terms of service for the GigZone platform. Rules and obligations for users, professionals and companies.',
+      keywords: ['terms of service', 'rules', 'policy', 'gigzone'],
+    },
+    de: {
+      title: 'Nutzungsbedingungen — GigZone',
+      description: 'Lesen Sie die Nutzungsbedingungen der GigZone-Plattform. Regeln und Pflichten für Nutzer, Fachleute und Unternehmen.',
+      keywords: ['Nutzungsbedingungen', 'Regeln', 'Richtlinien', 'gigzone'],
+    },
+  },
   homepage: {
     sr: {
       title: 'GigZone – Platforma za profesionalce, usluge i poslove',

@@ -3,14 +3,12 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Feed — GigZone',
   description:
-    'Pratite novosti, radove i objave majstora i profesionalaca iz ex-YU zajednice u zemlji i dijaspori.',
-  keywords: [
-    'majstori', 'radovi', 'profesionalci', 'dijaspora', 'Srbija', 'Bosna', 'Hrvatska',
-    'Austrija', 'Njemačka', 'gigzone',
-  ],
+    'Pratite radove, objave i novosti profesionalaca na GigZone. Povežite se sa freelancerima, kreatorima sadržaja i stručnjacima iz vaše oblasti.',
+  keywords: ['feed', 'objave', 'radovi', 'profesionalci', 'freelanceri', 'kreatori sadržaja', 'gigzone'],
+  alternates: { canonical: 'https://www.gigzone.app/feed' },
   openGraph: {
     title: 'Feed — GigZone',
-    description: 'Novosti i objave iz zajednice profesionalaca na GigZone.',
+    description: 'Pratite radove i objave profesionalaca. Povežite se sa freelancerima i kreatorima sadržaja na GigZone.',
     url: 'https://www.gigzone.app/feed',
     siteName: 'GigZone',
     type: 'website',
@@ -25,6 +23,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary',
+    title: 'Feed — GigZone',
+    description: 'Pratite radove i objave profesionalaca na GigZone.',
     images: ['https://www.gigzone.app/icon-512.png'],
   },
 };

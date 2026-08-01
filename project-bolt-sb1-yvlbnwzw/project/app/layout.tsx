@@ -75,7 +75,7 @@ const organizationJsonLd = {
     width: 512,
     height: 512,
   },
-  description: 'Marketplace koji povezuje majstore, pružaoce usluga i tražioce poslova u ex-YU zajednici u zemlji i dijaspori.',
+  description: 'Marketplace koji povezuje profesionalce, pružaoce usluga i tražioce poslova na jednoj platformi.',
 };
 
 const websiteJsonLd = {
