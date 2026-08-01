@@ -57,7 +57,7 @@ export default function OnboardingPage() {
   }, [user, loading]);
 
   const handleStep1 = () => {
-    if (!name.trim()) { setError('Unesite vaše ime'); return; }
+    if (!name.trim()) { setError(t('onboarding.nameRequired')); return; }
     setError('');
     trackEvent('onboarding_step_1_completed', { name_length: name.trim().length });
     setStep(2);
@@ -174,7 +174,7 @@ export default function OnboardingPage() {
               onClick={handleStep1}
               className="w-full h-14 text-base font-bold bg-orange-600 hover:bg-orange-500 rounded-2xl shadow-lg shadow-orange-600/30"
             >
-              Nastavi
+              {t('onboarding.continue')}
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </div>
@@ -197,7 +197,7 @@ export default function OnboardingPage() {
               placeholder={t('onboarding.cityPlaceholder')}
               className="mb-1 [&_input]:h-14 [&_input]:text-base [&_input]:bg-white/5 [&_input]:border-white/10 [&_input]:text-white [&_input]:placeholder:text-slate-500 [&_input]:rounded-xl [&_input]:focus-visible:ring-orange-500"
             />
-            <p className="text-slate-500 text-xs mb-5">Opciono — možeš dodati kasnije iz profila</p>
+            <p className="text-slate-500 text-xs mb-5">{t('onboarding.cityOptional')}</p>
 
             {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
 
@@ -206,7 +206,7 @@ export default function OnboardingPage() {
               disabled={saving}
               className="w-full h-14 text-base font-bold bg-orange-600 hover:bg-orange-500 rounded-2xl shadow-lg shadow-orange-600/30 disabled:opacity-50"
             >
-              Nastavi <ArrowRight className="ml-2 h-5 w-5" />
+              {t('onboarding.continue')} <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
 
             {!hasGoogleName && (
@@ -215,7 +215,7 @@ export default function OnboardingPage() {
                 disabled={saving}
                 className="w-full text-center text-slate-500 text-sm mt-5 hover:text-slate-300 transition-colors disabled:opacity-50"
               >
-                ← Nazad
+                {t('onboarding.back')}
               </button>
             )}
           </div>
@@ -253,7 +253,7 @@ export default function OnboardingPage() {
               disabled={saving || interests.length === 0}
               className="w-full h-14 text-base font-bold bg-orange-600 hover:bg-orange-500 rounded-2xl shadow-lg shadow-orange-600/30 disabled:opacity-50"
             >
-              {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <>Nastavi <ArrowRight className="ml-2 h-5 w-5" /></>}
+              {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <>{t('onboarding.continue')} <ArrowRight className="ml-2 h-5 w-5" /></>}
             </Button>
 
             <button
