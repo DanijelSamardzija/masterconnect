@@ -289,7 +289,7 @@ function DashboardContent() {
       else router.push('/feed');
       return;
     }
-    if (['comment', 'reply', 'reaction'].includes(notification.type)) { if (notification.meta?.post_id) router.push('/feed'); return; }
+    if (['comment', 'reply', 'reaction'].includes(notification.type)) { if (notification.meta?.post_id) router.push(`/posts/${notification.meta.post_id}`); return; }
     if (notification.type === 'follow') { if (notification.meta?.follower_id) router.push(`/profile/${notification.meta.follower_id}`); return; }
     if (notification.linkUrl) { router.push(notification.linkUrl); return; }
     if (notification.messageId) { router.push(`/messages/${notification.messageId}`); return; }
