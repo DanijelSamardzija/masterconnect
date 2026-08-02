@@ -193,6 +193,36 @@ export async function POST(req: NextRequest) {
         .eq('id', offer.id);
     }
 
+    // Notify receiver via service role (bypasses RLS)
+    try {
+      const serviceSupabase = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
+
+      const { data: senderProfile } = await serviceSupabase
+        .from('profiles')
+        .select('name')
+        .eq('id', user.id)
+        .single();
+
+      const senderName = senderProfile?.name || 'Neko';
+      const priceText = priceType === 'per_hour' ? `${price} ${currency}/h` : `${price} ${currency}`;
+
+      await serviceSupabase.from('notifications').insert({
+        user_id: receiverId,
+        type: 'message',
+        action_type: 'offer_received',
+        title: `${senderName} ti je poslao/la ponudu`,
+        body: note ? `${priceText} — ${note.slice(0, 80)}` : priceText,
+        meta: { thread_id: threadId, sender_id: user.id },
+      });
+
+      devLog('[Offers API v4.0] Notification sent to receiver');
+    } catch (notifErr) {
+      console.error('[Offers API v4.0] Failed to send notification:', notifErr);
+    }
+
     devLog('[Offers API v4.0] SUCCESS - Offer sent');
 
     return NextResponse.json({
