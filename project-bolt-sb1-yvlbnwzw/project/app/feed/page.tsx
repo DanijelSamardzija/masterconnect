@@ -172,6 +172,7 @@ function FeedContent() {
 
   const OWNER_USER_ID = 'c5e87d26-7e51-4c05-9c4f-13e39e002c48';
   const PREFETCH_THRESHOLD = 5;
+  const RECENT_H = 44;
 
   useEffect(() => {
     loadPosts(true);
@@ -710,10 +711,10 @@ function FeedContent() {
         </div>
       )}
 
-      {/* Recently viewed strip */}
+      {/* Recently viewed strip — static, below nav, above feed */}
       {recentItems.length > 0 && !recentDismissed && (
-        <div className="fixed bottom-0 left-0 right-0 z-20 bg-background/90 backdrop-blur-md border-t border-border">
-          <div className="flex items-center gap-2 px-3 py-2">
+        <div className="bg-background border-b border-border" style={{ height: `${RECENT_H}px` }}>
+          <div className="flex items-center gap-2 px-3 py-2 h-full">
             <span className="text-xs font-medium text-muted-foreground whitespace-nowrap shrink-0">
               {t('recentlyViewed.title')}
             </span>
@@ -743,7 +744,7 @@ function FeedContent() {
       <div
         ref={scrollContainerRef}
         className="overflow-y-scroll snap-y snap-mandatory"
-        style={{ height: `calc(100dvh - ${HEADER_H}px)`, overscrollBehavior: 'contain' }}
+        style={{ height: `calc(100dvh - ${HEADER_H}px - ${recentItems.length > 0 && !recentDismissed ? RECENT_H : 0}px)`, overscrollBehavior: 'contain' }}
       >
         {posts.length === 0 ? (
           <div className="flex h-full items-center justify-center">
