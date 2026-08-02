@@ -219,6 +219,9 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
     setIsSubmitting(true);
     setUploading(true);
 
+    // Close modal immediately so user returns to feed while upload runs in background
+    onOpenChange(false);
+
     try {
       // Get current session token
       const { data: { session } } = await supabase.auth.getSession();
