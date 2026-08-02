@@ -246,6 +246,15 @@ export function JobApplicationModal({ open, onOpenChange, postId, postTitle, pos
               text: JSON.stringify(applicationData),
               message_type: 'application',
             });
+
+            await supabase.from('notifications').insert({
+              user_id: postOwnerId,
+              type: 'message',
+              action_type: 'application_received',
+              title: `${fullName.trim()} se prijavio/la na tvoj oglas`,
+              body: postTitle ? `"${postTitle}"${bio.trim() ? ' — ' + bio.trim().slice(0, 80) : ''}` : bio.trim().slice(0, 100),
+              meta: { thread_id: threadId, sender_id: user.id },
+            });
           }
         } catch (msgErr) {
           console.error('Failed to send application message:', msgErr);
