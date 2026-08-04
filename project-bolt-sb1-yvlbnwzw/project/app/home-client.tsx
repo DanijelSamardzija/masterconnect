@@ -31,6 +31,7 @@ export function HomeClient() {
 
   const handleGoogleSignup = async () => {
     setGoogleLoading(true);
+    trackEvent('click_signup_attempt', { method: 'google', source: 'homepage' });
     trackEvent('click_google_signup', { source: 'homepage' });
     trackEvent('click_google_login', { source: 'homepage' });
     saveAnonymousId();
