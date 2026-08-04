@@ -22,6 +22,7 @@ export default function JoinPage() {
 
   const handleGoogleSignup = async () => {
     setGoogleLoading(true);
+    trackEvent('click_signup_attempt', { method: 'google', source: 'join_page' });
     trackEvent('click_google_signup', { source: 'join_page' });
     trackEvent('click_google_login', { source: 'join_page' });
     saveAnonymousId();
@@ -109,6 +110,7 @@ export default function JoinPage() {
         <Button
           size="lg"
           onClick={() => {
+            trackEvent('click_signup_attempt', { method: 'email', source: 'join_page' });
             trackEvent('click_register_cta', { source: 'join_page' });
             localStorage.setItem('signup_source', 'join_page');
             router.push('/login?tab=register');
