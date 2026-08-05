@@ -149,6 +149,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .from('posts')
       .select('id, updated_at')
       .eq('post_type', 'service_listing')
+      .eq('is_active', true)
       .neq('status', 'deleted')
       .limit(1000),
     // Jobs from the jobs table have their own /jobs/[id] detail page
