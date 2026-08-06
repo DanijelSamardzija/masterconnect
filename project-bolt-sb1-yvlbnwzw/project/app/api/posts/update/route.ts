@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { analyzeSpam } from '@/lib/antiSpam';
+import { notifyIndexNow } from '@/lib/indexnow';
 import { devLog } from '@/lib/dev-log';
 
 export async function PUT(request: NextRequest) {
@@ -316,6 +317,14 @@ export async function PUT(request: NextRequest) {
     }
 
     devLog('[UPDATE] Success - Post ID:', postId);
+
+    // IndexNow: notify search engines about updated public content
+    if (updatedPost.status === 'published') {
+      const url = updatedPost.post_type === 'service_listing'
+        ? `https://www.gigzone.app/services/${postId}`
+        : `https://www.gigzone.app/posts/${postId}`;
+      notifyIndexNow([url]).catch(() => {});
+    }
 
     return NextResponse.json({
       success: true,

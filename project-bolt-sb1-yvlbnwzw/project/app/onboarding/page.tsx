@@ -104,6 +104,11 @@ export default function OnboardingPage() {
 
       trackEvent('onboarding_complete', { role: 'customer', interests_count: skipInterests ? 0 : interests.length });
       trackEvent('register_success', { source: 'google' });
+      fetch('/api/indexnow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ urls: [`https://www.gigzone.app/profile/${user!.id}`] }),
+      }).catch(() => {});
       fetch('/api/email/welcome', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -170,6 +170,13 @@ function EditProfileContent() {
 
       toast.success('Profile updated');
 
+      // IndexNow: notify search engines about updated profile
+      fetch('/api/indexnow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ urls: [`https://www.gigzone.app/profile/${user!.id}`] }),
+      }).catch(() => {});
+
       // Profile completed reward — requires name, bio, city, avatar and category
       const isCompleted = !!(name.trim() && bio.trim() && city.trim() && avatarUrl && category.trim());
       if (isCompleted) {

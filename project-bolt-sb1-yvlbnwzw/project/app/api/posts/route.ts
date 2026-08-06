@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { computeSpamScore, type UserProfile, type PostingStats } from '@/lib/antiSpam';
 import { notifySubscribers } from '@/lib/notify-subscribers';
+import { notifyIndexNow } from '@/lib/indexnow';
 import { devLog } from '@/lib/dev-log';
 
 export const runtime = 'nodejs';
@@ -854,6 +855,27 @@ export async function POST(request: NextRequest) {
         data.id,
         insertData.job_title || data.text?.slice(0, 60) || 'Novi oglas',
       ).catch(() => {});
+    }
+
+    // IndexNow: notify search engines about new public content
+    if (data.status === 'published') {
+      const indexNowUrls: string[] = [];
+      if (data.post_type === 'service_listing') {
+        indexNowUrls.push(`https://www.gigzone.app/services/${data.id}`);
+        if (data.category) {
+          for (const lang of ['sr', 'en', 'de']) {
+            indexNowUrls.push(`https://www.gigzone.app/${lang}/services/${data.category}`);
+          }
+        }
+      } else if (['social_post', 'hiring_post', 'job_seeker_post', 'service_request'].includes(data.post_type)) {
+        indexNowUrls.push(`https://www.gigzone.app/posts/${data.id}`);
+        if (data.category && ['hiring_post', 'job_seeker_post', 'service_request'].includes(data.post_type)) {
+          for (const lang of ['sr', 'en', 'de']) {
+            indexNowUrls.push(`https://www.gigzone.app/${lang}/jobs/${data.category}`);
+          }
+        }
+      }
+      if (indexNowUrls.length > 0) notifyIndexNow(indexNowUrls).catch(() => {});
     }
 
     const isDev = process.env.NODE_ENV !== 'production';
