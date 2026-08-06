@@ -3,6 +3,7 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { computeSpamScore, type UserProfile, type PostingStats } from '@/lib/antiSpam';
 import { notifySubscribers } from '@/lib/notify-subscribers';
 import { notifyIndexNow } from '@/lib/indexnow';
+import { slugifyCity } from '@/lib/seo/slugify';
 import { devLog } from '@/lib/dev-log';
 
 export const runtime = 'nodejs';
@@ -561,7 +562,7 @@ export async function POST(request: NextRequest) {
 
       const { data: post, error: fetchError } = await supabase
         .from('posts')
-        .select('id, user_id')
+        .select('id, user_id, post_type')
         .eq('id', postId)
         .maybeSingle();
 
@@ -607,6 +608,12 @@ export async function POST(request: NextRequest) {
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
+
+      // IndexNow: notify about deleted content so Bing removes it from the index
+      const deletedUrl = post.post_type === 'service_listing'
+        ? `https://www.gigzone.app/services/${postId}`
+        : `https://www.gigzone.app/posts/${postId}`;
+      notifyIndexNow([deletedUrl]).catch(() => {});
 
       return NextResponse.json({ success: true });
     }
@@ -860,11 +867,15 @@ export async function POST(request: NextRequest) {
     // IndexNow: notify search engines about new public content
     if (data.status === 'published') {
       const indexNowUrls: string[] = [];
+      const citySlug = data.city ? slugifyCity(data.city) : null;
       if (data.post_type === 'service_listing') {
         indexNowUrls.push(`https://www.gigzone.app/services/${data.id}`);
         if (data.category) {
           for (const lang of ['sr', 'en', 'de']) {
             indexNowUrls.push(`https://www.gigzone.app/${lang}/services/${data.category}`);
+            if (citySlug) {
+              indexNowUrls.push(`https://www.gigzone.app/${lang}/services/${data.category}/${citySlug}`);
+            }
           }
         }
       } else if (['social_post', 'hiring_post', 'job_seeker_post', 'service_request'].includes(data.post_type)) {
@@ -872,6 +883,9 @@ export async function POST(request: NextRequest) {
         if (data.category && ['hiring_post', 'job_seeker_post', 'service_request'].includes(data.post_type)) {
           for (const lang of ['sr', 'en', 'de']) {
             indexNowUrls.push(`https://www.gigzone.app/${lang}/jobs/${data.category}`);
+            if (citySlug) {
+              indexNowUrls.push(`https://www.gigzone.app/${lang}/jobs/${data.category}/${citySlug}`);
+            }
           }
         }
       }
@@ -945,7 +959,7 @@ export async function DELETE(request: NextRequest) {
 
     const { data: post, error: fetchError } = await supabase
       .from('posts')
-      .select('id, user_id')
+      .select('id, user_id, post_type')
       .eq('id', postId)
       .maybeSingle();
 
@@ -991,6 +1005,12 @@ export async function DELETE(request: NextRequest) {
     if (error) {
       return NextResponse.json({ error: 'Failed to delete post' }, { status: 500 });
     }
+
+    // IndexNow: notify about deleted content so Bing removes it from the index
+    const deletedUrl = post.post_type === 'service_listing'
+      ? `https://www.gigzone.app/services/${postId}`
+      : `https://www.gigzone.app/posts/${postId}`;
+    notifyIndexNow([deletedUrl]).catch(() => {});
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

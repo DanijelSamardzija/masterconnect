@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { notifyIndexNow } from '@/lib/indexnow';
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,6 +45,9 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = data.user_id;
+
+    // IndexNow: notify about deleted profile so Bing removes it from the index
+    notifyIndexNow([`https://www.gigzone.app/profile/${userId}`]).catch(() => {});
 
     if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
       const supabaseAdmin = createClient(

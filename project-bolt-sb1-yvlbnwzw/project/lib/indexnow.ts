@@ -1,6 +1,12 @@
 const BASE = 'https://www.gigzone.app';
 const INDEXNOW_ENDPOINT = 'https://api.indexnow.org/indexnow';
-const KEY = process.env.INDEXNOW_KEY ?? 'b4d9e2f1a7c34f8b9d1e2a5c6f0b3d8e';
+// In production, INDEXNOW_KEY must be set in Vercel environment variables.
+// The hardcoded value is used only in local development.
+const KEY = process.env.INDEXNOW_KEY ?? (
+  process.env.NODE_ENV === 'production'
+    ? (console.error('[IndexNow] INDEXNOW_KEY env var not set in production!'), 'b4d9e2f1a7c34f8b9d1e2a5c6f0b3d8e')
+    : 'b4d9e2f1a7c34f8b9d1e2a5c6f0b3d8e'
+);
 const DEDUPE_TTL_MS = 60_000;
 
 const recentlySent = new Map<string, number>();
