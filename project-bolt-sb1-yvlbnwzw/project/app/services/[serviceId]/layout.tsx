@@ -17,7 +17,7 @@ const fetchServiceMeta = cache(async (serviceId: string) => {
 
   const { data } = await supabase
     .from('posts')
-    .select('id, job_title, category, text, city, post_media(url, order, type), profiles(name, avatar_url)')
+    .select('id, job_title, category, text, city, price_value, price_type, currency, post_media(url, order, type), profiles(name, avatar_url, average_rating, review_count)')
     .eq('id', serviceId)
     .eq('post_type', 'service_listing')
     .eq('is_active', true)
@@ -115,6 +115,39 @@ export default async function ServiceDetailLayout({ children, params }: Props) {
   const validCategory = isValidCategory(rawCategory);
   const categoryLabel = validCategory ? getCategoryLabel(rawCategory as CategorySlug, 'sr') : null;
 
+  const city: string = (data as any).city ?? '';
+  const rawText: string = (data as any).text ?? '';
+  const priceValue: number | null = typeof (data as any).price_value === 'number' && (data as any).price_value > 0
+    ? (data as any).price_value
+    : null;
+  const currency: string | null = (data as any).currency ?? null;
+  const avgRating: number | null = (data.profiles as any)?.average_rating ?? null;
+  const reviewCount: number | null = (data.profiles as any)?.review_count ?? null;
+
+  const serviceJsonLd: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: serviceTitle,
+    ...(rawText ? { description: rawText.slice(0, 300).replace(/\n/g, ' ') } : {}),
+    provider: { '@type': 'Person', name: providerName },
+    ...(categoryLabel ? { serviceType: categoryLabel } : {}),
+    ...(city ? { areaServed: { '@type': 'City', name: city } } : {}),
+    ...(priceValue !== null && currency
+      ? { offers: { '@type': 'Offer', price: priceValue, priceCurrency: currency } }
+      : {}),
+    ...(avgRating !== null && reviewCount !== null && reviewCount > 0
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: Number(avgRating).toFixed(1),
+            reviewCount,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        }
+      : {}),
+  };
+
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -130,6 +163,7 @@ export default async function ServiceDetailLayout({ children, params }: Props) {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       {children}
     </>

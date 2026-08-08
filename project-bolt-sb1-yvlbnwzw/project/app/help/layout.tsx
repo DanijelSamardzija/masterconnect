@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import sr from '@/lib/translations/sr';
 
 export const metadata: Metadata = {
   title: 'Pomoć i podrška — GigZone',
@@ -29,6 +30,23 @@ export const metadata: Metadata = {
   },
 };
 
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    { '@type': 'Question', name: sr['help.faq.q1'], acceptedAnswer: { '@type': 'Answer', text: sr['help.faq.a1'] } },
+    { '@type': 'Question', name: sr['help.faq.q2'], acceptedAnswer: { '@type': 'Answer', text: sr['help.faq.a2'] } },
+    { '@type': 'Question', name: sr['help.faq.q3'], acceptedAnswer: { '@type': 'Answer', text: sr['help.faq.a3'] } },
+    { '@type': 'Question', name: sr['help.faq.q4'], acceptedAnswer: { '@type': 'Answer', text: sr['help.faq.a4'] } },
+    { '@type': 'Question', name: sr['help.faq.q5'], acceptedAnswer: { '@type': 'Answer', text: sr['help.faq.a5'] } },
+  ],
+};
+
 export default function HelpLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      {children}
+    </>
+  );
 }

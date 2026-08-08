@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import { headers } from 'next/headers';
 import { Analytics } from '@vercel/analytics/next';
 import { AuthProvider } from '@/lib/contexts/auth-context';
 import { LanguageProvider } from '@/lib/contexts/language-context';
@@ -75,7 +76,8 @@ const organizationJsonLd = {
     width: 512,
     height: 512,
   },
-  description: 'Marketplace koji povezuje profesionalce, pružaoce usluga i tražioce poslova na jednoj platformi.',
+  description: 'A global marketplace connecting professionals, service providers and job seekers in one place.',
+  areaServed: ['RS', 'BA', 'HR', 'DE', 'AT', 'CH'],
 };
 
 const websiteJsonLd = {
@@ -91,8 +93,9 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const lang = headers().get('x-lang') ?? 'sr';
   return (
-    <html lang="sr" suppressHydrationWarning className="h-dvh">
+    <html lang={lang} suppressHydrationWarning className="h-dvh">
       <head>
         {process.env.NEXT_PUBLIC_SUPABASE_URL && (
           <link rel="preconnect" href={new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin} />

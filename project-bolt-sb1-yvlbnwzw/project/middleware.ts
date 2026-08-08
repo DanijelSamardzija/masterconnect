@@ -9,10 +9,13 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Already on a valid lang path — pass through
+  // Already on a valid lang path — forward x-lang on the REQUEST so headers() in the
+  // root layout Server Component can read it (response headers are not visible to headers()).
   const langSegment = pathname.split('/')[1];
   if (SUPPORTED_LANGS.includes(langSegment as any)) {
-    return NextResponse.next();
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-lang', langSegment);
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
   // Only redirect known public SEO paths

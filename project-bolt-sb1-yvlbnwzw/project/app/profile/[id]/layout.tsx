@@ -84,6 +84,17 @@ export default async function ProfileLayout({ children, params }: Props) {
     ...(data.city ? {
       address: { '@type': 'PostalAddress', addressLocality: data.city },
     } : {}),
+    ...(data.average_rating && data.review_count && data.review_count > 0
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: Number(data.average_rating).toFixed(1),
+            reviewCount: data.review_count,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        }
+      : {}),
   };
 
   const breadcrumbJsonLd = {
