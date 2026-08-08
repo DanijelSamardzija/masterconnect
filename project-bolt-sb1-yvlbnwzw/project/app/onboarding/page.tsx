@@ -103,7 +103,12 @@ export default function OnboardingPage() {
       if (profileError) throw profileError;
 
       trackEvent('onboarding_complete', { role: 'customer', interests_count: skipInterests ? 0 : interests.length });
-      trackEvent('register_success', { source: 'google' });
+
+      // register_success only for Google OAuth users — email users already fire it in login/page.tsx
+      const isGoogleUser = user?.app_metadata?.provider === 'google';
+      if (isGoogleUser) {
+        trackEvent('register_success', { method: 'google', source: signupSource });
+      }
       fetch('/api/indexnow', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

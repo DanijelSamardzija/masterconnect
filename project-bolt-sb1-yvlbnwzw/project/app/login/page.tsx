@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Mail, Lock, AlertCircle, Home, LogOut, CheckCircle } from 'lucide-react';
 import { setRateLimitHit, isInRateLimitCooldown, getRemainingCooldownSeconds, clearRateLimitCooldown } from '@/lib/rate-limit-handler';
 import { useLanguage } from '@/lib/contexts/language-context';
-import { trackEvent, saveAnonymousId } from '@/lib/analytics';
+import { trackEvent, saveAnonymousId, identifyUser } from '@/lib/analytics';
 
 // Briše localStorage ali čuva ključeve koji ne smiju biti obrisani
 function clearLocalStorageSafe() {
@@ -174,6 +174,7 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
+    trackEvent('click_signup_attempt', { method: 'google', source: 'login_page' });
     trackEvent('click_google_signup');
     saveAnonymousId();
     const { error } = await supabase.auth.signInWithOAuth({
@@ -192,6 +193,7 @@ export default function LoginPage() {
     e.preventDefault();
     setRegisterError('');
     setRegisterLoading(true);
+    trackEvent('click_signup_attempt', { method: 'email', source: 'login_page' });
     trackEvent('submit_register');
 
     try {
@@ -211,6 +213,9 @@ export default function LoginPage() {
       if (signUpError) throw signUpError;
       if (!data.user) throw new Error('Failed to create account. Please try again.');
 
+      // Merge anonymous PostHog session with the newly created user
+      identifyUser(data.user.id, data.user.email ?? undefined);
+
       const signupSource = localStorage.getItem('signup_source') || 'direct';
       localStorage.removeItem('signup_source');
       const utmSource = localStorage.getItem('utm_source');
@@ -226,7 +231,7 @@ export default function LoginPage() {
         localStorage.removeItem('utm_medium');
         localStorage.removeItem('utm_campaign');
       }
-      trackEvent('register_success', { source: signupSource, utm_source: utmSource || 'direct' });
+      trackEvent('register_success', { method: 'email', source: signupSource, utm_source: utmSource || 'direct' });
       await new Promise(r => setTimeout(r, 500));
       router.push('/onboarding');
     } catch (err: any) {
