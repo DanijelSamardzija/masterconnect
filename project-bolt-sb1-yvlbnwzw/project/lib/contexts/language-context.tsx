@@ -32,7 +32,14 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
     const detect = async () => {
       try {
-        // Priority 0: logged-in user's saved language in DB
+        // Priority 0: URL path — honour explicit lang-prefixed routes (/sr/*, /en/*, /de/*)
+        const pathLang = window.location.pathname.split('/')[1] as Language;
+        if (VALID.includes(pathLang)) {
+          setLanguageState(pathLang);
+          return;
+        }
+
+        // Priority 2: logged-in user's saved language in DB
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const { data: profile } = await supabase
@@ -47,14 +54,14 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        // Priority 1: user's saved choice (support both old 'language' key and new 'lang')
+        // Priority 3: user's saved choice (support both old 'language' key and new 'lang')
         const saved = (localStorage.getItem(STORAGE_KEY) || localStorage.getItem('language')) as Language;
         if (saved && VALID.includes(saved)) {
           setLanguageState(saved);
           return;
         }
 
-        // Priority 2: browser language (instant, no network)
+        // Priority 4: browser language (instant, no network)
         const bl = (navigator.languages?.[0] || navigator.language || '').toLowerCase();
         if (bl.startsWith('sr') || bl.startsWith('hr') || bl.startsWith('bs') || bl.startsWith('me')) {
           setLanguageState('sr');
@@ -65,7 +72,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        // Priority 3: IP geolocation — only if browser lang is ambiguous (en/other)
+        // Priority 5: IP geolocation — only if browser lang is ambiguous (en/other)
         try {
           const controller = new AbortController();
           const timeout = setTimeout(() => controller.abort(), 3000);

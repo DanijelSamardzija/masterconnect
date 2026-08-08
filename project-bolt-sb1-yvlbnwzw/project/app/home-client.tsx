@@ -241,9 +241,29 @@ export function HomeClient() {
           </div>
 
           <div className="flex flex-wrap justify-center gap-2 max-w-3xl mx-auto mb-12">
-            {['🔧 Majstori', 'Vodoinstalateri', 'Električari', '💻 IT stručnjaci', 'Web developeri', 'Dizajneri', '🎨 Freelanceri', 'Preduzetnici', 'Zanatske firme', '🍽️ Ugostiteljstvo', 'Kafane & barovi', '🏋️ Treneri', 'Fizioterapeuti', '📚 Edukatori', 'Nastavnici', 'Doktori', 'Pravnici', 'Stolari', '+ mnogo više...'].map((tag) => (
-              <span key={tag} className="bg-white/5 border border-white/10 text-slate-400 text-xs px-3 py-1.5 rounded-full hover:bg-orange-500/10 hover:border-orange-500/20 hover:text-orange-400 transition-colors cursor-default whitespace-nowrap">
-                {tag}
+            {([
+              'home.professions.tag.craftsmen',
+              'home.professions.tag.plumbers',
+              'home.professions.tag.electricians',
+              'home.professions.tag.it',
+              'home.professions.tag.webdev',
+              'home.professions.tag.designers',
+              'home.professions.tag.freelancers',
+              'home.professions.tag.entrepreneurs',
+              'home.professions.tag.tradesfirms',
+              'home.professions.tag.hospitality',
+              'home.professions.tag.cafes',
+              'home.professions.tag.trainers',
+              'home.professions.tag.physio',
+              'home.professions.tag.educators',
+              'home.professions.tag.teachers',
+              'home.professions.tag.doctors',
+              'home.professions.tag.lawyers',
+              'home.professions.tag.carpenters',
+              'home.professions.tag.more',
+            ] as const).map((key) => (
+              <span key={key} className="bg-white/5 border border-white/10 text-slate-400 text-xs px-3 py-1.5 rounded-full hover:bg-orange-500/10 hover:border-orange-500/20 hover:text-orange-400 transition-colors cursor-default whitespace-nowrap">
+                {t(key)}
               </span>
             ))}
           </div>
@@ -303,27 +323,27 @@ export function HomeClient() {
       {/* ── USKORO ────────────────────────────────────────────── */}
       <section className="py-16 px-4 bg-[#0a0a0a]">
         <div className="max-w-3xl mx-auto text-center">
-          <p className="text-xs font-semibold text-orange-500 uppercase tracking-widest mb-2">🚀 Uskoro na GigZone</p>
-          <h2 className="text-xl font-bold text-white mb-2">Šta dolazi</h2>
-          <p className="text-sm mb-8" style={{color:'#6b7280'}}>Dvije funkcije u razvoju koje dolaze uskoro.</p>
+          <p className="text-xs font-semibold text-orange-500 uppercase tracking-widest mb-2">{t('home.soon.label')}</p>
+          <h2 className="text-xl font-bold text-white mb-2">{t('home.soon.title')}</h2>
+          <p className="text-sm mb-8" style={{color:'#6b7280'}}>{t('home.soon.subtitle')}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Podrži */}
+            {/* Podrži / Support */}
             <div className="rounded-2xl border border-white/8 bg-white/3 p-6 text-left">
               <div className="text-2xl mb-3">💝</div>
               <div className="flex items-center gap-2 mb-2">
-                <h3 className="text-sm font-bold text-white">Podrži članove zajednice</h3>
-                <span className="text-[10px] font-semibold bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full">Uskoro</span>
+                <h3 className="text-sm font-bold text-white">{t('home.soon.support.title')}</h3>
+                <span className="text-[10px] font-semibold bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full">{t('home.soon.badge')}</span>
               </div>
-              <p className="text-xs text-slate-500 leading-relaxed">Korisnici će moći poslati donaciju članovima zajednice kojima žele pružiti podršku.</p>
+              <p className="text-xs text-slate-500 leading-relaxed">{t('home.soon.support.desc')}</p>
             </div>
             {/* Invest */}
             <div className="rounded-2xl border border-white/8 bg-white/3 p-6 text-left">
               <div className="text-2xl mb-3">🤝</div>
               <div className="flex items-center gap-2 mb-2">
-                <h3 className="text-sm font-bold text-white">Invest</h3>
-                <span className="text-[10px] font-semibold bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full">Uskoro</span>
+                <h3 className="text-sm font-bold text-white">{t('home.soon.invest.title')}</h3>
+                <span className="text-[10px] font-semibold bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full">{t('home.soon.badge')}</span>
               </div>
-              <p className="text-xs text-slate-500 leading-relaxed">Startupi i mali biznisi predstavljaju projekte, a investitori pronalaze zanimljive prilike. GigZone samo povezuje — bez posredovanja.</p>
+              <p className="text-xs text-slate-500 leading-relaxed">{t('home.soon.invest.desc')}</p>
             </div>
           </div>
         </div>
