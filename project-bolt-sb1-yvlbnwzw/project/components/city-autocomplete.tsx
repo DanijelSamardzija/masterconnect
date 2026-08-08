@@ -124,6 +124,7 @@ export function CityAutocomplete({
   const [isLoading, setIsLoading] = useState(false);
   const [manualMode, setManualMode] = useState(false);
   const [hasSelected, setHasSelected] = useState(!!value);
+  const hasSelectedRef = useRef(!!value);
   const [searchDone, setSearchDone] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -131,6 +132,7 @@ export function CityAutocomplete({
   useEffect(() => {
     setInputValue(value);
     setHasSelected(!!value);
+    hasSelectedRef.current = !!value;
   }, [value]);
 
   useEffect(() => {
@@ -225,6 +227,7 @@ export function CityAutocomplete({
     const newValue = e.target.value;
     setInputValue(newValue);
     setHasSelected(false);
+    hasSelectedRef.current = false;
     setIsOpen(true);
     setSearchDone(false);
 
@@ -249,6 +252,7 @@ export function CityAutocomplete({
     setIsOpen(false);
     setPredictions([]);
     setHasSelected(true);
+    hasSelectedRef.current = true;
     setManualMode(false);
 
     onChange(cityName, {
@@ -263,6 +267,7 @@ export function CityAutocomplete({
     setIsOpen(false);
     setPredictions([]);
     setHasSelected(true);
+    hasSelectedRef.current = true;
     onChange(inputValue);
   };
 
@@ -272,6 +277,7 @@ export function CityAutocomplete({
     setIsOpen(false);
     setPredictions([]);
     setHasSelected(false);
+    hasSelectedRef.current = false;
   };
 
   const handleFocus = () => {
@@ -287,6 +293,7 @@ export function CityAutocomplete({
     }
     if (e.key === 'Enter' && manualMode) {
       setHasSelected(true);
+      hasSelectedRef.current = true;
       onChange(inputValue);
       setIsOpen(false);
     }
@@ -294,7 +301,7 @@ export function CityAutocomplete({
 
   const handleBlur = () => {
     setTimeout(() => {
-      if (!hasSelected && !manualMode && inputValue && inputValue !== value) {
+      if (!hasSelectedRef.current && !manualMode && inputValue && inputValue !== value) {
         setInputValue(value);
       }
     }, 200);
