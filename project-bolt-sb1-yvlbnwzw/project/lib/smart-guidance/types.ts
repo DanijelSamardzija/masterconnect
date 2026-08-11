@@ -21,6 +21,7 @@ export type GuidanceType =
   | 'missing_content'
   | 'image_only'
   | 'wrong_section_and_missing'
+  | 'service_to_feed'
   | 'no_action';
 
 export interface PostMetadata {

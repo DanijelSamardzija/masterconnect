@@ -259,6 +259,16 @@ export async function classifyPost(meta: PostMetadata): Promise<ClassificationRe
     guidanceType = 'missing_content';
   }
 
+  // service_to_feed: user has a correct service_listing, recommend also posting in Feed
+  if (
+    guidanceType === 'no_action' &&
+    meta.postType === 'service_listing' &&
+    intent === 'OFFERING_SERVICE' &&
+    confidence >= CONFIDENCE_THRESHOLD
+  ) {
+    guidanceType = 'service_to_feed';
+  }
+
   // Only send if there's a clear actionable reason and confidence is high enough
   const hasActionableGuidance = guidanceType !== 'no_action';
   const shouldSend = hasActionableGuidance && confidence >= CONFIDENCE_THRESHOLD;

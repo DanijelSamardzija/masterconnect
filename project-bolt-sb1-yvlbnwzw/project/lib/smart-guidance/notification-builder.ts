@@ -7,7 +7,7 @@ import type {
 
 const BASE_URL = 'https://www.gigzone.app';
 
-type TemplateMap = Record<GuidanceIntent | 'image_only' | 'missing_city', GuidanceNotification>;
+type TemplateMap = Record<GuidanceIntent | 'image_only' | 'missing_city' | 'service_to_feed', GuidanceNotification>;
 
 const TEMPLATES: Record<GuidanceLanguage, TemplateMap> = {
   sr: {
@@ -50,6 +50,11 @@ const TEMPLATES: Record<GuidanceLanguage, TemplateMap> = {
       title: 'Poboljšajte oglas 📍',
       body: 'Oglas je u pravoj sekciji. Za veću vidljivost preporučujemo da dodate lokaciju — klijenti filtriraju po gradu i bez nje vaš oglas ostaje nevidljiv.',
       ctaUrl: '',  // filled dynamically with post URL
+    },
+    service_to_feed: {
+      title: 'Pokaži svoje radove i povećaj vidljivost 💡',
+      body: 'Tvoja usluga je na GigZone-u — odlično! Objavi fotografije ili video svojih radova u Feedu i uz to napiši nekoliko konkretnih rečenica: šta si radio, koju uslugu nudiš i gde radiš.\n\nTako će ljudi bolje razumeti čime se baviš i lakše odlučiti da te kontaktiraju.',
+      ctaUrl: `${BASE_URL}/feed`,
     },
   },
 
@@ -94,6 +99,11 @@ const TEMPLATES: Record<GuidanceLanguage, TemplateMap> = {
       body: "Your listing is in the right section. For better visibility, we recommend adding your location — clients filter by city, and without it your listing may be harder to find.",
       ctaUrl: '',
     },
+    service_to_feed: {
+      title: 'Show your work and get more visibility 💡',
+      body: "Your service is already on GigZone — great! Post photos or a video of your work in the Feed and write a few concrete sentences alongside it: what you did, what service you offer, and where you're based.\n\nThis helps people understand exactly what you do and makes it easier for them to decide to contact you.",
+      ctaUrl: `${BASE_URL}/feed`,
+    },
   },
 
   de: {
@@ -137,6 +147,11 @@ const TEMPLATES: Record<GuidanceLanguage, TemplateMap> = {
       body: 'Ihre Anzeige ist im richtigen Bereich. Für mehr Sichtbarkeit empfehlen wir, Ihren Standort hinzuzufügen — Kunden filtern nach Stadt, und ohne Standortangabe ist Ihre Anzeige schwerer zu finden.',
       ctaUrl: '',
     },
+    service_to_feed: {
+      title: 'Zeigen Sie Ihre Arbeit und erhöhen Sie Ihre Sichtbarkeit 💡',
+      body: 'Ihr Dienst ist bereits auf GigZone — super! Veröffentlichen Sie Fotos oder ein Video Ihrer Arbeiten im Feed und schreiben Sie dazu einige konkrete Sätze: was Sie gemacht haben, welche Dienstleistung Sie anbieten und wo Sie tätig sind.\n\nSo können Menschen besser verstehen, womit Sie sich beschäftigen, und leichter entscheiden, Sie zu kontaktieren.',
+      ctaUrl: `${BASE_URL}/feed`,
+    },
   },
 };
 
@@ -165,6 +180,10 @@ export function buildNotification(
     const t = { ...templates.missing_city };
     t.ctaUrl = postUrl;
     return t;
+  }
+
+  if (guidanceType === 'service_to_feed') {
+    return { ...templates.service_to_feed };
   }
 
   // Fallback
