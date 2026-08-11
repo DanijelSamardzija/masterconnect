@@ -10,7 +10,7 @@ import { buildNotification } from '@/lib/smart-guidance/notification-builder';
 export const runtime = 'nodejs';
 
 // Delay to allow post_media rows to be inserted by the client after the post is created
-const MEDIA_INSERT_DELAY_MS = 8000;
+const MEDIA_INSERT_DELAY_MS = 3000;
 
 async function analyzePost(postId: string) {
   const supabase = createClient(

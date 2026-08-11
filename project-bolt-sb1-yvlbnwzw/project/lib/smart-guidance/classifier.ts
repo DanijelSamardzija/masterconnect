@@ -104,7 +104,7 @@ confidence: 0.0–1.0, your certainty about the intent. Use lower values when te
 
   try {
     const message = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
+      model: 'claude-3-5-haiku-20241022',
       max_tokens: 256,
       messages: [{ role: 'user', content: userPrompt }],
       system: systemPrompt,
