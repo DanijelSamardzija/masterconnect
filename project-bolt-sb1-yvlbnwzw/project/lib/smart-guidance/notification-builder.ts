@@ -149,14 +149,13 @@ export function buildNotification(
   const templates = TEMPLATES[lang];
   const postUrl = `${BASE_URL}/posts/${postId}`;
 
-  if (guidanceType === 'image_only' || guidanceType === 'wrong_section_and_missing') {
-    // image_only takes priority in messaging
+  if (guidanceType === 'image_only') {
     const t = { ...templates.image_only };
     t.ctaUrl = t.ctaUrl || postUrl;
     return t;
   }
 
-  if (guidanceType === 'wrong_section') {
+  if (guidanceType === 'wrong_section' || guidanceType === 'wrong_section_and_missing') {
     const t = { ...templates[intent] };
     if (!t.ctaUrl) t.ctaUrl = `${BASE_URL}/feed`;
     return t;
