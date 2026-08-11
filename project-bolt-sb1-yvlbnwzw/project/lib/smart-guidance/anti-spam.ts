@@ -8,7 +8,6 @@ export interface AntiSpamResult {
   reason?: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function checkAntiSpam(
   userId: string,
   guidanceType: GuidanceType,

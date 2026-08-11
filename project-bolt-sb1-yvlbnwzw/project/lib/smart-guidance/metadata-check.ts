@@ -13,7 +13,6 @@ export const LOCATION_SENSITIVE_TYPES = new Set([
 // Post types we should never send guidance for
 const SKIP_TYPES = new Set(['portfolio_post']);
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function fetchPostMetadata(
   postId: string,
   supabase: any
