@@ -26,6 +26,11 @@ export function translateNotification(
   const actionType = n.action_type || '';
   const actorName = n.meta?.actor_name || extractActorName(n.title, actionType);
 
+  // Smart Guidance — already stored in the user's detected language, return as-is
+  if (actionType === 'smart_guidance') {
+    return { title: n.title, body: n.body || '' };
+  }
+
   // Admin announcements — use stored translations from meta
   if (actionType === 'announcement') {
     if (language === 'en' && n.meta?.title_en) return { title: n.meta.title_en, body: n.meta.body_en || n.body || '' };
