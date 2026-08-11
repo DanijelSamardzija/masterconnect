@@ -111,7 +111,8 @@ confidence: 0.0–1.0, your certainty about the intent. Use lower values when te
     });
 
     const rawText = message.content[0].type === 'text' ? message.content[0].text : '';
-    const raw = JSON.parse(rawText.trim()) as HaikuRawResponse;
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    const raw = JSON.parse(jsonMatch ? jsonMatch[0] : rawText.trim()) as HaikuRawResponse;
 
     // Validate fields
     const validIntents: GuidanceIntent[] = [
