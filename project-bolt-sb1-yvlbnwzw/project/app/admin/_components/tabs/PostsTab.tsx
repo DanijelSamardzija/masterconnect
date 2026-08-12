@@ -125,7 +125,7 @@ export function PostsTab({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
                     {post.author && (
-                      <Link href={`/profile/${post.author.id}`} className="text-sm font-semibold text-foreground hover:underline">
+                      <Link href={`/profile/${post.author.id}`} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-foreground hover:underline">
                         {post.author.name}
                       </Link>
                     )}
