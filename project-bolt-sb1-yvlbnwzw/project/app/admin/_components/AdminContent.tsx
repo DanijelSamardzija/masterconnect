@@ -227,7 +227,7 @@ export function AdminContent() {
         { data: monthlyNewRpc },
         { data: signupSourceData },
         { data: utmSourceData },
-        { data: rangeProfilesData },
+        { data: dailyNewRpcData },
         { data: todayPostsData },
         { data: weekPostsData },
         { data: monthPostsData },
@@ -275,7 +275,7 @@ export function AdminContent() {
         supabase.rpc('get_monthly_new_users', { year_start: chosenYearStart.toISOString(), year_end: chosenYearEnd.toISOString() }),
         supabase.from('profiles').select('signup_source').not('signup_source', 'is', null).gte('created_at', rangeFrom).lte('created_at', rangeTo),
         supabase.from('profiles').select('utm_source, utm_medium, utm_campaign').not('utm_source', 'is', null).gte('created_at', rangeFrom).lte('created_at', rangeTo),
-        supabase.from('profiles').select('created_at').gte('created_at', rangeFrom).lte('created_at', rangeTo),
+        (supabase as any).rpc('get_daily_new_users', { range_from: rangeFrom, range_to: rangeTo }),
         supabase.from('posts').select('post_type').gte('created_at', todayStart.toISOString()),
         supabase.from('posts').select('post_type').gte('created_at', weekStart.toISOString()),
         supabase.from('posts').select('post_type').gte('created_at', calendarMonthStart.toISOString()),
@@ -345,15 +345,15 @@ export function AdminContent() {
       };
 
       // Daily new users (date range, variable length)
+      // Map is pre-populated with 0 for every day so days with no registrations still appear in the chart
       const dailyNewMap: Record<string, number> = {};
       const rangeStart = new Date(targetRange.from);
       const rangeEnd = new Date(targetRange.to);
-      for (let d = new Date(rangeStart); d <= rangeEnd; d.setDate(d.getDate() + 1)) {
+      for (let d = new Date(rangeStart); d <= rangeEnd; d.setUTCDate(d.getUTCDate() + 1)) {
         dailyNewMap[d.toISOString().slice(0, 10)] = 0;
       }
-      for (const p of (rangeProfilesData as any[] || [])) {
-        const date = (p.created_at as string).slice(0, 10);
-        if (date in dailyNewMap) dailyNewMap[date]++;
+      for (const r of (dailyNewRpcData as Array<{ date: string; count: number }> || [])) {
+        if (r.date in dailyNewMap) dailyNewMap[r.date] = Number(r.count);
       }
       const dailyNewUsers = Object.entries(dailyNewMap).map(([date, count]) => ({ date, count }));
 
