@@ -260,8 +260,9 @@ export async function classifyPost(meta: PostMetadata): Promise<ClassificationRe
   }
 
   // service_to_feed: user has a correct service_listing, recommend also posting in Feed
+  // Overrides missing_content only when city is already present in DB (user already entered location)
   if (
-    guidanceType === 'no_action' &&
+    (guidanceType === 'no_action' || (guidanceType === 'missing_content' && !!meta.city)) &&
     meta.postType === 'service_listing' &&
     intent === 'OFFERING_SERVICE' &&
     confidence >= CONFIDENCE_THRESHOLD
