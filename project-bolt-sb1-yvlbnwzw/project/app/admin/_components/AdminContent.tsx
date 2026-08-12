@@ -195,8 +195,8 @@ export function AdminContent() {
     setAnalyticsLoading(true);
     try {
       const now = new Date();
-      const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0);
-      const weekStart = new Date(now); weekStart.setDate(now.getDate() - 7);
+      const todayStart = new Date(now); todayStart.setUTCHours(0, 0, 0, 0);
+      const weekStart = new Date(now); weekStart.setUTCHours(0, 0, 0, 0); weekStart.setUTCDate(weekStart.getUTCDate() - 7);
       const calendarMonthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
       const rollingMonthStart  = new Date(Date.now() - 30 * 86400000);
       const targetYear = targetRange.preset === 'year' && targetRange.year
