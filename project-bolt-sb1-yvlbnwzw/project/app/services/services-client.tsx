@@ -345,7 +345,7 @@ export function ServicesClient({ initialSearch = '' }: ServicesClientProps) {
             {t('discover.subtitle')}
           </p>
         </div>
-        {profile?.account_type === 'professional' && (
+        {!!user && (
           <Button
             onClick={() => setShowCreateModal(true)}
             className="flex-shrink-0 bg-orange-600 hover:bg-orange-500 text-white rounded-xl gap-2"
