@@ -12,8 +12,8 @@ type TemplateMap = Record<GuidanceIntent | 'image_only' | 'missing_city' | 'serv
 const TEMPLATES: Record<GuidanceLanguage, TemplateMap> = {
   sr: {
     SEEKING_JOB: {
-      title: 'Savjet za bolju vidljivost 💡',
-      body: 'Vidimo da tražiš posao. Preporučujemo da oglas objaviš i u sekciji Poslovi — tamo te aktivno traže poslodavci.\n\n📍 Dodaj lokaciju i kratak opis iskustva za bolji doseg.',
+      title: 'Pronađi posao na pravom mjestu 🎯',
+      body: 'Vidimo da tražiš posao. 👤 Objavi svoju potragu u Poslovi → Tražim posao, gdje te mogu pronaći poslodavci koji aktivno traže radnike.\n\nNapiši koji posao tražiš, gdje želiš da radiš, kakvo iskustvo imaš i kada si dostupan. Što više konkretnih informacija navedeš, poslodavci će lakše procijeniti da li si pravi kandidat.',
       ctaUrl: `${BASE_URL}/jobs`,
     },
     HIRING: {
@@ -60,8 +60,8 @@ const TEMPLATES: Record<GuidanceLanguage, TemplateMap> = {
 
   en: {
     SEEKING_JOB: {
-      title: 'Tip for better visibility 💡',
-      body: "We see you're looking for work. For better reach, we recommend posting your listing in the Jobs section — that's where employers actively search.\n\n📍 Add your location and a brief description of your experience.",
+      title: 'Find a job in the right place 🎯',
+      body: "We see that you're looking for a job. 👤 Post your job search in Jobs → Looking for a Job, where employers actively looking for workers can find you.\n\nInclude the type of job you're looking for, where you want to work, your experience, and when you're available. The more specific information you provide, the easier it is for employers to see if you're the right candidate.",
       ctaUrl: `${BASE_URL}/jobs`,
     },
     HIRING: {
@@ -108,8 +108,8 @@ const TEMPLATES: Record<GuidanceLanguage, TemplateMap> = {
 
   de: {
     SEEKING_JOB: {
-      title: 'Tipp für mehr Sichtbarkeit 💡',
-      body: 'Wir sehen, dass Sie eine Stelle suchen. Für mehr Reichweite empfehlen wir, Ihre Anzeige auch im Bereich Jobs zu veröffentlichen — dort suchen Arbeitgeber aktiv.\n\n📍 Fügen Sie Ihren Standort und eine kurze Beschreibung Ihrer Erfahrung hinzu.',
+      title: 'Finden Sie einen Job am richtigen Ort 🎯',
+      body: 'Wir sehen, dass Sie auf Jobsuche sind. 👤 Veröffentlichen Sie Ihre Jobsuche unter Jobs → Arbeitssuchend, damit Arbeitgeber, die aktiv nach Mitarbeitern suchen, Sie leichter finden können.\n\nGeben Sie an, welche Arbeit Sie suchen, wo Sie arbeiten möchten, welche Erfahrung Sie haben und wann Sie verfügbar sind. Je konkreter Ihre Angaben sind, desto leichter können Arbeitgeber einschätzen, ob Sie der richtige Kandidat sind.',
       ctaUrl: `${BASE_URL}/jobs`,
     },
     HIRING: {
