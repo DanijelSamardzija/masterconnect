@@ -38,7 +38,8 @@ async function analyzePost(postId: string) {
       .digest('hex');
 
     // Fast path: post is already complete, no guidance needed
-    if (isPostComplete(meta)) {
+    // Exception: service_listing always runs through AI to potentially send service_to_feed
+    if (isPostComplete(meta) && meta.postType !== 'service_listing') {
       await supabase.from('post_guidance_log').insert({
         ...logEntry,
         guidance_type: 'no_action',
