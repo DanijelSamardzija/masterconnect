@@ -17,8 +17,8 @@ const TEMPLATES: Record<GuidanceLanguage, TemplateMap> = {
       ctaUrl: `${BASE_URL}/jobs`,
     },
     HIRING: {
-      title: 'Savjet za bolji doseg 💡',
-      body: 'Vidimo da tražiš radnike. Oglas u sekciji Poslovi pronalaze kandidati koji aktivno traže posao.\n\n📍 Navedi lokaciju, broj radnika i uslove.',
+      title: 'Objavi oglas tamo gdje ga traže kandidati 🎯',
+      body: 'Vidimo da tražiš radnike. 👷‍♂️ Ovakve objave najbolje je postaviti u Poslovi → Tražim radnika, gdje ih mogu pronaći ljudi koji aktivno traže posao.\n\nDodaj grad, poziciju, broj potrebnih radnika i osnovne uslove kako bi kandidati odmah znali šta nudiš i gdje se posao obavlja.',
       ctaUrl: `${BASE_URL}/jobs`,
     },
     OFFERING_SERVICE: {
@@ -65,8 +65,8 @@ const TEMPLATES: Record<GuidanceLanguage, TemplateMap> = {
       ctaUrl: `${BASE_URL}/jobs`,
     },
     HIRING: {
-      title: 'Reach more candidates 💡',
-      body: "We see you're hiring. For better visibility, we recommend posting in the Jobs section — that's where job seekers actively browse.\n\n📍 Add the location, number of positions and conditions.",
+      title: 'Post where job seekers are looking 🎯',
+      body: "We see you're looking for workers. 👷‍♂️ This kind of listing gets better results in Jobs → Hiring, where people actively searching for work can find it.\n\nAdd your city, position, number of workers needed and basic conditions so candidates know right away what you're offering and where the job is.",
       ctaUrl: `${BASE_URL}/jobs`,
     },
     OFFERING_SERVICE: {
@@ -113,8 +113,8 @@ const TEMPLATES: Record<GuidanceLanguage, TemplateMap> = {
       ctaUrl: `${BASE_URL}/jobs`,
     },
     HIRING: {
-      title: 'Mehr Bewerber erreichen 💡',
-      body: 'Wir sehen, dass Sie Mitarbeiter suchen. Für mehr Sichtbarkeit empfehlen wir, Ihre Anzeige im Bereich Jobs zu veröffentlichen — dort suchen Arbeitssuchende aktiv.\n\n📍 Fügen Sie Standort, Anzahl der Stellen und Bedingungen hinzu.',
+      title: 'Inserieren Sie dort, wo Jobsuchende suchen 🎯',
+      body: 'Wir sehen, dass Sie Mitarbeiter suchen. 👷‍♂️ Solche Anzeigen erzielen bessere Ergebnisse im Bereich Jobs → Stelle ausschreiben, wo Menschen, die aktiv nach Arbeit suchen, sie finden können.\n\nFügen Sie Ihren Standort, die Position, die Anzahl der benötigten Mitarbeiter und die wichtigsten Bedingungen hinzu, damit Kandidaten sofort wissen, was Sie anbieten und wo die Stelle ist.',
       ctaUrl: `${BASE_URL}/jobs`,
     },
     OFFERING_SERVICE: {
