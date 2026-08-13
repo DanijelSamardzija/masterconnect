@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { countries } from '@/lib/countries';
 import { CATEGORY_SLUGS, getCategoryLabel, type CategorySlug } from '@/lib/seo/categories';
+import { notifyProfileIndexed } from '@/lib/actions/indexnow';
 
 function EditProfileContent() {
   const router = useRouter();
@@ -170,12 +171,7 @@ function EditProfileContent() {
 
       toast.success('Profile updated');
 
-      // IndexNow: notify search engines about updated profile
-      fetch('/api/indexnow', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ urls: [`https://www.gigzone.app/profile/${user!.id}`] }),
-      }).catch(() => {});
+      notifyProfileIndexed(user!.id).catch(() => {});
 
       // Profile completed reward — requires name, bio, city, avatar and category
       const isCompleted = !!(name.trim() && bio.trim() && city.trim() && avatarUrl && category.trim());

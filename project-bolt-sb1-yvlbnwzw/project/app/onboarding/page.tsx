@@ -10,6 +10,7 @@ import { ArrowRight, Loader2, MapPin } from 'lucide-react';
 import { CityAutocomplete } from '@/components/city-autocomplete';
 import { trackEvent } from '@/lib/analytics';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { notifyProfileIndexed } from '@/lib/actions/indexnow';
 import { resumeAfterAuth } from '@/lib/guest-intent';
 import { detectGeo } from '@/lib/geo';
 import { CATEGORY_SLUGS, getCategoryLabel } from '@/lib/seo/categories';
@@ -109,11 +110,7 @@ export default function OnboardingPage() {
       if (isGoogleUser) {
         trackEvent('register_success', { method: 'google', source: signupSource });
       }
-      fetch('/api/indexnow', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ urls: [`https://www.gigzone.app/profile/${user!.id}`] }),
-      }).catch(() => {});
+      notifyProfileIndexed(user!.id).catch(() => {});
       fetch('/api/email/welcome', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
