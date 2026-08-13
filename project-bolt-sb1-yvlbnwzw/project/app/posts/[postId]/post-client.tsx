@@ -487,7 +487,7 @@ function SinglePostContent({ initialData, relatedPosts }: { initialData: PostIni
                   <li aria-hidden="true">›</li>
                   <li>
                     <Link
-                      href={`/${language}/services/${post.category}`}
+                      href={`/${language}/jobs/${post.category}`}
                       className="hover:text-orange-500 transition-colors"
                     >
                       {getCategoryLabel(post.category as CategorySlug, language as any)}
