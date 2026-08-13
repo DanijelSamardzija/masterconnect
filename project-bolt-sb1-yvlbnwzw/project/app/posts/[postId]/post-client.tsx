@@ -434,18 +434,20 @@ function SinglePostContent({ initialData, relatedPosts }: { initialData: PostIni
   const isOwner = !!user && post.user_id === user.id;
 
   // Info chips data
+  const isPortfolioPost = post.post_type === 'portfolio_post';
+  const chipSection = isPortfolioPost ? 'services' : 'jobs';
   const chips: { key: string; label: string; href: string | null }[] = [];
   if (post.category && isValidCategory(post.category)) {
     chips.push({
       key: 'category',
       label: getCategoryLabel(post.category as CategorySlug, language as any),
-      href: `/${language}/jobs/${post.category}`,
+      href: `/${language}/${chipSection}/${post.category}`,
     });
   }
   if (post.city) {
     const citySlug = slugifyCity(post.city);
     const cityHref = citySlug && post.category && isValidCategory(post.category)
-      ? `/${language}/jobs/${post.category}/${citySlug}`
+      ? `/${language}/${chipSection}/${post.category}/${citySlug}`
       : null;
     chips.push({ key: 'city', label: post.city, href: cityHref });
   }
@@ -469,7 +471,7 @@ function SinglePostContent({ initialData, relatedPosts }: { initialData: PostIni
           {t('common.back')}
         </Button>
 
-        {/* HTML breadcrumb — only for job post types */}
+        {/* HTML breadcrumb — job post types */}
         {isJobPost && (
           <nav aria-label="Breadcrumb" className="mb-5">
             <ol className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
@@ -495,6 +497,36 @@ function SinglePostContent({ initialData, relatedPosts }: { initialData: PostIni
                   </li>
                 </>
               )}
+              <li aria-hidden="true">›</li>
+              <li aria-current="page" className="font-medium text-gray-700 dark:text-gray-200 truncate max-w-[200px]">
+                {post.job_title || (post.text || '').slice(0, 40) || t('common.listing')}
+              </li>
+            </ol>
+          </nav>
+        )}
+
+        {/* HTML breadcrumb — portfolio post: GigZone > Usluge > [category] > [title] */}
+        {isPortfolioPost && post.category && isValidCategory(post.category) && (
+          <nav aria-label="Breadcrumb" className="mb-5">
+            <ol className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
+              <li>
+                <Link href="/" className="hover:text-orange-500 transition-colors">GigZone</Link>
+              </li>
+              <li aria-hidden="true">›</li>
+              <li>
+                <Link href={`/${language}/services`} className="hover:text-orange-500 transition-colors">
+                  {t('nav.discover')}
+                </Link>
+              </li>
+              <li aria-hidden="true">›</li>
+              <li>
+                <Link
+                  href={`/${language}/services/${post.category}`}
+                  className="hover:text-orange-500 transition-colors"
+                >
+                  {getCategoryLabel(post.category as CategorySlug, language as any)}
+                </Link>
+              </li>
               <li aria-hidden="true">›</li>
               <li aria-current="page" className="font-medium text-gray-700 dark:text-gray-200 truncate max-w-[200px]">
                 {post.job_title || (post.text || '').slice(0, 40) || t('common.listing')}
@@ -606,8 +638,8 @@ function SinglePostContent({ initialData, relatedPosts }: { initialData: PostIni
             </div>
           </CardHeader>
 
-          {/* Job title + info chips — only for job post types */}
-          {isJobPost && (post.job_title || chips.length > 0) && (
+          {/* Job title + info chips — job post types and portfolio */}
+          {(isJobPost || isPortfolioPost) && (post.job_title || chips.length > 0) && (
             <CardContent className="pt-0 pb-3">
               {post.job_title && (
                 <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">
