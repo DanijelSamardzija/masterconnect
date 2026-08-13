@@ -109,6 +109,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: `https://www.gigzone.app/posts/${params.postId}`,
       siteName: 'GigZone',
       type: 'article',
+      publishedTime: (data as any).created_at as string,
+      authors: (data as any).user_id ? [`https://www.gigzone.app/profile/${(data as any).user_id}`] : undefined,
       images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
     },
     twitter: {
