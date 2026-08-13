@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { InvestClient } from './invest-client';
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: false },
   title: 'GigZone Invest — Ulažite u male biznise i startupe',
   description: 'Platforma za investiranje u provjerene biznise, startupe i projekte. Povežite kapital sa perspektivnim poduzećima. ROI 8–35% godišnje. Prijavite se na listu čekanja.',
   keywords: ['invest', 'investment platform', 'startup investment', 'small business', 'ROI', 'angel investor', 'GigZone Invest'],
