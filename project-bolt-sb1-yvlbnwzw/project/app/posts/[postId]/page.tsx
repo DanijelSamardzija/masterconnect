@@ -5,6 +5,8 @@ import { Metadata } from 'next';
 import { SinglePostClient, type RelatedPost } from './post-client';
 import { isValidCategory, getCategoryLabel, type CategorySlug } from '@/lib/seo/categories';
 
+export const revalidate = 300; // ISR: revalidate every 5 minutes; cleared immediately on edit/delete via revalidatePath
+
 type Props = { params: { postId: string } };
 
 const JOB_POST_TYPES = ['hiring_post', 'job_seeker_post', 'service_request'] as const;

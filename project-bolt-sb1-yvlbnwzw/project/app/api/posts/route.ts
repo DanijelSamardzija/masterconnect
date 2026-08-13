@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { revalidatePath } from 'next/cache';
 import { computeSpamScore, type UserProfile, type PostingStats } from '@/lib/antiSpam';
 import { notifySubscribers } from '@/lib/notify-subscribers';
 import { notifyIndexNow } from '@/lib/indexnow';
@@ -1004,6 +1005,11 @@ export async function DELETE(request: NextRequest) {
 
     if (error) {
       return NextResponse.json({ error: 'Failed to delete post' }, { status: 500 });
+    }
+
+    // ISR: invalidate cached page so deleted post is not served from cache
+    if (post.post_type !== 'service_listing') {
+      revalidatePath(`/posts/${postId}`);
     }
 
     // IndexNow: notify about deleted content so Bing removes it from the index

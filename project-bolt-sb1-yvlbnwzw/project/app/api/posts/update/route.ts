@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { revalidatePath } from 'next/cache';
 import { analyzeSpam } from '@/lib/antiSpam';
 import { notifyIndexNow } from '@/lib/indexnow';
 import { devLog } from '@/lib/dev-log';
@@ -317,6 +318,11 @@ export async function PUT(request: NextRequest) {
     }
 
     devLog('[UPDATE] Success - Post ID:', postId);
+
+    // ISR: invalidate cached page so the next request gets fresh server-rendered HTML
+    if (updatedPost.post_type !== 'service_listing') {
+      revalidatePath(`/posts/${postId}`);
+    }
 
     // IndexNow: notify search engines about updated public content
     if (updatedPost.status === 'published') {
