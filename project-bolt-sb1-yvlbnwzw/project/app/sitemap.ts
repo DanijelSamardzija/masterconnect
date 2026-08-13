@@ -38,7 +38,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .eq('post_type', 'service_listing')
     .eq('is_active', true)
     .not('city', 'is', null)
-    .not('category', 'is', null);
+    .not('category', 'is', null)
+    .limit(5000);
 
   // Group by category+citySlug in JS; ':::' separator is safe (neither field uses it).
   // Also track max(created_at) per category and per category+city for meaningful lastModified.
@@ -91,7 +92,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .select('category, city, created_at')
     .in('post_type', ['hiring_post', 'job_seeker_post', 'service_request'])
     .not('city', 'is', null)
-    .not('category', 'is', null);
+    .not('category', 'is', null)
+    .limit(5000);
 
   const jobCityCounts = new Map<string, number>();
   const jobMaxDateByCategory = new Map<string, Date>();
@@ -143,7 +145,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .in('post_type', ['social_post', 'hiring_post', 'job_seeker_post', 'service_request', 'portfolio_post'])
       .neq('status', 'deleted')
       .order('updated_at', { ascending: false })
-      .limit(2000),
+      .limit(45000),
     // Service listings have their own /services/[id] detail page
     supabase
       .from('posts')
@@ -151,7 +153,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .eq('post_type', 'service_listing')
       .eq('is_active', true)
       .neq('status', 'deleted')
-      .limit(1000),
+      .order('updated_at', { ascending: false })
+      .limit(20000),
     // Jobs from the jobs table have their own /jobs/[id] detail page
     // jobs.status values: 'open' | 'closed' | 'completed' — include all statuses
     // jobs table has created_at but NOT updated_at
@@ -159,7 +162,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .from('jobs')
       .select('id, created_at')
       .order('created_at', { ascending: false })
-      .limit(2000),
+      .limit(20000),
     // All profiles with a public /profile/[id] page
     // profiles table has created_at but NOT updated_at
     supabase
