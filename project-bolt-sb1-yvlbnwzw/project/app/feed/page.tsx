@@ -723,71 +723,6 @@ function FeedContent() {
         </div>
       </div>
 
-      {/* Profile search results dropdown */}
-      {searchOpen && searchQuery.trim().length >= 2 && (profileResults.length > 0 || profilesLoading) && (
-        <div className="fixed inset-x-0 z-20 px-3 pt-1" style={{ top: HEADER_H }}>
-          <div className="mx-auto max-w-2xl bg-background border border-border rounded-2xl shadow-2xl overflow-hidden">
-            {profilesLoading ? (
-              <div className="flex items-center justify-center py-6">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-              </div>
-            ) : (
-              <>
-                <div className="px-4 pt-3 pb-2 border-b border-border">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Korisnici</span>
-                </div>
-                <ul className="max-h-[320px] overflow-y-auto py-1">
-                  {profileResults.map(profile => (
-                    <li key={profile.id}>
-                      <button
-                        onClick={() => { closeSearch(); router.push(`/profile/${profile.id}`); }}
-                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-accent transition-colors text-left"
-                      >
-                        <Avatar className="h-9 w-9 shrink-0">
-                          <AvatarImage src={profile.avatar_url ?? undefined} alt={profile.name} />
-                          <AvatarFallback className="bg-orange-100 text-orange-700 text-sm font-bold">
-                            {profile.name.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-sm font-semibold text-foreground truncate">{profile.name}</span>
-                            {profile.is_premium && (
-                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 text-white text-[10px] font-bold shrink-0">
-                                <CheckCircle className="h-2.5 w-2.5" />
-                                PRO
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 flex-wrap">
-                            {profile.category && <span className="truncate">{profile.category}</span>}
-                            {(profile.city || profile.country) && (
-                              <span className="flex items-center gap-0.5 shrink-0">
-                                <MapPin className="h-3 w-3" />
-                                {[profile.city, profile.country].filter(Boolean).join(', ')}
-                              </span>
-                            )}
-                            {profile.average_rating != null && profile.average_rating > 0 && (
-                              <span className="flex items-center gap-0.5 shrink-0">
-                                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                {profile.average_rating.toFixed(1)}
-                                {profile.review_count != null && profile.review_count > 0 && (
-                                  <span className="opacity-60">({profile.review_count})</span>
-                                )}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* New posts notification */}
       {newPostsCount > 0 && (
         <div className="fixed left-1/2 z-30 -translate-x-1/2" style={{ top: `${HEADER_H + 8}px` }}>
@@ -839,12 +774,74 @@ function FeedContent() {
         </div>
       )}
 
-      {/* Main feed */}
+      {/* Main feed — snap disabled during search so users section scrolls naturally with posts */}
       <div
         ref={scrollContainerRef}
-        className="overflow-y-scroll snap-y snap-mandatory"
+        className={`overflow-y-scroll ${searchQuery.trim() ? '' : 'snap-y snap-mandatory'}`}
         style={{ height: `calc(100dvh - ${HEADER_H}px - ${recentItems.length > 0 && !recentDismissed ? RECENT_H : 0}px)`, overscrollBehavior: 'contain' }}
       >
+        {/* Inline user results — shown above posts during search */}
+        {searchQuery.trim().length >= 2 && (profileResults.length > 0 || profilesLoading) && (
+          <div className="border-b border-border bg-background">
+            <div className="px-4 pt-3 pb-1">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Korisnici</span>
+            </div>
+            {profilesLoading ? (
+              <div className="flex items-center gap-2 px-4 py-3">
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Pretraga korisnika...</span>
+              </div>
+            ) : (
+              <ul>
+                {profileResults.map(profile => (
+                  <li key={profile.id} className="border-t border-border first:border-t-0">
+                    <button
+                      onClick={() => { closeSearch(); router.push(`/profile/${profile.id}`); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-accent transition-colors text-left"
+                    >
+                      <Avatar className="h-9 w-9 shrink-0">
+                        <AvatarImage src={profile.avatar_url ?? undefined} alt={profile.name} />
+                        <AvatarFallback className="bg-orange-100 text-orange-700 text-sm font-bold">
+                          {profile.name.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-semibold text-foreground truncate">{profile.name}</span>
+                          {profile.is_premium && (
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 text-white text-[10px] font-bold shrink-0">
+                              <CheckCircle className="h-2.5 w-2.5" />
+                              PRO
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 flex-wrap">
+                          {profile.category && <span className="truncate">{profile.category}</span>}
+                          {(profile.city || profile.country) && (
+                            <span className="flex items-center gap-0.5 shrink-0">
+                              <MapPin className="h-3 w-3" />
+                              {[profile.city, profile.country].filter(Boolean).join(', ')}
+                            </span>
+                          )}
+                          {profile.average_rating != null && profile.average_rating > 0 && (
+                            <span className="flex items-center gap-0.5 shrink-0">
+                              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                              {profile.average_rating.toFixed(1)}
+                              {profile.review_count != null && profile.review_count > 0 && (
+                                <span className="opacity-60">({profile.review_count})</span>
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
         {posts.length === 0 ? (
           <div className="flex h-full items-center justify-center">
             <div className="text-center px-8">
@@ -857,7 +854,7 @@ function FeedContent() {
               )}
             </div>
           </div>
-        ) : searchQuery.trim() && filteredPosts.length === 0 ? (
+        ) : searchQuery.trim() && filteredPosts.length === 0 && profileResults.length === 0 && !profilesLoading ? (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-muted-foreground px-6">
             <Search className="h-10 w-10 opacity-30" />
             <p className="text-sm text-center">{t('feed.searchNoResults')}</p>
