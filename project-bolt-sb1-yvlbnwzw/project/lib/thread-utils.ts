@@ -42,7 +42,6 @@ export async function findOrCreateThread(params: {
       // Determine target: the participant who is not the current user
       const targetUserId = currentUserId === customerId ? proId : customerId;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: rpcData, error: rpcError } = await (supabase as any).rpc(
         'create_direct_thread_safe',
         { p_target_user_id: targetUserId }
