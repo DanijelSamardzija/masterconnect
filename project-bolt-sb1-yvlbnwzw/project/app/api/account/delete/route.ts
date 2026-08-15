@@ -37,7 +37,8 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
-      return NextResponse.json({ error: 'Failed to delete account' }, { status: 500 });
+      console.error('[Delete account] RPC error:', error);
+      return NextResponse.json({ error: error.message || 'Failed to delete account' }, { status: 500 });
     }
 
     if (!data?.success) {
