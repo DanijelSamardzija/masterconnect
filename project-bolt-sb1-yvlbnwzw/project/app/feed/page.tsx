@@ -92,6 +92,18 @@ type Post = {
   user_has_reacted: boolean;
 };
 
+type ProfileResult = {
+  id: string;
+  name: string;
+  category: string | null;
+  city: string | null;
+  country: string | null;
+  is_premium: boolean;
+  average_rating: number | null;
+  review_count: number | null;
+  avatar_url: string | null;
+};
+
 const POSTS_LIMIT = 15;
 const TEXT_MAX_LENGTH = 120;
 const HEADER_H = 52;
@@ -118,6 +130,8 @@ function FeedContent() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [profileResults, setProfileResults] = useState<ProfileResult[]>([]);
+  const [profilesLoading, setProfilesLoading] = useState(false);
 
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [reportTarget, setReportTarget] = useState<{ type: 'post' | 'profile'; id: string; userId: string } | null>(null);
@@ -581,6 +595,24 @@ function FeedContent() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
+  // Search profiles via RPC when debounced query reaches 2+ chars
+  useEffect(() => {
+    if (searchQuery.trim().length < 2) {
+      setProfileResults([]);
+      setProfilesLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setProfilesLoading(true);
+    supabase.rpc('search_profiles', { p_search: searchQuery.trim(), p_limit: 8 })
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (!error) setProfileResults((data ?? []) as ProfileResult[]);
+        setProfilesLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [searchQuery]);
+
   // Close search when tapping the feed area — only if input is empty
   useEffect(() => {
     if (!searchOpen) return;
@@ -601,6 +633,8 @@ function FeedContent() {
     setSearchOpen(false);
     setSearchInput('');
     setSearchQuery('');
+    setProfileResults([]);
+    setProfilesLoading(false);
   };
 
   const handlePostCreated = () => {
@@ -688,6 +722,71 @@ function FeedContent() {
           </div>
         </div>
       </div>
+
+      {/* Profile search results dropdown */}
+      {searchOpen && searchQuery.trim().length >= 2 && (profileResults.length > 0 || profilesLoading) && (
+        <div className="fixed inset-x-0 z-20 px-3 pt-1" style={{ top: HEADER_H }}>
+          <div className="mx-auto max-w-2xl bg-background border border-border rounded-2xl shadow-2xl overflow-hidden">
+            {profilesLoading ? (
+              <div className="flex items-center justify-center py-6">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <>
+                <div className="px-4 pt-3 pb-2 border-b border-border">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Korisnici</span>
+                </div>
+                <ul className="max-h-[320px] overflow-y-auto py-1">
+                  {profileResults.map(profile => (
+                    <li key={profile.id}>
+                      <button
+                        onClick={() => { closeSearch(); router.push(`/profile/${profile.id}`); }}
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-accent transition-colors text-left"
+                      >
+                        <Avatar className="h-9 w-9 shrink-0">
+                          <AvatarImage src={profile.avatar_url ?? undefined} alt={profile.name} />
+                          <AvatarFallback className="bg-orange-100 text-orange-700 text-sm font-bold">
+                            {profile.name.substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm font-semibold text-foreground truncate">{profile.name}</span>
+                            {profile.is_premium && (
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 text-white text-[10px] font-bold shrink-0">
+                                <CheckCircle className="h-2.5 w-2.5" />
+                                PRO
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 flex-wrap">
+                            {profile.category && <span className="truncate">{profile.category}</span>}
+                            {(profile.city || profile.country) && (
+                              <span className="flex items-center gap-0.5 shrink-0">
+                                <MapPin className="h-3 w-3" />
+                                {[profile.city, profile.country].filter(Boolean).join(', ')}
+                              </span>
+                            )}
+                            {profile.average_rating != null && profile.average_rating > 0 && (
+                              <span className="flex items-center gap-0.5 shrink-0">
+                                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                {profile.average_rating.toFixed(1)}
+                                {profile.review_count != null && profile.review_count > 0 && (
+                                  <span className="opacity-60">({profile.review_count})</span>
+                                )}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* New posts notification */}
       {newPostsCount > 0 && (
