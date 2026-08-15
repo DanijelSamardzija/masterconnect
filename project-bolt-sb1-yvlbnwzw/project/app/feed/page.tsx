@@ -118,6 +118,8 @@ function FeedContent() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchPosts, setSearchPosts] = useState<Post[]>([]);
+  const [searchPostsLoading, setSearchPostsLoading] = useState(false);
 
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [reportTarget, setReportTarget] = useState<{ type: 'post' | 'profile'; id: string; userId: string } | null>(null);
@@ -581,6 +583,26 @@ function FeedContent() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
+  // Server-side post search: fires on debounced query (2+ chars)
+  useEffect(() => {
+    if (searchQuery.trim().length < 2) {
+      setSearchPosts([]);
+      return;
+    }
+    let cancelled = false;
+    setSearchPostsLoading(true);
+    fetchJSON<{ data: Post[] }>(`/api/posts?search=${encodeURIComponent(searchQuery.trim())}&limit=10`)
+      .then(res => {
+        if (cancelled) return;
+        setSearchPosts(res.data || []);
+        setSearchPostsLoading(false);
+      })
+      .catch(() => {
+        if (!cancelled) setSearchPostsLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [searchQuery]);
+
   // Close search when tapping the feed area — only if input is empty
   useEffect(() => {
     if (!searchOpen) return;
@@ -601,6 +623,8 @@ function FeedContent() {
     setSearchOpen(false);
     setSearchInput('');
     setSearchQuery('');
+    setSearchPosts([]);
+    setSearchPostsLoading(false);
   };
 
   const handlePostCreated = () => {
@@ -740,12 +764,37 @@ function FeedContent() {
         </div>
       )}
 
-      {/* Main feed */}
+      {/* Main feed — snap disabled during active search so server results scroll naturally */}
       <div
         ref={scrollContainerRef}
-        className="overflow-y-scroll snap-y snap-mandatory"
+        className={`overflow-y-scroll ${searchQuery.trim() ? '' : 'snap-y snap-mandatory'}`}
         style={{ height: `calc(100dvh - ${HEADER_H}px - ${recentItems.length > 0 && !recentDismissed ? RECENT_H : 0}px)`, overscrollBehavior: 'contain' }}
       >
+        {/* Server-side search results — shown above client-filtered posts when search active */}
+        {searchQuery.trim().length >= 2 && (
+          <>
+            {searchPostsLoading && (
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />
+                <span className="text-sm text-muted-foreground">Pretraga...</span>
+              </div>
+            )}
+            {!searchPostsLoading && searchPosts.length > 0 && (() => {
+              const loadedIds = new Set(posts.map(p => p.id));
+              const newFromServer = searchPosts.filter(p => !loadedIds.has(p.id));
+              if (newFromServer.length === 0) return null;
+              return (
+                <div className="border-b border-border pb-2">
+                  <p className="px-4 pt-3 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    Rezultati pretrage
+                  </p>
+                  {newFromServer.map((post, i) => renderCard({ ...post, user_has_reacted: false }, i))}
+                </div>
+              );
+            })()}
+          </>
+        )}
+
         {posts.length === 0 ? (
           <div className="flex h-full items-center justify-center">
             <div className="text-center px-8">
@@ -758,7 +807,7 @@ function FeedContent() {
               )}
             </div>
           </div>
-        ) : searchQuery.trim() && filteredPosts.length === 0 ? (
+        ) : searchQuery.trim() && filteredPosts.length === 0 && searchPosts.length === 0 && !searchPostsLoading ? (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-muted-foreground px-6">
             <Search className="h-10 w-10 opacity-30" />
             <p className="text-sm text-center">{t('feed.searchNoResults')}</p>

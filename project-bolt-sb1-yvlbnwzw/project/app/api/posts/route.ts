@@ -53,6 +53,99 @@ export async function GET(request: NextRequest) {
     const asOf = searchParams.get('as_of');
     const userCity = searchParams.get('user_city') || null;
     const userCountry = searchParams.get('user_country') || null;
+    const search = searchParams.get('search') || null;
+
+    // Search mode: use search_feed_posts RPC (searches post content + author name server-side)
+    // Skip promoted posts injection and hasMore/count — search results are a flat list.
+    if (search) {
+      const { data: searchRows, error: searchError } = await supabase.rpc('search_feed_posts', {
+        p_search: search,
+        p_user_id: user?.id || null,
+        p_limit: limit,
+      });
+      if (searchError) {
+        console.error('[Feed search] RPC error:', searchError);
+        return NextResponse.json({ error: searchError.message }, { status: 500 });
+      }
+      const rows: any[] = searchRows || [];
+      const postIds = rows.map(p => p.id);
+      const userIds = [...new Set(rows.map(p => p.user_id))];
+
+      const [mediaResult, reviewsResult, premiumResult, promotedUntilResult] = await Promise.all([
+        postIds.length > 0
+          ? supabase.from('post_media').select('*').in('post_id', postIds).order('order', { ascending: true })
+          : Promise.resolve({ data: [] }),
+        userIds.length > 0
+          ? supabase.from('reviews').select('pro_id, rating').in('pro_id', userIds)
+          : Promise.resolve({ data: [] }),
+        userIds.length > 0
+          ? supabase.from('profiles').select('id, is_premium').in('id', userIds)
+          : Promise.resolve({ data: [] }),
+        postIds.length > 0
+          ? supabase.from('posts').select('id, promoted_until').in('id', postIds).gt('promoted_until', new Date().toISOString())
+          : Promise.resolve({ data: [] }),
+      ]);
+
+      const mediaData: any[] = mediaResult.data || [];
+      const reviewsData: any[] = reviewsResult.data || [];
+      const premiumData: any[] = premiumResult.data || [];
+      const puData: any[] = promotedUntilResult.data || [];
+
+      const isPremiumMap: Record<string, boolean> = {};
+      for (const r of premiumData) isPremiumMap[r.id] = r.is_premium ?? false;
+
+      const promotedUntilMap: Record<string, string | null> = {};
+      for (const r of puData) promotedUntilMap[r.id] = r.promoted_until;
+
+      const reviewStats: Record<string, { average_rating: number; review_count: number }> = {};
+      for (const uid of userIds) {
+        const userReviews = reviewsData.filter(r => r.pro_id === uid);
+        if (userReviews.length > 0) {
+          reviewStats[uid] = {
+            average_rating: Math.round(userReviews.reduce((s, r) => s + r.rating, 0) / userReviews.length * 10) / 10,
+            review_count: userReviews.length,
+          };
+        }
+      }
+
+      const assembled = rows.map(post => ({
+        id: post.id,
+        user_id: post.user_id,
+        text: post.text,
+        post_type: post.post_type,
+        created_at: post.created_at,
+        updated_at: post.updated_at,
+        is_pinned: post.is_pinned,
+        pinned_at: post.pinned_at,
+        status: post.status,
+        spam_score: post.spam_score,
+        rank_penalty: post.rank_penalty,
+        phone_count: post.phone_count,
+        link_count: post.link_count,
+        hashtag_count: post.hashtag_count,
+        city: post.city,
+        category: post.category,
+        reactions_count: post.reactions_count || 0,
+        comments_count: post.comments_count || 0,
+        views_count: post.views_count || 0,
+        hashtags: post.hashtags || [],
+        feed_score: post.feed_score,
+        is_promoted: post.is_promoted || false,
+        promoted_until: promotedUntilMap[post.id] || null,
+        media: mediaData.filter(m => m.post_id === post.id),
+        user: {
+          name: post.user_name,
+          email: post.user_email,
+          account_type: post.user_account_type,
+          avatar_url: post.user_avatar_url,
+          country: post.user_country || null,
+          is_premium: isPremiumMap[post.user_id] ?? false,
+          ...(reviewStats[post.user_id] || {}),
+        },
+      }));
+
+      return NextResponse.json({ data: assembled, meta: { totalAvailablePosts: assembled.length, rpcFetchedCount: assembled.length } });
+    }
 
     // Count available posts for hasMore calculation in the client (feed/page.tsx uses meta.totalAvailablePosts)
     let countQuery = supabase
