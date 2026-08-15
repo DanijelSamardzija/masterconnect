@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
+interface RpcResult {
+  ok: boolean;
+  thread_id?: string;
+  error?: string;
+  is_new?: boolean;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -35,39 +42,49 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Target user ID is required' }, { status: 400 });
     }
 
-    if (targetUserId === user.id) {
-      return NextResponse.json({ error: 'Cannot message yourself' }, { status: 400 });
+    // Delegate to SECURITY DEFINER RPC — handles existence check, block check,
+    // new-account rate limit, advisory lock for race safety, and INSERT.
+    const { data: rpcData, error: rpcError } = await supabase.rpc(
+      'create_direct_thread_safe',
+      { p_target_user_id: targetUserId }
+    );
+
+    if (rpcError) {
+      console.error('Error calling create_direct_thread_safe:', rpcError);
+      return NextResponse.json({ error: 'Failed to create thread' }, { status: 500 });
     }
 
-    // Find existing direct thread between these two users — regardless of deleted_at.
-    // Deletion is per-user (hidden_before cutoff); we never create a second thread
-    // between the same pair. The message INSERT trigger handles restoring visibility.
-    const { data: existingThread, error: searchError } = await supabase
-      .from('threads')
-      .select('id')
-      .eq('thread_type', 'direct')
-      .is('job_id', null)
-      .is('post_id', null)
-      .or(
-        `and(user1_id.eq.${user.id},user2_id.eq.${targetUserId}),` +
-        `and(user1_id.eq.${targetUserId},user2_id.eq.${user.id})`
-      )
-      .limit(1)
-      .maybeSingle();
+    const result = rpcData as RpcResult | null;
 
-    if (searchError) {
-      console.error('Error searching for threads:', searchError);
-      return NextResponse.json({ error: 'Failed to search for threads' }, { status: 500 });
+    if (!result?.ok) {
+      switch (result?.error) {
+        case 'new_account_limit_reached':
+          return NextResponse.json(
+            {
+              error: 'Dostignut je privremeni limit za pokretanje novih razgovora. ' +
+                     'Novi nalozi mogu pokrenuti do 3 nova direktna razgovora u 24h. ' +
+                     'Pokušaj ponovo sutra.',
+            },
+            { status: 429 }
+          );
+        case 'cannot_message_self':
+          return NextResponse.json({ error: 'Cannot message yourself' }, { status: 400 });
+        case 'blocked':
+          return NextResponse.json({ error: 'Cannot message this user' }, { status: 403 });
+        case 'target_not_found':
+          return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        default:
+          return NextResponse.json({ error: 'Failed to create thread' }, { status: 500 });
+      }
     }
 
-    let threadId: string;
+    const threadId = result.thread_id!;
+    const isNewThread = result.is_new ?? false;
 
-    if (existingThread) {
-      threadId = existingThread.id;
-
-      // If sender had previously deleted this thread, restore their participation
-      // so the messages RLS policy (requires deleted_at IS NULL) passes on INSERT.
-      // Preserve hidden_before so they only see messages after their deletion cutoff.
+    // Restore sender's participation if they had previously deleted this thread.
+    // This makes the thread reappear in their list before they send the first message.
+    // The on_message_reset_deleted trigger handles this on message INSERT as a fallback.
+    if (!isNewThread) {
       const { data: senderParticipant } = await supabase
         .from('thread_participants')
         .select('deleted_at, hidden_before')
@@ -85,26 +102,6 @@ export async function POST(request: NextRequest) {
           .eq('thread_id', threadId)
           .eq('user_id', user.id);
       }
-    } else {
-      const { data: newThread, error: createError } = await supabase
-        .from('threads')
-        .insert({
-          user1_id: user.id,
-          user2_id: targetUserId,
-          thread_type: 'direct',
-        })
-        .select('id')
-        .single();
-
-      if (createError) {
-        console.error('Error creating thread:', createError);
-        return NextResponse.json({ error: 'Failed to create thread' }, { status: 500 });
-      }
-
-      threadId = newThread.id;
-
-      await supabase.from('thread_participants').insert({ thread_id: threadId, user_id: user.id });
-      await supabase.from('thread_participants').insert({ thread_id: threadId, user_id: targetUserId });
     }
 
     return NextResponse.json({ threadId });

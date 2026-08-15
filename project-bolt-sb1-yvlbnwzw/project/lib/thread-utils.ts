@@ -13,6 +13,13 @@ export async function ensureThreadParticipants(threadId: string, customerId: str
   }
 }
 
+interface RpcResult {
+  ok: boolean;
+  thread_id?: string;
+  error?: string;
+  is_new?: boolean;
+}
+
 export async function findOrCreateThread(params: {
   customerId: string;
   proId: string;
@@ -26,22 +33,71 @@ export async function findOrCreateThread(params: {
       return { threadId: null, error: 'Not authenticated' };
     }
 
-    const threadType = jobId ? 'job' : 'direct';
+    const currentUserId = session.user.id;
 
-    // Filter directly by both users — avoids fetching all threads and hitting row limits
-    let query = supabase
-      .from('threads')
-      .select('id')
-      .eq('thread_type', threadType)
-      .or(
-        `and(user1_id.eq.${customerId},user2_id.eq.${proId}),and(user1_id.eq.${proId},user2_id.eq.${customerId})`
+    // ── Direct thread ────────────────────────────────────────────────────────
+    // Must go through the SECURITY DEFINER RPC — direct INSERT into threads is
+    // blocked by RLS for thread_type='direct'. No fallback to direct INSERT.
+    if (!jobId) {
+      // Determine target: the participant who is not the current user
+      const targetUserId = currentUserId === customerId ? proId : customerId;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: rpcData, error: rpcError } = await (supabase as any).rpc(
+        'create_direct_thread_safe',
+        { p_target_user_id: targetUserId }
       );
 
-    if (jobId) {
-      query = query.eq('job_id', jobId);
-    } else {
-      query = query.is('job_id', null);
+      if (rpcError) {
+        return { threadId: null, error: (rpcError as { message: string }).message };
+      }
+
+      const result = rpcData as RpcResult | null;
+
+      if (!result?.ok) {
+        return { threadId: null, error: result?.error ?? 'failed_to_create_thread' };
+      }
+
+      const threadId = result.thread_id!;
+      const isNewThread = result.is_new ?? false;
+
+      // Restore sender's participation if they had previously deleted this thread.
+      // This makes the thread reappear in their list before they send the first message.
+      // The on_message_reset_deleted trigger handles this on message INSERT as a fallback.
+      if (!isNewThread) {
+        const { data: senderParticipant } = await supabase
+          .from('thread_participants')
+          .select('deleted_at, hidden_before')
+          .eq('thread_id', threadId)
+          .eq('user_id', currentUserId)
+          .maybeSingle();
+
+        if (senderParticipant?.deleted_at) {
+          await supabase
+            .from('thread_participants')
+            .update({
+              hidden_before: senderParticipant.hidden_before ?? senderParticipant.deleted_at,
+              deleted_at: null,
+            })
+            .eq('thread_id', threadId)
+            .eq('user_id', currentUserId);
+        }
+      }
+
+      return { threadId, error: null, isNewThread };
     }
+
+    // ── Job thread ───────────────────────────────────────────────────────────
+    // Job threads are not subject to the direct-thread rate limit and continue
+    // to use direct INSERT (thread_type='job' is allowed by RLS).
+    const query = supabase
+      .from('threads')
+      .select('id')
+      .eq('thread_type', 'job')
+      .or(
+        `and(user1_id.eq.${customerId},user2_id.eq.${proId}),and(user1_id.eq.${proId},user2_id.eq.${customerId})`
+      )
+      .eq('job_id', jobId);
 
     const { data: existingThreads, error: searchError } = await query.limit(1);
 
@@ -51,10 +107,7 @@ export async function findOrCreateThread(params: {
 
     if (existingThreads && existingThreads.length > 0) {
       const threadId = existingThreads[0].id;
-      const currentUserId = session.user.id;
 
-      // Restore sender's participation if they had previously deleted this thread,
-      // so messages RLS (requires deleted_at IS NULL) passes on INSERT.
       const { data: senderParticipant } = await supabase
         .from('thread_participants')
         .select('deleted_at, hidden_before')
@@ -81,14 +134,13 @@ export async function findOrCreateThread(params: {
       .insert({
         user1_id: customerId,
         user2_id: proId,
-        job_id: jobId || null,
-        thread_type: threadType,
+        job_id: jobId,
+        thread_type: 'job',
       })
       .select('id')
       .single();
 
     if (createError) {
-      // If unique constraint violation, the thread was created concurrently — fetch it
       if (createError.code === '23505') {
         const { data: retryThreads } = await query;
         if (retryThreads && retryThreads.length > 0) {
@@ -106,7 +158,8 @@ export async function findOrCreateThread(params: {
     }
 
     return { threadId: newThread.id, error: null, isNewThread: true };
-  } catch (err: any) {
-    return { threadId: null, error: err.message || 'Failed to create or find thread' };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to create or find thread';
+    return { threadId: null, error: message };
   }
 }
