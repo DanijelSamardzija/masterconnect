@@ -39,10 +39,8 @@ BEGIN
   -- Message reactions
   DELETE FROM message_reactions WHERE user_id = v_user_id;
 
-  -- Soft-delete sent messages (keep thread structure for the other participant)
-  UPDATE messages
-  SET sender_id = NULL, is_deleted = true
-  WHERE sender_id = v_user_id;
+  -- Delete messages (sender_id is NOT NULL, cannot soft-delete)
+  DELETE FROM messages WHERE sender_id = v_user_id OR receiver_id = v_user_id;
 
   -- Thread participants (removes user from all threads)
   DELETE FROM thread_participants WHERE user_id = v_user_id;
