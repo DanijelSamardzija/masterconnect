@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 import type { Lang } from '@/lib/i18n-config';
 import {
   isValidCategory,
@@ -10,10 +11,30 @@ import {
 } from '@/lib/seo/categories';
 import { slugifyCity, humanizeCity } from '@/lib/seo/slugify';
 import { ProfessionalCard } from '@/components/professional-card';
+import { ServiceDetailClient } from '@/app/services/[serviceId]/service-detail-client';
 
 export const revalidate = 3600;
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function fetchServiceDetail(serviceId: string) {
+  const supabase = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+  const { data } = await supabase
+    .from('posts')
+    .select(`
+      id, user_id, text, job_title, category, city, price_type, price_value, currency, created_at,
+      profiles(name, avatar_url, account_type, is_premium, average_rating, review_count, phone, show_phone),
+      post_media(id, type, url, order)
+    `)
+    .eq('id', serviceId)
+    .eq('post_type', 'service_listing')
+    .eq('is_active', true)
+    .maybeSingle();
+  return data;
+}
 const MIN_CITY_LINKS = 2;
 
 const UI_STRINGS = {
@@ -53,8 +74,15 @@ export default async function CategoryLandingPage({
 }) {
   const { lang, category } = params;
 
+  // UUID: render individual service detail (layout handles JSON-LD and metadata)
+  if (UUID_RE.test(category)) {
+    const data = await fetchServiceDetail(category);
+    if (!data) notFound();
+    return <ServiceDetailClient serviceId={category} initialData={data as any} />;
+  }
+
   // Layout handles the redirect/notFound, but page must also be self-consistent
-  if (UUID_RE.test(category) || !isValidCategory(category)) {
+  if (!isValidCategory(category)) {
     notFound();
   }
 

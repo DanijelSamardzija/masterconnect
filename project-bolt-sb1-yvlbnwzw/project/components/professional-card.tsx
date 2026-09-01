@@ -44,7 +44,7 @@ type ProfessionalCardProps = {
 
 export function ProfessionalCard({ listing }: ProfessionalCardProps) {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const mainImage = listing.post_media?.[0]?.url;
   const hasRating = listing.profiles?.average_rating && listing.profiles.average_rating > 0;
@@ -94,9 +94,9 @@ export function ProfessionalCard({ listing }: ProfessionalCardProps) {
   return (
     <Card
       className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer group flex flex-col h-full"
-      onClick={() => router.push(`/services/${listing.id}`)}
+      onClick={() => router.push(`/${language}/services/${listing.id}`)}
     >
-      <Link href={`/services/${listing.id}`} prefetch={false} className="block">
+      <Link href={`/${language}/services/${listing.id}`} prefetch={false} className="block">
         <div className="relative w-full aspect-square max-h-[280px] bg-gray-200 overflow-hidden">
           {mainImage ? (
             <Image
@@ -151,7 +151,7 @@ export function ProfessionalCard({ listing }: ProfessionalCardProps) {
 
           {/* Job Title */}
           <h3 className="font-bold text-base md:text-lg text-gray-900 dark:text-gray-100 mb-1 md:mb-1.5 line-clamp-1">
-            <Link href={`/services/${listing.id}`} prefetch={false} className="hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
+            <Link href={`/${language}/services/${listing.id}`} prefetch={false} className="hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
               {listing.job_title || 'Usluga'}
             </Link>
           </h3>
@@ -216,7 +216,7 @@ export function ProfessionalCard({ listing }: ProfessionalCardProps) {
           className="w-full bg-orange-600 hover:bg-orange-700 text-white group/btn h-8 md:h-9 text-xs md:text-sm"
           asChild
         >
-          <Link href={`/services/${listing.id}`} prefetch={false} onClick={(e) => e.stopPropagation()}>
+          <Link href={`/${language}/services/${listing.id}`} prefetch={false} onClick={(e) => e.stopPropagation()}>
             {t('services.viewService')}
             <ArrowRight className="ml-1.5 md:ml-2 h-3.5 w-3.5 md:h-4 md:w-4 group-hover/btn:translate-x-1 transition-transform" />
           </Link>

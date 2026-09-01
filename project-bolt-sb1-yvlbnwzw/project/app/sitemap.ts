@@ -185,12 +185,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }))
   );
 
-  const serviceUrls: MetadataRoute.Sitemap = (servicesRes.data || []).map((s) => ({
-    url: `${BASE}/services/${s.id}`,
-    lastModified: new Date(s.updated_at),
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  }));
+  // Each service gets 3 language-specific URLs via the [lang]/services/[category] route (UUID case).
+  const serviceUrls: MetadataRoute.Sitemap = (servicesRes.data || []).flatMap((s) =>
+    LANGS.map((lang) => ({
+      url: `${BASE}/${lang}/services/${s.id}`,
+      lastModified: new Date(s.updated_at),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    }))
+  );
 
   const jobUrls: MetadataRoute.Sitemap = (jobsRes.data || []).map((j) => ({
     url: `${BASE}/jobs/${j.id}`,
