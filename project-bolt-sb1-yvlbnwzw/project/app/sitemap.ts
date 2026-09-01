@@ -141,7 +141,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // All post types that have a /posts/[id] detail page
     supabase
       .from('posts')
-      .select('id, updated_at, post_type')
+      .select('id, updated_at, post_type, text, spam_score, post_media(id)')
       .in('post_type', ['social_post', 'hiring_post', 'job_seeker_post', 'service_request', 'portfolio_post'])
       .neq('status', 'deleted')
       .order('updated_at', { ascending: false })
@@ -176,14 +176,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Each post gets 3 language-specific URLs with hreflang support.
   // The legacy /posts/${id} route is left functional but not sitemapped;
   // Google discovers it via inbound links if needed.
-  const postUrls: MetadataRoute.Sitemap = (allPostsRes.data || []).flatMap((p) =>
-    LANGS.map((lang) => ({
-      url: `${BASE}/${lang}/posts/${p.id}`,
-      lastModified: new Date(p.updated_at),
-      changeFrequency: 'weekly' as const,
-      priority: p.post_type === 'social_post' ? 0.5 : 0.7,
-    }))
-  );
+  const postUrls: MetadataRoute.Sitemap = (allPostsRes.data || [])
+    .filter((p) => {
+      if (p.post_type !== 'social_post') return true;
+      const spamScore = ((p as any).spam_score as number) || 0;
+      if (spamScore >= 0.5) return false;
+      const textLen = ((p as any).text as string || '').length;
+      const hasMedia = ((p as any).post_media as unknown[]).length > 0;
+      return !(textLen < 50 && !hasMedia);
+    })
+    .flatMap((p) =>
+      LANGS.map((lang) => ({
+        url: `${BASE}/${lang}/posts/${p.id}`,
+        lastModified: new Date(p.updated_at),
+        changeFrequency: 'weekly' as const,
+        priority: p.post_type === 'social_post' ? 0.5 : 0.7,
+      }))
+    );
 
   // Each service gets 3 language-specific URLs via the [lang]/services/[category] route (UUID case).
   const serviceUrls: MetadataRoute.Sitemap = (servicesRes.data || []).flatMap((s) =>

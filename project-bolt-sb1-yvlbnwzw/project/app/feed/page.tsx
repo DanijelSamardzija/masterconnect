@@ -99,7 +99,7 @@ const HEADER_H = 52;
 function FeedContent() {
   const router = useRouter();
   const { user, profile } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { openGuestGate } = useGuestGate();
   usePageTracking('feed');
 
@@ -1057,7 +1057,7 @@ function FeedContent() {
                 el.style.pointerEvents = 'auto';
               }}
             >
-              <Link href={`/posts/${post.id}`} prefetch={false} className="block no-underline">
+              <Link href={`/${language}/posts/${post.id}`} prefetch={false} className="block no-underline">
                 <p className="text-foreground text-base leading-relaxed whitespace-pre-line">{post.text}</p>
               </Link>
             </div>
@@ -1157,7 +1157,7 @@ function FeedContent() {
                 const isExpanded = expandedText[post.id];
                 return (
                   <>
-                    <Link href={`/posts/${post.id}`} prefetch={false} className="block no-underline">
+                    <Link href={`/${language}/posts/${post.id}`} prefetch={false} className="block no-underline">
                       <p className={`text-sm text-foreground ${isLong && !isExpanded ? 'line-clamp-2' : ''}`}>{post.text}</p>
                     </Link>
                     {isLong && (

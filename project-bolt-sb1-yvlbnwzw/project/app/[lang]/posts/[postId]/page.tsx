@@ -23,7 +23,7 @@ const fetchPost = cache(async (postId: string) => {
   const { data } = await makeSupabase()
     .from('posts')
     .select(
-      'id, user_id, text, job_title, post_type, city, country, category, experience_level, availability, created_at, is_pinned, pinned_at, price_type, price_value, currency, status, author:profiles!posts_user_id_fkey(id, name, email, avatar_url, account_type, average_rating, review_count, phone, show_phone)'
+      'id, user_id, text, job_title, post_type, city, country, category, experience_level, availability, created_at, is_pinned, pinned_at, price_type, price_value, currency, status, spam_score, post_media(id), author:profiles!posts_user_id_fkey(id, name, email, avatar_url, account_type, average_rating, review_count, phone, show_phone)'
     )
     .eq('id', postId)
     .maybeSingle();
@@ -135,10 +135,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const ogImage = `${BASE_URL}/api/og?postId=${postId}`;
   const isClosed = status === 'closed';
 
+  const isThinSocialPost = postType === 'social_post' && (() => {
+    const spamScore = ((data as any).spam_score as number) || 0;
+    if (spamScore >= 0.5) return true;
+    const textLen = (text || '').length;
+    const hasMedia = ((data as any).post_media || []).length > 0;
+    return textLen < 50 && !hasMedia;
+  })();
+
   return {
     title,
     description,
-    ...(isClosed ? { robots: { index: false, follow: false } } : {}),
+    ...((isClosed || isThinSocialPost) ? { robots: { index: false, follow: false } } : {}),
     alternates: {
       canonical,
       languages: hreflang(`/posts/${postId}`),
