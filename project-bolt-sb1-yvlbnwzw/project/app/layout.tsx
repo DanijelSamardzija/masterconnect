@@ -19,7 +19,7 @@ import { Suspense } from 'react';
 const inter = Inter({ subsets: ['latin', 'latin-ext'] });
 
 export const metadata: Metadata = {
-  title: 'GigZone – Platforma za profesionalce, usluge i poslove',
+  title: 'GigZone – Globalna platforma za profesionalce, kompanije, usluge i poslove',
   description:
     'Objavite posao, pronađite profesionalce, ponudite usluge ili predstavite svoj rad. GigZone povezuje firme, freelancere, kreatore sadržaja i korisnike na jednom mjestu.',
   keywords: ['profesionalci', 'usluge', 'poslovi', 'freelance', 'kreatori sadržaja', 'marketplace', 'gigzone'],
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     title: 'GigZone',
   },
   openGraph: {
-    title: 'GigZone – Platforma za profesionalce, usluge i poslove',
+    title: 'GigZone – Globalna platforma za profesionalce, kompanije, usluge i poslove',
     description: 'Objavite posao, pronađite profesionalce, ponudite usluge ili predstavite svoj rad. GigZone povezuje firme, freelancere, kreatore sadržaja i korisnike na jednom mjestu.',
     url: 'https://www.gigzone.app',
     siteName: 'GigZone',
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary',
-    title: 'GigZone – Platforma za profesionalce, usluge i poslove',
+    title: 'GigZone – Globalna platforma za profesionalce, kompanije, usluge i poslove',
     description: 'Objavite posao, pronađite profesionalce ili ponudite usluge. GigZone na jednom mjestu.',
     images: ['https://www.gigzone.app/icon-512.png'],
   },
