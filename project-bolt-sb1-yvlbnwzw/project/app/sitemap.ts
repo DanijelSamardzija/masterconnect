@@ -15,6 +15,8 @@ const LANGS = ['sr', 'en', 'de'] as const;
 // in the sitemap. Prevents thin/empty pages from being indexed.
 const MIN_LISTINGS_FOR_CITY_PAGE = 2;
 
+export const revalidate = 3600;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: BASE, lastModified: new Date(), changeFrequency: 'daily', priority: 1 },
@@ -137,13 +139,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }));
     });
 
-  const [allPostsRes, servicesRes, jobsRes, profilesRes, portAuthorRes] = await Promise.all([
-    // All post types that have a /posts/[id] detail page
+  const [allPostsRes, servicesRes, jobsRes, profilesRes, portAuthorRes, postMediaRes] = await Promise.all([
+    // All post types that have a /posts/[id] detail page.
+    // post_media(id) embed deliberately removed — PostgREST join caused silent query failure.
+    // Media lookup is done via a separate postMediaRes query below.
+    // status null-safe: many posts have status=null (treated as 'published' by the feed function);
+    // .neq('status','deleted') would exclude those, so we use .or() to include null-status rows.
     supabase
       .from('posts')
-      .select('id, updated_at, post_type, text, spam_score, user_id, post_media(id)')
+      .select('id, updated_at, post_type, text, spam_score, user_id')
       .in('post_type', ['social_post', 'hiring_post', 'job_seeker_post', 'service_request', 'portfolio_post'])
-      .neq('status', 'deleted')
+      .or('status.is.null,status.neq.deleted')
       .order('updated_at', { ascending: false })
       .limit(45000),
     // Service listings have their own /services/[id] detail page.
@@ -170,18 +176,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     supabase
       .from('profiles')
       .select('id, created_at, bio, review_count, is_premium, category')
-      .not('name', 'is', null)
       .order('created_at', { ascending: false })
       .limit(10000),
     // Distinct authors of non-deleted portfolio posts — used to identify
     // profiles with portfolio content even if they have no bio or reviews.
+    // Null-safe status filter (same reasoning as allPostsRes above).
     supabase
       .from('posts')
       .select('user_id')
       .eq('post_type', 'portfolio_post')
-      .neq('status', 'deleted')
+      .or('status.is.null,status.neq.deleted')
       .limit(50000),
+    // Post IDs that have at least one media item — used for social_post quality filter
+    // and qualityFeedAuthorIds. Queried separately to avoid PostgREST join fragility.
+    supabase
+      .from('post_media')
+      .select('post_id')
+      .limit(100000),
   ]);
+
+  // Build a Set of post IDs that have at least one media item.
+  const postsWithMediaIds = new Set((postMediaRes.data || []).map((r) => (r as any).post_id as string));
 
   // Each post gets 3 language-specific URLs with hreflang support.
   // The legacy /posts/${id} route is left functional but not sitemapped;
@@ -192,7 +207,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const spamScore = ((p as any).spam_score as number) || 0;
       if (spamScore >= 0.5) return false;
       const textLen = ((p as any).text as string || '').length;
-      const hasMedia = ((p as any).post_media as unknown[]).length > 0;
+      const hasMedia = postsWithMediaIds.has(p.id);
       return !(textLen < 50 && !hasMedia);
     })
     .flatMap((p) =>
@@ -223,7 +238,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Build lookup Sets from existing query results — O(n) one-time cost, O(1) per profile lookup.
   // svcAuthorIds: reuses servicesRes (already fetched); no extra DB round-trip needed.
-  // qualityFeedAuthorIds: reuses allPostsRes (already has text, spam_score, post_media, user_id).
+  // qualityFeedAuthorIds: reuses allPostsRes + postsWithMediaIds Set.
   //   Same quality rules as layout.tsx: hiring/job_seeker/service_request always quality;
   //   portfolio_post/social_post quality if spam_score < 0.5 AND (text ≥ 50 OR has media).
   const svcAuthorIds = new Set((servicesRes.data || []).map((s) => (s as any).user_id as string));
@@ -242,7 +257,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const spamScore = ((p as any).spam_score as number) || 0;
     if (spamScore >= 0.5) continue;
     const textLen = ((p as any).text as string || '').length;
-    const hasMedia = ((p as any).post_media as unknown[]).length > 0;
+    const hasMedia = postsWithMediaIds.has(p.id);
     if (textLen >= 50 || hasMedia) qualityFeedAuthorIds.add(uid);
   }
 
