@@ -137,19 +137,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }));
     });
 
-  const [allPostsRes, servicesRes, jobsRes, profilesRes] = await Promise.all([
+  const [allPostsRes, servicesRes, jobsRes, profilesRes, portAuthorRes] = await Promise.all([
     // All post types that have a /posts/[id] detail page
     supabase
       .from('posts')
-      .select('id, updated_at, post_type, text, spam_score, post_media(id)')
+      .select('id, updated_at, post_type, text, spam_score, user_id, post_media(id)')
       .in('post_type', ['social_post', 'hiring_post', 'job_seeker_post', 'service_request', 'portfolio_post'])
       .neq('status', 'deleted')
       .order('updated_at', { ascending: false })
       .limit(45000),
-    // Service listings have their own /services/[id] detail page
+    // Service listings have their own /services/[id] detail page.
+    // user_id is also used below to identify profiles with active services.
     supabase
       .from('posts')
-      .select('id, updated_at')
+      .select('id, updated_at, user_id')
       .eq('post_type', 'service_listing')
       .eq('is_active', true)
       .neq('status', 'deleted')
@@ -163,14 +164,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .select('id, created_at')
       .order('created_at', { ascending: false })
       .limit(20000),
-    // All profiles with a public /profile/[id] page
+    // All profiles with a public /profile/[id] page.
+    // bio, review_count, is_premium, category used for quality filter below.
     // profiles table has created_at but NOT updated_at
     supabase
       .from('profiles')
-      .select('id, created_at')
+      .select('id, created_at, bio, review_count, is_premium, category')
       .not('name', 'is', null)
       .order('created_at', { ascending: false })
       .limit(10000),
+    // Distinct authors of non-deleted portfolio posts — used to identify
+    // profiles with portfolio content even if they have no bio or reviews.
+    supabase
+      .from('posts')
+      .select('user_id')
+      .eq('post_type', 'portfolio_post')
+      .neq('status', 'deleted')
+      .limit(50000),
   ]);
 
   // Each post gets 3 language-specific URLs with hreflang support.
@@ -211,12 +221,51 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  const profileUrls: MetadataRoute.Sitemap = (profilesRes.data || []).map((p) => ({
-    url: `${BASE}/profile/${p.id}`,
-    lastModified: new Date(p.created_at),
-    changeFrequency: 'weekly' as const,
-    priority: 0.6,
-  }));
+  // Build lookup Sets from existing query results — O(n) one-time cost, O(1) per profile lookup.
+  // svcAuthorIds: reuses servicesRes (already fetched); no extra DB round-trip needed.
+  // qualityFeedAuthorIds: reuses allPostsRes (already has text, spam_score, post_media, user_id).
+  //   Same quality rules as layout.tsx: hiring/job_seeker/service_request always quality;
+  //   portfolio_post/social_post quality if spam_score < 0.5 AND (text ≥ 50 OR has media).
+  const svcAuthorIds = new Set((servicesRes.data || []).map((s) => (s as any).user_id as string));
+  const portAuthorIds = new Set((portAuthorRes.data || []).map((r) => (r as any).user_id as string));
+
+  const qualityFeedAuthorIds = new Set<string>();
+  for (const p of allPostsRes.data || []) {
+    const pt = p.post_type;
+    const uid = (p as any).user_id as string;
+    if (!uid) continue;
+    if (['hiring_post', 'job_seeker_post', 'service_request'].includes(pt)) {
+      qualityFeedAuthorIds.add(uid);
+      continue;
+    }
+    // portfolio_post / social_post — apply quality filter
+    const spamScore = ((p as any).spam_score as number) || 0;
+    if (spamScore >= 0.5) continue;
+    const textLen = ((p as any).text as string || '').length;
+    const hasMedia = ((p as any).post_media as unknown[]).length > 0;
+    if (textLen >= 50 || hasMedia) qualityFeedAuthorIds.add(uid);
+  }
+
+  // Quality filter — identical criteria to the noindex check in profile/[id]/layout.tsx:
+  //   bio ≥ 20 chars | review_count > 0 | category or PRO set | active service
+  //   | portfolio post | ≥1 quality Feed post
+  // Profiles without lang-prefixed routes stay at 1 URL each (no /sr/ /en/ /de/ prefix).
+  const profileUrls: MetadataRoute.Sitemap = (profilesRes.data || [])
+    .filter((p) => {
+      const hasBio          = ((p as any).bio as string | null)?.trim().length >= 20;
+      const hasReviews      = ((p as any).review_count as number | null ?? 0) > 0;
+      const hasPROCategory  = !!((p as any).category || (p as any).is_premium);
+      const hasServices     = svcAuthorIds.has(p.id);
+      const hasPortfolio    = portAuthorIds.has(p.id);
+      const hasQualityFeed  = qualityFeedAuthorIds.has(p.id);
+      return hasBio || hasReviews || hasPROCategory || hasServices || hasPortfolio || hasQualityFeed;
+    })
+    .map((p) => ({
+      url: `${BASE}/profile/${p.id}`,
+      lastModified: new Date(p.created_at),
+      changeFrequency: 'weekly' as const,
+      priority: 0.6,
+    }));
 
   return [
     ...staticRoutes,
