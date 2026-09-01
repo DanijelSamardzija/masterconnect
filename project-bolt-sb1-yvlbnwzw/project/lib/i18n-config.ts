@@ -73,17 +73,17 @@ export const pageMeta = {
   homepage: {
     sr: {
       title: 'GigZone – Globalna platforma za profesionalce, kompanije, usluge i poslove',
-      description: 'Objavite posao, pronađite profesionalce, ponudite usluge ili predstavite svoj rad. GigZone povezuje firme, freelancere, kreatore sadržaja i korisnike na jednom mjestu.',
+      description: 'Globalna platforma za kompanije, profesionalce i usluge. Pronađite posao, zaposlite radnike, ponudite usluge ili predstavite svoj rad na GigZone-u.',
       keywords: ['profesionalci', 'usluge', 'poslovi', 'freelance', 'kreatori sadržaja', 'marketplace', 'gigzone'],
     },
     en: {
       title: 'GigZone – Global Platform for Professionals, Companies, Services & Jobs',
-      description: 'Post a job, find professionals, offer services or showcase your work. GigZone connects businesses, freelancers, content creators and users in one place.',
+      description: 'Global platform for companies, professionals and services. Find jobs, hire workers, offer services or showcase your work on GigZone.',
       keywords: ['professionals', 'services', 'jobs', 'freelance', 'content creators', 'marketplace', 'gigzone'],
     },
     de: {
       title: 'GigZone – Globale Plattform für Fachkräfte, Unternehmen, Dienstleistungen & Jobs',
-      description: 'Job inserieren, Fachleute finden, Dienstleistungen anbieten oder Ihre Arbeit präsentieren. GigZone verbindet Unternehmen, Freelancer, Content Creator und Nutzer auf einer Plattform.',
+      description: 'Globale Plattform für Unternehmen, Fachkräfte und Dienstleistungen. Finden Sie Jobs, Mitarbeiter oder bieten Sie Ihre Services und Arbeit auf GigZone an.',
       keywords: ['Fachleute', 'Dienstleistungen', 'Jobs', 'Freelancer', 'Content Creator', 'Marktplatz', 'gigzone'],
     },
   },
