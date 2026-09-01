@@ -173,12 +173,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .limit(10000),
   ]);
 
-  const postUrls: MetadataRoute.Sitemap = (allPostsRes.data || []).map((p) => ({
-    url: `${BASE}/posts/${p.id}`,
-    lastModified: new Date(p.updated_at),
-    changeFrequency: 'weekly' as const,
-    priority: p.post_type === 'social_post' ? 0.6 : 0.7,
-  }));
+  // Each post gets 3 language-specific URLs with hreflang support.
+  // The legacy /posts/${id} route is left functional but not sitemapped;
+  // Google discovers it via inbound links if needed.
+  const postUrls: MetadataRoute.Sitemap = (allPostsRes.data || []).flatMap((p) =>
+    LANGS.map((lang) => ({
+      url: `${BASE}/${lang}/posts/${p.id}`,
+      lastModified: new Date(p.updated_at),
+      changeFrequency: 'weekly' as const,
+      priority: p.post_type === 'social_post' ? 0.5 : 0.7,
+    }))
+  );
 
   const serviceUrls: MetadataRoute.Sitemap = (servicesRes.data || []).map((s) => ({
     url: `${BASE}/services/${s.id}`,

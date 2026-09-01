@@ -1691,7 +1691,7 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
                                 </div>
                               </div>
 
-                              <Link href={`/posts/${post.id}`} className="group">
+                              <Link href={`/${language}/posts/${post.id}`} className="group">
                                 <h3
                                   className={`text-slate-900 dark:text-gray-100 leading-tight line-clamp-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors ${
                                     isServiceRequest ? 'font-semibold text-lg mb-0.5' : 'font-semibold text-base md:text-lg mb-0.5'
