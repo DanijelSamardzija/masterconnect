@@ -789,6 +789,8 @@ export default {
   // Job marketplace page
   'jobs.marketplaceTitle': 'Jobs Marketplace',
   'jobs.marketplaceSubtitle': 'Browse opportunities and connect with professionals',
+  'jobs.seoIntro': 'Find jobs or hire workers on GigZone. Browse job listings by category and location, discover new career opportunities, and connect with employers and professionals worldwide.',
+  'jobs.listingsHeading': 'Active listings',
   'jobs.createPost': 'Create Post',
   'jobs.postTypeServiceListing': 'I offer a service',
   'jobs.postTypeServiceListingDesc': 'Have a business or offer services? Post a listing and let clients contact you.',

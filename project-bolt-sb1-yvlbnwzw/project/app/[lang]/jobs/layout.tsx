@@ -24,6 +24,11 @@ export function generateMetadata({
       siteName: 'GigZone',
       type: 'website',
     },
+    twitter: {
+      card: 'summary',
+      title: meta.title,
+      description: meta.description,
+    },
   };
 }
 

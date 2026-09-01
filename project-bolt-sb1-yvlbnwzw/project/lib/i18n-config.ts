@@ -89,18 +89,18 @@ export const pageMeta = {
   },
   jobs: {
     sr: {
-      title: 'Poslovi i zapošljavanje — GigZone',
-      description: 'Pronađite posao ili zaposlite radnike. Hiljade oglasa na jednom mjestu.',
+      title: 'Poslovi i zapošljavanje – Pronađite posao ili radnike | GigZone',
+      description: 'Pronađite posao ili zaposlite radnike na GigZone-u. Pregledajte oglase za posao po kategorijama i lokacijama i povežite se sa poslodavcima širom sveta.',
       keywords: ['posao', 'zapošljavanje', 'tražim posao', 'tražim radnika', 'oglasi za posao', 'gigzone'],
     },
     de: {
-      title: 'Jobs & Stellenangebote — GigZone',
-      description: 'Finden Sie einen Job oder stellen Sie Mitarbeiter ein. Tausende Stellenangebote auf einer Plattform.',
+      title: 'Jobs & Mitarbeiter finden – Jobs & Personal | GigZone',
+      description: 'Finden Sie Jobs oder Mitarbeiter auf GigZone. Durchsuchen Sie Stellenangebote nach Kategorie und Standort und verbinden Sie sich weltweit mit Arbeitgebern.',
       keywords: ['Job', 'Stellenangebote', 'Arbeit finden', 'Mitarbeiter suchen', 'Jobportal', 'gigzone'],
     },
     en: {
-      title: 'Jobs & Employment — GigZone',
-      description: 'Find a job or hire workers. Thousands of job listings on one platform.',
+      title: 'Jobs & Hiring – Find Jobs or Hire Workers | GigZone',
+      description: 'Find jobs or hire workers on GigZone. Browse job listings by category and location and connect with employers worldwide.',
       keywords: ['jobs', 'employment', 'find work', 'hire workers', 'job listings', 'gigzone'],
     },
   },

@@ -1390,6 +1390,7 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
           <div>
             <h1 className="text-3xl font-bold text-slate-800 dark:text-white">{t('jobs.marketplaceTitle')}</h1>
             <p className="text-slate-600 dark:text-gray-400 mt-2">{t('jobs.marketplaceSubtitle')}</p>
+            <p className="text-sm text-slate-500 dark:text-gray-500 mt-1 max-w-xl">{t('jobs.seoIntro')}</p>
           </div>
 
           {profile && (
@@ -1465,6 +1466,7 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
           allowedTypes={['service_listing', 'hiring_post', 'job_seeker_post', 'service_request']}
         />
 
+        <h2 className="sr-only">{t('jobs.listingsHeading')}</h2>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="mb-4 -mx-4 md:mx-0">
             <div className="md:hidden overflow-x-auto overflow-y-hidden border-b border-border">

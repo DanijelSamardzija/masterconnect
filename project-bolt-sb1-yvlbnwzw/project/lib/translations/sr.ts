@@ -789,6 +789,8 @@ export default {
   // Job marketplace page
   'jobs.marketplaceTitle': 'Oglasi za poslove',
   'jobs.marketplaceSubtitle': 'Pregledajte mogućnosti i povežite se sa profesionalcima',
+  'jobs.seoIntro': 'Pronađite posao ili zaposlite radnike na GigZone-u. Pretražujte oglase za posao po kategorijama i lokacijama, pronađite nove poslovne prilike i povežite se sa poslodavcima i profesionalcima širom sveta.',
+  'jobs.listingsHeading': 'Aktivni oglasi',
   'jobs.createPost': 'Kreiraj oglas',
   'jobs.postTypeServiceListing': 'Nudim uslugu',
   'jobs.postTypeServiceListingDesc': 'Imaš firmu ili pružaš usluge? Objavi oglas i neka te klijenti kontaktiraju.',
