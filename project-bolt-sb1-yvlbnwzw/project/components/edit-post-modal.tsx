@@ -128,7 +128,7 @@ export function EditPostModal({
       .replace(/[žŽ]/g, 'z');
   };
 
-  const MAX_MEDIA = 6;
+  const MAX_MEDIA = postType === 'service_listing' ? 10 : 6;
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -237,6 +237,11 @@ export function EditPostModal({
           toast.error('Service name must be more specific than the category name');
           return;
         }
+        const finalMediaCount = existingMedia.length + newFiles.length;
+        if (finalMediaCount < 3) {
+          toast.error(t('marketplace.imagesMinError'));
+          return;
+        }
       }
 
       if (postType === 'portfolio_post') {
@@ -333,6 +338,7 @@ export function EditPostModal({
 
         if (postType === 'service_listing') {
           minimalPayload.job_title = jobTitle.trim();
+          minimalPayload.finalMediaCount = existingMedia.length + newFiles.length;
           minimalPayload.price_type = priceType;
           if ((priceType === 'fixed' || priceType === 'hourly') && priceValue.trim()) {
             minimalPayload.price_value = parseFloat(priceValue);
@@ -455,9 +461,9 @@ export function EditPostModal({
         await onSave();
         onOpenChange(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving post:', error);
-      toast.error('Failed to update post');
+      toast.error(error?.message || 'Failed to update post');
     } finally {
       setSaving(false);
     }

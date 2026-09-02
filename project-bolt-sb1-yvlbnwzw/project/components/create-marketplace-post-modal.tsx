@@ -251,38 +251,39 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
       return;
     }
 
-    if (postType === 'portfolio_post') {
-      const { count } = await supabase
-        .from('posts')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('post_type', 'portfolio_post')
-        .eq('is_active', true);
-
-      if (count && count >= 1) {
-        toast.error(t('marketplace.portfolioLimitReached'));
-        return;
-      }
-    }
-
-    if (postType === 'service_listing') {
-      const { count } = await supabase
-        .from('posts')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('post_type', 'service_listing')
-        .neq('status', 'deleted');
-
-      if ((count ?? 0) >= 2) {
-        toast.error(t('marketplace.serviceListingLimitReached'));
-        return;
-      }
-    }
-
+    // Set immediately so a second click during async checks is blocked
     setIsSubmitting(true);
     setUploading(true);
 
     try {
+      if (postType === 'portfolio_post') {
+        const { count } = await supabase
+          .from('posts')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('post_type', 'portfolio_post')
+          .eq('is_active', true);
+
+        if (count && count >= 1) {
+          toast.error(t('marketplace.portfolioLimitReached'));
+          return;
+        }
+      }
+
+      if (postType === 'service_listing') {
+        const { count } = await supabase
+          .from('posts')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('post_type', 'service_listing')
+          .neq('status', 'deleted');
+
+        if ((count ?? 0) >= 2) {
+          toast.error(t('marketplace.serviceListingLimitReached'));
+          return;
+        }
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session) {
@@ -305,6 +306,7 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
 
       if (postType === 'service_listing') {
         postPayload.job_title = title.trim();
+        postPayload.expectedMediaCount = selectedFiles.length;
         postPayload.price_type = priceType;
         if ((priceType === 'fixed' || priceType === 'hourly') && priceValue.trim()) {
           postPayload.price_value = parseFloat(priceValue);
@@ -375,6 +377,14 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
             toast.error(t('marketplace.serviceListingLimitReached'));
             return;
           }
+          if (errorJson.error === 'SERVICE_LISTING_MIN_IMAGES') {
+            toast.error(t('marketplace.imagesMinError'));
+            return;
+          }
+          if (errorJson.error === 'SERVICE_LISTING_MAX_IMAGES') {
+            toast.error('Maksimalno 10 slika je dozvoljeno');
+            return;
+          }
         } catch (e) {
           // Not JSON, ignore
         }
@@ -422,13 +432,22 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
           return;
         }
 
-        if (mediaItems.length > 0) {
+        if (mediaItems.length === 0) {
+          if (postType === 'service_listing') {
+            // All uploads failed — roll back the post
+            await supabase.from('posts').delete().eq('id', postResult.id);
+            toast.error(t('marketplace.imagesUploadFailed') || 'Greška pri otpremanju slika. Pokušajte ponovo.');
+            return;
+          }
+        } else {
           await supabase.from('post_media').insert(mediaItems);
-        } else if (postType === 'service_listing') {
-          // All image uploads failed — roll back the post so it doesn't appear without images
-          await supabase.from('posts').delete().eq('id', postResult.id);
-          toast.error(t('marketplace.imagesUploadFailed') || 'Greška pri otpremanju slika. Pokušajte ponovo.');
-          return;
+          // Partial failure: fewer than 3 images uploaded — roll back both media and post
+          if (postType === 'service_listing' && mediaItems.length < 3) {
+            await supabase.from('post_media').delete().eq('post_id', postResult.id);
+            await supabase.from('posts').delete().eq('id', postResult.id);
+            toast.error(t('marketplace.imagesUploadFailed') || 'Greška pri otpremanju slika. Pokušajte ponovo.');
+            return;
+          }
         }
       }
 

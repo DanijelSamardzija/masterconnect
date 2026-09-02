@@ -864,6 +864,17 @@ export async function POST(request: NextRequest) {
           { status: 429 }
         );
       }
+
+      // Validate that the client declares at least 3 and at most 10 images
+      const expectedMediaCount = typeof body.expectedMediaCount === 'number' ? body.expectedMediaCount : null;
+      if (expectedMediaCount !== null) {
+        if (expectedMediaCount < 3) {
+          return NextResponse.json({ error: 'SERVICE_LISTING_MIN_IMAGES' }, { status: 400 });
+        }
+        if (expectedMediaCount > 10) {
+          return NextResponse.json({ error: 'SERVICE_LISTING_MAX_IMAGES' }, { status: 400 });
+        }
+      }
     }
 
     const insertData: any = {

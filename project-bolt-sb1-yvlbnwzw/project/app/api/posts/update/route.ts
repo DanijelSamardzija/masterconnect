@@ -218,6 +218,25 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    // Validate final media count for service_listing (client calculates: kept + new)
+    if (existingPost.post_type === 'service_listing') {
+      const finalMediaCount = typeof body.finalMediaCount === 'number' ? body.finalMediaCount : null;
+      if (finalMediaCount !== null) {
+        if (finalMediaCount < 3) {
+          return NextResponse.json(
+            { error: 'SERVICE_LISTING_MIN_IMAGES', message: 'Usluge moraju imati najmanje 3 slike' },
+            { status: 400 }
+          );
+        }
+        if (finalMediaCount > 10) {
+          return NextResponse.json(
+            { error: 'SERVICE_LISTING_MAX_IMAGES', message: 'Usluge mogu imati najviše 10 slika' },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
     // STEP 3: CALCULATE SPAM (but don't add to update yet)
     const { data: profile } = await supabase
       .from('profiles')
