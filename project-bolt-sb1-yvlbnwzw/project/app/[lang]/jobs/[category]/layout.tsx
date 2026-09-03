@@ -77,7 +77,7 @@ export default function JobCategoryLayout({
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'GigZone', item: BASE_URL },
-      { '@type': 'ListItem', position: 2, name: lang === 'sr' ? 'Poslovi' : lang === 'de' ? 'Jobs' : 'Jobs', item: `${BASE_URL}/${lang}/jobs` },
+      { '@type': 'ListItem', position: 2, name: lang === 'sr' ? 'Poslovi' : lang === 'es' ? 'Empleos' : lang === 'fr' ? 'Emplois' : 'Jobs', item: `${BASE_URL}/${lang}/jobs` },
       { '@type': 'ListItem', position: 3, name: categoryLabel, item: canonical },
     ],
   };
