@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const { data } = await supabase
     .from('jobs')
-    .select('id, title, description, city, budget, category, profiles(name)')
+    .select('id, title, description, city, budget, category, customer:profiles!jobs_customer_id_fkey(name)')
     .eq('id', params.id)
     .single();
 
