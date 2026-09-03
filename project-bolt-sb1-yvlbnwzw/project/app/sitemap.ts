@@ -28,6 +28,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Language-specific public pages
   const langRoutes: MetadataRoute.Sitemap = LANGS.flatMap((lang) => [
+    { url: `${BASE}/${lang}`, lastModified: new Date(), changeFrequency: 'daily' as const, priority: 0.9 },
     { url: `${BASE}/${lang}/jobs`, lastModified: new Date(), changeFrequency: 'hourly' as const, priority: 0.9 },
     { url: `${BASE}/${lang}/services`, lastModified: new Date(), changeFrequency: 'hourly' as const, priority: 0.9 },
     { url: `${BASE}/${lang}/invest`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.7 },
