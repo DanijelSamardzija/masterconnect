@@ -971,12 +971,16 @@ export async function POST(request: NextRequest) {
 
     // IndexNow: notify search engines about new public content
     if (data.status === 'published') {
+      const INDEXNOW_LANGS = ['sr', 'en', 'de', 'es', 'fr'] as const;
       const indexNowUrls: string[] = [];
       const citySlug = data.city ? slugifyCity(data.city) : null;
       if (data.post_type === 'service_listing') {
         indexNowUrls.push(`https://www.gigzone.app/services/${data.id}`);
+        for (const lang of INDEXNOW_LANGS) {
+          indexNowUrls.push(`https://www.gigzone.app/${lang}/services/${data.id}`);
+        }
         if (data.category) {
-          for (const lang of ['sr', 'en', 'de']) {
+          for (const lang of INDEXNOW_LANGS) {
             indexNowUrls.push(`https://www.gigzone.app/${lang}/services/${data.category}`);
             if (citySlug) {
               indexNowUrls.push(`https://www.gigzone.app/${lang}/services/${data.category}/${citySlug}`);
@@ -985,8 +989,11 @@ export async function POST(request: NextRequest) {
         }
       } else if (['social_post', 'hiring_post', 'job_seeker_post', 'service_request'].includes(data.post_type)) {
         indexNowUrls.push(`https://www.gigzone.app/posts/${data.id}`);
+        for (const lang of INDEXNOW_LANGS) {
+          indexNowUrls.push(`https://www.gigzone.app/${lang}/posts/${data.id}`);
+        }
         if (data.category && ['hiring_post', 'job_seeker_post', 'service_request'].includes(data.post_type)) {
-          for (const lang of ['sr', 'en', 'de']) {
+          for (const lang of INDEXNOW_LANGS) {
             indexNowUrls.push(`https://www.gigzone.app/${lang}/jobs/${data.category}`);
             if (citySlug) {
               indexNowUrls.push(`https://www.gigzone.app/${lang}/jobs/${data.category}/${citySlug}`);

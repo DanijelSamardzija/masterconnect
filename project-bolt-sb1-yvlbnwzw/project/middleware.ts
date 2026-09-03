@@ -47,5 +47,7 @@ export const config = {
     '/sr/:path*',
     '/en/:path*',
     '/de/:path*',
+    '/es/:path*',
+    '/fr/:path*',
   ],
 };

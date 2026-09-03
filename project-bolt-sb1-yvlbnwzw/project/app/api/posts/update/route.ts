@@ -345,10 +345,20 @@ export async function PUT(request: NextRequest) {
 
     // IndexNow: notify search engines about updated public content
     if (updatedPost.status === 'published') {
-      const url = updatedPost.post_type === 'service_listing'
-        ? `https://www.gigzone.app/services/${postId}`
-        : `https://www.gigzone.app/posts/${postId}`;
-      notifyIndexNow([url]).catch(() => {});
+      const INDEXNOW_LANGS = ['sr', 'en', 'de', 'es', 'fr'] as const;
+      const detailUrls: string[] = [];
+      if (updatedPost.post_type === 'service_listing') {
+        detailUrls.push(`https://www.gigzone.app/services/${postId}`);
+        for (const lang of INDEXNOW_LANGS) {
+          detailUrls.push(`https://www.gigzone.app/${lang}/services/${postId}`);
+        }
+      } else {
+        detailUrls.push(`https://www.gigzone.app/posts/${postId}`);
+        for (const lang of INDEXNOW_LANGS) {
+          detailUrls.push(`https://www.gigzone.app/${lang}/posts/${postId}`);
+        }
+      }
+      notifyIndexNow(detailUrls).catch(() => {});
     }
 
     return NextResponse.json({

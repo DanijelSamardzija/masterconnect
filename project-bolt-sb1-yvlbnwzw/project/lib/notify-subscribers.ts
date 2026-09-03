@@ -7,24 +7,32 @@ function buildEmail(lang: Lang, category: string | null, city: string | null, po
     sr: `Novi oglas na GigZone${category ? ` — ${category}` : ''}${city ? ` u ${city}` : ''}`,
     en: `New listing on GigZone${category ? ` — ${category}` : ''}${city ? ` in ${city}` : ''}`,
     de: `Neue Anzeige auf GigZone${category ? ` — ${category}` : ''}${city ? ` in ${city}` : ''}`,
+    es: `Nuevo anuncio en GigZone${category ? ` — ${category}` : ''}${city ? ` en ${city}` : ''}`,
+    fr: `Nouvelle annonce sur GigZone${category ? ` — ${category}` : ''}${city ? ` à ${city}` : ''}`,
   };
 
   const body: Record<Lang, string> = {
     sr: `<p style="color:#374151">Pojavio se novi oglas${category ? ` u kategoriji <strong>${category}</strong>` : ''}${city ? ` u <strong>${city}</strong>` : ''} koji odgovara tvojoj pretrazi na GigZone.</p>`,
     en: `<p style="color:#374151">A new listing${category ? ` in <strong>${category}</strong>` : ''}${city ? ` in <strong>${city}</strong>` : ''} matching your GigZone search has been posted.</p>`,
     de: `<p style="color:#374151">Eine neue Anzeige${category ? ` in <strong>${category}</strong>` : ''}${city ? ` in <strong>${city}</strong>` : ''} passend zu Ihrer GigZone-Suche wurde veröffentlicht.</p>`,
+    es: `<p style="color:#374151">Se ha publicado un nuevo anuncio${category ? ` en la categoría <strong>${category}</strong>` : ''}${city ? ` en <strong>${city}</strong>` : ''} que coincide con tu búsqueda en GigZone.</p>`,
+    fr: `<p style="color:#374151">Une nouvelle annonce${category ? ` dans <strong>${category}</strong>` : ''}${city ? ` à <strong>${city}</strong>` : ''} correspondant à votre recherche GigZone a été publiée.</p>`,
   };
 
   const cta: Record<Lang, string> = {
     sr: 'Pogledaj oglas',
     en: 'View listing',
     de: 'Anzeige ansehen',
+    es: 'Ver anuncio',
+    fr: 'Voir l\'annonce',
   };
 
   const unsub: Record<Lang, string> = {
     sr: 'Odjavi se od obavještenja',
     en: 'Unsubscribe from notifications',
     de: 'Von Benachrichtigungen abmelden',
+    es: 'Cancelar suscripción de notificaciones',
+    fr: 'Se désabonner des notifications',
   };
 
   const unsubUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/api/notifications/unsubscribe?email=${encodeURIComponent(email)}`;

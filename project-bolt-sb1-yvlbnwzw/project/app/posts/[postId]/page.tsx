@@ -138,7 +138,7 @@ export default async function SinglePostPage({ params }: Props) {
 
   const parentUrl = ['social_post', 'portfolio_post'].includes(postType)
     ? 'https://www.gigzone.app/feed'
-    : 'https://www.gigzone.app/sr/jobs';
+    : 'https://www.gigzone.app/en/jobs';
   const parentName = ['social_post', 'portfolio_post'].includes(postType)
     ? 'Feed'
     : typeLabel;
@@ -160,7 +160,7 @@ export default async function SinglePostPage({ params }: Props) {
   if (isJobPost && validCategory && categoryLabel) {
     breadcrumbItems.push({
       '@type': 'ListItem', position: 3, name: categoryLabel,
-      item: `https://www.gigzone.app/sr/jobs/${rawCategory}`,
+      item: `https://www.gigzone.app/en/jobs/${rawCategory}`,
     });
     breadcrumbItems.push({ '@type': 'ListItem', position: 4, name: `${name} – ${headlineText}` });
   } else {

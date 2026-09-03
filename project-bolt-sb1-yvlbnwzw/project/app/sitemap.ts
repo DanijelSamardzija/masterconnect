@@ -9,7 +9,7 @@ const supabase = createClient(
 );
 
 const BASE = 'https://www.gigzone.app';
-const LANGS = ['sr', 'en', 'de'] as const;
+const LANGS = ['sr', 'en', 'de', 'es', 'fr'] as const;
 
 // Minimum number of active listings required to include a city landing page
 // in the sitemap. Prevents thin/empty pages from being indexed.

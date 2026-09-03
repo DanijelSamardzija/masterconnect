@@ -11,6 +11,8 @@ const TITLE_TEMPLATE = {
   sr: (cat: string, city: string) => `Posao — ${cat} u ${city} | GigZone`,
   en: (cat: string, city: string) => `${cat} Jobs in ${city} | GigZone`,
   de: (cat: string, city: string) => `${cat} Jobs in ${city} | GigZone`,
+  es: (cat: string, city: string) => `Empleos de ${cat} en ${city} | GigZone`,
+  fr: (cat: string, city: string) => `Emplois ${cat} à ${city} | GigZone`,
 } as const;
 
 const DESC_TEMPLATE = {
@@ -20,6 +22,10 @@ const DESC_TEMPLATE = {
     `Job listings in ${cat} in ${city}. Find work or post a job for workers — GigZone.`,
   de: (cat: string, city: string) =>
     `Stellenangebote in ${cat} in ${city}. Arbeit finden oder Mitarbeiter einstellen — GigZone.`,
+  es: (cat: string, city: string) =>
+    `Ofertas de empleo en ${cat} en ${city}. Encuentra trabajo o publica un anuncio — GigZone.`,
+  fr: (cat: string, city: string) =>
+    `Offres d'emploi en ${cat} à ${city}. Trouvez du travail ou publiez une offre — GigZone.`,
 } as const;
 
 type Params = { lang: Lang; category: string; city: string };

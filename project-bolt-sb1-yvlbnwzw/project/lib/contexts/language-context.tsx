@@ -4,9 +4,11 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import en from '../translations/en';
 import sr from '../translations/sr';
 import de from '../translations/de';
+import es from '../translations/es';
+import fr from '../translations/fr';
 import { supabase } from '@/lib/supabase/client';
 
-type Language = 'en' | 'sr' | 'de';
+type Language = 'en' | 'sr' | 'de' | 'es' | 'fr';
 
 type LanguageContextType = {
   language: Language;
@@ -14,7 +16,7 @@ type LanguageContextType = {
   t: (key: string) => string;
 };
 
-const VALID: Language[] = ['en', 'sr', 'de'];
+const VALID: Language[] = ['en', 'sr', 'de', 'es', 'fr'];
 const STORAGE_KEY = 'lang';
 
 const LanguageContext = createContext<LanguageContextType>({
@@ -71,6 +73,14 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
           setLanguageState('de');
           return;
         }
+        if (bl.startsWith('es')) {
+          setLanguageState('es');
+          return;
+        }
+        if (bl.startsWith('fr')) {
+          setLanguageState('fr');
+          return;
+        }
 
         // Priority 5: IP geolocation — only if browser lang is ambiguous (en/other)
         try {
@@ -85,6 +95,10 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
             setLanguageState('sr');
           } else if (['DE', 'AT'].includes(cc)) {
             setLanguageState('de');
+          } else if (['ES', 'MX', 'CO', 'AR', 'CL', 'PE', 'VE', 'EC', 'BO', 'PY', 'UY', 'CR', 'PA', 'DO', 'HN', 'SV', 'NI', 'GT', 'CU'].includes(cc)) {
+            setLanguageState('es');
+          } else if (['FR', 'BE', 'CH', 'LU', 'MC', 'SN', 'CI', 'CM', 'CD'].includes(cc)) {
+            setLanguageState('fr');
           }
           // else stays 'en'
         } catch {
@@ -99,7 +113,13 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    setTranslations(language === 'de' ? de : language === 'sr' ? sr : en);
+    setTranslations(
+      language === 'sr' ? sr :
+      language === 'de' ? de :
+      language === 'es' ? es :
+      language === 'fr' ? fr :
+      en
+    );
   }, [language]);
 
   const setLanguage = (lang: Language) => {

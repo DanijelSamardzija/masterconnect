@@ -89,12 +89,28 @@ const TYPE_LABELS: Record<Lang, Record<string, string>> = {
     portfolio_post: 'Portfolio',
     social_post: 'Beitrag',
   },
+  es: {
+    hiring_post: 'Oferta de empleo',
+    job_seeker_post: 'Busco trabajo',
+    service_request: 'Busco servicio',
+    portfolio_post: 'Portfolio',
+    social_post: 'Publicación',
+  },
+  fr: {
+    hiring_post: 'Offre d\'emploi',
+    job_seeker_post: 'Cherche travail',
+    service_request: 'Service recherché',
+    portfolio_post: 'Portfolio',
+    social_post: 'Publication',
+  },
 };
 
 const BREADCRUMB_LABELS: Record<Lang, { jobs: string; feed: string }> = {
   sr: { jobs: 'Poslovi', feed: 'Feed' },
   en: { jobs: 'Jobs',    feed: 'Feed' },
   de: { jobs: 'Jobs',    feed: 'Feed' },
+  es: { jobs: 'Empleos', feed: 'Feed' },
+  fr: { jobs: 'Emplois', feed: 'Feed' },
 };
 
 function descriptionPrefix(lang: Lang, typeLabel: string, name: string): string {

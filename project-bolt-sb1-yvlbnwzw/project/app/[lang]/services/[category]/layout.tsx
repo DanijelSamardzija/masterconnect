@@ -37,6 +37,8 @@ const SERVICES_LABEL: Record<Lang, string> = {
   sr: 'Usluge',
   en: 'Services',
   de: 'Dienstleistungen',
+  es: 'Servicios',
+  fr: 'Services',
 };
 
 function buildServiceTitle(lang: Lang, serviceTitle: string, providerName: string, city: string): string {

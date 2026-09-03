@@ -16,6 +16,8 @@ const TITLE_TEMPLATE = {
   sr: (cat: string, city: string) => `${cat} u ${city} — GigZone`,
   en: (cat: string, city: string) => `${cat} in ${city} — GigZone`,
   de: (cat: string, city: string) => `${cat} in ${city} — GigZone`,
+  es: (cat: string, city: string) => `${cat} en ${city} — GigZone`,
+  fr: (cat: string, city: string) => `${cat} à ${city} — GigZone`,
 } as const;
 
 const DESC_TEMPLATE = {
@@ -25,6 +27,10 @@ const DESC_TEMPLATE = {
     `Find ${cat.toLowerCase()} in ${city}. Direct contact with service providers, no middlemen — GigZone.`,
   de: (cat: string, city: string) =>
     `Finden Sie ${cat.toLowerCase()} in ${city}. Direktkontakt mit Dienstleistern ohne Vermittler — GigZone.`,
+  es: (cat: string, city: string) =>
+    `Encuentra ${cat.toLowerCase()} en ${city}. Contacto directo con proveedores de servicios sin intermediarios — GigZone.`,
+  fr: (cat: string, city: string) =>
+    `Trouvez ${cat.toLowerCase()} à ${city}. Contact direct avec les prestataires de services, sans intermédiaires — GigZone.`,
 } as const;
 
 type Params = { lang: Lang; category: string; city: string };

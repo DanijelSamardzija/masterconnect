@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { sendEmail } from '@/lib/brevo';
 
-type Lang = 'sr' | 'en' | 'de';
+type Lang = 'sr' | 'en' | 'de' | 'es' | 'fr';
 
 function buildHtml(title: string, body: string, lang: Lang): string {
   const footer =

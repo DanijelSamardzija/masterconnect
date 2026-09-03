@@ -12,6 +12,6 @@ export default function LangLayout({
   children: React.ReactNode;
   params: { lang: string };
 }) {
-  if (!SUPPORTED_LANGS.includes(params.lang as Lang)) notFound();
+  if (!(SUPPORTED_LANGS as readonly string[]).includes(params.lang)) notFound();
   return <>{children}</>;
 }
