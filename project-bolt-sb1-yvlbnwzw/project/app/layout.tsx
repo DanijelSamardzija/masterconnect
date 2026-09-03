@@ -77,7 +77,7 @@ const organizationJsonLd = {
     height: 512,
   },
   description: 'A global marketplace connecting professionals, service providers and job seekers in one place.',
-  areaServed: ['RS', 'BA', 'HR', 'DE', 'AT', 'CH'],
+  areaServed: ['RS', 'BA', 'HR', 'DE', 'AT', 'CH', 'ES', 'MX', 'FR', 'BE'],
 };
 
 const websiteJsonLd = {

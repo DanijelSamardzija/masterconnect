@@ -94,7 +94,7 @@ export default function JobCityLayout({
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'GigZone', item: BASE_URL },
-      { '@type': 'ListItem', position: 2, name: lang === 'sr' ? 'Poslovi' : 'Jobs', item: jobsUrl },
+      { '@type': 'ListItem', position: 2, name: lang === 'sr' ? 'Poslovi' : lang === 'de' ? 'Jobs' : lang === 'es' ? 'Empleos' : lang === 'fr' ? 'Emplois' : 'Jobs', item: jobsUrl },
       { '@type': 'ListItem', position: 3, name: categoryLabel, item: categoryUrl },
       { '@type': 'ListItem', position: 4, name: cityLabel, item: canonical },
     ],
