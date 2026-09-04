@@ -116,6 +116,8 @@ const BREADCRUMB_LABELS: Record<Lang, { jobs: string; feed: string }> = {
 function descriptionPrefix(lang: Lang, typeLabel: string, name: string): string {
   if (lang === 'de') return `${typeLabel} von ${name}. `;
   if (lang === 'en') return `${typeLabel} by ${name}. `;
+  if (lang === 'es') return `${typeLabel} de ${name}. `;
+  if (lang === 'fr') return `${typeLabel} par ${name}. `;
   return `${typeLabel} od ${name}. `;
 }
 
