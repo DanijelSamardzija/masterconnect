@@ -41,6 +41,8 @@ const UI_STRINGS = {
   sr: { home: 'Početna', services: 'Usluge', noResults: 'Nema usluga u ovoj kategoriji.', topCities: 'Top gradovi', crossLinkText: 'Tražiš posao u ovoj oblasti?', crossLinkLabel: 'Oglasi za posao' },
   en: { home: 'Home', services: 'Services', noResults: 'No services in this category.', topCities: 'Top cities', crossLinkText: 'Looking for work in this field?', crossLinkLabel: 'Job listings' },
   de: { home: 'Startseite', services: 'Dienstleistungen', noResults: 'Keine Dienstleistungen in dieser Kategorie.', topCities: 'Top-Städte', crossLinkText: 'Arbeit in diesem Bereich gesucht?', crossLinkLabel: 'Stellenangebote' },
+  es: { home: 'Inicio', services: 'Servicios', noResults: 'No hay servicios en esta categoría.', topCities: 'Ciudades destacadas', crossLinkText: '¿Buscas trabajo en este campo?', crossLinkLabel: 'Ofertas de empleo' },
+  fr: { home: 'Accueil', services: 'Services', noResults: 'Aucun service dans cette catégorie.', topCities: 'Villes principales', crossLinkText: 'Vous cherchez du travail dans ce domaine ?', crossLinkLabel: 'Offres d\'emploi' },
 } as const;
 
 type Listing = {

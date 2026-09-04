@@ -22,6 +22,12 @@ const UI_STRINGS = {
   de: {
     home: 'Startseite', jobs: 'Jobs', noResults: 'Keine Einträge in dieser Kategorie und Stadt.',
   },
+  es: {
+    home: 'Inicio', jobs: 'Empleos', noResults: 'No hay anuncios en esta categoría y ciudad.',
+  },
+  fr: {
+    home: 'Accueil', jobs: 'Emplois', noResults: 'Aucune annonce dans cette catégorie et cette ville.',
+  },
 } as const;
 
 type JobPost = {

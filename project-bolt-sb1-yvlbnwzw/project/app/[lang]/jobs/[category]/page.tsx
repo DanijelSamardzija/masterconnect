@@ -33,6 +33,16 @@ const UI_STRINGS = {
     topCities: 'Top-Städte', allJobs: 'Alle Kategorien',
     crossLinkText: 'Suchen Sie einen Fachmann?', crossLinkLabel: 'Dienstleistungen ansehen',
   },
+  es: {
+    home: 'Inicio', jobs: 'Empleos', noResults: 'No hay anuncios en esta categoría.',
+    topCities: 'Ciudades destacadas', allJobs: 'Todas las categorías',
+    crossLinkText: '¿Buscas un profesional?', crossLinkLabel: 'Ver servicios',
+  },
+  fr: {
+    home: 'Accueil', jobs: 'Emplois', noResults: 'Aucune annonce dans cette catégorie.',
+    topCities: 'Villes principales', allJobs: 'Toutes les catégories',
+    crossLinkText: 'Vous cherchez un professionnel ?', crossLinkLabel: 'Voir les services',
+  },
 } as const;
 
 type JobPost = {

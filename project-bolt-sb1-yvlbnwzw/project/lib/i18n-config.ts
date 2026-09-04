@@ -4,6 +4,8 @@ export const DEFAULT_LANG: Lang = 'en';
 
 const SR_PREFIXES = ['sr', 'hr', 'bs', 'sh', 'cnr', 'sl', 'mk', 'hbs'];
 const DE_PREFIXES = ['de', 'gsw', 'bar'];
+const ES_PREFIXES = ['es'];
+const FR_PREFIXES = ['fr'];
 
 export function detectLang(acceptLanguage: string): Lang {
   const languages = acceptLanguage
@@ -14,6 +16,8 @@ export function detectLang(acceptLanguage: string): Lang {
     const primary = lang.split('-')[0];
     if (DE_PREFIXES.includes(primary)) return 'de';
     if (SR_PREFIXES.includes(primary)) return 'sr';
+    if (ES_PREFIXES.includes(primary)) return 'es';
+    if (FR_PREFIXES.includes(primary)) return 'fr';
   }
   return DEFAULT_LANG;
 }

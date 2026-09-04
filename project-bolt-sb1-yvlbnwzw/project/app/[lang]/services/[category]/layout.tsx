@@ -42,7 +42,8 @@ const SERVICES_LABEL: Record<Lang, string> = {
 };
 
 function buildServiceTitle(lang: Lang, serviceTitle: string, providerName: string, city: string): string {
-  const cityPart = city ? (lang === 'sr' ? ` u ${city}` : ` in ${city}`) : '';
+  const inWord = lang === 'sr' ? 'u' : lang === 'fr' ? 'à' : lang === 'es' ? 'en' : 'in';
+  const cityPart = city ? ` ${inWord} ${city}` : '';
   const parts = [`${serviceTitle}${cityPart}`, providerName || null, 'GigZone'].filter(Boolean);
   return (parts as string[]).join(' | ');
 }
@@ -54,15 +55,26 @@ function buildServiceDescription(lang: Lang, serviceTitle: string, providerName:
     intro = city ? `Finden Sie ${lowerTitle} in ${city}.` : `Finden Sie ${lowerTitle}.`;
   } else if (lang === 'en') {
     intro = city ? `Find ${lowerTitle} in ${city}.` : `Find ${lowerTitle}.`;
+  } else if (lang === 'es') {
+    intro = city ? `Encuentra ${lowerTitle} en ${city}.` : `Encuentra ${lowerTitle}.`;
+  } else if (lang === 'fr') {
+    intro = city ? `Trouvez ${lowerTitle} à ${city}.` : `Trouvez ${lowerTitle}.`;
   } else {
     intro = city ? `Pronađite ${lowerTitle} u ${city}.` : `Pronađite ${lowerTitle}.`;
   }
-  const name = providerName || (lang === 'de' ? 'den Anbieter' : lang === 'en' ? 'the provider' : 'pružaoca');
-  const fallback = lang === 'de'
-    ? `Fotos und Beschreibung ansehen und ${name} direkt über GigZone kontaktieren.`
-    : lang === 'en'
-    ? `View photos and description and contact ${name} directly via GigZone.`
-    : `Pogledajte fotografije i opis i kontaktirajte ${name} direktno preko GigZone.`;
+  const name = providerName || (
+    lang === 'de' ? 'den Anbieter' :
+    lang === 'en' ? 'the provider' :
+    lang === 'es' ? 'el proveedor' :
+    lang === 'fr' ? 'le prestataire' :
+    'pružaoca'
+  );
+  const fallback =
+    lang === 'de' ? `Fotos und Beschreibung ansehen und ${name} direkt über GigZone kontaktieren.` :
+    lang === 'en' ? `View photos and description and contact ${name} directly via GigZone.` :
+    lang === 'es' ? `Vea fotos y descripción y contacte a ${name} directamente en GigZone.` :
+    lang === 'fr' ? `Voir photos et description et contacter ${name} directement sur GigZone.` :
+    `Pogledajte fotografije i opis i kontaktirajte ${name} direktno preko GigZone.`;
   const rawDesc = text ? `${intro} ${text.replace(/\n/g, ' ').trim()}` : `${intro} ${fallback}`;
   const cutAt = rawDesc.lastIndexOf(' ', 155);
   return rawDesc.length <= 155 ? rawDesc : rawDesc.slice(0, cutAt > 0 ? cutAt : 155).trimEnd() + '…';
@@ -80,7 +92,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     const rawCat: string = (data as any).category ?? '';
     const validCat = isValidCategory(rawCat);
     const categoryLabel = validCat ? getCategoryLabel(rawCat as CategorySlug, lang) : null;
-    const defaultServiceName = lang === 'de' ? 'Dienstleistung' : lang === 'en' ? 'Service' : 'Usluga';
+    const defaultServiceName = lang === 'de' ? 'Dienstleistung' : lang === 'es' ? 'Servicio' : lang === 'fr' ? 'Service' : lang === 'en' ? 'Service' : 'Usluga';
     const serviceTitle = (data as any).job_title || categoryLabel || defaultServiceName;
     const city: string = (data as any).city ?? '';
     const text: string = (data as any).text ?? '';

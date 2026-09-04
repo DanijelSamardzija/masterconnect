@@ -8,6 +8,8 @@ function buildHtml(title: string, body: string, lang: Lang): string {
   const footer =
     lang === 'de' ? 'Bei Fragen antworte einfach auf diese E-Mail. — Das GigZone-Team'
     : lang === 'en' ? 'If you have questions, just reply to this email. — The GigZone Team'
+    : lang === 'es' ? 'Si tienes preguntas, responde a este correo. — El equipo de GigZone'
+    : lang === 'fr' ? 'Pour toute question, répondez simplement à cet e-mail. — L\'équipe GigZone'
     : 'Ako imaš pitanja, samo odgovori na ovaj mejl. — GigZone tim';
 
   const bodyHtml = body.replace(/\n/g, '<br/>');
@@ -40,7 +42,7 @@ function buildHtml(title: string, body: string, lang: Lang): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title_sr, body_sr, title_en, body_en, title_de, body_de } = body;
+    const { title_sr, body_sr, title_en, body_en, title_de, body_de, title_es, body_es, title_fr, body_fr } = body;
 
     if (!title_sr || !body_sr) {
       return NextResponse.json({ error: 'Missing Serbian content' }, { status: 400 });
@@ -75,12 +77,21 @@ export async function POST(request: NextRequest) {
       const t =
         (lang === 'de' && title_de) ? title_de :
         (lang === 'en' && title_en) ? title_en :
+        (lang === 'es' && title_es) ? title_es :
+        (lang === 'fr' && title_fr) ? title_fr :
         title_sr;
       const b =
         (lang === 'de' && body_de) ? body_de :
         (lang === 'en' && body_en) ? body_en :
+        (lang === 'es' && body_es) ? body_es :
+        (lang === 'fr' && body_fr) ? body_fr :
         body_sr;
-      const effectiveLang: Lang = lang === 'de' && title_de ? 'de' : lang === 'en' && title_en ? 'en' : 'sr';
+      const effectiveLang: Lang =
+        lang === 'de' && title_de ? 'de' :
+        lang === 'en' && title_en ? 'en' :
+        lang === 'es' && title_es ? 'es' :
+        lang === 'fr' && title_fr ? 'fr' :
+        'sr';
 
       const ok = await sendEmail({
         to: u.email,

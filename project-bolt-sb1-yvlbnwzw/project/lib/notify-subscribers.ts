@@ -92,7 +92,7 @@ export async function notifySubscribers(
     const sentIds: string[] = [];
 
     for (const sub of matched) {
-      const lang = (['sr', 'en', 'de'].includes(sub.language) ? sub.language : 'sr') as Lang;
+      const lang = (['sr', 'en', 'de', 'es', 'fr'].includes(sub.language) ? sub.language : 'sr') as Lang;
       const { subject, html } = buildEmail(lang, category, city, postUrl, jobTitle, sub.email);
       const ok = await sendEmail({ to: sub.email, subject, html });
       if (ok) sentIds.push(sub.id);

@@ -86,6 +86,18 @@ const UI_STRINGS = {
     noResults: 'Keine Dienstleistungen in dieser Kategorie und Stadt.',
     backToCategory: 'Alle anzeigen',
   },
+  es: {
+    home: 'Inicio',
+    services: 'Servicios',
+    noResults: 'No hay servicios en esta categoría y ciudad.',
+    backToCategory: 'Ver todos',
+  },
+  fr: {
+    home: 'Accueil',
+    services: 'Services',
+    noResults: 'Aucun service dans cette catégorie et cette ville.',
+    backToCategory: 'Voir tout',
+  },
 } as const;
 
 export default async function CityLandingPage({

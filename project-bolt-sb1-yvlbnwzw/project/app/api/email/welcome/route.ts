@@ -4,8 +4,10 @@ import { sendEmail } from '@/lib/brevo';
 
 const BALKAN_COUNTRIES = ['Serbia', 'Srbija', 'Croatia', 'Hrvatska', 'Bosnia and Herzegovina', 'Bosna i Hercegovina', 'Montenegro', 'Crna Gora', 'Slovenia', 'Slovenija', 'North Macedonia', 'Sjeverna Makedonija'];
 const GERMAN_COUNTRIES = ['Germany', 'Deutschland', 'Austria', 'Österreich', 'Switzerland', 'Schweiz'];
+const SPANISH_COUNTRIES = ['Spain', 'España', 'Mexico', 'México', 'Argentina', 'Colombia', 'Chile', 'Peru', 'Perú', 'Venezuela', 'Ecuador', 'Bolivia', 'Paraguay', 'Uruguay'];
+const FRENCH_COUNTRIES = ['France', 'Belgium', 'Belgique', 'Switzerland', 'Schweiz', 'Canada', 'Luxembourg'];
 
-function getContent(isPro: boolean, lang: 'sr' | 'de' | 'en', firstName: string) {
+function getContent(isPro: boolean, lang: 'sr' | 'de' | 'en' | 'es' | 'fr', firstName: string) {
   if (lang === 'sr') {
     return {
       subject: `Dobrodošao na GigZone, ${firstName}!`,
@@ -49,6 +51,52 @@ function getContent(isPro: boolean, lang: 'sr' | 'de' | 'en', firstName: string)
       social: 'Wir teilen gelegentlich die besten Anzeigen auf unserem <strong>TikTok</strong> und <strong>Instagram</strong> — deine könnte dabei sein!',
       footer: 'Bei Fragen antworte einfach auf diese E-Mail.',
       team: 'Das GigZone-Team',
+    };
+  }
+
+  if (lang === 'es') {
+    return {
+      subject: `¡Bienvenido a GigZone, ${firstName}!`,
+      greeting: `¡Hola, ${firstName}! 👋`,
+      intro: 'Bienvenido a GigZone — la plataforma que conecta profesionales y clientes en un solo lugar. Ofrece servicios, busca trabajadores, publica una solicitud de trabajo o sigue lo que hacen los demás.',
+      bullets: isPro
+        ? `<li>🔧 <strong>Página de Servicios</strong> — Publica tu servicio o portfolio. Aquí te encuentran los clientes.<br/><span style="color:#888;font-size:13px">Ej. "Instalaciones eléctricas — Madrid, 10 años de experiencia"</span></li>
+           <li>👷 <strong>Empleos → Contratación</strong> — ¿Necesitas un trabajador? Publica un anuncio y espera solicitudes.</li>
+           <li>📱 <strong>Feed</strong> — Comparte fotos de tu trabajo. Construye tu reputación y atrae clientes.</li>
+           <li>🖼️ <strong>Añade foto de perfil</strong> — Los perfiles con foto reciben 3× más atención.</li>`
+        : `<li>🔍 <strong>Empleos → Busco servicio</strong> — Publica lo que necesitas y espera ofertas de profesionales.<br/><span style="color:#888;font-size:13px">Ej. "Necesito pintor para piso de 60m², Madrid"</span></li>
+           <li>💼 <strong>Empleos → Busco trabajo</strong> — Publica que estás buscando empleo.<br/><span style="color:#888;font-size:13px">Ej. "Busco puesto de camarero, Barcelona"</span></li>
+           <li>👷 <strong>Empleos → Contratación</strong> — ¿Necesitas a alguien? Publica un anuncio y espera solicitudes.<br/><span style="color:#888;font-size:13px">Ej. "Busco camarero para restaurante, Madrid"</span></li>
+           <li>🛠️ <strong>Página de Servicios</strong> — Explora profesionales, lee reseñas y contáctalos directamente.</li>
+           <li>📱 <strong>Feed</strong> — Comparte proyectos, pide consejos, sigue profesionales.</li>
+           <li>🖼️ <strong>Añade foto de perfil</strong> — Los perfiles con foto reciben 3× más atención.</li>`,
+      cta: isPro ? 'Publica tu primer anuncio' : 'Explorar GigZone',
+      social: 'De vez en cuando compartimos los mejores anuncios en nuestro <strong>TikTok</strong> e <strong>Instagram</strong> — ¡el tuyo podría ser uno de ellos!',
+      footer: 'Si tienes preguntas, solo responde a este correo.',
+      team: 'El equipo de GigZone',
+    };
+  }
+
+  if (lang === 'fr') {
+    return {
+      subject: `Bienvenue sur GigZone, ${firstName} !`,
+      greeting: `Bonjour, ${firstName} ! 👋`,
+      intro: "Bienvenue sur GigZone — la plateforme qui connecte professionnels et clients en un seul endroit. Proposez des services, trouvez des travailleurs, publiez une demande d'emploi ou suivez ce que font les autres.",
+      bullets: isPro
+        ? `<li>🔧 <strong>Page Services</strong> — Publiez votre service ou portfolio. C'est ici que les clients vous trouvent.<br/><span style="color:#888;font-size:13px">Ex. "Installations électriques — Paris, 10 ans d'expérience"</span></li>
+           <li>👷 <strong>Emplois → Recrutement</strong> — Besoin d'un travailleur ? Publiez une annonce et attendez les candidatures.</li>
+           <li>📱 <strong>Feed</strong> — Partagez des photos de vos travaux. Construisez votre réputation et attirez des clients.</li>
+           <li>🖼️ <strong>Ajoutez une photo de profil</strong> — Les profils avec photo reçoivent 3× plus d'attention.</li>`
+        : `<li>🔍 <strong>Emplois → Cherche service</strong> — Publiez ce dont vous avez besoin et attendez des offres de professionnels.<br/><span style="color:#888;font-size:13px">Ex. "Besoin d'un peintre pour 60m², Paris"</span></li>
+           <li>💼 <strong>Emplois → Cherche travail</strong> — Publiez que vous cherchez un emploi.<br/><span style="color:#888;font-size:13px">Ex. "Cherche poste de serveur, Lyon"</span></li>
+           <li>👷 <strong>Emplois → Recrutement</strong> — Besoin de quelqu'un ? Publiez une annonce.<br/><span style="color:#888;font-size:13px">Ex. "Cherche serveur pour restaurant, Paris"</span></li>
+           <li>🛠️ <strong>Page Services</strong> — Parcourez les profils, lisez les avis et contactez directement.</li>
+           <li>📱 <strong>Feed</strong> — Partagez des projets, demandez des conseils, suivez des professionnels.</li>
+           <li>🖼️ <strong>Ajoutez une photo de profil</strong> — Les profils avec photo reçoivent 3× plus d'attention.</li>`,
+      cta: isPro ? 'Publier votre première annonce' : 'Explorer GigZone',
+      social: 'Nous partageons occasionnellement les meilleures annonces sur notre <strong>TikTok</strong> et <strong>Instagram</strong> — la vôtre pourrait en faire partie !',
+      footer: 'Si vous avez des questions, répondez simplement à cet e-mail.',
+      team: "L'équipe GigZone",
     };
   }
 
@@ -97,9 +145,11 @@ export async function POST(request: NextRequest) {
     const firstName = profile.name?.split(' ')[0] || profile.name || 'there';
     const isPro = (profile as any).is_premium === true;
 
-    let lang: 'sr' | 'de' | 'en' = 'en';
+    let lang: 'sr' | 'de' | 'en' | 'es' | 'fr' = 'en';
     if (BALKAN_COUNTRIES.includes(profile.country)) lang = 'sr';
     else if (GERMAN_COUNTRIES.includes(profile.country)) lang = 'de';
+    else if (SPANISH_COUNTRIES.includes(profile.country)) lang = 'es';
+    else if (FRENCH_COUNTRIES.includes(profile.country)) lang = 'fr';
 
     const c = getContent(isPro, lang, firstName);
     const ctaUrl = isPro ? 'https://gigzone.app/create-post' : 'https://gigzone.app/feed';
