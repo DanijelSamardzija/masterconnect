@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Navigation } from '@/components/navigation';
 import { Footer } from '@/components/footer';
+import { AnnouncementBanner } from '@/components/announcement-banner';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { notificationRepository } from '@/lib/repositories/notificationRepository';
 import { usePageTracking } from '@/lib/hooks/use-page-tracking';
@@ -50,6 +51,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      {!hideNavigation && <AnnouncementBanner />}
       {!hideNavigation && <Navigation />}
 
       <main id="main-content" className="flex-1 min-h-0 overflow-hidden">
