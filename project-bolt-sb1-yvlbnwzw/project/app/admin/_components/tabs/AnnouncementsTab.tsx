@@ -15,6 +15,10 @@ interface Props {
   newBodyEn: string;
   newTitleDe: string;
   newBodyDe: string;
+  newTitleEs: string;
+  newBodyEs: string;
+  newTitleFr: string;
+  newBodyFr: string;
   sendEmail: boolean;
   emailOffset: number;
   savingAnnouncement: boolean;
@@ -24,6 +28,10 @@ interface Props {
   onNewBodyEnChange: (v: string) => void;
   onNewTitleDeChange: (v: string) => void;
   onNewBodyDeChange: (v: string) => void;
+  onNewTitleEsChange: (v: string) => void;
+  onNewBodyEsChange: (v: string) => void;
+  onNewTitleFrChange: (v: string) => void;
+  onNewBodyFrChange: (v: string) => void;
   onSendEmailToggle: () => void;
   onEmailOffsetChange: (v: number) => void;
   onPublish: () => void;
@@ -40,6 +48,10 @@ export function AnnouncementsTab({
   newBodyEn,
   newTitleDe,
   newBodyDe,
+  newTitleEs,
+  newBodyEs,
+  newTitleFr,
+  newBodyFr,
   sendEmail,
   emailOffset,
   savingAnnouncement,
@@ -49,6 +61,10 @@ export function AnnouncementsTab({
   onNewBodyEnChange,
   onNewTitleDeChange,
   onNewBodyDeChange,
+  onNewTitleEsChange,
+  onNewBodyEsChange,
+  onNewTitleFrChange,
+  onNewBodyFrChange,
   onSendEmailToggle,
   onEmailOffsetChange,
   onPublish,
@@ -119,6 +135,44 @@ export function AnnouncementsTab({
             value={newBodyDe}
             onChange={e => onNewBodyDeChange(e.target.value)}
             placeholder="Ankündigungstext..."
+            rows={3}
+            className={textareaClass}
+          />
+        </div>
+
+        {/* Spanish */}
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🇪🇸 Español (opciono)</p>
+          <input
+            type="text"
+            value={newTitleEs}
+            onChange={e => onNewTitleEsChange(e.target.value)}
+            placeholder="Título..."
+            className={inputClass}
+          />
+          <textarea
+            value={newBodyEs}
+            onChange={e => onNewBodyEsChange(e.target.value)}
+            placeholder="Texto del anuncio..."
+            rows={3}
+            className={textareaClass}
+          />
+        </div>
+
+        {/* French */}
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🇫🇷 Français (opciono)</p>
+          <input
+            type="text"
+            value={newTitleFr}
+            onChange={e => onNewTitleFrChange(e.target.value)}
+            placeholder="Titre..."
+            className={inputClass}
+          />
+          <textarea
+            value={newBodyFr}
+            onChange={e => onNewBodyFrChange(e.target.value)}
+            placeholder="Texte de l'annonce..."
             rows={3}
             className={textareaClass}
           />

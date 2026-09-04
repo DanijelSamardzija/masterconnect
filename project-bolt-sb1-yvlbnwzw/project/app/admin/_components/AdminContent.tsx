@@ -81,6 +81,10 @@ export function AdminContent() {
   const [newBodyEn, setNewBodyEn] = useState('');
   const [newTitleDe, setNewTitleDe] = useState('');
   const [newBodyDe, setNewBodyDe] = useState('');
+  const [newTitleEs, setNewTitleEs] = useState('');
+  const [newBodyEs, setNewBodyEs] = useState('');
+  const [newTitleFr, setNewTitleFr] = useState('');
+  const [newBodyFr, setNewBodyFr] = useState('');
   const [savingAnnouncement, setSavingAnnouncement] = useState(false);
   const [sendEmail, setSendEmail] = useState(true);
   const [emailOffset, setEmailOffset] = useState(0);
@@ -968,7 +972,7 @@ export function AdminContent() {
   const fetchAnnouncements = async () => {
     const { data } = await supabase
       .from('announcements')
-      .select('id, title, body, title_en, body_en, title_de, body_de, active, created_at')
+      .select('id, title, body, title_en, body_en, title_de, body_de, title_es, body_es, title_fr, body_fr, active, created_at')
       .order('created_at', { ascending: false });
     setAnnouncements(data || []);
   };
@@ -998,6 +1002,8 @@ export function AdminContent() {
         title: newTitle.trim(), body: newBody.trim(),
         title_en: newTitleEn.trim() || null, body_en: newBodyEn.trim() || null,
         title_de: newTitleDe.trim() || null, body_de: newBodyDe.trim() || null,
+        title_es: newTitleEs.trim() || null, body_es: newBodyEs.trim() || null,
+        title_fr: newTitleFr.trim() || null, body_fr: newBodyFr.trim() || null,
         created_by: profile?.id,
       })
       .select().single();
@@ -1011,6 +1017,8 @@ export function AdminContent() {
         meta: {
           title_en: newTitleEn.trim() || null, body_en: newBodyEn.trim() || null,
           title_de: newTitleDe.trim() || null, body_de: newBodyDe.trim() || null,
+          title_es: newTitleEs.trim() || null, body_es: newBodyEs.trim() || null,
+          title_fr: newTitleFr.trim() || null, body_fr: newBodyFr.trim() || null,
         },
       }));
       await notificationRepository.insertMany(notifs);
@@ -1024,6 +1032,8 @@ export function AdminContent() {
           title_sr: newTitle.trim(), body_sr: newBody.trim(),
           title_en: newTitleEn.trim() || undefined, body_en: newBodyEn.trim() || undefined,
           title_de: newTitleDe.trim() || undefined, body_de: newBodyDe.trim() || undefined,
+          title_es: newTitleEs.trim() || undefined, body_es: newBodyEs.trim() || undefined,
+          title_fr: newTitleFr.trim() || undefined, body_fr: newBodyFr.trim() || undefined,
           offset: emailOffset,
         }),
       });
@@ -1034,6 +1044,7 @@ export function AdminContent() {
     }
 
     setNewTitle(''); setNewBody(''); setNewTitleEn(''); setNewBodyEn(''); setNewTitleDe(''); setNewBodyDe('');
+    setNewTitleEs(''); setNewBodyEs(''); setNewTitleFr(''); setNewBodyFr('');
     setAnnouncements(prev => [data, ...prev]);
     setSavingAnnouncement(false);
   };
@@ -1242,6 +1253,10 @@ export function AdminContent() {
               newBodyEn={newBodyEn}
               newTitleDe={newTitleDe}
               newBodyDe={newBodyDe}
+              newTitleEs={newTitleEs}
+              newBodyEs={newBodyEs}
+              newTitleFr={newTitleFr}
+              newBodyFr={newBodyFr}
               sendEmail={sendEmail}
               emailOffset={emailOffset}
               savingAnnouncement={savingAnnouncement}
@@ -1251,6 +1266,10 @@ export function AdminContent() {
               onNewBodyEnChange={setNewBodyEn}
               onNewTitleDeChange={setNewTitleDe}
               onNewBodyDeChange={setNewBodyDe}
+              onNewTitleEsChange={setNewTitleEs}
+              onNewBodyEsChange={setNewBodyEs}
+              onNewTitleFrChange={setNewTitleFr}
+              onNewBodyFrChange={setNewBodyFr}
               onSendEmailToggle={() => setSendEmail(v => !v)}
               onEmailOffsetChange={setEmailOffset}
               onPublish={handlePublishAnnouncement}

@@ -65,6 +65,10 @@ export type Announcement = {
   body_en?: string;
   title_de?: string;
   body_de?: string;
+  title_es?: string;
+  body_es?: string;
+  title_fr?: string;
+  body_fr?: string;
   active: boolean;
   created_at: string;
 };
