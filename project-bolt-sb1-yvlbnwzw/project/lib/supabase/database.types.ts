@@ -20,36 +20,48 @@ export type Database = {
           body: string
           body_de: string | null
           body_en: string | null
+          body_es: string | null
+          body_fr: string | null
           created_at: string
           created_by: string | null
           id: string
           title: string
           title_de: string | null
           title_en: string | null
+          title_es: string | null
+          title_fr: string | null
         }
         Insert: {
           active?: boolean
           body: string
           body_de?: string | null
           body_en?: string | null
+          body_es?: string | null
+          body_fr?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
           title: string
           title_de?: string | null
           title_en?: string | null
+          title_es?: string | null
+          title_fr?: string | null
         }
         Update: {
           active?: boolean
           body?: string
           body_de?: string | null
           body_en?: string | null
+          body_es?: string | null
+          body_fr?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
           title?: string
           title_de?: string | null
           title_en?: string | null
+          title_es?: string | null
+          title_fr?: string | null
         }
         Relationships: [
           {

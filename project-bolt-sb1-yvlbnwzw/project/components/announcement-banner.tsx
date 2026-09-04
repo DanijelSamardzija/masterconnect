@@ -14,6 +14,10 @@ type Announcement = {
   body_en?: string;
   title_de?: string;
   body_de?: string;
+  title_es?: string;
+  body_es?: string;
+  title_fr?: string;
+  body_fr?: string;
   created_at: string;
 };
 
@@ -27,7 +31,7 @@ export function AnnouncementBanner() {
     const fetchLatest = async () => {
       const { data } = await supabase
         .from('announcements')
-        .select('id, title, body, title_en, body_en, title_de, body_de, created_at')
+        .select('id, title, body, title_en, body_en, title_de, body_de, title_es, body_es, title_fr, body_fr, created_at')
         .eq('active', true)
         .order('created_at', { ascending: false })
         .limit(1)
@@ -58,11 +62,15 @@ export function AnnouncementBanner() {
   const displayTitle =
     (language === 'en' && announcement.title_en) ||
     (language === 'de' && announcement.title_de) ||
+    (language === 'es' && announcement.title_es) ||
+    (language === 'fr' && announcement.title_fr) ||
     announcement.title;
 
   const displayBody =
     (language === 'en' && announcement.body_en) ||
     (language === 'de' && announcement.body_de) ||
+    (language === 'es' && announcement.body_es) ||
+    (language === 'fr' && announcement.body_fr) ||
     announcement.body;
 
   return (
@@ -132,7 +140,7 @@ export function AnnouncementBanner() {
                   onClick={handleDismiss}
                   className="w-full py-3 rounded-2xl bg-muted hover:bg-accent border border-border text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {language === 'en' ? 'Got it, close' : language === 'de' ? 'Verstanden, schließen' : 'Razumio, zatvori'}
+                  {language === 'en' ? 'Got it, close' : language === 'de' ? 'Verstanden, schließen' : language === 'es' ? 'Entendido, cerrar' : language === 'fr' ? 'Compris, fermer' : 'Razumio, zatvori'}
                 </button>
               </div>
 
