@@ -78,6 +78,8 @@ export function translateNotification(
         return { title: `You received ${n.meta?.amount ?? ''} credits`, body: 'Added to your GigZone balance by admin' };
       case 'missing_location':
         return { title: 'Add your location', body: "We couldn't find your city. Add your location to receive listings from your region." };
+      case 'no_city_reminder':
+        return { title: 'Add your city to your profile 📍', body: 'Clients in your area find you more easily when you add your city. Takes 10 seconds!' };
       default:
         return { title: n.title, body: n.body || '' };
     }
@@ -116,6 +118,8 @@ export function translateNotification(
         return { title: `Sie haben ${n.meta?.amount ?? ''} Credits erhalten`, body: 'Vom Admin zu Ihrem Guthaben hinzugefügt' };
       case 'missing_location':
         return { title: 'Fügen Sie Ihren Standort hinzu', body: 'Wir konnten Ihre Stadt nicht finden. Fügen Sie Ihren Standort hinzu, um Anzeigen aus Ihrer Region zu erhalten.' };
+      case 'no_city_reminder':
+        return { title: 'Füge deine Stadt zum Profil hinzu 📍', body: 'Kunden in deiner Nähe finden dich leichter, wenn du deine Stadt angibst. Dauert nur 10 Sekunden!' };
       default:
         return { title: n.title, body: n.body || '' };
     }
@@ -154,6 +158,8 @@ export function translateNotification(
         return { title: `Recibiste ${n.meta?.amount ?? ''} créditos`, body: 'Añadido a tu saldo por el administrador' };
       case 'missing_location':
         return { title: 'Añade tu ubicación', body: 'No pudimos encontrar tu ciudad. Añade tu ubicación para recibir anuncios de tu región.' };
+      case 'no_city_reminder':
+        return { title: 'Añade tu ciudad al perfil 📍', body: 'Los clientes de tu zona te encuentran más fácilmente si añades tu ciudad. ¡Solo 10 segundos!' };
       default:
         return { title: n.title, body: n.body || '' };
     }
@@ -192,6 +198,8 @@ export function translateNotification(
         return { title: `Vous avez reçu ${n.meta?.amount ?? ''} crédits`, body: 'Ajouté à votre solde par l\'administrateur' };
       case 'missing_location':
         return { title: 'Ajoutez votre emplacement', body: 'Nous n\'avons pas pu trouver votre ville. Ajoutez votre emplacement pour recevoir des annonces de votre région.' };
+      case 'no_city_reminder':
+        return { title: 'Ajoutez votre ville à votre profil 📍', body: 'Les clients de votre région vous trouvent plus facilement si vous ajoutez votre ville. Seulement 10 secondes !' };
       default:
         return { title: n.title, body: n.body || '' };
     }

@@ -40,6 +40,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
           notificationRepository.insert({
             user_id: user.id,
             type: 'no_city_reminder',
+            action_type: 'no_city_reminder',
             title: 'Dodaj grad na profil 📍',
             body: 'Klijenti iz tvog mesta lakše te pronalaze kada dodaš grad. Dodaj ga za 10 sekundi!',
             meta: { link: '/profile/edit' },
