@@ -65,7 +65,7 @@ export default function JobCategoryLayout({
   }
 
   if (!isValidCategory(category)) {
-    notFound();
+    return <>{children}</>;
   }
 
   const slug = category as CategorySlug;
