@@ -113,7 +113,95 @@ async function processPush(body: any) {
     await supabase.from('push_subscriptions').delete().in('endpoint', expiredEndpoints);
   }
 
-  // Email for new message
+  // Email locale — drives all 4 email types below
+  const emailLocales: Record<string, {
+    fb: string;
+    msgCta: string;
+    revHeading: (s: string) => string;
+    revBody: (n: string) => string;
+    revCta: string;
+    folHeading: string;
+    folBody: (n: string) => string;
+    folCta: string;
+    comHeading: (r: boolean) => string;
+    comBody: (n: string, r: boolean) => string;
+    comCta: string;
+  }> = {
+    en: {
+      fb: 'Someone',
+      msgCta: 'Open message',
+      revHeading: (s) => `New review ${s}`,
+      revBody: (n) => `<strong>${n}</strong> left you a review.`,
+      revCta: 'View review',
+      folHeading: 'New follower 👤',
+      folBody: (n) => `<strong>${n}</strong> started following you.`,
+      folCta: 'View profile',
+      comHeading: (r) => r ? 'New reply 💬' : 'New comment 💬',
+      comBody: (n, r) => `<strong>${n}</strong> ${r ? 'replied to your comment' : 'commented on your post'}.`,
+      comCta: 'View post',
+    },
+    de: {
+      fb: 'Jemand',
+      msgCta: 'Nachricht öffnen',
+      revHeading: (s) => `Neue Bewertung ${s}`,
+      revBody: (n) => `<strong>${n}</strong> hat eine Bewertung hinterlassen.`,
+      revCta: 'Bewertung ansehen',
+      folHeading: 'Neuer Follower 👤',
+      folBody: (n) => `<strong>${n}</strong> folgt Ihnen jetzt.`,
+      folCta: 'Profil ansehen',
+      comHeading: (r) => r ? 'Neue Antwort 💬' : 'Neuer Kommentar 💬',
+      comBody: (n, r) => `<strong>${n}</strong> ${r ? 'hat auf Ihren Kommentar geantwortet' : 'hat Ihren Beitrag kommentiert'}.`,
+      comCta: 'Beitrag ansehen',
+    },
+    es: {
+      fb: 'Alguien',
+      msgCta: 'Abrir mensaje',
+      revHeading: (s) => `Nueva reseña ${s}`,
+      revBody: (n) => `<strong>${n}</strong> te dejó una reseña.`,
+      revCta: 'Ver reseña',
+      folHeading: 'Nuevo seguidor 👤',
+      folBody: (n) => `<strong>${n}</strong> te ha empezado a seguir.`,
+      folCta: 'Ver perfil',
+      comHeading: (r) => r ? 'Nueva respuesta 💬' : 'Nuevo comentario 💬',
+      comBody: (n, r) => `<strong>${n}</strong> ${r ? 'respondió a tu comentario' : 'comentó tu publicación'}.`,
+      comCta: 'Ver publicación',
+    },
+    fr: {
+      fb: 'Quelqu\'un',
+      msgCta: 'Ouvrir le message',
+      revHeading: (s) => `Nouvel avis ${s}`,
+      revBody: (n) => `<strong>${n}</strong> vous a laissé un avis.`,
+      revCta: 'Voir l\'avis',
+      folHeading: 'Nouvel abonné 👤',
+      folBody: (n) => `<strong>${n}</strong> vous suit maintenant.`,
+      folCta: 'Voir le profil',
+      comHeading: (r) => r ? 'Nouvelle réponse 💬' : 'Nouveau commentaire 💬',
+      comBody: (n, r) => `<strong>${n}</strong> ${r ? 'a répondu à votre commentaire' : 'a commenté votre publication'}.`,
+      comCta: 'Voir la publication',
+    },
+    sr: {
+      fb: 'Neko',
+      msgCta: 'Otvori poruku',
+      revHeading: (s) => `Nova recenzija ${s}`,
+      revBody: (n) => `<strong>${n}</strong> ti je ostavio/la recenziju.`,
+      revCta: 'Pogledaj recenziju',
+      folHeading: 'Novi pratilac 👤',
+      folBody: (n) => `<strong>${n}</strong> je počeo/la da te prati.`,
+      folCta: 'Pogledaj profil',
+      comHeading: (r) => r ? 'Novi odgovor na komentar 💬' : 'Novi komentar 💬',
+      comBody: (n, r) => `<strong>${n}</strong> ${r ? 'je odgovorio/la na tvoj komentar' : 'je komentarisao/la tvoj post'}.`,
+      comCta: 'Pogledaj post',
+    },
+  };
+  const eL = emailLocales[pushLang] ?? emailLocales.sr;
+
+  const emailLogo = `
+    <div style="text-align:center;padding:24px 0 12px">
+      <span style="font-size:22px;font-weight:900;letter-spacing:-0.5px">Gig<span style="color:#ea580c">Zone</span></span>
+    </div>`;
+  const emailFooter = `<p style="text-align:center;color:#aaa;font-size:11px;margin-top:20px">GigZone · gigzone.app</p>`;
+
+  // Email for new message (also fires for offer/inquiry thread notifications)
   if (meta?.thread_id) {
     const { data: recipientProfile } = await supabase
       .from('profiles').select('name, email').eq('id', user_id).maybeSingle();
@@ -122,23 +210,19 @@ async function processPush(body: any) {
       await sendEmail({
         to: recipientProfile.email,
         replyTo: 'support@gigzone.app',
-        subject: title || 'Nova poruka na GigZone',
+        subject: translated.title || (pushLang === 'sr' ? 'Nova poruka na GigZone' : 'New message on GigZone'),
         html: `
           <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
-            <div style="text-align:center;padding:24px 0 12px">
-              <span style="font-size:22px;font-weight:900;letter-spacing:-0.5px">
-                Gig<span style="color:#ea580c">Zone</span>
-              </span>
-            </div>
+            ${emailLogo}
             <div style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:28px">
-              <h2 style="margin:0 0 8px;color:#1a1a1a">${title || 'Nova poruka'}</h2>
-              <p style="color:#555;margin:0 0 20px">${notifBody || ''}</p>
+              <h2 style="margin:0 0 8px;color:#1a1a1a">${translated.title || ''}</h2>
+              <p style="color:#555;margin:0 0 20px">${translated.body || ''}</p>
               <a href="https://www.gigzone.app/messages/${meta.thread_id}"
                  style="display:inline-block;background:#ea580c;color:#fff;padding:12px 28px;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px">
-                Otvori poruku
+                ${eL.msgCta}
               </a>
             </div>
-            <p style="text-align:center;color:#aaa;font-size:11px;margin-top:20px">GigZone · gigzone.app</p>
+            ${emailFooter}
           </div>
         `,
       }).catch(() => {});
@@ -152,29 +236,25 @@ async function processPush(body: any) {
 
     if (recipientProfile?.email) {
       const stars = '⭐'.repeat(meta.rating || 0);
-      const reviewerName = meta.actor_name || 'Neko';
+      const reviewerName = meta.actor_name || eL.fb;
       const profileUrl = `https://www.gigzone.app/profile/${user_id}`;
       await sendEmail({
         to: recipientProfile.email,
         replyTo: 'support@gigzone.app',
-        subject: `${reviewerName} ti je ostavio/la recenziju ${stars}`,
+        subject: translated.title || eL.revHeading(stars),
         html: `
           <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
-            <div style="text-align:center;padding:24px 0 12px">
-              <span style="font-size:22px;font-weight:900;letter-spacing:-0.5px">
-                Gig<span style="color:#ea580c">Zone</span>
-              </span>
-            </div>
+            ${emailLogo}
             <div style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:28px">
-              <h2 style="margin:0 0 8px;color:#1a1a1a">Nova recenzija ${stars}</h2>
-              <p style="color:#555;margin:0 0 8px"><strong>${reviewerName}</strong> ti je ostavio/la recenziju.</p>
+              <h2 style="margin:0 0 8px;color:#1a1a1a">${eL.revHeading(stars)}</h2>
+              <p style="color:#555;margin:0 0 8px">${eL.revBody(reviewerName)}</p>
               ${notifBody ? `<p style="color:#333;background:#f9fafb;border-left:3px solid #ea580c;padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 20px;font-style:italic">"${notifBody}"</p>` : '<div style="margin-bottom:20px"></div>'}
               <a href="${profileUrl}"
                  style="display:inline-block;background:#ea580c;color:#fff;padding:12px 28px;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px">
-                Pogledaj recenziju
+                ${eL.revCta}
               </a>
             </div>
-            <p style="text-align:center;color:#aaa;font-size:11px;margin-top:20px">GigZone · gigzone.app</p>
+            ${emailFooter}
           </div>
         `,
       }).catch(() => {});
@@ -187,23 +267,24 @@ async function processPush(body: any) {
       .from('profiles').select('name, email').eq('id', user_id).maybeSingle();
 
     if (recipientProfile?.email) {
-      const followerName = meta.actor_name || 'Neko';
+      const followerName = meta.actor_name || eL.fb;
       const followerUrl = `https://www.gigzone.app/profile/${meta.follower_id}`;
       await sendEmail({
         to: recipientProfile.email,
         replyTo: 'support@gigzone.app',
-        subject: `${followerName} te prati na GigZone`,
+        subject: translated.title || eL.folHeading,
         html: `
           <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
-            <div style="text-align:center;padding:24px 0 12px">
-              <span style="font-size:22px;font-weight:900;letter-spacing:-0.5px">Gig<span style="color:#ea580c">Zone</span></span>
-            </div>
+            ${emailLogo}
             <div style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:28px">
-              <h2 style="margin:0 0 8px;color:#1a1a1a">Novi pratilac 👤</h2>
-              <p style="color:#555;margin:0 0 20px"><strong>${followerName}</strong> je počeo/la da te prati.</p>
-              <a href="${followerUrl}" style="display:inline-block;background:#ea580c;color:#fff;padding:12px 28px;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px">Pogledaj profil</a>
+              <h2 style="margin:0 0 8px;color:#1a1a1a">${eL.folHeading}</h2>
+              <p style="color:#555;margin:0 0 20px">${eL.folBody(followerName)}</p>
+              <a href="${followerUrl}"
+                 style="display:inline-block;background:#ea580c;color:#fff;padding:12px 28px;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px">
+                ${eL.folCta}
+              </a>
             </div>
-            <p style="text-align:center;color:#aaa;font-size:11px;margin-top:20px">GigZone · gigzone.app</p>
+            ${emailFooter}
           </div>
         `,
       }).catch(() => {});
@@ -216,27 +297,26 @@ async function processPush(body: any) {
       .from('profiles').select('name, email').eq('id', user_id).maybeSingle();
 
     if (recipientProfile?.email) {
-      const commenterName = meta.actor_name || 'Neko';
+      const commenterName = meta.actor_name || eL.fb;
       const isReply = notifType === 'reply';
       const postUrl = `https://www.gigzone.app/posts/${meta.post_id}`;
       await sendEmail({
         to: recipientProfile.email,
         replyTo: 'support@gigzone.app',
-        subject: isReply
-          ? `${commenterName} je odgovorio/la na tvoj komentar`
-          : `${commenterName} je komentarisao/la tvoj post`,
+        subject: translated.title || eL.comHeading(isReply),
         html: `
           <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
-            <div style="text-align:center;padding:24px 0 12px">
-              <span style="font-size:22px;font-weight:900;letter-spacing:-0.5px">Gig<span style="color:#ea580c">Zone</span></span>
-            </div>
+            ${emailLogo}
             <div style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:28px">
-              <h2 style="margin:0 0 8px;color:#1a1a1a">${isReply ? 'Novi odgovor na komentar 💬' : 'Novi komentar 💬'}</h2>
-              <p style="color:#555;margin:0 0 8px"><strong>${commenterName}</strong> ${isReply ? 'je odgovorio/la na tvoj komentar' : 'je komentarisao/la tvoj post'}.</p>
+              <h2 style="margin:0 0 8px;color:#1a1a1a">${eL.comHeading(isReply)}</h2>
+              <p style="color:#555;margin:0 0 8px">${eL.comBody(commenterName, isReply)}</p>
               ${notifBody ? `<p style="color:#333;background:#f9fafb;border-left:3px solid #ea580c;padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 20px;font-style:italic">"${notifBody}"</p>` : '<div style="margin-bottom:20px"></div>'}
-              <a href="${postUrl}" style="display:inline-block;background:#ea580c;color:#fff;padding:12px 28px;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px">Pogledaj post</a>
+              <a href="${postUrl}"
+                 style="display:inline-block;background:#ea580c;color:#fff;padding:12px 28px;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px">
+                ${eL.comCta}
+              </a>
             </div>
-            <p style="text-align:center;color:#aaa;font-size:11px;margin-top:20px">GigZone · gigzone.app</p>
+            ${emailFooter}
           </div>
         `,
       }).catch(() => {});

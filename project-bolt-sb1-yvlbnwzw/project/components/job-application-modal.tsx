@@ -247,13 +247,28 @@ export function JobApplicationModal({ open, onOpenChange, postId, postTitle, pos
               message_type: 'application',
             });
 
+            const { data: ownerLangRow } = await supabase
+              .from('profiles')
+              .select('preferred_language')
+              .eq('id', postOwnerId)
+              .maybeSingle();
+            const ownerLang = (ownerLangRow?.preferred_language as string) || 'sr';
+            const applicantName = fullName.trim();
+            const applicationTitles: Record<string, string> = {
+              en: `${applicantName} applied to your listing`,
+              de: `${applicantName} hat sich auf Ihre Anzeige beworben`,
+              es: `${applicantName} aplicó a tu anuncio`,
+              fr: `${applicantName} a postulé à votre annonce`,
+              sr: `${applicantName} se prijavio/la na tvoj oglas`,
+            };
+
             await supabase.from('notifications').insert({
               user_id: postOwnerId,
               type: 'message',
               action_type: 'application_received',
-              title: `${fullName.trim()} se prijavio/la na tvoj oglas`,
+              title: applicationTitles[ownerLang] ?? applicationTitles.sr,
               body: postTitle ? `"${postTitle}"${bio.trim() ? ' — ' + bio.trim().slice(0, 80) : ''}` : bio.trim().slice(0, 100),
-              meta: { thread_id: threadId, sender_id: user.id },
+              meta: { thread_id: threadId, sender_id: user.id, actor_name: applicantName },
             });
           }
         } catch (msgErr) {

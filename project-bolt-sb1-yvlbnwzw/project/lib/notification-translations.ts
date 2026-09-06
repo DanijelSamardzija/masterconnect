@@ -1,16 +1,17 @@
 type NotificationTranslation = { title: string; body: string };
 
 const SR_SUFFIXES: Record<string, string> = {
-  new_follower:        ' vas je zapratio',
-  post_reaction:       ' je reagovao na vaš post',
-  post_comment:        ' je komentarisao vaš post',
-  comment_reply:       ' je odgovorio na vaš komentar',
-  comment_reaction:    ' je reagovao na vaš komentar',
-  message:             ' vam je poslao poruku',
-  post_saved:          ' je sačuvao vaš post',
-  new_job_application: ' je aplicirao na vaš oglas',
-  offer_received:      ' ti je poslao/la ponudu',
-  inquiry_received:    ' ti je poslao/la upit',
+  new_follower:         ' vas je zapratio',
+  post_reaction:        ' je reagovao na vaš post',
+  post_comment:         ' je komentarisao vaš post',
+  comment_reply:        ' je odgovorio na vaš komentar',
+  comment_reaction:     ' je reagovao na vaš komentar',
+  message:              ' vam je poslao poruku',
+  post_saved:           ' je sačuvao vaš post',
+  new_job_application:  ' je aplicirao na vaš oglas',
+  application_received: ' se prijavio/la na tvoj oglas',
+  offer_received:       ' ti je poslao/la ponudu',
+  inquiry_received:     ' ti je poslao/la upit',
 };
 
 function extractActorName(title: string, actionType: string): string {
@@ -66,6 +67,8 @@ export function translateNotification(
         return { title: `${actorName} saved your post`, body: n.body || 'Your post' };
       case 'new_job_application':
         return { title: `${actorName} applied to your listing`, body: n.body || '' };
+      case 'application_received':
+        return { title: `${actorName} applied to your listing`, body: n.body || '' };
       case 'new_review':
         return { title: `${actorName} left you a review ${'⭐'.repeat(n.meta?.rating || 0)}`, body: n.body || '' };
       case 'application_accepted':
@@ -113,6 +116,8 @@ export function translateNotification(
       case 'post_saved':
         return { title: `${actorName} hat Ihren Beitrag gespeichert`, body: n.body || 'Ihr Beitrag' };
       case 'new_job_application':
+        return { title: `${actorName} hat sich auf Ihre Anzeige beworben`, body: n.body || '' };
+      case 'application_received':
         return { title: `${actorName} hat sich auf Ihre Anzeige beworben`, body: n.body || '' };
       case 'new_review':
         return { title: `${actorName} hat eine Bewertung hinterlassen ${'⭐'.repeat(n.meta?.rating || 0)}`, body: n.body || '' };
@@ -162,6 +167,8 @@ export function translateNotification(
         return { title: `${actorName} guardó tu publicación`, body: n.body || 'Tu publicación' };
       case 'new_job_application':
         return { title: `${actorName} aplicó a tu anuncio`, body: n.body || '' };
+      case 'application_received':
+        return { title: `${actorName} aplicó a tu anuncio`, body: n.body || '' };
       case 'new_review':
         return { title: `${actorName} te dejó una reseña ${'⭐'.repeat(n.meta?.rating || 0)}`, body: n.body || '' };
       case 'application_accepted':
@@ -209,6 +216,8 @@ export function translateNotification(
       case 'post_saved':
         return { title: `${actorName} a sauvegardé votre publication`, body: n.body || 'Votre publication' };
       case 'new_job_application':
+        return { title: `${actorName} a postulé à votre annonce`, body: n.body || '' };
+      case 'application_received':
         return { title: `${actorName} a postulé à votre annonce`, body: n.body || '' };
       case 'new_review':
         return { title: `${actorName} vous a laissé un avis ${'⭐'.repeat(n.meta?.rating || 0)}`, body: n.body || '' };
