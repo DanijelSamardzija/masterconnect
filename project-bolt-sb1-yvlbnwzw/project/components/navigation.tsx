@@ -304,7 +304,7 @@ export function Navigation() {
           </Link>
 
           <div className="hidden md:flex items-center gap-1">
-            <Link href="/services">
+            <Link href={`/${language}/services`}>
               <Button variant="ghost" size="sm" className={desktopNavClass('/services')}>
                 <Search className="h-4 w-4" />
                 <span className="hidden lg:inline">{t('nav.discover')}</span>
@@ -318,14 +318,14 @@ export function Navigation() {
               </Button>
             </Link>
 
-            <Link href="/jobs">
+            <Link href={`/${language}/jobs`}>
               <Button variant="ghost" size="sm" className={desktopNavClass('/jobs')}>
                 <Briefcase className="h-4 w-4" />
                 <span className="hidden lg:inline">{t('nav.jobs')}</span>
               </Button>
             </Link>
 
-            <Link href="/invest">
+            <Link href={`/${language}/invest`}>
               <Button variant="ghost" size="sm" className={`${desktopNavClass('/invest')} relative`}>
                 <TrendingUp className="h-4 w-4" />
                 <span className="hidden lg:inline">{t('nav.invest')}</span>
@@ -597,7 +597,7 @@ export function Navigation() {
                   <Separator />
 
                   <>
-                    <Link href="/services" onClick={closeMobileMenu}>
+                    <Link href={`/${language}/services`} onClick={closeMobileMenu}>
                       <Button variant="ghost" className={mobileNavClass('/services')}>
                         <Search className="h-4 w-4" />
                         {t('nav.discover')}
@@ -611,14 +611,14 @@ export function Navigation() {
                       </Button>
                     </Link>
 
-                    <Link href="/jobs" onClick={closeMobileMenu}>
+                    <Link href={`/${language}/jobs`} onClick={closeMobileMenu}>
                       <Button variant="ghost" className={mobileNavClass('/jobs')}>
                         <Briefcase className="h-4 w-4" />
                         {t('nav.jobs')}
                       </Button>
                     </Link>
 
-                    <Link href="/invest" onClick={closeMobileMenu}>
+                    <Link href={`/${language}/invest`} onClick={closeMobileMenu}>
                       <Button variant="ghost" className={`${mobileNavClass('/invest')} justify-between`}>
                         <span className="flex items-center gap-2">
                           <TrendingUp className="h-4 w-4" />
