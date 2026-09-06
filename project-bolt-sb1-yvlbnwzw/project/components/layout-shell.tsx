@@ -37,12 +37,21 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
     if (!loading && user && profile && profile.onboarding_completed && !profile.city) {
       notificationRepository.existsByType(user.id, 'no_city_reminder').then(exists => {
         if (!exists) {
+          const lang = (profile.preferred_language as string) || 'sr';
+          const cityReminderText: Record<string, { title: string; body: string }> = {
+            en: { title: 'Add your city to your profile 📍', body: 'Clients in your area find you more easily when you add your city. Takes 10 seconds!' },
+            de: { title: 'Füge deine Stadt zum Profil hinzu 📍', body: 'Kunden in deiner Nähe finden dich leichter, wenn du deine Stadt angibst. Dauert nur 10 Sekunden!' },
+            es: { title: 'Añade tu ciudad al perfil 📍', body: 'Los clientes de tu zona te encuentran más fácilmente si añades tu ciudad. ¡Solo 10 segundos!' },
+            fr: { title: 'Ajoutez votre ville à votre profil 📍', body: 'Les clients de votre région vous trouvent plus facilement si vous ajoutez votre ville. Seulement 10 secondes !' },
+            sr: { title: 'Dodaj grad na profil 📍', body: 'Klijenti iz tvog mesta lakše te pronalaze kada dodaš grad. Dodaj ga za 10 sekundi!' },
+          };
+          const text = cityReminderText[lang] ?? cityReminderText.sr;
           notificationRepository.insert({
             user_id: user.id,
             type: 'no_city_reminder',
             action_type: 'no_city_reminder',
-            title: 'Dodaj grad na profil 📍',
-            body: 'Klijenti iz tvog mesta lakše te pronalaze kada dodaš grad. Dodaj ga za 10 sekundi!',
+            title: text.title,
+            body: text.body,
             meta: { link: '/profile/edit' },
           });
         }
