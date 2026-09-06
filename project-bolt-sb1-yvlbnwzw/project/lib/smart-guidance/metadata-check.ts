@@ -54,7 +54,7 @@ export async function fetchPostMetadata(
     .maybeSingle();
 
   const rawLang = (profile as { preferred_language?: string } | null)?.preferred_language?.toLowerCase();
-  const validLangs: GuidanceLanguage[] = ['sr', 'en', 'de'];
+  const validLangs: GuidanceLanguage[] = ['sr', 'en', 'de', 'es', 'fr'];
   const profilePreferredLanguage: GuidanceLanguage | null =
     validLangs.includes(rawLang as GuidanceLanguage) ? (rawLang as GuidanceLanguage) : null;
 

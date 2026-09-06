@@ -1,4 +1,4 @@
-export type GuidanceLanguage = 'sr' | 'en' | 'de';
+export type GuidanceLanguage = 'sr' | 'en' | 'de' | 'es' | 'fr';
 
 export type GuidanceIntent =
   | 'SEEKING_JOB'

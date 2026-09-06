@@ -153,6 +153,102 @@ const TEMPLATES: Record<GuidanceLanguage, TemplateMap> = {
       ctaUrl: `${BASE_URL}/feed`,
     },
   },
+
+  es: {
+    SEEKING_JOB: {
+      title: 'Encuentra trabajo en el lugar correcto 🎯',
+      body: 'Vemos que buscas trabajo. 👤 Publica tu búsqueda en Empleos → Busco trabajo, donde los empleadores que buscan activamente trabajadores pueden encontrarte.\n\nIndica qué trabajo buscas, dónde quieres trabajar, tu experiencia y cuándo estás disponible. Cuanta más información concreta aportes, más fácil será para los empleadores evaluar si eres el candidato adecuado.',
+      ctaUrl: `${BASE_URL}/jobs`,
+    },
+    HIRING: {
+      title: 'Publica donde los candidatos buscan trabajo 🎯',
+      body: 'Vemos que buscas trabajadores. 👷‍♂️ Este tipo de anuncio obtiene mejores resultados en Empleos → Busco trabajador, donde las personas que buscan trabajo activamente pueden encontrarlo.\n\nAñade tu ciudad, el puesto, el número de trabajadores necesarios y las condiciones básicas para que los candidatos sepan de inmediato qué ofreces y dónde es el trabajo.',
+      ctaUrl: `${BASE_URL}/jobs`,
+    },
+    OFFERING_SERVICE: {
+      title: 'Consigue más clientes 💡',
+      body: 'Vemos que ofreces un servicio. Para mayor visibilidad, te recomendamos publicar también en la sección Servicios — allí es donde los clientes buscan activamente.\n\n📍 Añade tu ubicación y fotos de tu trabajo.',
+      ctaUrl: `${BASE_URL}/services`,
+    },
+    SEEKING_SERVICE: {
+      title: 'Encuentra proveedores de servicios más rápido 💡',
+      body: 'Vemos que buscas un proveedor de servicios. Te recomendamos publicar tu solicitud en la sección Empleos — allí es donde los profesionales que ofrecen servicios pueden encontrarla.',
+      ctaUrl: `${BASE_URL}/jobs`,
+    },
+    PORTFOLIO: {
+      title: 'Mejora la presentación de tu portafolio 📸',
+      body: '¡Tu trabajo se ve genial! Para mayor visibilidad, añade una descripción — qué hiciste, materiales utilizados, ubicación y cómo contactarte.',
+      ctaUrl: `${BASE_URL}/feed`,
+    },
+    SOCIAL: {
+      title: 'Añade una descripción a tu imagen 📝',
+      body: 'Las imágenes atraen la atención, pero una descripción de texto da contexto a los usuarios y les ayuda a entender tu contenido. Te recomendamos añadir algunas frases.',
+      ctaUrl: `${BASE_URL}/feed`,
+    },
+    image_only: {
+      title: 'Añade una descripción de texto 📝',
+      body: 'Tu imagen es excelente para captar la atención. Una descripción de texto da contexto a los usuarios y les ayuda a entender de inmediato qué ofreces o buscas.\n\nTe recomendamos añadir los detalles clave como texto junto a tu publicación.',
+      ctaUrl: '',
+    },
+    missing_city: {
+      title: 'Mejora tu anuncio 📍',
+      body: 'Tu anuncio está en la sección correcta. Para mayor visibilidad, te recomendamos añadir tu ubicación — los clientes filtran por ciudad y sin ella tu anuncio puede ser más difícil de encontrar.',
+      ctaUrl: '',
+    },
+    service_to_feed: {
+      title: 'Muestra tu trabajo y aumenta tu visibilidad 💡',
+      body: 'Tu servicio ya está en GigZone — ¡genial! Publica fotos o un vídeo de tu trabajo en el Feed y escribe algunas frases concretas: qué hiciste, qué servicio ofreces y dónde te encuentras.\n\nAsí las personas entenderán mejor a qué te dedicas y les resultará más fácil decidir contactarte.',
+      ctaUrl: `${BASE_URL}/feed`,
+    },
+  },
+
+  fr: {
+    SEEKING_JOB: {
+      title: 'Trouvez un emploi au bon endroit 🎯',
+      body: 'Nous voyons que vous cherchez un emploi. 👤 Publiez votre recherche dans Emplois → Je cherche un emploi, où les employeurs qui recherchent activement des travailleurs pourront vous trouver.\n\nIndiquez quel type de travail vous recherchez, où vous souhaitez travailler, votre expérience et vos disponibilités. Plus vos informations sont précises, plus il sera facile pour les employeurs d\'évaluer si vous êtes le bon candidat.',
+      ctaUrl: `${BASE_URL}/jobs`,
+    },
+    HIRING: {
+      title: 'Publiez là où les candidats cherchent 🎯',
+      body: 'Nous voyons que vous cherchez des travailleurs. 👷‍♂️ Ce type d\'annonce obtient de meilleurs résultats dans Emplois → Je cherche un travailleur, où les personnes en recherche active d\'emploi peuvent la trouver.\n\nAjoutez votre ville, le poste, le nombre de travailleurs nécessaires et les conditions de base afin que les candidats sachent immédiatement ce que vous proposez et où se déroule le travail.',
+      ctaUrl: `${BASE_URL}/jobs`,
+    },
+    OFFERING_SERVICE: {
+      title: 'Obtenez plus de clients 💡',
+      body: 'Nous voyons que vous proposez un service. Pour plus de visibilité, nous vous recommandons de publier également dans la section Services — c\'est là que les clients recherchent activement.\n\n📍 Ajoutez votre emplacement et des photos de votre travail.',
+      ctaUrl: `${BASE_URL}/services`,
+    },
+    SEEKING_SERVICE: {
+      title: 'Trouvez des prestataires plus rapidement 💡',
+      body: 'Nous voyons que vous cherchez un prestataire de services. Nous vous recommandons de publier votre demande dans la section Emplois — c\'est là que les professionnels proposant des services peuvent la trouver.',
+      ctaUrl: `${BASE_URL}/jobs`,
+    },
+    PORTFOLIO: {
+      title: 'Améliorez la présentation de votre portfolio 📸',
+      body: 'Votre travail est superbe ! Pour plus de visibilité, ajoutez une description — ce que vous avez fait, les matériaux utilisés, l\'emplacement et comment vous contacter.',
+      ctaUrl: `${BASE_URL}/feed`,
+    },
+    SOCIAL: {
+      title: 'Ajoutez une description à votre image 📝',
+      body: 'Les images attirent l\'attention, mais une description textuelle donne du contexte aux utilisateurs et les aide à comprendre votre contenu. Nous vous recommandons d\'ajouter quelques phrases.',
+      ctaUrl: `${BASE_URL}/feed`,
+    },
+    image_only: {
+      title: 'Ajoutez une description textuelle 📝',
+      body: 'Votre image est excellente pour attirer l\'attention. Une description textuelle donne du contexte aux utilisateurs et les aide à comprendre immédiatement ce que vous proposez ou recherchez.\n\nNous vous recommandons d\'ajouter les informations clés sous forme de texte avec votre publication.',
+      ctaUrl: '',
+    },
+    missing_city: {
+      title: 'Améliorez votre annonce 📍',
+      body: 'Votre annonce est dans la bonne section. Pour plus de visibilité, nous vous recommandons d\'ajouter votre emplacement — les clients filtrent par ville et sans cela votre annonce peut être plus difficile à trouver.',
+      ctaUrl: '',
+    },
+    service_to_feed: {
+      title: 'Montrez votre travail et gagnez en visibilité 💡',
+      body: 'Votre service est déjà sur GigZone — super ! Publiez des photos ou une vidéo de votre travail dans le Feed et écrivez quelques phrases concrètes : ce que vous avez fait, quel service vous proposez et où vous êtes basé.\n\nAinsi, les gens comprendront mieux votre activité et pourront plus facilement décider de vous contacter.',
+      ctaUrl: `${BASE_URL}/feed`,
+    },
+  },
 };
 
 export function buildNotification(

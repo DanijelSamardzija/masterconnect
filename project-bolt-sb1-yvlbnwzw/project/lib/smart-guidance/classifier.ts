@@ -81,7 +81,7 @@ Post text: ${text.slice(0, 800)}
 
 Return JSON:
 {
-  "detected_language": "sr" or "en" or "de",
+  "detected_language": "sr" or "en" or "de" or "es" or "fr",
   "intent": "SEEKING_JOB" or "HIRING" or "OFFERING_SERVICE" or "SEEKING_SERVICE" or "PORTFOLIO" or "SOCIAL",
   "missing_fields": [],
   "confidence": 0.0
@@ -118,7 +118,7 @@ confidence: 0.0–1.0, your certainty about the intent. Use lower values when te
     const validIntents: GuidanceIntent[] = [
       'SEEKING_JOB', 'HIRING', 'OFFERING_SERVICE', 'SEEKING_SERVICE', 'PORTFOLIO', 'SOCIAL',
     ];
-    const validLangs: GuidanceLanguage[] = ['sr', 'en', 'de'];
+    const validLangs: GuidanceLanguage[] = ['sr', 'en', 'de', 'es', 'fr'];
 
     if (!validIntents.includes(raw.intent as GuidanceIntent)) return null;
     if (typeof raw.confidence !== 'number') return null;
