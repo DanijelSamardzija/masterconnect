@@ -200,22 +200,30 @@ export async function POST(req: NextRequest) {
         process.env.SUPABASE_SERVICE_ROLE_KEY!
       );
 
-      const { data: senderProfile } = await serviceSupabase
-        .from('profiles')
-        .select('name')
-        .eq('id', user.id)
-        .single();
+      const [{ data: senderProfile }, { data: receiverLangRow }] = await Promise.all([
+        serviceSupabase.from('profiles').select('name').eq('id', user.id).single(),
+        serviceSupabase.from('profiles').select('preferred_language').eq('id', receiverId).maybeSingle(),
+      ]);
 
       const senderName = senderProfile?.name || 'Neko';
+      const receiverLang = (receiverLangRow?.preferred_language as string) || 'sr';
       const priceText = priceType === 'per_hour' ? `${price} ${currency}/h` : `${price} ${currency}`;
+
+      const offerTitles: Record<string, string> = {
+        en: `${senderName} sent you an offer`,
+        de: `${senderName} hat dir ein Angebot gesendet`,
+        es: `${senderName} te ha enviado una oferta`,
+        fr: `${senderName} vous a envoyé une offre`,
+        sr: `${senderName} ti je poslao/la ponudu`,
+      };
 
       await serviceSupabase.from('notifications').insert({
         user_id: receiverId,
         type: 'message',
         action_type: 'offer_received',
-        title: `${senderName} ti je poslao/la ponudu`,
+        title: offerTitles[receiverLang] ?? offerTitles.sr,
         body: note ? `${priceText} — ${note.slice(0, 80)}` : priceText,
-        meta: { thread_id: threadId, sender_id: user.id },
+        meta: { thread_id: threadId, sender_id: user.id, actor_name: senderName },
       });
 
       devLog('[Offers API v4.0] Notification sent to receiver');

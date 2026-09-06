@@ -9,6 +9,8 @@ const SR_SUFFIXES: Record<string, string> = {
   message:             ' vam je poslao poruku',
   post_saved:          ' je sačuvao vaš post',
   new_job_application: ' je aplicirao na vaš oglas',
+  offer_received:      ' ti je poslao/la ponudu',
+  inquiry_received:    ' ti je poslao/la upit',
 };
 
 function extractActorName(title: string, actionType: string): string {
@@ -76,6 +78,14 @@ export function translateNotification(
           : { title: `${actorName} sent you ${n.meta?.net ?? ''} credits`, body: 'Added to your GigZone balance' };
       case 'admin_grant':
         return { title: `You received ${n.meta?.amount ?? ''} credits`, body: 'Added to your GigZone balance by admin' };
+      case 'offer_received':
+        return { title: `${actorName} sent you an offer`, body: n.body || '' };
+      case 'inquiry_received':
+        return { title: `${actorName} sent you an inquiry`, body: n.body || '' };
+      case 'inquiry_accepted':
+        return { title: `${actorName} accepted your inquiry`, body: n.body || '' };
+      case 'inquiry_declined':
+        return { title: `${actorName} declined your inquiry`, body: n.body || '' };
       case 'missing_location':
         return { title: 'Add your location', body: "We couldn't find your city. Add your location to receive listings from your region." };
       case 'no_city_reminder':
@@ -116,6 +126,14 @@ export function translateNotification(
           : { title: `${actorName} hat Ihnen ${n.meta?.net ?? ''} Credits gesendet`, body: 'Ihrem GigZone-Guthaben hinzugefügt' };
       case 'admin_grant':
         return { title: `Sie haben ${n.meta?.amount ?? ''} Credits erhalten`, body: 'Vom Admin zu Ihrem Guthaben hinzugefügt' };
+      case 'offer_received':
+        return { title: `${actorName} hat dir ein Angebot gesendet`, body: n.body || '' };
+      case 'inquiry_received':
+        return { title: `${actorName} hat Ihnen eine Anfrage gesendet`, body: n.body || '' };
+      case 'inquiry_accepted':
+        return { title: `${actorName} hat Ihre Anfrage angenommen`, body: n.body || '' };
+      case 'inquiry_declined':
+        return { title: `${actorName} hat Ihre Anfrage abgelehnt`, body: n.body || '' };
       case 'missing_location':
         return { title: 'Fügen Sie Ihren Standort hinzu', body: 'Wir konnten Ihre Stadt nicht finden. Fügen Sie Ihren Standort hinzu, um Anzeigen aus Ihrer Region zu erhalten.' };
       case 'no_city_reminder':
@@ -156,6 +174,14 @@ export function translateNotification(
           : { title: `${actorName} te envió ${n.meta?.net ?? ''} créditos`, body: 'Añadido a tu saldo de GigZone' };
       case 'admin_grant':
         return { title: `Recibiste ${n.meta?.amount ?? ''} créditos`, body: 'Añadido a tu saldo por el administrador' };
+      case 'offer_received':
+        return { title: `${actorName} te ha enviado una oferta`, body: n.body || '' };
+      case 'inquiry_received':
+        return { title: `${actorName} te envió una consulta`, body: n.body || '' };
+      case 'inquiry_accepted':
+        return { title: `${actorName} aceptó tu consulta`, body: n.body || '' };
+      case 'inquiry_declined':
+        return { title: `${actorName} rechazó tu consulta`, body: n.body || '' };
       case 'missing_location':
         return { title: 'Añade tu ubicación', body: 'No pudimos encontrar tu ciudad. Añade tu ubicación para recibir anuncios de tu región.' };
       case 'no_city_reminder':
@@ -196,6 +222,14 @@ export function translateNotification(
           : { title: `${actorName} vous a envoyé ${n.meta?.net ?? ''} crédits`, body: 'Ajouté à votre solde GigZone' };
       case 'admin_grant':
         return { title: `Vous avez reçu ${n.meta?.amount ?? ''} crédits`, body: 'Ajouté à votre solde par l\'administrateur' };
+      case 'offer_received':
+        return { title: `${actorName} vous a envoyé une offre`, body: n.body || '' };
+      case 'inquiry_received':
+        return { title: `${actorName} vous a envoyé une demande`, body: n.body || '' };
+      case 'inquiry_accepted':
+        return { title: `${actorName} a accepté votre demande`, body: n.body || '' };
+      case 'inquiry_declined':
+        return { title: `${actorName} a refusé votre demande`, body: n.body || '' };
       case 'missing_location':
         return { title: 'Ajoutez votre emplacement', body: 'Nous n\'avons pas pu trouver votre ville. Ajoutez votre emplacement pour recevoir des annonces de votre région.' };
       case 'no_city_reminder':

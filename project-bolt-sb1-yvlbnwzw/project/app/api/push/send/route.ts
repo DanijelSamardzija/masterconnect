@@ -3,6 +3,7 @@ import { waitUntil } from '@vercel/functions';
 import webpush from 'web-push';
 import { createClient } from '@supabase/supabase-js';
 import { sendEmail } from '@/lib/brevo';
+import { translateNotification } from '@/lib/notification-translations';
 
 export const runtime = 'nodejs';
 
@@ -16,7 +17,7 @@ async function processPush(body: any) {
   );
 
   const record = body.record ?? body;
-  const { user_id, title, body: notifBody, meta, type: notifType } = record;
+  const { user_id, title, body: notifBody, meta, type: notifType, action_type } = record;
   if (!user_id) return;
 
   const supabase = createClient(
@@ -44,6 +45,15 @@ async function processPush(body: any) {
     .eq('user_id', user_id);
 
   if (!subscriptions || subscriptions.length === 0) return;
+
+  // Translate push title/body to recipient's preferred language
+  const { data: recipientLangRow } = await supabase
+    .from('profiles')
+    .select('preferred_language')
+    .eq('id', user_id)
+    .maybeSingle();
+  const pushLang = (recipientLangRow?.preferred_language as string) || 'sr';
+  const translated = translateNotification({ title, body: notifBody, action_type, meta }, pushLang);
 
   let url = '/';
   if (meta?.thread_id) url = `/messages/${meta.thread_id}`;
@@ -75,8 +85,8 @@ async function processPush(body: any) {
   }
 
   const payload = JSON.stringify({
-    title: title || 'GigZone',
-    body: notifBody || '',
+    title: translated.title || 'GigZone',
+    body: translated.body || '',
     url,
     icon: actorAvatar || undefined,
   });
