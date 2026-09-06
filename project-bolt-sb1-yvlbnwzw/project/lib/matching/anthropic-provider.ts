@@ -21,6 +21,10 @@ function stripHtml(text: string): string {
   return text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
 }
 
+function stripJsonFences(text: string): string {
+  return text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
+}
+
 export class AnthropicMatchingProvider implements MatchingAIProvider {
   private client: Anthropic
 
@@ -64,7 +68,7 @@ Output this exact JSON structure:
     })
 
     const raw = response.content[0]?.type === 'text' ? response.content[0].text.trim() : '{}'
-    const parsed = JSON.parse(raw)
+    const parsed = JSON.parse(stripJsonFences(raw))
     const result = extractionSchema.parse(parsed)
 
     return {
@@ -107,7 +111,7 @@ Output JSON: {"ranked":[{"index":0,"rank":1,"reason":"..."},{"index":3,"rank":2,
     })
 
     const raw = response.content[0]?.type === 'text' ? response.content[0].text.trim() : '{"ranked":[]}'
-    const parsed = JSON.parse(raw)
+    const parsed = JSON.parse(stripJsonFences(raw))
     const { ranked } = rankingSchema.parse(parsed)
 
     return {
