@@ -3,66 +3,77 @@
 import { useState, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Brain, Loader2, RefreshCw, Star, MapPin, Lock, ExternalLink } from 'lucide-react';
+import { Brain, Loader2, RefreshCw, Star, MapPin, Lock, ExternalLink, ThumbsDown } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 
+const FREE_VISIBLE    = 2;
+const UNLOCK_COST     = 50;
+const REFRESH_COST    = 10;
+
 interface RankedProfile {
-  profile_id: string;
-  name: string | null;
-  city: string | null;
-  country: string | null;
+  profile_id:     string;
+  name:           string | null;
+  city:           string | null;
+  country:        string | null;
   average_rating: number | null;
-  review_count: number | null;
-  skills: Record<string, unknown> | null;
-  is_premium: boolean;
-  total_score: number;
-  rank: number;
-  reason: string;
+  review_count:   number | null;
+  skills:         Record<string, unknown> | null;
+  is_premium:     boolean;
+  total_score:    number;
+  rank:           number;
+  reason:         string;
 }
 
 interface MatchResult {
   ranked_profiles: RankedProfile[];
   candidate_count: number;
-  expires_at: string;
-  created_at?: string;
+  expires_at:      string;
+  created_at?:     string;
 }
 
 interface AiMatchModalProps {
-  open: boolean;
+  open:    boolean;
   onClose: () => void;
-  postId: string;
-  isPro: boolean;
+  postId:  string;
+  isPro:   boolean;
 }
 
 type State =
   | { kind: 'idle' }
   | { kind: 'loading' }
-  | { kind: 'success'; data: MatchResult; cached: boolean }
+  | { kind: 'success'; data: MatchResult; cached: boolean; isUnlocked: boolean }
   | { kind: 'rateLimit' }
   | { kind: 'error' };
 
-const FREE_VISIBLE = 2;
+type UnlockState = 'idle' | 'loading' | 'done' | 'noCredits' | 'error';
 
 function skillsPreview(skills: Record<string, unknown> | null): string {
   if (!skills) return '';
   const vals = Object.values(skills);
-  const labels = vals.filter((v) => typeof v === 'string' && v.length > 0).slice(0, 3) as string[];
+  const labels = vals.filter((v) => typeof v === 'string' && (v as string).length > 0).slice(0, 3) as string[];
   return labels.join(', ');
+}
+
+async function getSession() {
+  const { data: { session } } = await supabase.auth.getSession();
+  return session;
 }
 
 export function AiMatchModal({ open, onClose, postId, isPro }: AiMatchModalProps) {
   const { t } = useLanguage();
-  const [state, setState] = useState<State>({ kind: 'idle' });
+  const [state, setState]               = useState<State>({ kind: 'idle' });
+  const [unlockState, setUnlockState]   = useState<UnlockState>('idle');
+  const [feedbackSent, setFeedbackSent] = useState<Set<string>>(new Set());
 
   const run = useCallback(async (forceRefresh = false) => {
     setState({ kind: 'loading' });
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const session = await getSession();
       if (!session) { setState({ kind: 'error' }); return; }
 
       const res = await fetch('/api/ai-match', {
-        method: 'POST',
+        method:  'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
@@ -71,12 +82,21 @@ export function AiMatchModal({ open, onClose, postId, isPro }: AiMatchModalProps
       });
 
       if (res.status === 429) { setState({ kind: 'rateLimit' }); return; }
+      if (res.status === 402) {
+        // insufficient credits for refresh — treat as error with specific message
+        setState({ kind: 'error' }); return;
+      }
       if (!res.ok) { setState({ kind: 'error' }); return; }
 
       const json = await res.json();
       if (!json.ok) { setState({ kind: 'error' }); return; }
 
-      setState({ kind: 'success', data: json.data as MatchResult, cached: json.cached === true });
+      setState({
+        kind:       'success',
+        data:       json.data as MatchResult,
+        cached:     json.cached === true,
+        isUnlocked: json.is_unlocked === true,
+      });
     } catch {
       setState({ kind: 'error' });
     }
@@ -87,13 +107,71 @@ export function AiMatchModal({ open, onClose, postId, isPro }: AiMatchModalProps
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  const handleUnlock = useCallback(async () => {
+    setUnlockState('loading');
+    try {
+      const session = await getSession();
+      if (!session) { setUnlockState('error'); return; }
+
+      const res = await fetch('/api/ai-match/unlock', {
+        method:  'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ post_id: postId }),
+      });
+
+      if (res.status === 402) { setUnlockState('noCredits'); return; }
+      if (!res.ok) { setUnlockState('error'); return; }
+
+      setUnlockState('done');
+      // Refresh state to show isUnlocked: true
+      if (state.kind === 'success') {
+        setState({ ...state, isUnlocked: true });
+      }
+    } catch {
+      setUnlockState('error');
+    }
+  }, [postId, state]);
+
+  const handleFeedback = useCallback(async (candidateProfileId: string) => {
+    try {
+      const session = await getSession();
+      if (!session) return;
+
+      await fetch('/api/ai-match/feedback', {
+        method:  'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          post_id:              postId,
+          candidate_profile_id: candidateProfileId,
+          feedback:             'negative',
+        }),
+      });
+
+      setFeedbackSent((prev) => new Set(prev).add(candidateProfileId));
+    } catch {
+      // silent — feedback is best-effort
+    }
+  }, [postId]);
+
   const handleOpen = (isOpen: boolean) => {
     if (!isOpen) onClose();
   };
 
-  const profiles = state.kind === 'success' ? state.data.ranked_profiles : [];
-  const cached = state.kind === 'success' ? state.cached : false;
-  const cachedAt = state.kind === 'success' ? (state.data.created_at ?? state.data.expires_at) : null;
+  const profiles    = state.kind === 'success' ? state.data.ranked_profiles : [];
+  const cached      = state.kind === 'success' ? state.cached : false;
+  const isUnlocked  = state.kind === 'success' ? state.isUnlocked : false;
+  const cachedAt    = state.kind === 'success' ? (state.data.created_at ?? state.data.expires_at) : null;
+  const canSeeAll   = isPro || isUnlocked || unlockState === 'done';
+
+  const refreshLabel = isPro
+    ? t('aiMatch.refreshCostFree')
+    : t('aiMatch.refreshCost').replace('{n}', String(REFRESH_COST));
 
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
@@ -145,14 +223,16 @@ export function AiMatchModal({ open, onClose, postId, isPro }: AiMatchModalProps
 
           {/* Candidate cards */}
           {state.kind === 'success' && profiles.length > 0 && profiles.map((p, idx) => {
-            const isLocked = !isPro && idx >= FREE_VISIBLE;
-            const preview = skillsPreview(p.skills);
+            const isLocked = !canSeeAll && idx >= FREE_VISIBLE;
+            const preview  = skillsPreview(p.skills);
+            const didDislike = feedbackSent.has(p.profile_id);
 
             return (
               <div
                 key={p.profile_id}
                 className={`relative rounded-xl border border-border bg-card transition-all ${isLocked ? 'overflow-hidden' : ''}`}
               >
+                {/* Locked overlay — with unlock + PRO options */}
                 {isLocked && (
                   <div className="absolute inset-0 z-10 backdrop-blur-sm bg-background/60 flex flex-col items-center justify-center gap-2 rounded-xl px-4">
                     <Lock className="h-5 w-5 text-orange-500" />
@@ -160,10 +240,25 @@ export function AiMatchModal({ open, onClose, postId, isPro }: AiMatchModalProps
                     <p className="text-[11px] text-muted-foreground text-center leading-snug max-w-[220px]">
                       {t('aiMatch.modal.proDesc')}
                     </p>
+
+                    {/* Unlock for credits button (only shown once, on first blurred card) */}
+                    {idx === FREE_VISIBLE && (
+                      <button
+                        onClick={handleUnlock}
+                        disabled={unlockState === 'loading'}
+                        className="mt-1 rounded-lg border border-orange-400 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 text-xs font-semibold px-4 py-1.5 transition-all disabled:opacity-60 flex items-center gap-1.5"
+                      >
+                        {unlockState === 'loading' && <Loader2 className="h-3 w-3 animate-spin" />}
+                        {unlockState === 'noCredits'
+                          ? t('aiMatch.unlock.noCredits')
+                          : t('aiMatch.unlock.button').replace('{n}', String(UNLOCK_COST))}
+                      </button>
+                    )}
+
                     <Link
                       href="/pro"
                       onClick={onClose}
-                      className="mt-1 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-semibold px-4 py-1.5 transition-all"
+                      className="rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-semibold px-4 py-1.5 transition-all"
                     >
                       {t('aiMatch.modal.upgradeBtn')}
                     </Link>
@@ -223,7 +318,22 @@ export function AiMatchModal({ open, onClose, postId, isPro }: AiMatchModalProps
                     </div>
                   </div>
 
-                  <div className="mt-2.5 flex justify-end">
+                  <div className="mt-2.5 flex items-center justify-between">
+                    {/* Thumbs down feedback */}
+                    <button
+                      onClick={() => handleFeedback(p.profile_id)}
+                      disabled={didDislike}
+                      title={t('aiMatch.feedback.dislike')}
+                      className={`flex items-center gap-1 text-[11px] transition-colors ${
+                        didDislike
+                          ? 'text-orange-400 cursor-default'
+                          : 'text-muted-foreground hover:text-orange-500'
+                      }`}
+                    >
+                      <ThumbsDown className="h-3 w-3" />
+                      {didDislike && <span>{t('aiMatch.feedback.sent')}</span>}
+                    </button>
+
                     <Link
                       href={`/profile/${p.profile_id}`}
                       target="_blank"
@@ -254,7 +364,7 @@ export function AiMatchModal({ open, onClose, postId, isPro }: AiMatchModalProps
               className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               <RefreshCw className="h-3 w-3" />
-              {t('aiMatch.modal.refresh')}
+              {refreshLabel}
             </button>
           </div>
         )}

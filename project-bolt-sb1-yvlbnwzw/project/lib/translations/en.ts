@@ -1736,4 +1736,29 @@ export default {
   'aiMatch.modal.rateLimit': 'Daily limit reached. Come back tomorrow.',
   'aiMatch.modal.runsLeft': '{n} searches left',
   'aiMatch.modal.anonymousUser': 'GigZone User',
+
+  // Faza 3 — Unlock
+  'aiMatch.unlock.button': 'Unlock ({n} credits)',
+  'aiMatch.unlock.loading': 'Unlocking...',
+  'aiMatch.unlock.done': 'Unlocked',
+  'aiMatch.unlock.noCredits': 'Not enough credits. Buy credits or upgrade to PRO.',
+  'aiMatch.unlock.alreadyUnlocked': 'Already unlocked',
+
+  // Faza 3 — Refresh cost
+  'aiMatch.refreshCost': 'Refresh ({n} credits)',
+  'aiMatch.refreshCostFree': 'Refresh',
+
+  // Faza 3 — Feedback
+  'aiMatch.feedback.dislike': 'Not a match',
+  'aiMatch.feedback.sent': 'Thanks for your feedback',
+
+  // Faza 3 — Boost
+  'aiMatch.boost.title': 'AI Boost',
+  'aiMatch.boost.desc': 'Your profile appears higher in matching results when employers search for candidates.',
+  'aiMatch.boost.buy': 'Activate Boost ({n} credits / 7 days)',
+  'aiMatch.boost.active': 'Boost active until {date}',
+  'aiMatch.boost.expired': 'Boost expired',
+  'aiMatch.boost.buying': 'Activating...',
+  'aiMatch.boost.alreadyActive': 'Boost is already active',
+  'aiMatch.boost.noCredits': 'Not enough credits for Boost.',
 } as const;

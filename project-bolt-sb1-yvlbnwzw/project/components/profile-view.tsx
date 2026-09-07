@@ -79,6 +79,10 @@ const AiMatchModal = dynamic(
   () => import('@/components/ai-match-modal').then(m => ({ default: m.AiMatchModal })),
   { ssr: false }
 );
+const AiBoostButton = dynamic(
+  () => import('@/components/ai-boost-button').then(m => ({ default: m.AiBoostButton })),
+  { ssr: false }
+);
 const SupportModal = dynamic(
   () => import('@/components/support-modal').then(m => ({ default: m.SupportModal })),
   { ssr: false }
@@ -1433,14 +1437,17 @@ export function ProfileView({
                 ))}
               </div>
               {isOwnProfile && (
-                <Button
-                  onClick={() => setAdTypePickerOpen(true)}
-                  className="gap-1.5 bg-orange-600 hover:bg-orange-700 rounded-xl h-8"
-                  size="sm"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  {t('profile.createListing')}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <AiBoostButton />
+                  <Button
+                    onClick={() => setAdTypePickerOpen(true)}
+                    className="gap-1.5 bg-orange-600 hover:bg-orange-700 rounded-xl h-8"
+                    size="sm"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    {t('profile.createListing')}
+                  </Button>
+                </div>
               )}
             </div>
 

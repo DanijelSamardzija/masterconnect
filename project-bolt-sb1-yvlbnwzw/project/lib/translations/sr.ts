@@ -1736,4 +1736,29 @@ export default {
   'aiMatch.modal.rateLimit': 'Dostignuta dnevna granica. Vrati se sutra.',
   'aiMatch.modal.runsLeft': 'Ostalo pretraga: {n}',
   'aiMatch.modal.anonymousUser': 'GigZone korisnik',
+
+  // Faza 3 — Unlock (reveal bluriranih kandidata za kredite)
+  'aiMatch.unlock.button': 'Otključaj ({n} kredita)',
+  'aiMatch.unlock.loading': 'Otključavam...',
+  'aiMatch.unlock.done': 'Otključano',
+  'aiMatch.unlock.noCredits': 'Nedovoljno kredita. Kupi kredite ili nadogradi na PRO.',
+  'aiMatch.unlock.alreadyUnlocked': 'Već otključano',
+
+  // Faza 3 — Refresh cost za non-PRO
+  'aiMatch.refreshCost': 'Osvježi ({n} kredita)',
+  'aiMatch.refreshCostFree': 'Osvježi',
+
+  // Faza 3 — Thumbs down feedback
+  'aiMatch.feedback.dislike': 'Nije prikladan',
+  'aiMatch.feedback.sent': 'Hvala na povratnoj informaciji',
+
+  // Faza 3 — Boost (za profesionalce)
+  'aiMatch.boost.title': 'AI Boost',
+  'aiMatch.boost.desc': 'Tvoj profil se pojavljuje više u matching rezultatima kada poslodavci traže kandidate.',
+  'aiMatch.boost.buy': 'Aktiviraj Boost ({n} kredita / 7 dana)',
+  'aiMatch.boost.active': 'Boost aktivan do {date}',
+  'aiMatch.boost.expired': 'Boost je istekao',
+  'aiMatch.boost.buying': 'Aktiviram...',
+  'aiMatch.boost.alreadyActive': 'Boost je već aktivan',
+  'aiMatch.boost.noCredits': 'Nedovoljno kredita za Boost.',
 } as const;

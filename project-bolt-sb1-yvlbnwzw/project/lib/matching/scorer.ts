@@ -4,8 +4,8 @@ export interface ScoredCandidate extends CandidateProfile {
   total_score: number
 }
 
-// MAX_SCORE = 40+20+10+10+15+10+8+5 = 118
-export const MAX_SCORE = 118
+// MAX_SCORE = 40+20+10+10+15+10+8+5+15(boost) = 133
+export const MAX_SCORE = 133
 
 export function scoreCandidates(
   candidates: CandidateProfile[],
@@ -27,7 +27,8 @@ function computeScore(profile: CandidateProfile, extraction: ExtractionResult): 
     qualityScore(profile) +
     activityScore(profile) +
     behaviorScore(profile) +
-    premiumBoost(profile)
+    premiumBoost(profile) +
+    boostScore(profile)
   )
 }
 
@@ -94,6 +95,10 @@ function behaviorScore(profile: CandidateProfile): number {
 
 function premiumBoost(profile: CandidateProfile): number {
   return profile.is_premium ? 5 : 0
+}
+
+function boostScore(profile: CandidateProfile): number {
+  return Math.min(15, profile.boost_score ?? 0)
 }
 
 export function normalizedScore(total: number): number {

@@ -61,7 +61,20 @@ export async function runMatchingPipeline(
 
   if (dbError) throw new Error(`DB pre-filter failed: ${dbError.message}`)
 
-  const candidates = (rawCandidates as CandidateProfile[]) ?? []
+  // ── Fetch active boosts to include in scoring (Faza 3) ───────────────────
+  const { data: activeBoosts } = await supabase
+    .from('matchmaking_boosts')
+    .select('profile_id, boost_score')
+    .gt('valid_until', new Date().toISOString())
+
+  const boostMap = new Map<string, number>(
+    (activeBoosts ?? []).map((b) => [b.profile_id as string, b.boost_score as number]),
+  )
+
+  const candidates: CandidateProfile[] = ((rawCandidates as CandidateProfile[]) ?? []).map((c) => ({
+    ...c,
+    boost_score: boostMap.get(c.id) ?? 0,
+  }))
 
   if (candidates.length === 0) {
     return {

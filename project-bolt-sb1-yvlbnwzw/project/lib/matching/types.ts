@@ -45,6 +45,7 @@ export interface CandidateProfile {
   portfolio_count:    number | null
   pre_score:          number           // from RPC pre-filter
   total_score?:       number           // added by scorer
+  boost_score?:       number           // from matchmaking_boosts if active (Faza 3)
 }
 
 export interface CandidateSummary {

@@ -25,6 +25,7 @@ import { SupportTab } from './tabs/SupportTab';
 import { AnnouncementsTab } from './tabs/AnnouncementsTab';
 import { CreditsTab } from './tabs/CreditsTab';
 import { AnalyticsTab } from './tabs/AnalyticsTab';
+import { AiMatchTab } from './tabs/AiMatchTab';
 import { SendNotifModal } from './SendNotifModal';
 
 export function AdminContent() {
@@ -35,7 +36,7 @@ export function AdminContent() {
     if (typeof window === 'undefined') return 'reports';
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab') as ActiveTab | null;
-    const valid: ActiveTab[] = ['reports', 'users', 'posts', 'announcements', 'support', 'analytics', 'credits'];
+    const valid: ActiveTab[] = ['reports', 'users', 'posts', 'announcements', 'support', 'analytics', 'credits', 'ai-match'];
     return (tab && valid.includes(tab)) ? tab : 'reports';
   });
   const [stats, setStats] = useState<Stats | null>(null);
@@ -1145,6 +1146,7 @@ export function AdminContent() {
                 { key: 'support', label: `Support (${tickets.filter(t => t.status === 'open').length})` },
                 { key: 'analytics', label: 'Analitika' },
                 { key: 'credits', label: 'Krediti' },
+                { key: 'ai-match', label: 'AI Match' },
               ] as const).map(({ key, label }) => (
                 <button
                   key={key}
@@ -1286,6 +1288,8 @@ export function AdminContent() {
               onFetchStats={fetchCreditsStats}
             />
           )}
+
+          {activeTab === 'ai-match' && <AiMatchTab />}
 
           {activeTab === 'analytics' && (
             <AnalyticsTab

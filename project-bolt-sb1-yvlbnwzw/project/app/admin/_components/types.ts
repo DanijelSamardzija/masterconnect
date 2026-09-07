@@ -73,7 +73,7 @@ export type Announcement = {
   created_at: string;
 };
 
-export type ActiveTab = 'reports' | 'users' | 'posts' | 'announcements' | 'support' | 'analytics' | 'credits';
+export type ActiveTab = 'reports' | 'users' | 'posts' | 'announcements' | 'support' | 'analytics' | 'credits' | 'ai-match';
 
 export type PageViewStat = {
   page: string;

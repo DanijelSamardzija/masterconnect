@@ -1665,4 +1665,23 @@ export default {
   'aiMatch.modal.rateLimit': 'Límite diario alcanzado. Vuelve mañana.',
   'aiMatch.modal.runsLeft': '{n} búsquedas restantes',
   'aiMatch.modal.anonymousUser': 'Usuario GigZone',
+
+  // Faza 3
+  'aiMatch.unlock.button': 'Desbloquear ({n} créditos)',
+  'aiMatch.unlock.loading': 'Desbloqueando...',
+  'aiMatch.unlock.done': 'Desbloqueado',
+  'aiMatch.unlock.noCredits': 'Créditos insuficientes. Compra créditos o actualiza a PRO.',
+  'aiMatch.unlock.alreadyUnlocked': 'Ya desbloqueado',
+  'aiMatch.refreshCost': 'Actualizar ({n} créditos)',
+  'aiMatch.refreshCostFree': 'Actualizar',
+  'aiMatch.feedback.dislike': 'No es compatible',
+  'aiMatch.feedback.sent': 'Gracias por tu opinión',
+  'aiMatch.boost.title': 'AI Boost',
+  'aiMatch.boost.desc': 'Tu perfil aparece más arriba en los resultados cuando los empleadores buscan candidatos.',
+  'aiMatch.boost.buy': 'Activar Boost ({n} créditos / 7 días)',
+  'aiMatch.boost.active': 'Boost activo hasta {date}',
+  'aiMatch.boost.expired': 'Boost expirado',
+  'aiMatch.boost.buying': 'Activando...',
+  'aiMatch.boost.alreadyActive': 'El Boost ya está activo',
+  'aiMatch.boost.noCredits': 'Créditos insuficientes para el Boost.',
 } as const;

@@ -8,6 +8,7 @@ export const runtime = 'nodejs'
 const CACHE_TTL_HOURS        = 24
 const MAX_RUNS_PER_USER_DAY  = 20
 const MAX_RUNS_PER_POST_DAY  = 5
+const REFRESH_COST_NON_PRO   = 10  // credits deducted for non-PRO force refresh
 
 const ELIGIBLE_POST_TYPES = ['hiring_post', 'service_request']
 
@@ -70,6 +71,26 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'post_type_not_eligible' }, { status: 400 })
   }
 
+  // ── PRO check (needed for refresh credit cost) ────────────────────────────
+  const { data: requesterProfile } = await supabase
+    .from('profiles')
+    .select('preferred_language, is_premium')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  const isPro = (requesterProfile as any)?.is_premium === true
+  const requesterLang = (requesterProfile?.preferred_language as string | null) ?? 'sr'
+
+  // ── Check unlock status ───────────────────────────────────────────────────
+  const { data: unlockRow } = await supabase
+    .from('matchmaking_unlock_log')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('post_id', post_id)
+    .maybeSingle()
+
+  const isUnlocked = !!unlockRow
+
   // ── Cache check ───────────────────────────────────────────────────────────
   if (!force_refresh) {
     const { data: cached } = await supabase
@@ -87,7 +108,7 @@ export async function POST(request: NextRequest) {
         post_type: post.post_type,
         category:  post.category,
       })
-      return NextResponse.json({ ok: true, cached: true, data: cached })
+      return NextResponse.json({ ok: true, cached: true, is_unlocked: isUnlocked, data: cached })
     }
   }
 
@@ -116,6 +137,33 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'rate_limit_post', retry_after: '24h' }, { status: 429 })
   }
 
+  // ── Non-PRO force refresh: deduct 10 credits ──────────────────────────────
+  if (force_refresh && !isPro) {
+    const { data: balance } = await supabase
+      .from('credits_balance')
+      .select('balance')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (!balance || balance.balance < REFRESH_COST_NON_PRO) {
+      return NextResponse.json({ error: 'insufficient_credits', required: REFRESH_COST_NON_PRO }, { status: 402 })
+    }
+
+    const newBalance = balance.balance - REFRESH_COST_NON_PRO
+    await supabase
+      .from('credits_balance')
+      .update({ balance: newBalance, updated_at: new Date().toISOString() })
+      .eq('user_id', user.id)
+
+    await supabase.from('credit_transactions').insert({
+      user_id:     user.id,
+      amount:      -REFRESH_COST_NON_PRO,
+      type:        'spend',
+      description: 'ai_match_refresh',
+      reference_id: post_id,
+    })
+  }
+
   // ── Exclude blocked users ─────────────────────────────────────────────────
   const { data: blocks } = await supabase
     .from('blocks')
@@ -125,14 +173,6 @@ export async function POST(request: NextRequest) {
   const excludeIds: string[] = (blocks ?? []).flatMap((b) =>
     b.blocker_user_id === user.id ? [b.blocked_user_id] : [b.blocker_user_id],
   )
-
-  // ── Requester preferred language ──────────────────────────────────────────
-  const { data: requesterProfile } = await supabase
-    .from('profiles')
-    .select('preferred_language')
-    .eq('id', user.id)
-    .maybeSingle()
-  const requesterLang = (requesterProfile?.preferred_language as string | null) ?? 'sr'
 
   // ── Run matching pipeline ─────────────────────────────────────────────────
   let result
@@ -184,8 +224,9 @@ export async function POST(request: NextRequest) {
   })
 
   return NextResponse.json({
-    ok:     true,
-    cached: false,
+    ok:          true,
+    cached:      false,
+    is_unlocked: isUnlocked,
     data: {
       extraction:      result.extraction,
       ranked_profiles: result.ranked_profiles,
