@@ -1753,4 +1753,22 @@ export default {
   'aiMatch.boost.buying': 'Wird aktiviert...',
   'aiMatch.boost.alreadyActive': 'Boost ist bereits aktiv',
   'aiMatch.boost.noCredits': 'Nicht genug Credits für Boost.',
+
+  // Reverse matching (F5)
+  'aiMatch.reverse.button': 'Jobs für mich finden',
+  'aiMatch.reverse.title': 'AI Match für dich',
+  'aiMatch.reverse.subtitle': 'Anzeigen, die zu deinem Profil passen',
+  'aiMatch.reverse.find': 'Anzeigen finden',
+  'aiMatch.reverse.finding': 'Profil wird analysiert...',
+  'aiMatch.reverse.noResults': 'Keine passenden Anzeigen für dein Profil gerade',
+  'aiMatch.reverse.score': '{score}% Übereinstimmung',
+  'aiMatch.reverse.seePost': 'Anzeige ansehen',
+  'aiMatch.reverse.candidateCount': '{count} Anzeigen analysiert',
+  'aiMatch.reverse.refresh': 'Aktualisieren',
+  'aiMatch.reverse.error': 'Suche fehlgeschlagen. Bitte erneut versuchen.',
+  'aiMatch.reverse.cachedResult': 'Gespeicherte Ergebnisse',
+  'aiMatch.reverse.hiring': 'Sucht Mitarbeiter',
+  'aiMatch.reverse.serviceRequest': 'Sucht Dienstleistung',
+  'aiMatch.reverse.budget': 'Budget: {price}',
+  'aiMatch.reverse.experience': 'Level: {level}',
 } as const;

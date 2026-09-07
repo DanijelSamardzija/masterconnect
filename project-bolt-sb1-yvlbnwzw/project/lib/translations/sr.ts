@@ -1763,4 +1763,22 @@ export default {
   'aiMatch.boost.buying': 'Aktiviram...',
   'aiMatch.boost.alreadyActive': 'Boost je već aktivan',
   'aiMatch.boost.noCredits': 'Nedovoljno kredita za Boost.',
+
+  // Reverse matching (F5)
+  'aiMatch.reverse.button': 'Pronađi poslove za mene',
+  'aiMatch.reverse.title': 'AI Match za tebe',
+  'aiMatch.reverse.subtitle': 'Oglasi koji odgovaraju tvom profilu',
+  'aiMatch.reverse.find': 'Pronađi oglase',
+  'aiMatch.reverse.finding': 'Analiziram profil...',
+  'aiMatch.reverse.noResults': 'Nema oglasa koji odgovaraju tvom profilu trenutno',
+  'aiMatch.reverse.score': '{score}% podudaranje',
+  'aiMatch.reverse.seePost': 'Pogledaj oglas',
+  'aiMatch.reverse.candidateCount': '{count} oglasa analizirano',
+  'aiMatch.reverse.refresh': 'Osvježi',
+  'aiMatch.reverse.error': 'Greška pri traženju. Pokušaj ponovo.',
+  'aiMatch.reverse.cachedResult': 'Sačuvani rezultati',
+  'aiMatch.reverse.hiring': 'Traže radnika',
+  'aiMatch.reverse.serviceRequest': 'Traže uslugu',
+  'aiMatch.reverse.budget': 'Budžet: {price}',
+  'aiMatch.reverse.experience': 'Nivo: {level}',
 } as const;

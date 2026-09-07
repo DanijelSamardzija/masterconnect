@@ -1693,4 +1693,22 @@ export default {
   'aiMatch.boost.buying': 'Activation...',
   'aiMatch.boost.alreadyActive': 'Le Boost est déjà actif',
   'aiMatch.boost.noCredits': 'Crédits insuffisants pour le Boost.',
+
+  // Reverse matching (F5)
+  'aiMatch.reverse.button': 'Trouver des offres pour moi',
+  'aiMatch.reverse.title': 'AI Match pour vous',
+  'aiMatch.reverse.subtitle': 'Annonces correspondant à votre profil',
+  'aiMatch.reverse.find': 'Trouver des annonces',
+  'aiMatch.reverse.finding': 'Analyse du profil en cours...',
+  'aiMatch.reverse.noResults': 'Aucune annonce correspondant à votre profil pour l\'instant',
+  'aiMatch.reverse.score': '{score}% de correspondance',
+  'aiMatch.reverse.seePost': 'Voir l\'annonce',
+  'aiMatch.reverse.candidateCount': '{count} annonces analysées',
+  'aiMatch.reverse.refresh': 'Actualiser',
+  'aiMatch.reverse.error': 'Erreur de recherche. Veuillez réessayer.',
+  'aiMatch.reverse.cachedResult': 'Résultats sauvegardés',
+  'aiMatch.reverse.hiring': 'Cherche à recruter',
+  'aiMatch.reverse.serviceRequest': 'Cherche un prestataire',
+  'aiMatch.reverse.budget': 'Budget: {price}',
+  'aiMatch.reverse.experience': 'Niveau: {level}',
 } as const;

@@ -111,4 +111,82 @@ export interface MatchingAIProvider {
     candidates: CandidateSummary[],
     outputLang: string
   ): Promise<{ ranked: RankedResult[]; inputTokens: number; outputTokens: number }>
+
+  analyzeProfile(
+    profileText: string,
+    profileMeta: { category?: string | null; city?: string | null; country?: string | null }
+  ): Promise<{ result: ExtractionResult; inputTokens: number; outputTokens: number }>
+
+  rankPostsForProfile(
+    profileSummary: ExtractionResult,
+    posts: PostSummary[],
+    outputLang: string
+  ): Promise<{ ranked: RankedResult[]; inputTokens: number; outputTokens: number }>
+}
+
+// ── Reverse Matching types (F5) ────────────────────────────────────────────
+
+export interface PostCandidate {
+  id:               string
+  job_title:        string | null
+  profession:       string | null
+  text_snippet:     string | null
+  post_type:        string
+  category:         string | null
+  city:             string | null
+  country:          string | null
+  min_price:        number | null
+  max_price:        number | null
+  price_type:       string | null
+  currency:         string | null
+  experience_level: string | null
+  created_at:       string | null
+  owner_id:         string
+  owner_name:       string | null
+  pre_score:        number
+  total_score?:     number
+}
+
+export interface PostSummary {
+  index:        number
+  title:        string
+  snippet:      string
+  category:     string | null
+  city:         string | null
+  experience:   string | null
+  price_hint:   string | null
+}
+
+export interface RankedPost {
+  post_id:          string
+  job_title:        string | null
+  profession:       string | null
+  text_snippet:     string | null
+  post_type:        string
+  category:         string | null
+  city:             string | null
+  country:          string | null
+  min_price:        number | null
+  max_price:        number | null
+  currency:         string | null
+  experience_level: string | null
+  created_at:       string | null
+  owner_name:       string | null
+  total_score:      number
+  rank:             number
+  reason:           string
+}
+
+export interface ReversePipelineInput {
+  profile_id:     string
+  requester_lang: string
+}
+
+export interface ReversePipelineResult {
+  ranked_posts:      RankedPost[]
+  candidate_count:   number
+  totalInputTokens:  number
+  totalOutputTokens: number
+  costUsd:           number
+  durationMs:        number
 }

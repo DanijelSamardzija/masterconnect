@@ -44,6 +44,7 @@ import { CreateMarketplacePostModal } from '@/components/create-marketplace-post
 import { SharePostModal } from '@/components/share-post-modal';
 import { BoostModal } from '@/components/boost-modal';
 import { AiMatchModal } from '@/components/ai-match-modal';
+import { AiReverseMatchPanel } from '@/components/ai-reverse-match-panel';
 import { CityAutocomplete } from '@/components/city-autocomplete';
 import { locationScore } from '@/lib/location-sort';
 import { CategoryCombobox } from '@/components/category-combobox';
@@ -972,6 +973,7 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
   const [boostTarget, setBoostTarget] = useState<{ postId: string; promotedUntil: string | null } | null>(null);
   const [boostBalance, setBoostBalance] = useState(0);
   const [aiMatchPostId, setAiMatchPostId] = useState<string | null>(null);
+  const [reverseMatchOpen, setReverseMatchOpen] = useState(false);
   const [cityFilter, setCityFilter] = useState('');
   const [countryFilter, setCountryFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
@@ -1395,15 +1397,27 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
             <p className="text-sm text-slate-500 dark:text-gray-500 mt-1 max-w-xl">{t('jobs.seoIntro')}</p>
           </div>
 
-          {profile && (
-            <Button
-              className="bg-orange-600 hover:bg-orange-500 dark:bg-orange-600 dark:hover:bg-orange-500 text-white shadow-lg transition-colors rounded-xl"
-              onClick={() => setShowTypePicker(true)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              {t('jobs.createPost')}
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {profile && (
+              <Button
+                variant="outline"
+                className="rounded-xl gap-2 border-primary/30 text-primary hover:bg-primary/10"
+                onClick={() => setReverseMatchOpen(true)}
+              >
+                <Brain className="h-4 w-4" />
+                <span className="hidden sm:inline">{t('aiMatch.reverse.button')}</span>
+              </Button>
+            )}
+            {profile && (
+              <Button
+                className="bg-orange-600 hover:bg-orange-500 dark:bg-orange-600 dark:hover:bg-orange-500 text-white shadow-lg transition-colors rounded-xl"
+                onClick={() => setShowTypePicker(true)}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                {t('jobs.createPost')}
+              </Button>
+            )}
+          </div>
         </div>
 
         <Dialog open={showTypePicker} onOpenChange={setShowTypePicker}>
@@ -2169,6 +2183,13 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
           onClose={() => setAiMatchPostId(null)}
           postId={aiMatchPostId}
           isPro={(profile as any)?.is_premium === true}
+        />
+      )}
+
+      {user && (
+        <AiReverseMatchPanel
+          open={reverseMatchOpen}
+          onClose={() => setReverseMatchOpen(false)}
         />
       )}
 
