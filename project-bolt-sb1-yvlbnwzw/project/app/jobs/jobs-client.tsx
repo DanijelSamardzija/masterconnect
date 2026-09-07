@@ -1671,7 +1671,7 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-1.5 flex-wrap">
                                     <button
-                                      className="text-sm font-semibold text-slate-900 dark:text-white hover:text-orange-600 dark:hover:text-orange-400 transition-colors truncate"
+                                      className="text-sm font-semibold text-slate-900 dark:text-white hover:text-orange-600 dark:hover:text-orange-400 transition-colors truncate min-w-0"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         router.push(`/profile/${post.user_id}`);
@@ -1768,7 +1768,7 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
                                     title={title}
                                   >
                                     {boostingJobId === post.id ? <Loader className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
-                                    {boostActive ? t('credits.boost.extend') : t('credits.boost.button')}
+                                    <span className="hidden md:inline">{boostActive ? t('credits.boost.extend') : t('credits.boost.button')}</span>
                                   </button>
                                 );
                               })()}
@@ -1780,7 +1780,7 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
                                   title={t('aiMatch.button')}
                                 >
                                   <Brain className="h-3.5 w-3.5" />
-                                  {t('aiMatch.button')}
+                                  <span className="hidden md:inline">{t('aiMatch.button')}</span>
                                 </button>
                               )}
 
