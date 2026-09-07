@@ -142,6 +142,8 @@ export default {
   'settings.notificationSoundDesc': 'Reproducir sonido cuando lleguen nuevas notificaciones',
   'settings.messageSound': 'Sonido de mensaje',
   'settings.messageSoundDesc': 'Reproducir sonido cuando lleguen nuevos mensajes',
+  'settings.aiMatchNotifications': 'Notificaciones de AI Match',
+  'settings.aiMatchNotificationsDesc': 'Recibe notificaciones cuando tu perfil coincida con un nuevo anuncio (3 gratis/mes, luego 5 créditos)',
   'settings.support': 'Contactar soporte',
   'settings.supportDesc': '¿Tienes una pregunta o problema? Contacta con nuestro soporte.',
   'settings.contactSupport': 'Contactar soporte',

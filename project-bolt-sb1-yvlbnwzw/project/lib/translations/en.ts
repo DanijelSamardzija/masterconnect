@@ -152,6 +152,8 @@ export default {
   'settings.notificationSoundDesc': 'Play sound when new notifications arrive',
   'settings.messageSound': 'Message Sound',
   'settings.messageSoundDesc': 'Play sound when new messages arrive',
+  'settings.aiMatchNotifications': 'AI Match Notifications',
+  'settings.aiMatchNotificationsDesc': 'Get notified when your profile matches a new listing (3 free/month, then 5 credits each)',
   'settings.support': 'Contact Support',
   'settings.supportDesc': 'Have a question or problem? Contact our support.',
   'settings.contactSupport': 'Contact Support',

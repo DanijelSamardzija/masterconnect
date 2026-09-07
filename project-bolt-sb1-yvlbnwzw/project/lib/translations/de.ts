@@ -152,6 +152,8 @@ export default {
   'settings.notificationSoundDesc': 'Ton abspielen, wenn neue Benachrichtigungen eintreffen',
   'settings.messageSound': 'Nachrichtenton',
   'settings.messageSoundDesc': 'Ton abspielen, wenn neue Nachrichten eintreffen',
+  'settings.aiMatchNotifications': 'AI-Match-Benachrichtigungen',
+  'settings.aiMatchNotificationsDesc': 'Benachrichtigung erhalten, wenn dein Profil zu einem neuen Inserat passt (3 kostenlos/Monat, dann je 5 Credits)',
   'settings.support': 'Support kontaktieren',
   'settings.supportDesc': 'Hast du eine Frage oder ein Problem? Kontaktiere unseren Support.',
   'settings.contactSupport': 'Support kontaktieren',

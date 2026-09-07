@@ -53,6 +53,34 @@ function SettingsContent() {
   const { theme, toggleTheme, mounted } = useTheme();
   const { isSupported: pushSupported, permission: pushPermission, isSubscribed: pushSubscribed, isLoading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
 
+  // AI Match notification opt-out
+  const [matchNotifEnabled, setMatchNotifEnabled] = useState(true);
+  const [matchNotifSaving, setMatchNotifSaving] = useState(false);
+
+  useEffect(() => {
+    if (profile) {
+      setMatchNotifEnabled((profile as any).match_notifications_enabled ?? true);
+    }
+  }, [profile]);
+
+  const toggleMatchNotifications = async () => {
+    const next = !matchNotifEnabled;
+    setMatchNotifEnabled(next);
+    setMatchNotifSaving(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ match_notifications_enabled: next })
+        .eq('id', profile!.id);
+      if (error) throw error;
+    } catch {
+      setMatchNotifEnabled(!next);
+      toast.error(t('settings.saveError'));
+    } finally {
+      setMatchNotifSaving(false);
+    }
+  };
+
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isAppInstalled, setIsAppInstalled] = useState(false);
 
@@ -433,6 +461,17 @@ function SettingsContent() {
                       <p className="text-xs text-muted-foreground">{t('settings.messageSoundDesc')}</p>
                     </div>
                     <Switch checked={messagesSoundEnabled} onCheckedChange={toggleMessagesSound} />
+                  </div>
+                  <div className={rowClass}>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{t('settings.aiMatchNotifications')}</p>
+                      <p className="text-xs text-muted-foreground">{t('settings.aiMatchNotificationsDesc')}</p>
+                    </div>
+                    <Switch
+                      checked={matchNotifEnabled}
+                      onCheckedChange={toggleMatchNotifications}
+                      disabled={matchNotifSaving}
+                    />
                   </div>
                 </AccordionContent>
               </AccordionItem>

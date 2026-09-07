@@ -401,6 +401,15 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
         devLog('🔍 ANTI-SPAM DEBUG:', result.antiSpamDebug);
       }
 
+      // F4: trigger AI match notifications for hiring/service posts (fire-and-forget, no await)
+      if (postResult?.id && (postType === 'hiring_post' || postType === 'service_request')) {
+        fetch('/api/ai-match/notify', {
+          method:  'POST',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ post_id: postResult.id }),
+        }).catch(() => {})
+      }
+
       if (selectedFiles.length > 0 && postResult) {
         const mediaItems = [];
 

@@ -152,6 +152,8 @@ export default {
   'settings.notificationSoundDesc': 'Pusti zvuk kada stignu nove notifikacije',
   'settings.messageSound': 'Zvuk za poruke',
   'settings.messageSoundDesc': 'Pusti zvuk kada stignu nove poruke',
+  'settings.aiMatchNotifications': 'AI Match obavijesti',
+  'settings.aiMatchNotificationsDesc': 'Primi obavijest kada tvoj profil odgovara novom oglasu (3 besplatno/mjes, zatim 5 kredita)',
   'settings.support': 'Kontakt podrška',
   'settings.supportDesc': 'Imate pitanje ili problem? Kontaktirajte našu podršku.',
   'settings.contactSupport': 'Kontaktiraj podršku',

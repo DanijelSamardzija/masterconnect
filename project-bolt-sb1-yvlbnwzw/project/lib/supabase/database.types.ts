@@ -1610,6 +1610,12 @@ export type Database = {
           utm_medium: string | null
           utm_source: string | null
           website_url: string | null
+          experience_level: string | null
+          availability: string | null
+          match_notifications_enabled: boolean
+          hourly_rate_min: number | null
+          hourly_rate_max: number | null
+          work_categories: string[] | null
         }
         Insert: {
           account_type?: string
@@ -1647,6 +1653,12 @@ export type Database = {
           utm_medium?: string | null
           utm_source?: string | null
           website_url?: string | null
+          experience_level?: string | null
+          availability?: string | null
+          match_notifications_enabled?: boolean
+          hourly_rate_min?: number | null
+          hourly_rate_max?: number | null
+          work_categories?: string[] | null
         }
         Update: {
           account_type?: string
@@ -1684,6 +1696,12 @@ export type Database = {
           utm_medium?: string | null
           utm_source?: string | null
           website_url?: string | null
+          experience_level?: string | null
+          availability?: string | null
+          match_notifications_enabled?: boolean
+          hourly_rate_min?: number | null
+          hourly_rate_max?: number | null
+          work_categories?: string[] | null
         }
         Relationships: [
           {
