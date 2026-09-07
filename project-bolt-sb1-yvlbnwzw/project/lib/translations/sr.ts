@@ -1764,6 +1764,13 @@ export default {
   'aiMatch.boost.alreadyActive': 'Boost je već aktivan',
   'aiMatch.boost.noCredits': 'Nedovoljno kredita za Boost.',
 
+  // Chat Translation (F6)
+  'messages.translate': 'Prevedi',
+  'messages.translated': 'Prevedeno',
+  'messages.translating': 'Prevođenje...',
+  'messages.translateError': 'Greška pri prevođenju',
+  'messages.showOriginal': 'Prikaži original',
+
   // Reverse matching (F5)
   'aiMatch.reverse.button': 'Pronađi poslove za mene',
   'aiMatch.reverse.title': 'AI Match za tebe',

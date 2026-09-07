@@ -924,6 +924,7 @@ export type Database = {
           is_deleted: boolean
           is_system: boolean
           message_type: string | null
+          meta: Record<string, unknown>
           offer_id: string | null
           read_at: string | null
           receiver_id: string
@@ -941,6 +942,7 @@ export type Database = {
           is_deleted?: boolean
           is_system?: boolean
           message_type?: string | null
+          meta?: Record<string, unknown>
           offer_id?: string | null
           read_at?: string | null
           receiver_id: string
@@ -958,6 +960,7 @@ export type Database = {
           is_deleted?: boolean
           is_system?: boolean
           message_type?: string | null
+          meta?: Record<string, unknown>
           offer_id?: string | null
           read_at?: string | null
           receiver_id?: string

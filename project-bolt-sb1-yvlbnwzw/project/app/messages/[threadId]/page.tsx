@@ -34,6 +34,7 @@ import {
   CheckCheck,
   UserX,
   MoreVertical,
+  Languages,
 } from 'lucide-react';
 import { validateFile, uploadFile, formatFileSize, getFileType, uploadVideoToCloudinary } from '@/lib/attachment-utils';
 import { usePresence } from '@/lib/hooks/use-presence';
@@ -80,6 +81,7 @@ type Message = {
   delivered_at: string | null;
   seen_at: string | null;
   read_at: string | null;
+  meta?: { translations?: Record<string, string>; [k: string]: unknown };
   sender: {
     name: string;
   } | null;
@@ -123,13 +125,14 @@ type ThreadDetails = {
   customer: {
     name: string;
     email: string;
+    preferred_language?: string | null;
   } | null;
   pro: {
     name: string;
     email: string;
-
     avatar_url?: string;
     account_type?: string;
+    preferred_language?: string | null;
   } | null;
 };
 
@@ -168,6 +171,9 @@ function MessagesContent() {
   const fetchMessagesRef = useRef<() => Promise<void>>(async () => {});
   const appendSingleMessageRef = useRef<(id: string) => Promise<void>>(async () => {});
   const [otherUserTyping, setOtherUserTyping] = useState(false);
+  const [shownTranslations, setShownTranslations] = useState<Record<string, string>>({});
+  const [loadingTranslations, setLoadingTranslations] = useState<Record<string, boolean>>({});
+  const [errorTranslations, setErrorTranslations] = useState<Record<string, boolean>>({});
   const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const typingThrottleRef = useRef<NodeJS.Timeout | null>(null);
@@ -344,8 +350,8 @@ function MessagesContent() {
         thread_type,
         post_id,
         job:jobs(id, title, description, status, completion_requested, completion_requested_at, completion_request_dismissed_at),
-        user1:profiles!threads_user1_id_fkey(name, email, avatar_url, account_type, is_premium, last_seen),
-        user2:profiles!threads_user2_id_fkey(name, email, avatar_url, account_type, is_premium, last_seen)
+        user1:profiles!threads_user1_id_fkey(name, email, avatar_url, account_type, is_premium, last_seen, preferred_language),
+        user2:profiles!threads_user2_id_fkey(name, email, avatar_url, account_type, is_premium, last_seen, preferred_language)
       `)
       .eq('id', threadId)
       .maybeSingle();
@@ -457,6 +463,7 @@ function MessagesContent() {
         delivered_at,
         seen_at,
         read_at,
+        meta,
         sender:profiles!messages_sender_id_fkey(name),
         offer:offers!messages_offer_id_fkey(
           id,
@@ -528,7 +535,7 @@ function MessagesContent() {
       .select(`
         id, text, sender_id, created_at, is_deleted, deleted_at,
         is_system, system_message_type, message_type, offer_id,
-        delivered_at, seen_at, read_at,
+        delivered_at, seen_at, read_at, meta,
         sender:profiles!messages_sender_id_fkey(name),
         offer:offers!messages_offer_id_fkey(
           id, sender_id, receiver_id, offer_type, price, currency,
@@ -729,6 +736,41 @@ function MessagesContent() {
     } finally {
       setCancelingRequest(false);
     }
+  };
+
+  // ── Chat Translation (F6) ──────────────────────────────────────────────
+  const getSession = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session;
+  };
+
+  const handleTranslate = async (messageId: string, messageText: string, cachedText?: string) => {
+    if (cachedText) {
+      setShownTranslations(prev => ({ ...prev, [messageId]: cachedText }));
+      return;
+    }
+    setLoadingTranslations(prev => ({ ...prev, [messageId]: true }));
+    setErrorTranslations(prev => { const n = { ...prev }; delete n[messageId]; return n; });
+    try {
+      const session = await getSession();
+      if (!session) throw new Error('Not authenticated');
+      const res = await fetch('/api/messages/translate', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message_id: messageId, target_lang: language }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      const { text: translated } = await res.json();
+      setShownTranslations(prev => ({ ...prev, [messageId]: translated }));
+    } catch {
+      setErrorTranslations(prev => ({ ...prev, [messageId]: true }));
+    } finally {
+      setLoadingTranslations(prev => { const n = { ...prev }; delete n[messageId]; return n; });
+    }
+  };
+
+  const hideTranslation = (messageId: string) => {
+    setShownTranslations(prev => { const n = { ...prev }; delete n[messageId]; return n; });
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -957,6 +999,10 @@ function MessagesContent() {
   const otherPerson = isCurrentUserCustomer ? thread.pro : thread.customer;
   const otherPersonId = isCurrentUserCustomer ? thread.pro_id : thread.customer_id;
   const isCustomer = profile?.account_type === 'customer';
+
+  // Translation: show chip when other person's language differs or is unknown
+  const otherPersonLang: string | null = (otherPerson as any)?.preferred_language ?? null;
+  const showTranslateFeature = otherPersonLang === null || otherPersonLang !== language;
 
   const handleViewProfile = () => {
     // Compute target directly from raw DB columns to avoid customer/pro mapping issues
@@ -1371,6 +1417,53 @@ function MessagesContent() {
                                       </p>
                                     </div>
                                   )}
+
+                                  {/* ── Translation chip & result (F6) ── */}
+                                  {!isOwn && realText.length > 5 && showTranslateFeature && (() => {
+                                    const cachedText = message.meta?.translations?.[language];
+                                    const shownText  = shownTranslations[message.id];
+                                    const isLoading  = loadingTranslations[message.id];
+                                    const hasError   = errorTranslations[message.id];
+
+                                    return (
+                                      <div className="mt-1 ml-1">
+                                        {/* translation display */}
+                                        {shownText && (
+                                          <div className="mt-1 mb-1 rounded-2xl border border-blue-100 bg-blue-50 px-3 py-2 dark:border-blue-900/40 dark:bg-blue-950/30">
+                                            <p className="text-[10px] font-medium text-blue-500 mb-1 flex items-center gap-1">
+                                              <Languages className="w-3 h-3" />
+                                              {t('messages.translated')}
+                                            </p>
+                                            <p className="text-[14px] leading-relaxed text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-words">
+                                              {shownText}
+                                            </p>
+                                            <button
+                                              onClick={() => hideTranslation(message.id)}
+                                              className="mt-1 text-[10px] text-blue-400 hover:text-blue-600 transition-colors"
+                                            >
+                                              {t('messages.showOriginal')}
+                                            </button>
+                                          </div>
+                                        )}
+
+                                        {/* chip */}
+                                        {!shownText && (
+                                          <button
+                                            onClick={() => handleTranslate(message.id, realText, cachedText)}
+                                            disabled={!!isLoading}
+                                            className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
+                                          >
+                                            {isLoading
+                                              ? <><Loader2 className="w-3 h-3 animate-spin" />{t('messages.translating')}</>
+                                              : hasError
+                                                ? <span className="text-destructive">{t('messages.translateError')}</span>
+                                                : <><Languages className="w-3 h-3" />{t('messages.translate')}</>
+                                            }
+                                          </button>
+                                        )}
+                                      </div>
+                                    );
+                                  })()}
 
                                   {/* docs in bubble style */}
                                   {hasDocs && (

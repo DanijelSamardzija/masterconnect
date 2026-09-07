@@ -1764,6 +1764,13 @@ export default {
   'aiMatch.boost.alreadyActive': 'Boost is already active',
   'aiMatch.boost.noCredits': 'Not enough credits for Boost.',
 
+  // Chat Translation (F6)
+  'messages.translate': 'Translate',
+  'messages.translated': 'Translated',
+  'messages.translating': 'Translating...',
+  'messages.translateError': 'Translation failed',
+  'messages.showOriginal': 'Show original',
+
   // Reverse matching (F5)
   'aiMatch.reverse.button': 'Find jobs for me',
   'aiMatch.reverse.title': 'AI Match for you',
