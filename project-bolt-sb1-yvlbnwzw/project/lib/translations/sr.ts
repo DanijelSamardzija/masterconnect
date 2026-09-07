@@ -1735,4 +1735,5 @@ export default {
   'aiMatch.modal.upgradeBtn': 'Nadogradi na PRO',
   'aiMatch.modal.rateLimit': 'Dostignuta dnevna granica. Vrati se sutra.',
   'aiMatch.modal.runsLeft': 'Ostalo pretraga: {n}',
+  'aiMatch.modal.anonymousUser': 'GigZone korisnik',
 } as const;

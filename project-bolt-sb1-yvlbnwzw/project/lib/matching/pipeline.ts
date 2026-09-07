@@ -10,6 +10,10 @@ import type {
 } from './types'
 
 // Haiku pricing (USD per token) as of 2025
+function safeName(raw: string | null | undefined): string | null {
+  if (!raw) return null
+  return raw.includes('@') ? null : raw
+}
 const HAIKU_INPUT_COST  = 0.00000080  // $0.80  per 1M input tokens
 const HAIKU_OUTPUT_COST = 0.00000400  // $4.00  per 1M output tokens
 
@@ -77,7 +81,7 @@ export async function runMatchingPipeline(
   // ── Step 5: Semantic ranking (Haiku Call 2) ───────────────────────────────
   const summaries: CandidateSummary[] = scored.map((c, i) => ({
     index:       i,
-    name:        c.name ?? 'Professional',
+    name:        safeName(c.name) ?? 'Professional',
     skills_text: normalizeSkillsText(c.skills),
     bio_snippet: (c.bio ?? '').slice(0, 150),
     city:        c.city ?? null,
@@ -117,7 +121,7 @@ export async function runMatchingPipeline(
       if (!profile) return []
       return [{
         profile_id:     profile.id,
-        name:           profile.name,
+        name:           safeName(profile.name),
         city:           profile.city,
         country:        profile.country,
         average_rating: profile.average_rating,

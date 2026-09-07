@@ -1671,4 +1671,5 @@ export default {
   'aiMatch.modal.upgradeBtn': 'Passer à PRO',
   'aiMatch.modal.rateLimit': 'Limite quotidienne atteinte. Revenez demain.',
   'aiMatch.modal.runsLeft': '{n} recherches restantes',
+  'aiMatch.modal.anonymousUser': 'Utilisateur GigZone',
 } as const;

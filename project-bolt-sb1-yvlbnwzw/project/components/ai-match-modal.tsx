@@ -180,7 +180,7 @@ export function AiMatchModal({ open, onClose, postId, isPro }: AiMatchModalProps
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-semibold text-foreground truncate">
-                          {p.name ?? '—'}
+                          {(p.name && !p.name.includes('@')) ? p.name : t('aiMatch.modal.anonymousUser')}
                         </span>
                         {p.is_premium && (
                           <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-orange-500 text-white rounded">
