@@ -51,6 +51,7 @@ import {
   UserCircle,
   CreditCard,
   X,
+  Brain,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { CommentsSheet } from '@/components/comments-sheet';
@@ -72,6 +73,10 @@ import { toast } from 'sonner';
 
 const BoostModal = dynamic(
   () => import('@/components/boost-modal').then(m => ({ default: m.BoostModal })),
+  { ssr: false }
+);
+const AiMatchModal = dynamic(
+  () => import('@/components/ai-match-modal').then(m => ({ default: m.AiMatchModal })),
   { ssr: false }
 );
 const SupportModal = dynamic(
@@ -518,6 +523,7 @@ export function ProfileView({
   const [boostingPostId, setBoostingPostId] = useState<string | null>(null);
   const [boostModal, setBoostModal] = useState<{ postId: string; isListing: boolean; promotedUntil: string | null } | null>(null);
   const [boostBalance, setBoostBalance] = useState<number>(0);
+  const [aiMatchPostId, setAiMatchPostId] = useState<string | null>(null);
   const [supportModalOpen, setSupportModalOpen] = useState(false);
 
   useEffect(() => {
@@ -1592,8 +1598,20 @@ export function ProfileView({
                                     : post.promoted_until && new Date(post.promoted_until) > new Date()
                                       ? <Sparkles className="h-3.5 w-3.5 text-orange-400" />
                                       : <Zap className="h-3.5 w-3.5" />}
-                                  <span>{post.promoted_until && new Date(post.promoted_until) > new Date() ? t('credits.boost.active.label') : t('credits.boost.boost.label')}</span>
+                                  <span className="hidden md:inline">{post.promoted_until && new Date(post.promoted_until) > new Date() ? t('credits.boost.active.label') : t('credits.boost.boost.label')}</span>
                                 </button>
+
+                                {(post.post_type === 'hiring_post' || post.post_type === 'service_request') && (
+                                  <button
+                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setAiMatchPostId(post.id); }}
+                                    className="h-8 px-2 flex items-center gap-1 text-xs rounded-xl border border-orange-300 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-950 transition-colors"
+                                    title={t('aiMatch.button')}
+                                  >
+                                    <Brain className="h-3.5 w-3.5" />
+                                    <span className="hidden md:inline">{t('aiMatch.button')}</span>
+                                  </button>
+                                )}
+
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-xl">
@@ -2393,6 +2411,15 @@ export function ProfileView({
           userId={currentUserId}
           balance={boostBalance}
           onSuccess={(newPromotedUntil) => handleBoostSuccess(boostModal.postId, newPromotedUntil)}
+        />
+      )}
+
+      {aiMatchPostId && isOwnProfile && (
+        <AiMatchModal
+          open={!!aiMatchPostId}
+          onClose={() => setAiMatchPostId(null)}
+          postId={aiMatchPostId}
+          isPro={(profile as any).is_premium === true}
         />
       )}
 
