@@ -1717,4 +1717,22 @@ export default {
   'notFound.description': "The page you're looking for doesn't exist or has been moved.",
   'notFound.home': 'Home',
   'notFound.findPros': 'Find Pros',
+
+  // AI Match
+  'aiMatch.button': 'AI Match',
+  'aiMatch.modal.title': 'AI Match',
+  'aiMatch.modal.subtitle': 'Top candidates for your post',
+  'aiMatch.modal.loading': 'Finding candidates...',
+  'aiMatch.modal.error': 'Something went wrong. Try again.',
+  'aiMatch.modal.noResults': 'No matching candidates found.',
+  'aiMatch.modal.refresh': 'Refresh',
+  'aiMatch.modal.cachedResult': 'Cached results',
+  'aiMatch.modal.cachedAt': 'From {date}',
+  'aiMatch.modal.score': '{score}% match',
+  'aiMatch.modal.viewProfile': 'View profile',
+  'aiMatch.modal.proTitle': 'PRO Feature',
+  'aiMatch.modal.proDesc': 'Free users see top 2 candidates. Upgrade to PRO to see all 5.',
+  'aiMatch.modal.upgradeBtn': 'Upgrade to PRO',
+  'aiMatch.modal.rateLimit': 'Daily limit reached. Come back tomorrow.',
+  'aiMatch.modal.runsLeft': '{n} searches left',
 } as const;

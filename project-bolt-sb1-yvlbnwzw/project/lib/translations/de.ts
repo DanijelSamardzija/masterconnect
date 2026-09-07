@@ -1713,4 +1713,22 @@ export default {
   'notFound.description': 'Die gesuchte Seite existiert nicht oder wurde verschoben.',
   'notFound.home': 'Startseite',
   'notFound.findPros': 'Fachleute finden',
+
+  // AI Match
+  'aiMatch.button': 'KI-Match',
+  'aiMatch.modal.title': 'KI-Match',
+  'aiMatch.modal.subtitle': 'Top-Kandidaten für dein Inserat',
+  'aiMatch.modal.loading': 'Kandidaten werden gesucht...',
+  'aiMatch.modal.error': 'Fehler. Bitte versuche es erneut.',
+  'aiMatch.modal.noResults': 'Keine passenden Kandidaten gefunden.',
+  'aiMatch.modal.refresh': 'Aktualisieren',
+  'aiMatch.modal.cachedResult': 'Gespeicherte Ergebnisse',
+  'aiMatch.modal.cachedAt': 'Von {date}',
+  'aiMatch.modal.score': '{score}% Übereinstimmung',
+  'aiMatch.modal.viewProfile': 'Profil ansehen',
+  'aiMatch.modal.proTitle': 'PRO-Funktion',
+  'aiMatch.modal.proDesc': 'Kostenlose Nutzer sehen die Top 2 Kandidaten. Upgrade auf PRO, um alle 5 zu sehen.',
+  'aiMatch.modal.upgradeBtn': 'Auf PRO upgraden',
+  'aiMatch.modal.rateLimit': 'Tageslimit erreicht. Komm morgen wieder.',
+  'aiMatch.modal.runsLeft': 'Noch {n} Suchen',
 } as const;

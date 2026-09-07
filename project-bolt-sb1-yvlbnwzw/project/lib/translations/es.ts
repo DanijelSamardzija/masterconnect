@@ -1646,4 +1646,22 @@ export default {
   'notFound.description': 'La página que buscas no existe o ha sido movida.',
   'notFound.home': 'Inicio',
   'notFound.findPros': 'Buscar profesionales',
+
+  // AI Match
+  'aiMatch.button': 'IA Match',
+  'aiMatch.modal.title': 'IA Match',
+  'aiMatch.modal.subtitle': 'Mejores candidatos para tu publicación',
+  'aiMatch.modal.loading': 'Buscando candidatos...',
+  'aiMatch.modal.error': 'Error. Inténtalo de nuevo.',
+  'aiMatch.modal.noResults': 'No se encontraron candidatos.',
+  'aiMatch.modal.refresh': 'Actualizar',
+  'aiMatch.modal.cachedResult': 'Resultados guardados',
+  'aiMatch.modal.cachedAt': 'Desde {date}',
+  'aiMatch.modal.score': '{score}% coincidencia',
+  'aiMatch.modal.viewProfile': 'Ver perfil',
+  'aiMatch.modal.proTitle': 'Función PRO',
+  'aiMatch.modal.proDesc': 'Los usuarios gratuitos ven los 2 mejores candidatos. Actualiza a PRO para ver los 5.',
+  'aiMatch.modal.upgradeBtn': 'Actualizar a PRO',
+  'aiMatch.modal.rateLimit': 'Límite diario alcanzado. Vuelve mañana.',
+  'aiMatch.modal.runsLeft': '{n} búsquedas restantes',
 } as const;

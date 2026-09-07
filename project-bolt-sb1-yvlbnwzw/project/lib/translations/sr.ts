@@ -1717,4 +1717,22 @@ export default {
   'notFound.description': 'Stranica koju tražiš ne postoji ili je premještena.',
   'notFound.home': 'Početna',
   'notFound.findPros': 'Pronađi majstore',
+
+  // AI Match
+  'aiMatch.button': 'AI Match',
+  'aiMatch.modal.title': 'AI Match',
+  'aiMatch.modal.subtitle': 'Top kandidati za tvoj oglas',
+  'aiMatch.modal.loading': 'Tražim kandidate...',
+  'aiMatch.modal.error': 'Greška. Pokušaj ponovo.',
+  'aiMatch.modal.noResults': 'Nema odgovarajućih kandidata.',
+  'aiMatch.modal.refresh': 'Osvježi',
+  'aiMatch.modal.cachedResult': 'Sačuvani rezultati',
+  'aiMatch.modal.cachedAt': 'Od {date}',
+  'aiMatch.modal.score': '{score}% podudaranje',
+  'aiMatch.modal.viewProfile': 'Pogledaj profil',
+  'aiMatch.modal.proTitle': 'PRO funkcija',
+  'aiMatch.modal.proDesc': 'Besplatni korisnici vide top 2 kandidata. Nadogradi na PRO da vidiš svih 5.',
+  'aiMatch.modal.upgradeBtn': 'Nadogradi na PRO',
+  'aiMatch.modal.rateLimit': 'Dostignuta dnevna granica. Vrati se sutra.',
+  'aiMatch.modal.runsLeft': 'Ostalo pretraga: {n}',
 } as const;

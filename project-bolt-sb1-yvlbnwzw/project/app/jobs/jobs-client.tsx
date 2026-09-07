@@ -31,7 +31,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Briefcase, Users, UserCircle, MessageCircle, Plus, MoreVertical, Trash2, Send, X, Bookmark, Share2, MapPin, Star, Clock, Sparkles, Zap, Loader2 as Loader, Search, Wrench, CheckCircle } from 'lucide-react';
+import { Briefcase, Users, UserCircle, MessageCircle, Plus, MoreVertical, Trash2, Send, X, Bookmark, Share2, MapPin, Star, Clock, Sparkles, Zap, Loader2 as Loader, Search, Wrench, CheckCircle, Brain } from 'lucide-react';
 import { toast } from 'sonner';
 import { timeAgo } from '@/lib/utils/date';
 
@@ -43,6 +43,7 @@ import { GuestWall } from '@/components/guest-wall';
 import { CreateMarketplacePostModal } from '@/components/create-marketplace-post-modal';
 import { SharePostModal } from '@/components/share-post-modal';
 import { BoostModal } from '@/components/boost-modal';
+import { AiMatchModal } from '@/components/ai-match-modal';
 import { CityAutocomplete } from '@/components/city-autocomplete';
 import { locationScore } from '@/lib/location-sort';
 import { CategoryCombobox } from '@/components/category-combobox';
@@ -970,6 +971,7 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
   const [boostingJobId, setBoostingJobId] = useState<string | null>(null);
   const [boostTarget, setBoostTarget] = useState<{ postId: string; promotedUntil: string | null } | null>(null);
   const [boostBalance, setBoostBalance] = useState(0);
+  const [aiMatchPostId, setAiMatchPostId] = useState<string | null>(null);
   const [cityFilter, setCityFilter] = useState('');
   const [countryFilter, setCountryFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
@@ -1771,6 +1773,17 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
                                 );
                               })()}
 
+                              {user?.id === post.user_id && (post.post_type === 'hiring_post' || post.post_type === 'service_request') && (
+                                <button
+                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setAiMatchPostId(post.id); }}
+                                  className="h-7 px-2 flex items-center gap-1 rounded-lg text-xs font-medium transition-colors text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                                  title={t('aiMatch.button')}
+                                >
+                                  <Brain className="h-3.5 w-3.5" />
+                                  {t('aiMatch.button')}
+                                </button>
+                              )}
+
                               {user?.id === post.user_id && (
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
@@ -2147,6 +2160,15 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
           postId={shareModalPostId}
           open={!!shareModalPostId}
           onOpenChange={(open) => { if (!open) setShareModalPostId(null); }}
+        />
+      )}
+
+      {aiMatchPostId && user && (
+        <AiMatchModal
+          open={!!aiMatchPostId}
+          onClose={() => setAiMatchPostId(null)}
+          postId={aiMatchPostId}
+          isPro={(profile as any)?.is_premium === true}
         />
       )}
 
