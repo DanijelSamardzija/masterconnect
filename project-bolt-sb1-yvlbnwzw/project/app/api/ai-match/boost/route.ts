@@ -79,37 +79,23 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Check credits
-  const { data: balance } = await supabase
-    .from('credits_balance')
-    .select('balance')
-    .eq('user_id', user.id)
-    .maybeSingle()
+  // Atomic deduction — raises 'insufficient_credits' if balance < 30
+  const { error: deductErr } = await supabase.rpc('deduct_credits_atomic', {
+    p_user_id:     user.id,
+    p_amount:      BOOST_COST,
+    p_type:        'spend',
+    p_description: 'ai_match_boost',
+  })
 
-  if (!balance || balance.balance < BOOST_COST) {
-    return NextResponse.json(
-      { error: 'insufficient_credits', required: BOOST_COST, current: balance?.balance ?? 0 },
-      { status: 402 },
-    )
-  }
-
-  // Deduct credits
-  const newBalance = balance.balance - BOOST_COST
-  const { error: updateErr } = await supabase
-    .from('credits_balance')
-    .update({ balance: newBalance, updated_at: new Date().toISOString() })
-    .eq('user_id', user.id)
-
-  if (updateErr) {
+  if (deductErr) {
+    if (deductErr.message === 'insufficient_credits') {
+      return NextResponse.json(
+        { error: 'insufficient_credits', required: BOOST_COST },
+        { status: 402 },
+      )
+    }
     return NextResponse.json({ error: 'credit_deduction_failed' }, { status: 500 })
   }
-
-  await supabase.from('credit_transactions').insert({
-    user_id:     user.id,
-    amount:      -BOOST_COST,
-    type:        'spend',
-    description: 'ai_match_boost',
-  })
 
   // Create boost
   const validUntil = new Date(Date.now() + BOOST_DAYS * 86_400_000).toISOString()

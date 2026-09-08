@@ -68,38 +68,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, already_unlocked: true })
   }
 
-  // Check credits
-  const { data: balance } = await supabase
-    .from('credits_balance')
-    .select('balance')
-    .eq('user_id', user.id)
-    .maybeSingle()
+  // Atomic deduction — raises 'insufficient_credits' if balance < 50
+  const { error: deductErr } = await supabase.rpc('deduct_credits_atomic', {
+    p_user_id:      user.id,
+    p_amount:       UNLOCK_COST,
+    p_type:         'spend',
+    p_description:  'ai_match_unlock',
+    p_reference_id: post_id,
+  })
 
-  if (!balance || balance.balance < UNLOCK_COST) {
-    return NextResponse.json(
-      { error: 'insufficient_credits', required: UNLOCK_COST, current: balance?.balance ?? 0 },
-      { status: 402 },
-    )
-  }
-
-  // Deduct credits
-  const newBalance = balance.balance - UNLOCK_COST
-  const { error: updateErr } = await supabase
-    .from('credits_balance')
-    .update({ balance: newBalance, updated_at: new Date().toISOString() })
-    .eq('user_id', user.id)
-
-  if (updateErr) {
+  if (deductErr) {
+    if (deductErr.message === 'insufficient_credits') {
+      return NextResponse.json(
+        { error: 'insufficient_credits', required: UNLOCK_COST },
+        { status: 402 },
+      )
+    }
     return NextResponse.json({ error: 'credit_deduction_failed' }, { status: 500 })
   }
-
-  await supabase.from('credit_transactions').insert({
-    user_id:      user.id,
-    amount:       -UNLOCK_COST,
-    type:         'spend',
-    description:  'ai_match_unlock',
-    reference_id: post_id,
-  })
 
   // Record unlock
   await supabase.from('matchmaking_unlock_log').insert({
