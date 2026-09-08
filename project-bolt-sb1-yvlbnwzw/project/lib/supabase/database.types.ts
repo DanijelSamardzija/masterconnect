@@ -1359,6 +1359,7 @@ export type Database = {
           updated_at: string | null
           user_id: string
           views_count: number | null
+          embedding: string | null
         }
         Insert: {
           availability?: string | null
@@ -1398,6 +1399,7 @@ export type Database = {
           updated_at?: string | null
           user_id: string
           views_count?: number | null
+          embedding?: string | null
         }
         Update: {
           availability?: string | null
@@ -1437,6 +1439,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
           views_count?: number | null
+          embedding?: string | null
         }
         Relationships: [
           {
@@ -1619,6 +1622,7 @@ export type Database = {
           hourly_rate_min: number | null
           hourly_rate_max: number | null
           work_categories: string[] | null
+          embedding: string | null
         }
         Insert: {
           account_type?: string
@@ -1662,6 +1666,7 @@ export type Database = {
           hourly_rate_min?: number | null
           hourly_rate_max?: number | null
           work_categories?: string[] | null
+          embedding?: string | null
         }
         Update: {
           account_type?: string
@@ -1705,6 +1710,7 @@ export type Database = {
           hourly_rate_min?: number | null
           hourly_rate_max?: number | null
           work_categories?: string[] | null
+          embedding?: string | null
         }
         Relationships: [
           {
