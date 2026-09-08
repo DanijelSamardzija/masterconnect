@@ -206,7 +206,7 @@ export function AiReverseMatchPanel({ open, onClose }: AiReverseMatchPanelProps)
                       )}
 
                       {post.reason && (
-                        <p className="text-xs text-primary/80 italic">"{post.reason}"</p>
+                        <p className="text-xs text-primary/80 italic">&ldquo;{post.reason}&rdquo;</p>
                       )}
 
                       <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
