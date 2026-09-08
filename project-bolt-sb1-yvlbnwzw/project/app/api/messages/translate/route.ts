@@ -3,10 +3,13 @@ import { createClient }             from '@supabase/supabase-js'
 import Anthropic                    from '@anthropic-ai/sdk'
 import { z }                        from 'zod'
 
-export const runtime    = 'nodejs'
+export const runtime     = 'nodejs'
 export const maxDuration = 30
 
-const HAIKU_MODEL = 'claude-haiku-4-5-20251001'
+const HAIKU_MODEL                    = 'claude-haiku-4-5-20251001'
+const HAIKU_INPUT_COST_PER_TOKEN     = 0.00000080
+const HAIKU_OUTPUT_COST_PER_TOKEN    = 0.00000400
+const MAX_FRESH_TRANSLATIONS_PER_DAY = 30
 
 const LANG_LABELS: Record<string, string> = {
   sr: 'Serbian (Srpski)',
@@ -64,11 +67,34 @@ export async function POST(req: NextRequest) {
     if (msg.is_system || msg.is_deleted) return NextResponse.json({ error: 'Cannot translate this message' }, { status: 400 })
     if (!msg.text || msg.text.length < 2) return NextResponse.json({ error: 'Nothing to translate' }, { status: 400 })
 
+    const svc = serviceClient()
+
     // ── Check cache ───────────────────────────────────────────────────────
     const existingMeta = (msg.meta as Record<string, unknown>) ?? {}
     const existingTranslations = (existingMeta.translations as Record<string, string>) ?? {}
     if (existingTranslations[target_lang]) {
+      // Log cache hit (fire-and-forget, do not block response)
+      svc.from('ai_translation_log').insert({
+        user_id: user.id, message_id, target_lang, cache_hit: true,
+      }).then(() => {}, () => {})
       return NextResponse.json({ text: existingTranslations[target_lang], cached: true })
+    }
+
+    // ── Rate limit: max 30 fresh translations per 24h ─────────────────────
+    const dayAgo = new Date(Date.now() - 86_400_000).toISOString()
+
+    const { count: freshToday } = await svc
+      .from('ai_translation_log')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('cache_hit', false)
+      .gte('created_at', dayAgo)
+
+    if ((freshToday ?? 0) >= MAX_FRESH_TRANSLATIONS_PER_DAY) {
+      return NextResponse.json(
+        { error: 'translation_rate_limit', retry_after: '24h' },
+        { status: 429 },
+      )
     }
 
     // ── Haiku translation ─────────────────────────────────────────────────
@@ -90,12 +116,27 @@ export async function POST(req: NextRequest) {
       ? response.content[0].text.trim()
       : msg.text
 
-    // ── Cache in messages.meta.translations ───────────────────────────────
+    const costUsd =
+      response.usage.input_tokens  * HAIKU_INPUT_COST_PER_TOKEN +
+      response.usage.output_tokens * HAIKU_OUTPUT_COST_PER_TOKEN
+
+    // ── Cache in messages.meta.translations + log fresh call ─────────────
     const updatedTranslations = { ...existingTranslations, [target_lang]: translatedText }
-    await serviceClient()
-      .from('messages')
-      .update({ meta: { ...existingMeta, translations: updatedTranslations } })
-      .eq('id', message_id)
+    await Promise.all([
+      svc
+        .from('messages')
+        .update({ meta: { ...existingMeta, translations: updatedTranslations } })
+        .eq('id', message_id),
+      svc.from('ai_translation_log').insert({
+        user_id:       user.id,
+        message_id,
+        target_lang,
+        cache_hit:     false,
+        input_tokens:  response.usage.input_tokens,
+        output_tokens: response.usage.output_tokens,
+        cost_usd:      costUsd,
+      }),
+    ])
 
     return NextResponse.json({ text: translatedText, cached: false })
   } catch (err: unknown) {

@@ -5,10 +5,11 @@ import { runMatchingPipeline } from '@/lib/matching/pipeline'
 
 export const runtime = 'nodejs'
 
-const CACHE_TTL_HOURS        = 24
-const MAX_RUNS_PER_USER_DAY  = 20
-const MAX_RUNS_PER_POST_DAY  = 5
-const REFRESH_COST_NON_PRO   = 10  // credits deducted for non-PRO force refresh
+const CACHE_TTL_HOURS             = 24
+const MAX_RUNS_PER_USER_DAY       = 20
+const MAX_RUNS_PER_POST_DAY       = 5
+const REFRESH_COST_NON_PRO        = 10  // credits for non-PRO force refresh
+const PRO_FREE_MONTHLY_REFRESHES  = 60  // above this PRO also pays 10 credits
 
 const ELIGIBLE_POST_TYPES = ['hiring_post', 'service_request']
 
@@ -103,10 +104,11 @@ export async function POST(request: NextRequest) {
     if (cached) {
       await supabase.from('matchmaking_runs_log').insert({
         post_id,
-        user_id:   user.id,
-        cache_hit: true,
-        post_type: post.post_type,
-        category:  post.category,
+        user_id:       user.id,
+        cache_hit:     true,
+        pipeline_type: 'forward',
+        post_type:     post.post_type,
+        category:      post.category,
       })
       return NextResponse.json({ ok: true, cached: true, is_unlocked: isUnlocked, data: cached })
     }
@@ -119,6 +121,7 @@ export async function POST(request: NextRequest) {
     .from('matchmaking_runs_log')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', user.id)
+    .eq('pipeline_type', 'forward')
     .eq('cache_hit', false)
     .gte('created_at', dayAgo)
 
@@ -130,6 +133,7 @@ export async function POST(request: NextRequest) {
     .from('matchmaking_runs_log')
     .select('*', { count: 'exact', head: true })
     .eq('post_id', post_id)
+    .eq('pipeline_type', 'forward')
     .eq('cache_hit', false)
     .gte('created_at', dayAgo)
 
@@ -137,31 +141,47 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'rate_limit_post', retry_after: '24h' }, { status: 429 })
   }
 
-  // ── Non-PRO force refresh: deduct 10 credits ──────────────────────────────
-  if (force_refresh && !isPro) {
-    const { data: balance } = await supabase
-      .from('credits_balance')
-      .select('balance')
-      .eq('user_id', user.id)
-      .maybeSingle()
+  // ── Credit deduction for force refresh (atomic — no race condition) ────────
+  if (force_refresh) {
+    if (isPro) {
+      // PRO: 60 free refreshes/month; above that costs 10 credits
+      const monthStart = new Date()
+      monthStart.setDate(1)
+      monthStart.setHours(0, 0, 0, 0)
 
-    if (!balance || balance.balance < REFRESH_COST_NON_PRO) {
-      return NextResponse.json({ error: 'insufficient_credits', required: REFRESH_COST_NON_PRO }, { status: 402 })
+      const { count: monthlyRefreshes } = await supabase
+        .from('matchmaking_runs_log')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('pipeline_type', 'forward')
+        .eq('cache_hit', false)
+        .gte('created_at', monthStart.toISOString())
+
+      if ((monthlyRefreshes ?? 0) >= PRO_FREE_MONTHLY_REFRESHES) {
+        const { error: deductError } = await supabase.rpc('deduct_credits_atomic', {
+          p_user_id:      user.id,
+          p_amount:       REFRESH_COST_NON_PRO,
+          p_type:         'spend',
+          p_description:  'ai_match_refresh_pro_over_quota',
+          p_reference_id: post_id,
+        })
+        if (deductError) {
+          return NextResponse.json({ error: 'insufficient_credits', required: REFRESH_COST_NON_PRO }, { status: 402 })
+        }
+      }
+    } else {
+      // Non-PRO: always costs 10 credits (atomic deduction prevents race condition)
+      const { error: deductError } = await supabase.rpc('deduct_credits_atomic', {
+        p_user_id:      user.id,
+        p_amount:       REFRESH_COST_NON_PRO,
+        p_type:         'spend',
+        p_description:  'ai_match_refresh',
+        p_reference_id: post_id,
+      })
+      if (deductError) {
+        return NextResponse.json({ error: 'insufficient_credits', required: REFRESH_COST_NON_PRO }, { status: 402 })
+      }
     }
-
-    const newBalance = balance.balance - REFRESH_COST_NON_PRO
-    await supabase
-      .from('credits_balance')
-      .update({ balance: newBalance, updated_at: new Date().toISOString() })
-      .eq('user_id', user.id)
-
-    await supabase.from('credit_transactions').insert({
-      user_id:     user.id,
-      amount:      -REFRESH_COST_NON_PRO,
-      type:        'spend',
-      description: 'ai_match_refresh',
-      reference_id: post_id,
-    })
   }
 
   // ── Exclude blocked users ─────────────────────────────────────────────────
@@ -215,6 +235,7 @@ export async function POST(request: NextRequest) {
     post_id,
     user_id:       user.id,
     cache_hit:     false,
+    pipeline_type: 'forward',
     input_tokens:  result.totalInputTokens,
     output_tokens: result.totalOutputTokens,
     cost_usd:      result.costUsd,

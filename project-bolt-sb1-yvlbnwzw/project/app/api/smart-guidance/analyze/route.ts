@@ -56,6 +56,27 @@ async function analyzePost(postId: string) {
       return;
     }
 
+    // Pre-spam check: skip AI call entirely if user already received guidance in last 24h
+    const { count: guidanceLast24h } = await supabase
+      .from('post_guidance_log')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', meta.userId)
+      .eq('guidance_sent', true)
+      .gte('analyzed_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+
+    if ((guidanceLast24h ?? 0) >= 1) {
+      await supabase.from('post_guidance_log').insert({
+        ...logEntry,
+        guidance_type: 'no_action',
+        should_send: false,
+        guidance_sent: false,
+        detected_language: meta.profilePreferredLanguage ?? 'sr',
+        detected_intent: null,
+        error: 'pre_spam:max_per_24h',
+      });
+      return;
+    }
+
     // AI classification
     const result = await classifyPost(meta);
 
