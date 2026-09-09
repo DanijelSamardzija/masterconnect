@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { notificationRepository } from '@/lib/repositories/notificationRepository';
@@ -62,6 +62,7 @@ import {
 type Attachment = {
   id: string;
   file_url: string;
+  file_path: string | null;
   file_name: string;
   file_type: string;
   file_size: number;
@@ -179,6 +180,11 @@ function MessagesContent() {
   const typingThrottleRef = useRef<NodeJS.Timeout | null>(null);
   const typingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Signed-URL cache: file_path → { url, expiresAt }
+  // Entries are valid for 60 minutes; re-fetched when within 5 minutes of expiry.
+  const signedUrlCacheRef = useRef<Map<string, { url: string; expiresAt: number }>>(new Map());
+  const [signedUrls, setSignedUrls] = useState<Map<string, string>>(new Map());
+
   const threadId = params.threadId as string;
 
   useEffect(() => {
@@ -195,6 +201,58 @@ function MessagesContent() {
 
   const scrollToBottom = (instant?: boolean) => {
     messagesEndRef.current?.scrollIntoView({ behavior: instant ? 'instant' : 'smooth' });
+  };
+
+  // Pre-fetch signed URLs for all Supabase Storage attachments in the current messages.
+  // Cloudinary videos (file_path = null) are excluded — they use file_url directly.
+  // Results are cached in signedUrlCacheRef for 60 min and served from signedUrls state.
+  const fetchSignedUrls = useCallback(async () => {
+    const allAttachments = (messages as any[]).flatMap((m: any) => m.attachments ?? []);
+    const toFetch = allAttachments
+      .map((a: any) => a.file_path as string | null)
+      .filter((p): p is string => {
+        if (!p) return false;
+        const cached = signedUrlCacheRef.current.get(p);
+        // Re-fetch if missing or expiring within 5 minutes
+        return !cached || cached.expiresAt < Date.now() + 5 * 60 * 1000;
+      });
+
+    if (toFetch.length === 0) return;
+
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    if (!token) return;
+
+    try {
+      const res = await fetch('/api/storage/signed-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ file_paths: toFetch }),
+      });
+      if (!res.ok) return;
+      const { urls } = await res.json() as { urls: Record<string, string> };
+      const expiresAt = Date.now() + 60 * 60 * 1000; // 60 minutes
+      setSignedUrls(prev => {
+        const next = new Map(prev);
+        Object.entries(urls).forEach(([path, url]) => {
+          signedUrlCacheRef.current.set(path, { url, expiresAt });
+          next.set(path, url);
+        });
+        return next;
+      });
+    } catch {
+      // silent — attachment will fall back to file_url (shows broken image for private bucket)
+    }
+  }, [messages]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => { fetchSignedUrls(); }, [fetchSignedUrls]);
+
+  // Helper: resolve the display URL for an attachment.
+  // Supabase Storage files (file_path set) → signed URL (falls back to file_url during load).
+  // Cloudinary files (file_path null) → file_url directly (public CDN, no signing needed).
+  const getAttachmentUrl = (att: Attachment): string => {
+    if (!att.file_path) return att.file_url;
+    return signedUrls.get(att.file_path) ?? att.file_url;
   };
 
   useEffect(() => {
@@ -1362,13 +1420,13 @@ function MessagesContent() {
                                 <>
                                   <div className="space-y-1.5">
                                     {imageAttachments.map(att => (
-                                      <ImageMessage key={att.id} url={att.file_url} name={att.file_name} />
+                                      <ImageMessage key={att.id} url={getAttachmentUrl(att)} name={att.file_name} />
                                     ))}
                                     {videoAttachments.map(att => (
-                                      <VideoMessage key={att.id} url={att.file_url} mimeType={att.file_type} />
+                                      <VideoMessage key={att.id} url={getAttachmentUrl(att)} mimeType={att.file_type} />
                                     ))}
                                     {docAttachments.map(att => (
-                                      <a key={att.id} href={att.file_url} download={att.file_name}
+                                      <a key={att.id} href={getAttachmentUrl(att)} download={att.file_name}
                                         className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-3 transition-colors hover:bg-slate-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
                                         style={{ maxWidth: 280 }}
                                       >
@@ -1391,10 +1449,10 @@ function MessagesContent() {
                                   {hasMedia && (
                                     <div className="mb-1.5 space-y-1.5">
                                       {imageAttachments.map(att => (
-                                        <ImageMessage key={att.id} url={att.file_url} name={att.file_name} />
+                                        <ImageMessage key={att.id} url={getAttachmentUrl(att)} name={att.file_name} />
                                       ))}
                                       {videoAttachments.map(att => (
-                                        <VideoMessage key={att.id} url={att.file_url} mimeType={att.file_type} />
+                                        <VideoMessage key={att.id} url={getAttachmentUrl(att)} mimeType={att.file_type} />
                                       ))}
                                     </div>
                                   )}
@@ -1469,7 +1527,7 @@ function MessagesContent() {
                                   {hasDocs && (
                                     <div className="mt-1.5 space-y-1.5">
                                       {docAttachments.map(att => (
-                                        <a key={att.id} href={att.file_url} download={att.file_name}
+                                        <a key={att.id} href={getAttachmentUrl(att)} download={att.file_name}
                                           className={`flex items-center gap-2 rounded-2xl border p-3 transition-colors ${
                                             isOwn
                                               ? 'border-white/20 bg-orange-500 text-white hover:bg-orange-600'
