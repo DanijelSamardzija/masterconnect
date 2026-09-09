@@ -3,9 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 
 export const runtime = 'nodejs'
 
-const BOOST_COST       = 30
-const BOOST_SCORE      = 15
-const BOOST_DAYS       = 7
+const BOOST_COST = 30
 
 function serviceClient() {
   return createClient(
@@ -58,61 +56,47 @@ export async function GET(request: NextRequest) {
 }
 
 // POST /api/ai-match/boost — buys a 7-day boost (30 credits)
+// All three DB operations (check / deduct / insert) are executed atomically
+// inside create_ai_match_boost, which holds a pg_advisory_xact_lock for the
+// duration of the transaction, preventing concurrent double-charge.
 export async function POST(request: NextRequest) {
   const user = await getAuthUser(request)
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   const supabase = serviceClient()
 
-  // Check if already has active boost
-  const { data: existing } = await supabase
-    .from('matchmaking_boosts')
-    .select('id, valid_until')
-    .eq('profile_id', user.id)
-    .gt('valid_until', new Date().toISOString())
-    .maybeSingle()
-
-  if (existing) {
-    return NextResponse.json(
-      { error: 'boost_already_active', valid_until: existing.valid_until },
-      { status: 409 },
-    )
-  }
-
-  // Atomic deduction — raises 'insufficient_credits' if balance < 30
-  const { error: deductErr } = await supabase.rpc('deduct_credits_atomic', {
-    p_user_id:     user.id,
-    p_amount:      BOOST_COST,
-    p_type:        'spend',
-    p_description: 'ai_match_boost',
+  const { data: rpcData, error } = await supabase.rpc('create_ai_match_boost', {
+    p_profile_id: user.id,
   })
 
-  if (deductErr) {
-    if (deductErr.message === 'insufficient_credits') {
+  if (error) {
+    console.error('[ai-match/boost] create_ai_match_boost error:', error.message)
+    return NextResponse.json({ error: 'internal_error' }, { status: 500 })
+  }
+
+  const result = rpcData as {
+    ok: boolean
+    error?: string
+    valid_until?: string
+    boost?: unknown
+    credits_spent?: number
+  }
+
+  if (!result.ok) {
+    if (result.error === 'boost_already_active') {
+      return NextResponse.json(
+        { error: 'boost_already_active', valid_until: result.valid_until },
+        { status: 409 },
+      )
+    }
+    if (result.error === 'insufficient_credits') {
       return NextResponse.json(
         { error: 'insufficient_credits', required: BOOST_COST },
         { status: 402 },
       )
     }
-    return NextResponse.json({ error: 'credit_deduction_failed' }, { status: 500 })
-  }
-
-  // Create boost
-  const validUntil = new Date(Date.now() + BOOST_DAYS * 86_400_000).toISOString()
-  const { data: boost, error: boostErr } = await supabase
-    .from('matchmaking_boosts')
-    .insert({
-      profile_id:    user.id,
-      credits_spent: BOOST_COST,
-      boost_score:   BOOST_SCORE,
-      valid_until:   validUntil,
-    })
-    .select()
-    .single()
-
-  if (boostErr) {
     return NextResponse.json({ error: 'boost_creation_failed' }, { status: 500 })
   }
 
-  return NextResponse.json({ ok: true, boost, credits_spent: BOOST_COST })
+  return NextResponse.json({ ok: true, boost: result.boost, credits_spent: result.credits_spent })
 }
