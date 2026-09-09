@@ -156,7 +156,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'rate_limit_post', retry_after: '24h' }, { status: 429 })
   }
 
-  // ── Credit deduction for force refresh (atomic — no race condition) ────────
+  // ── Determine force-refresh charge (deduction runs after pipeline succeeds) ─
+  // Keeping the deduction after the pipeline ensures a pipeline failure never
+  // results in the user being charged.  The actual atomic deduction (with the
+  // overdraft guard) happens after runMatchingPipeline returns successfully.
+  let refreshChargeDescription: string | null = null
+
   if (force_refresh) {
     if (isPro) {
       // PRO: 60 free refreshes/month; above that costs 10 credits
@@ -173,28 +178,27 @@ export async function POST(request: NextRequest) {
         .gte('created_at', monthStart.toISOString())
 
       if ((monthlyRefreshes ?? 0) >= PRO_FREE_MONTHLY_REFRESHES) {
-        const { error: deductError } = await supabase.rpc('deduct_credits_atomic', {
-          p_user_id:      user.id,
-          p_amount:       REFRESH_COST_NON_PRO,
-          p_type:         'spend',
-          p_description:  'ai_match_refresh_pro_over_quota',
-          p_reference_id: post_id,
-        })
-        if (deductError) {
-          return NextResponse.json({ error: 'insufficient_credits', required: REFRESH_COST_NON_PRO }, { status: 402 })
-        }
+        refreshChargeDescription = 'ai_match_refresh_pro_over_quota'
       }
+      // else: within PRO free monthly quota — no charge
     } else {
-      // Non-PRO: always costs 10 credits (atomic deduction prevents race condition)
-      const { error: deductError } = await supabase.rpc('deduct_credits_atomic', {
-        p_user_id:      user.id,
-        p_amount:       REFRESH_COST_NON_PRO,
-        p_type:         'spend',
-        p_description:  'ai_match_refresh',
-        p_reference_id: post_id,
-      })
-      if (deductError) {
-        return NextResponse.json({ error: 'insufficient_credits', required: REFRESH_COST_NON_PRO }, { status: 402 })
+      refreshChargeDescription = 'ai_match_refresh'
+    }
+
+    // Pre-check balance to avoid running the pipeline for users who clearly
+    // cannot pay.  The real overdraft guard is in deduct_credits_atomic below.
+    if (refreshChargeDescription !== null) {
+      const { data: balRow } = await supabase
+        .from('credits_balance')
+        .select('balance')
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      if ((balRow?.balance ?? 0) < REFRESH_COST_NON_PRO) {
+        return NextResponse.json(
+          { error: 'insufficient_credits', required: REFRESH_COST_NON_PRO },
+          { status: 402 },
+        )
       }
     }
   }
@@ -258,6 +262,46 @@ export async function POST(request: NextRequest) {
     post_type:     post.post_type,
     category:      post.category,
   })
+
+  // ── Post-pipeline credit deduction ────────────────────────────────────────
+  // Runs only after the pipeline has succeeded and results are cached.  A
+  // pipeline failure above returns before reaching this point, leaving the
+  // user's balance untouched.
+  //
+  // If deduction fails here (balance changed between pre-check and now), the
+  // result is already cached and logged.  Log the billing anomaly for manual
+  // review and return the result — do not attempt a rollback.
+  if (refreshChargeDescription !== null) {
+    const { error: deductError } = await supabase.rpc('deduct_credits_atomic', {
+      p_user_id:      user.id,
+      p_amount:       REFRESH_COST_NON_PRO,
+      p_type:         'spend',
+      p_description:  refreshChargeDescription,
+      p_reference_id: post_id,
+    })
+
+    if (deductError) {
+      console.error('[ai-match] post-pipeline deduction failed — billing anomaly', {
+        user_id:     user.id,
+        post_id,
+        description: refreshChargeDescription,
+        error:       deductError.message,
+      })
+      return NextResponse.json({
+        ok:            true,
+        cached:        false,
+        is_unlocked:   isUnlocked,
+        runs_left:     Math.max(0, MAX_RUNS_PER_USER_DAY - (userRuns ?? 0) - 1),
+        billing_error: 'deduction_failed',
+        data: {
+          extraction:      result.extraction,
+          ranked_profiles: result.ranked_profiles,
+          candidate_count: result.candidate_count,
+          expires_at:      expiresAt,
+        },
+      })
+    }
+  }
 
   return NextResponse.json({
     ok:          true,

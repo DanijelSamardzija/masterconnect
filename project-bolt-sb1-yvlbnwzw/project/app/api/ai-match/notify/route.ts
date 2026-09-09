@@ -373,9 +373,15 @@ export async function POST(request: NextRequest) {
       credits_charged: creditsCharged,
     })
 
-    // If UNIQUE conflict (already notified) — skip silently, still ok
-    if (logErr && !(logErr as any).code?.startsWith('23505')) {
-      console.error('[ai-match/notify] log insert error', logErr.message)
+    // If UNIQUE conflict (already notified) or any other log error — skip this
+    // candidate entirely.  Crucially, a 23505 conflict must also stop here: the
+    // in-app notification was already inserted above, but the log insert failed,
+    // which means a concurrent call won the race for this slot.  Falling through
+    // to the email send would deliver a duplicate email to the professional.
+    if (logErr) {
+      if (!(logErr as any).code?.startsWith('23505')) {
+        console.error('[ai-match/notify] log insert error', logErr.message)
+      }
       continue
     }
 
