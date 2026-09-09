@@ -115,12 +115,13 @@ export const extractStoragePathFromUrl = (url: string, bucketName: string): stri
 };
 
 export const deleteFile = async (
-  filePath: string,
+  filePath: string | string[],
   bucketName: 'message-attachments' | 'post-media' = 'message-attachments'
 ): Promise<boolean> => {
+  const paths = Array.isArray(filePath) ? filePath : [filePath];
   const { error } = await supabase.storage
     .from(bucketName)
-    .remove([filePath]);
+    .remove(paths);
 
   if (error) {
     console.error('Delete error:', error);

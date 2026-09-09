@@ -36,7 +36,7 @@ import {
   MoreVertical,
   Languages,
 } from 'lucide-react';
-import { validateFile, uploadFile, formatFileSize, getFileType, uploadVideoToCloudinary } from '@/lib/attachment-utils';
+import { validateFile, uploadFile, formatFileSize, getFileType, uploadVideoToCloudinary, deleteFile } from '@/lib/attachment-utils';
 import { usePresence } from '@/lib/hooks/use-presence';
 import { isOnline, formatLastSeen } from '@/lib/online-status';
 import { VideoMessage, ImageMessage } from '@/components/video-message';
@@ -626,8 +626,24 @@ function MessagesContent() {
   appendSingleMessageRef.current = appendSingleMessage;
 
   const handleDeleteMessage = async (messageId: string) => {
+    // Optimistic: remove from UI immediately
     setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
 
+    // Storage cleanup: remove Supabase Storage files and attachment rows.
+    // Cloudinary attachments (file_path = null) are intentionally skipped.
+    const msg = messages.find((m) => m.id === messageId);
+    const supabaseAtts = (msg?.attachments ?? []).filter((a) => a.file_path !== null);
+
+    if (supabaseAtts.length > 0) {
+      const paths = supabaseAtts.map((a) => a.file_path as string);
+      await deleteFile(paths);
+      await supabase
+        .from('message_attachments')
+        .delete()
+        .in('id', supabaseAtts.map((a) => a.id));
+    }
+
+    // Soft-delete the message (unchanged behaviour)
     const { error: deleteError } = await supabase
       .from('messages')
       .update({
