@@ -32,7 +32,10 @@ async function getAuthUser(request: NextRequest) {
 }
 
 // POST /api/ai-match/unlock
-// Deducts 50 credits to reveal all 5 candidates for a post (non-PRO alternative)
+// Deducts 50 credits to reveal all candidates for a post (non-PRO alternative).
+// All three DB operations (check / deduct / log) run inside purchase_ai_match_unlock,
+// which holds a pg_advisory_xact_lock for the transaction duration, preventing
+// concurrent double-charge — N3 fix (same pattern as H2 for boost).
 export async function POST(request: NextRequest) {
   const user = await getAuthUser(request)
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
@@ -56,43 +59,38 @@ export async function POST(request: NextRequest) {
   if (!post) return NextResponse.json({ error: 'post_not_found' }, { status: 404 })
   if (post.user_id !== user.id) return NextResponse.json({ error: 'forbidden' }, { status: 403 })
 
-  // Already unlocked? Return success without charging
-  const { data: existing } = await supabase
-    .from('matchmaking_unlock_log')
-    .select('id')
-    .eq('user_id', user.id)
-    .eq('post_id', post_id)
-    .maybeSingle()
-
-  if (existing) {
-    return NextResponse.json({ ok: true, already_unlocked: true })
-  }
-
-  // Atomic deduction — raises 'insufficient_credits' if balance < 50
-  const { error: deductErr } = await supabase.rpc('deduct_credits_atomic', {
-    p_user_id:      user.id,
-    p_amount:       UNLOCK_COST,
-    p_type:         'spend',
-    p_description:  'ai_match_unlock',
-    p_reference_id: post_id,
+  const { data: rpcData, error } = await supabase.rpc('purchase_ai_match_unlock', {
+    p_user_id: user.id,
+    p_post_id: post_id,
   })
 
-  if (deductErr) {
-    if (deductErr.message === 'insufficient_credits') {
+  if (error) {
+    console.error('[ai-match/unlock] purchase_ai_match_unlock error:', error.message)
+    return NextResponse.json({ error: 'internal_error' }, { status: 500 })
+  }
+
+  const result = rpcData as {
+    ok: boolean
+    already_unlocked?: boolean
+    error?: string
+    balance?: number
+    required?: number
+    credits_spent?: number
+  }
+
+  if (!result.ok) {
+    if (result.error === 'insufficient_credits') {
       return NextResponse.json(
         { error: 'insufficient_credits', required: UNLOCK_COST },
         { status: 402 },
       )
     }
-    return NextResponse.json({ error: 'credit_deduction_failed' }, { status: 500 })
+    return NextResponse.json({ error: 'unlock_failed' }, { status: 500 })
   }
 
-  // Record unlock
-  await supabase.from('matchmaking_unlock_log').insert({
-    user_id:       user.id,
-    post_id,
-    credits_spent: UNLOCK_COST,
+  return NextResponse.json({
+    ok:              true,
+    already_unlocked: result.already_unlocked ?? false,
+    credits_spent:   result.already_unlocked ? 0 : UNLOCK_COST,
   })
-
-  return NextResponse.json({ ok: true, already_unlocked: false, credits_spent: UNLOCK_COST })
 }

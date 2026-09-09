@@ -422,18 +422,28 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
           } else {
             devLog(`[Client ${requestId}] Media saved successfully`);
 
-            // Earn credits for posting with media
+            // Earn credits for posting with media (server-side route — N2 fix)
             const hasVideo = mediaItems.some(m => m.type === 'video');
             const mediaRewardType = hasVideo ? 'video' : 'image';
             try {
-              const { data: rewardData } = await supabase.rpc('earn_post_reward', {
-                p_user_id: user!.id,
-                p_media_type: mediaRewardType,
-              });
-              if (rewardData && rewardData > 0) {
-                setTimeout(() => {
-                  toast.success(`🪙 +${rewardData} ${t('credits.unit')} ${t('credits.reward.earned')}`, { duration: 4000 });
-                }, 800);
+              const { data: { session } } = await supabase.auth.getSession();
+              if (session) {
+                const res = await fetch('/api/rewards/post-reward', {
+                  method:  'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization:  `Bearer ${session.access_token}`,
+                  },
+                  body: JSON.stringify({ media_type: mediaRewardType }),
+                });
+                if (res.ok) {
+                  const { earned } = await res.json() as { earned: number };
+                  if (earned > 0) {
+                    setTimeout(() => {
+                      toast.success(`🪙 +${earned} ${t('credits.unit')} ${t('credits.reward.earned')}`, { duration: 4000 });
+                    }, 800);
+                  }
+                }
               }
             } catch {
               // Silent — reward failure should not block post creation
