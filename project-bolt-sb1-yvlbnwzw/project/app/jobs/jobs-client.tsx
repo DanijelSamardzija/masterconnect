@@ -1798,6 +1798,17 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
                                 </button>
                               )}
 
+                              {user?.id === post.user_id && post.post_type === 'job_seeker_post' && (
+                                <button
+                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setReverseMatchOpen(true); }}
+                                  className="h-7 px-2 flex items-center gap-1 rounded-lg text-xs font-medium transition-colors text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                                  title={t('aiMatch.reverse.button')}
+                                >
+                                  <Brain className="h-3.5 w-3.5" />
+                                  <span className="hidden md:inline">{t('aiMatch.button')}</span>
+                                </button>
+                              )}
+
                               {user?.id === post.user_id && (
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
