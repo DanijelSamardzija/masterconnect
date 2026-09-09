@@ -299,13 +299,18 @@ export function CreatePostModal({ open, onOpenChange, onSuccess }: CreatePostMod
       // First post reward
       if (postData) {
         try {
-          const { data: firstPostReward } = await supabase.rpc('earn_reward', {
-            p_user_id: user!.id,
-            p_reward_type: 'first_post',
+          const res = await fetch('/api/rewards/claim', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ reward_type: 'first_post' }),
           });
-          if (firstPostReward && firstPostReward > 0) {
+          const rewardData = res.ok ? await res.json() : null;
+          if (rewardData?.earned > 0) {
             setTimeout(() => {
-              toast.success(`🪙 +${firstPostReward} ${t('credits.unit')} ${t('credits.reward.earned')}`, { duration: 4000 });
+              toast.success(`🪙 +${rewardData.earned} ${t('credits.unit')} ${t('credits.reward.earned')}`, { duration: 4000 });
             }, 400);
           }
         } catch { /* silent */ }

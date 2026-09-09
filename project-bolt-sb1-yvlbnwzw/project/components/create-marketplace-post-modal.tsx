@@ -468,13 +468,18 @@ export function CreateMarketplacePostModal({ open, onOpenChange, onPostCreated, 
         : null;
       if (rewardType && postResult) {
         try {
-          const { data: rewardEarned } = await supabase.rpc('earn_reward', {
-            p_user_id: user!.id,
-            p_reward_type: rewardType,
+          const res = await fetch('/api/rewards/claim', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ reward_type: rewardType }),
           });
-          if (rewardEarned && rewardEarned > 0) {
+          const rewardData = res.ok ? await res.json() : null;
+          if (rewardData?.earned > 0) {
             setTimeout(() => {
-              toast.success(`🪙 +${rewardEarned} ${t('credits.unit')} ${t('credits.reward.earned')}`, { duration: 4000 });
+              toast.success(`🪙 +${rewardData.earned} ${t('credits.unit')} ${t('credits.reward.earned')}`, { duration: 4000 });
             }, 600);
           }
         } catch { /* silent */ }

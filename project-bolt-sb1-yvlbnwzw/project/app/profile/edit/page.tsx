@@ -177,14 +177,22 @@ function EditProfileContent() {
       const isCompleted = !!(name.trim() && bio.trim() && city.trim() && avatarUrl && category.trim());
       if (isCompleted) {
         try {
-          const { data: rewardEarned } = await supabase.rpc('earn_reward', {
-            p_user_id: user!.id,
-            p_reward_type: 'profile_completed',
-          });
-          if (rewardEarned && rewardEarned > 0) {
-            setTimeout(() => {
-              toast.success(`🪙 +${rewardEarned} ${t('credits.unit')} ${t('credits.reward.earned')}`, { duration: 4000 });
-            }, 500);
+          const { data: { session: rewardSession } } = await supabase.auth.getSession();
+          if (rewardSession?.access_token) {
+            const res = await fetch('/api/rewards/claim', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${rewardSession.access_token}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ reward_type: 'profile_completed' }),
+            });
+            const rewardData = res.ok ? await res.json() : null;
+            if (rewardData?.earned > 0) {
+              setTimeout(() => {
+                toast.success(`🪙 +${rewardData.earned} ${t('credits.unit')} ${t('credits.reward.earned')}`, { duration: 4000 });
+              }, 500);
+            }
           }
         } catch { /* silent */ }
       }
