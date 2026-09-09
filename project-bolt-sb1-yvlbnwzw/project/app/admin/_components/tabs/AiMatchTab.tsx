@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 interface MatchStats {
   total_runs:           number;
   cache_hits:           number;
-  cache_hit_rate:       number;
+  cache_hit_rate_pct:   number;
   total_cost_usd:       number;
   avg_duration_ms:      number;
   total_input_tokens:   number;
@@ -89,7 +89,7 @@ export function AiMatchTab() {
     {
       icon: <Database className="h-4 w-4 text-blue-500" />,
       label: 'Cache hit rate',
-      value: `${stats.cache_hit_rate ?? 0}%`,
+      value: `${stats.cache_hit_rate_pct ?? 0}%`,
     },
     {
       icon: <DollarSign className="h-4 w-4 text-green-500" />,
