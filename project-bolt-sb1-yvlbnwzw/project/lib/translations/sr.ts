@@ -1724,6 +1724,7 @@ export default {
   'aiMatch.button': 'AI Match',
   'aiMatch.modal.title': 'AI Match',
   'aiMatch.modal.subtitle': 'Top kandidati za tvoj oglas',
+  'aiMatch.modal.subtitleService': 'Top majstori za tvoj zahtjev',
   'aiMatch.modal.loading': 'Tražim kandidate...',
   'aiMatch.modal.error': 'Greška. Pokušaj ponovo.',
   'aiMatch.modal.noResults': 'Nema odgovarajućih kandidata.',

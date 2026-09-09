@@ -1724,6 +1724,7 @@ export default {
   'aiMatch.button': 'AI Match',
   'aiMatch.modal.title': 'AI Match',
   'aiMatch.modal.subtitle': 'Top candidates for your post',
+  'aiMatch.modal.subtitleService': 'Top professionals for your request',
   'aiMatch.modal.loading': 'Finding candidates...',
   'aiMatch.modal.error': 'Something went wrong. Try again.',
   'aiMatch.modal.noResults': 'No matching candidates found.',

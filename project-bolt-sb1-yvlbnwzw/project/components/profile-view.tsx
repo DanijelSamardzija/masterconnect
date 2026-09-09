@@ -2427,6 +2427,7 @@ export function ProfileView({
           onClose={() => setAiMatchPostId(null)}
           postId={aiMatchPostId}
           isPro={(profile as any).is_premium === true}
+          postType={posts.find(p => p.id === aiMatchPostId)?.post_type}
         />
       )}
 

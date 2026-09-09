@@ -1720,6 +1720,7 @@ export default {
   'aiMatch.button': 'KI-Match',
   'aiMatch.modal.title': 'KI-Match',
   'aiMatch.modal.subtitle': 'Top-Kandidaten für dein Inserat',
+  'aiMatch.modal.subtitleService': 'Top-Profis für deine Anfrage',
   'aiMatch.modal.loading': 'Kandidaten werden gesucht...',
   'aiMatch.modal.error': 'Fehler. Bitte versuche es erneut.',
   'aiMatch.modal.noResults': 'Keine passenden Kandidaten gefunden.',

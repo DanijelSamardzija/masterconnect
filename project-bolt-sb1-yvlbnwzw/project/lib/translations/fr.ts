@@ -1660,6 +1660,7 @@ export default {
   'aiMatch.button': 'IA Match',
   'aiMatch.modal.title': 'IA Match',
   'aiMatch.modal.subtitle': 'Meilleurs candidats pour votre annonce',
+  'aiMatch.modal.subtitleService': 'Meilleurs professionnels pour votre demande',
   'aiMatch.modal.loading': 'Recherche de candidats...',
   'aiMatch.modal.error': 'Erreur. Veuillez réessayer.',
   'aiMatch.modal.noResults': 'Aucun candidat correspondant trouvé.',

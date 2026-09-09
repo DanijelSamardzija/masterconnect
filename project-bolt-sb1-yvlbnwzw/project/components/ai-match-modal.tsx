@@ -33,10 +33,11 @@ interface MatchResult {
 }
 
 interface AiMatchModalProps {
-  open:    boolean;
-  onClose: () => void;
-  postId:  string;
-  isPro:   boolean;
+  open:     boolean;
+  onClose:  () => void;
+  postId:   string;
+  isPro:    boolean;
+  postType?: string;
 }
 
 type State =
@@ -60,7 +61,7 @@ async function getSession() {
   return session;
 }
 
-export function AiMatchModal({ open, onClose, postId, isPro }: AiMatchModalProps) {
+export function AiMatchModal({ open, onClose, postId, isPro, postType }: AiMatchModalProps) {
   const { t } = useLanguage();
   const [state, setState]               = useState<State>({ kind: 'idle' });
   const [unlockState, setUnlockState]   = useState<UnlockState>('idle');
@@ -221,7 +222,11 @@ export function AiMatchModal({ open, onClose, postId, isPro }: AiMatchModalProps
             <Brain className="h-5 w-5 text-orange-500" />
             {t('aiMatch.modal.title')}
           </DialogTitle>
-          <p className="text-xs text-muted-foreground mt-0.5">{t('aiMatch.modal.subtitle')}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {postType === 'service_request'
+              ? t('aiMatch.modal.subtitleService')
+              : t('aiMatch.modal.subtitle')}
+          </p>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto min-h-0 space-y-2 mt-2 pr-0.5">
