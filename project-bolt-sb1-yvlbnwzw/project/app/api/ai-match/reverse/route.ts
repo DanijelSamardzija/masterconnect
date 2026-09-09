@@ -16,6 +16,11 @@ function serviceClient() {
 }
 
 export async function POST(req: NextRequest) {
+  // Kill switch — no deploy needed to disable
+  if (process.env.AI_MATCH_DISABLED === 'true') {
+    return NextResponse.json({ error: 'matching_disabled' }, { status: 503 })
+  }
+
   try {
     // ── Auth ──────────────────────────────────────────────────────────────
     const authHeader = req.headers.get('Authorization') ?? ''
@@ -81,10 +86,21 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // ── Exclude blocked users (same logic as forward pipeline) ───────────
+    const { data: blocks } = await svc
+      .from('blocks')
+      .select('blocker_user_id, blocked_user_id')
+      .or(`blocker_user_id.eq.${user.id},blocked_user_id.eq.${user.id}`)
+
+    const excludeIds: string[] = (blocks ?? []).flatMap((b) =>
+      b.blocker_user_id === user.id ? [b.blocked_user_id] : [b.blocker_user_id],
+    )
+
     // ── Run reverse pipeline ──────────────────────────────────────────────
     const result = await runReversePipeline(svc, {
       profile_id:    user.id,
       requester_lang,
+      exclude_ids:   excludeIds,
     })
 
     // ── Upsert server cache ───────────────────────────────────────────────

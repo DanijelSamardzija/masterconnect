@@ -65,7 +65,11 @@ export async function runReversePipeline(
   // ── Step 4: DB pre-filter via find_matching_posts_for_profile RPC ─────────
   const { data: rawPosts, error: dbError } = await supabase.rpc(
     'find_matching_posts_for_profile',
-    { p_profile_id: input.profile_id, p_limit: 100 } as any,
+    {
+      p_profile_id:  input.profile_id,
+      p_limit:       100,
+      p_exclude_ids: input.exclude_ids ?? [],
+    } as any,
   )
 
   if (dbError) throw new Error(`DB pre-filter failed: ${dbError.message}`)

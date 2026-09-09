@@ -180,6 +180,7 @@ export interface RankedPost {
 export interface ReversePipelineInput {
   profile_id:     string
   requester_lang: string
+  exclude_ids?:   string[]
 }
 
 export interface ReversePipelineResult {

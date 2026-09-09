@@ -329,31 +329,16 @@ export async function POST(request: NextRequest) {
     let creditsCharged = 0
 
     if (!isFree) {
-      // Check if professional has enough credits
-      const { data: balance } = await supabase
-        .from('credits_balance')
-        .select('balance')
-        .eq('user_id', prof.id)
-        .maybeSingle()
-
-      if (!balance || balance.balance < PAID_NOTIFICATION_COST) continue
-
-      // Deduct credits
-      const newBal = balance.balance - PAID_NOTIFICATION_COST
-      const { error: deductErr } = await supabase
-        .from('credits_balance')
-        .update({ balance: newBal, updated_at: now.toISOString() })
-        .eq('user_id', prof.id)
-
-      if (deductErr) continue
-
-      await supabase.from('credit_transactions').insert({
-        user_id:      prof.id,
-        amount:       -PAID_NOTIFICATION_COST,
-        type:         'spend',
-        description:  'ai_match_notification',
-        reference_id: post_id,
+      // Atomic deduction — handles balance check, UPDATE and INSERT in one DB round-trip
+      const { error: deductErr } = await supabase.rpc('deduct_credits_atomic', {
+        p_user_id:      prof.id,
+        p_amount:       PAID_NOTIFICATION_COST,
+        p_type:         'spend',
+        p_description:  'ai_match_notification',
+        p_reference_id: post_id,
       })
+
+      if (deductErr) continue  // insufficient_credits or any other error → skip
 
       creditsCharged = PAID_NOTIFICATION_COST
     }

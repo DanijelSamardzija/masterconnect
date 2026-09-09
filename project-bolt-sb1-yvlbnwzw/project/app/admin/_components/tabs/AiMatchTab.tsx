@@ -18,15 +18,16 @@ interface MatchStats {
 }
 
 interface RecentRun {
-  id:           string;
-  post_id:      string;
-  user_id:      string;
-  cache_hit:    boolean;
-  cost_usd:     number | null;
-  duration_ms:  number | null;
-  post_type:    string | null;
-  category:     string | null;
-  created_at:   string;
+  id:            string;
+  post_id:       string | null;
+  user_id:       string;
+  cache_hit:     boolean;
+  cost_usd:      number | null;
+  duration_ms:   number | null;
+  post_type:     string | null;
+  category:      string | null;
+  pipeline_type: string | null;
+  created_at:    string;
 }
 
 export function AiMatchTab() {
@@ -45,10 +46,7 @@ export function AiMatchTab() {
       if (statsErr) throw new Error(statsErr.message);
 
       const { data: runs, error: runsErr } = await (supabase as any)
-        .from('matchmaking_runs_log')
-        .select('id, post_id, user_id, cache_hit, cost_usd, duration_ms, post_type, category, created_at')
-        .order('created_at', { ascending: false })
-        .limit(20)
+        .rpc('get_recent_matchmaking_runs', { p_limit: 20 })
 
       if (runsErr) throw new Error(runsErr.message);
 
@@ -192,7 +190,7 @@ export function AiMatchTab() {
               <tbody>
                 {recentRuns.map((run) => (
                   <tr key={run.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
-                    <td className="px-3 py-2 text-foreground">{run.post_type ?? '—'}</td>
+                    <td className="px-3 py-2 text-foreground">{run.pipeline_type ?? run.post_type ?? '—'}</td>
                     <td className="px-3 py-2 text-muted-foreground">{run.category ?? '—'}</td>
                     <td className="px-3 py-2">
                       <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
