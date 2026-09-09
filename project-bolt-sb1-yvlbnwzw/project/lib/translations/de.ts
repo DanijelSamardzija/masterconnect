@@ -1726,6 +1726,7 @@ export default {
   'aiMatch.modal.refresh': 'Aktualisieren',
   'aiMatch.modal.cachedResult': 'Gespeicherte Ergebnisse',
   'aiMatch.modal.cachedAt': 'Von {date}',
+  'aiMatch.modal.freshResult': 'Aktuelle Ergebnisse',
   'aiMatch.modal.score': '{score}% Übereinstimmung',
   'aiMatch.modal.viewProfile': 'Profil ansehen',
   'aiMatch.modal.proTitle': 'PRO-Funktion',
@@ -1733,6 +1734,8 @@ export default {
   'aiMatch.modal.upgradeBtn': 'Auf PRO upgraden',
   'aiMatch.modal.rateLimit': 'Tageslimit erreicht. Komm morgen wieder.',
   'aiMatch.modal.runsLeft': 'Noch {n} Suchen',
+  'aiMatch.modal.balance': 'Guthaben: {n} Kr.',
+  'aiMatch.modal.refreshNoCredits': 'Nicht genug Guthaben zum Aktualisieren',
   'aiMatch.modal.anonymousUser': 'GigZone Nutzer',
 
   // Faza 3
@@ -1773,7 +1776,9 @@ export default {
   'aiMatch.reverse.candidateCount': '{count} Anzeigen analysiert',
   'aiMatch.reverse.refresh': 'Aktualisieren',
   'aiMatch.reverse.error': 'Suche fehlgeschlagen. Bitte erneut versuchen.',
+  'aiMatch.reverse.rateLimit': 'Tageslimit erreicht. Versuche es morgen erneut.',
   'aiMatch.reverse.cachedResult': 'Gespeicherte Ergebnisse',
+  'aiMatch.reverse.cachedAt': 'Vom {date}',
   'aiMatch.reverse.hiring': 'Sucht Mitarbeiter',
   'aiMatch.reverse.serviceRequest': 'Sucht Dienstleistung',
   'aiMatch.reverse.budget': 'Budget: {price}',

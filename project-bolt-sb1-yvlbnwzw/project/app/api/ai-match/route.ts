@@ -102,6 +102,15 @@ export async function POST(request: NextRequest) {
       .maybeSingle()
 
     if (cached) {
+      const dayAgo = new Date(Date.now() - 86_400_000).toISOString()
+      const { count: cachedUserRuns } = await supabase
+        .from('matchmaking_runs_log')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('pipeline_type', 'forward')
+        .eq('cache_hit', false)
+        .gte('created_at', dayAgo)
+
       await supabase.from('matchmaking_runs_log').insert({
         post_id,
         user_id:       user.id,
@@ -110,7 +119,13 @@ export async function POST(request: NextRequest) {
         post_type:     post.post_type,
         category:      post.category,
       })
-      return NextResponse.json({ ok: true, cached: true, is_unlocked: isUnlocked, data: cached })
+      return NextResponse.json({
+        ok: true,
+        cached: true,
+        is_unlocked: isUnlocked,
+        runs_left: Math.max(0, MAX_RUNS_PER_USER_DAY - (cachedUserRuns ?? 0)),
+        data: cached,
+      })
     }
   }
 
@@ -248,6 +263,7 @@ export async function POST(request: NextRequest) {
     ok:          true,
     cached:      false,
     is_unlocked: isUnlocked,
+    runs_left:   Math.max(0, MAX_RUNS_PER_USER_DAY - (userRuns ?? 0) - 1),
     data: {
       extraction:      result.extraction,
       ranked_profiles: result.ranked_profiles,

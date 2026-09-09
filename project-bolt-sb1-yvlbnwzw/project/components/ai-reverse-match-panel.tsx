@@ -34,12 +34,14 @@ interface MatchResult {
   candidate_count: number;
   expires_at:      string;
   created_at:      string;
+  cached?:         boolean;
 }
 
 type State =
   | { kind: 'idle' }
   | { kind: 'loading' }
-  | { kind: 'success'; data: MatchResult; cached: boolean }
+  | { kind: 'success'; data: MatchResult }
+  | { kind: 'rateLimit' }
   | { kind: 'error' };
 
 async function getSession() {
@@ -55,7 +57,6 @@ interface AiReverseMatchPanelProps {
 export function AiReverseMatchPanel({ open, onClose }: AiReverseMatchPanelProps) {
   const { t, language } = useLanguage();
   const [state, setState] = useState<State>({ kind: 'idle' });
-  const [cachedResult, setCachedResult] = useState<MatchResult | null>(null);
 
   const run = useCallback(async () => {
     setState({ kind: 'loading' });
@@ -75,21 +76,24 @@ export function AiReverseMatchPanel({ open, onClose }: AiReverseMatchPanelProps)
         body: JSON.stringify({ lang: language }),
       });
 
+      if (res.status === 429) {
+        setState({ kind: 'rateLimit' });
+        return;
+      }
+
       if (!res.ok) {
         setState({ kind: 'error' });
         return;
       }
 
       const data: MatchResult = await res.json();
-      setCachedResult(data);
-      setState({ kind: 'success', data, cached: false });
+      setState({ kind: 'success', data });
     } catch {
       setState({ kind: 'error' });
     }
   }, [language]);
 
   const refresh = useCallback(() => {
-    setCachedResult(null);
     run();
   }, [run]);
 
@@ -108,6 +112,9 @@ export function AiReverseMatchPanel({ open, onClose }: AiReverseMatchPanelProps)
     if (type === 'service_request') return t('aiMatch.reverse.serviceRequest');
     return type;
   }
+
+  const fmtDate = (d: string) =>
+    new Date(d).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' });
 
   if (!open) return null;
 
@@ -155,6 +162,15 @@ export function AiReverseMatchPanel({ open, onClose }: AiReverseMatchPanelProps)
             <div className="flex flex-col items-center gap-3 py-10">
               <p className="text-sm text-destructive">{t('aiMatch.reverse.error')}</p>
               <Button variant="outline" size="sm" onClick={run}>{t('aiMatch.reverse.find')}</Button>
+            </div>
+          )}
+
+          {state.kind === 'rateLimit' && (
+            <div className="flex flex-col items-center gap-3 py-10 text-center">
+              <Clock className="w-8 h-8 text-amber-400" />
+              <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">
+                {t('aiMatch.reverse.rateLimit')}
+              </p>
             </div>
           )}
 
@@ -250,6 +266,17 @@ export function AiReverseMatchPanel({ open, onClose }: AiReverseMatchPanelProps)
             </div>
           )}
         </div>
+
+        {/* Footer: cached indicator */}
+        {state.kind === 'success' && (
+          <div className="px-5 py-3 border-t border-border shrink-0">
+            <p className="text-[10px] text-muted-foreground/70">
+              {state.data.cached && state.data.created_at
+                ? `${t('aiMatch.reverse.cachedResult')} · ${t('aiMatch.reverse.cachedAt').replace('{date}', fmtDate(state.data.created_at))}`
+                : t('aiMatch.reverse.cachedResult')}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

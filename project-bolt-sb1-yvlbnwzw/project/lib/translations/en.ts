@@ -1730,6 +1730,7 @@ export default {
   'aiMatch.modal.refresh': 'Refresh',
   'aiMatch.modal.cachedResult': 'Cached results',
   'aiMatch.modal.cachedAt': 'From {date}',
+  'aiMatch.modal.freshResult': 'Fresh results',
   'aiMatch.modal.score': '{score}% match',
   'aiMatch.modal.viewProfile': 'View profile',
   'aiMatch.modal.proTitle': 'PRO Feature',
@@ -1737,6 +1738,8 @@ export default {
   'aiMatch.modal.upgradeBtn': 'Upgrade to PRO',
   'aiMatch.modal.rateLimit': 'Daily limit reached. Come back tomorrow.',
   'aiMatch.modal.runsLeft': '{n} searches left',
+  'aiMatch.modal.balance': 'Balance: {n} cr',
+  'aiMatch.modal.refreshNoCredits': 'Not enough credits to refresh',
   'aiMatch.modal.anonymousUser': 'GigZone User',
 
   // Faza 3 — Unlock
@@ -1783,7 +1786,9 @@ export default {
   'aiMatch.reverse.candidateCount': '{count} posts analyzed',
   'aiMatch.reverse.refresh': 'Refresh',
   'aiMatch.reverse.error': 'Search failed. Please try again.',
+  'aiMatch.reverse.rateLimit': 'Daily limit reached. Try again tomorrow.',
   'aiMatch.reverse.cachedResult': 'Saved results',
+  'aiMatch.reverse.cachedAt': 'From {date}',
   'aiMatch.reverse.hiring': 'Looking to hire',
   'aiMatch.reverse.serviceRequest': 'Looking for a service',
   'aiMatch.reverse.budget': 'Budget: {price}',

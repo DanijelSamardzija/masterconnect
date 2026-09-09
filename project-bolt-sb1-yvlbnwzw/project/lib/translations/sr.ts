@@ -1730,6 +1730,7 @@ export default {
   'aiMatch.modal.refresh': 'Osvježi',
   'aiMatch.modal.cachedResult': 'Sačuvani rezultati',
   'aiMatch.modal.cachedAt': 'Od {date}',
+  'aiMatch.modal.freshResult': 'Svježi rezultati',
   'aiMatch.modal.score': '{score}% podudaranje',
   'aiMatch.modal.viewProfile': 'Pogledaj profil',
   'aiMatch.modal.proTitle': 'PRO funkcija',
@@ -1737,6 +1738,8 @@ export default {
   'aiMatch.modal.upgradeBtn': 'Nadogradi na PRO',
   'aiMatch.modal.rateLimit': 'Dostignuta dnevna granica. Vrati se sutra.',
   'aiMatch.modal.runsLeft': 'Ostalo pretraga: {n}',
+  'aiMatch.modal.balance': 'Balans: {n} kr',
+  'aiMatch.modal.refreshNoCredits': 'Nedovoljno kredita za osvježavanje',
   'aiMatch.modal.anonymousUser': 'GigZone korisnik',
 
   // Faza 3 — Unlock (reveal bluriranih kandidata za kredite)
@@ -1783,7 +1786,9 @@ export default {
   'aiMatch.reverse.candidateCount': '{count} oglasa analizirano',
   'aiMatch.reverse.refresh': 'Osvježi',
   'aiMatch.reverse.error': 'Greška pri traženju. Pokušaj ponovo.',
+  'aiMatch.reverse.rateLimit': 'Dnevna granica dostignuta. Pokušaj sutra.',
   'aiMatch.reverse.cachedResult': 'Sačuvani rezultati',
+  'aiMatch.reverse.cachedAt': 'Od {date}',
   'aiMatch.reverse.hiring': 'Traže radnika',
   'aiMatch.reverse.serviceRequest': 'Traže uslugu',
   'aiMatch.reverse.budget': 'Budžet: {price}',

@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Brain, Loader2, RefreshCw, Star, MapPin, Lock, ExternalLink, ThumbsDown } from 'lucide-react';
+import { Brain, Loader2, RefreshCw, Star, MapPin, Lock, ExternalLink, ThumbsDown, Coins } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 
@@ -65,9 +65,26 @@ export function AiMatchModal({ open, onClose, postId, isPro }: AiMatchModalProps
   const [state, setState]               = useState<State>({ kind: 'idle' });
   const [unlockState, setUnlockState]   = useState<UnlockState>('idle');
   const [feedbackSent, setFeedbackSent] = useState<Set<string>>(new Set());
+  const [balance, setBalance]           = useState<number | null>(null);
+  const [runsLeft, setRunsLeft]         = useState<number | null>(null);
+  const [refreshError, setRefreshError] = useState<'insufficient' | 'error' | null>(null);
+
+  const fetchBalance = useCallback(async () => {
+    const session = await getSession();
+    if (!session) return;
+    const { data } = await supabase
+      .from('credits_balance')
+      .select('balance')
+      .eq('user_id', session.user.id)
+      .maybeSingle();
+    setBalance(data?.balance ?? null);
+  }, []);
 
   const run = useCallback(async (forceRefresh = false) => {
-    setState({ kind: 'loading' });
+    if (!forceRefresh) {
+      setState({ kind: 'loading' });
+    }
+    setRefreshError(null);
     try {
       const session = await getSession();
       if (!session) { setState({ kind: 'error' }); return; }
@@ -83,13 +100,22 @@ export function AiMatchModal({ open, onClose, postId, isPro }: AiMatchModalProps
 
       if (res.status === 429) { setState({ kind: 'rateLimit' }); return; }
       if (res.status === 402) {
-        // insufficient credits for refresh — treat as error with specific message
+        if (forceRefresh) {
+          // Keep existing results visible, show inline error near refresh button
+          setRefreshError('insufficient');
+          return;
+        }
         setState({ kind: 'error' }); return;
       }
-      if (!res.ok) { setState({ kind: 'error' }); return; }
+      if (!res.ok) {
+        if (forceRefresh) { setRefreshError('error'); return; }
+        setState({ kind: 'error' }); return;
+      }
 
       const json = await res.json();
       if (!json.ok) { setState({ kind: 'error' }); return; }
+
+      if (typeof json.runs_left === 'number') setRunsLeft(json.runs_left);
 
       setState({
         kind:       'success',
@@ -98,12 +124,16 @@ export function AiMatchModal({ open, onClose, postId, isPro }: AiMatchModalProps
         isUnlocked: json.is_unlocked === true,
       });
     } catch {
+      if (forceRefresh) { setRefreshError('error'); return; }
       setState({ kind: 'error' });
     }
   }, [postId]);
 
   useEffect(() => {
-    if (open && state.kind === 'idle') run(false);
+    if (open) {
+      if (state.kind === 'idle') run(false);
+      fetchBalance();
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
@@ -126,14 +156,15 @@ export function AiMatchModal({ open, onClose, postId, isPro }: AiMatchModalProps
       if (!res.ok) { setUnlockState('error'); return; }
 
       setUnlockState('done');
-      // Refresh state to show isUnlocked: true
       if (state.kind === 'success') {
         setState({ ...state, isUnlocked: true });
       }
+      // Refresh balance after spending credits
+      fetchBalance();
     } catch {
       setUnlockState('error');
     }
-  }, [postId, state]);
+  }, [postId, state, fetchBalance]);
 
   const handleFeedback = useCallback(async (candidateProfileId: string) => {
     try {
@@ -159,6 +190,12 @@ export function AiMatchModal({ open, onClose, postId, isPro }: AiMatchModalProps
     }
   }, [postId]);
 
+  const handleRefresh = useCallback(async () => {
+    await run(true);
+    // Refresh balance after potential credit spend
+    fetchBalance();
+  }, [run, fetchBalance]);
+
   const handleOpen = (isOpen: boolean) => {
     if (!isOpen) onClose();
   };
@@ -172,6 +209,9 @@ export function AiMatchModal({ open, onClose, postId, isPro }: AiMatchModalProps
   const refreshLabel = isPro
     ? t('aiMatch.refreshCostFree')
     : t('aiMatch.refreshCost').replace('{n}', String(REFRESH_COST));
+
+  const fmtDate = (d: string) =>
+    new Date(d).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' });
 
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
@@ -243,16 +283,23 @@ export function AiMatchModal({ open, onClose, postId, isPro }: AiMatchModalProps
 
                     {/* Unlock for credits button (only shown once, on first blurred card) */}
                     {idx === FREE_VISIBLE && (
-                      <button
-                        onClick={handleUnlock}
-                        disabled={unlockState === 'loading'}
-                        className="mt-1 rounded-lg border border-orange-400 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 text-xs font-semibold px-4 py-1.5 transition-all disabled:opacity-60 flex items-center gap-1.5"
-                      >
-                        {unlockState === 'loading' && <Loader2 className="h-3 w-3 animate-spin" />}
-                        {unlockState === 'noCredits'
-                          ? t('aiMatch.unlock.noCredits')
-                          : t('aiMatch.unlock.button').replace('{n}', String(UNLOCK_COST))}
-                      </button>
+                      <div className="flex flex-col items-center gap-1 w-full">
+                        <button
+                          onClick={handleUnlock}
+                          disabled={unlockState === 'loading' || unlockState === 'noCredits'}
+                          className="mt-1 rounded-lg border border-orange-400 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 text-xs font-semibold px-4 py-1.5 transition-all disabled:opacity-60 flex items-center gap-1.5"
+                        >
+                          {unlockState === 'loading' && <Loader2 className="h-3 w-3 animate-spin" />}
+                          {unlockState === 'noCredits'
+                            ? t('aiMatch.unlock.noCredits')
+                            : t('aiMatch.unlock.button').replace('{n}', String(UNLOCK_COST))}
+                        </button>
+                        {balance !== null && (
+                          <span className="text-[10px] text-muted-foreground">
+                            {t('aiMatch.modal.balance').replace('{n}', String(balance))}
+                          </span>
+                        )}
+                      </div>
                     )}
 
                     <Link
@@ -351,21 +398,51 @@ export function AiMatchModal({ open, onClose, postId, isPro }: AiMatchModalProps
           })}
         </div>
 
-        {/* Footer: cache info + refresh */}
+        {/* Footer: cache info + balance + runs left + refresh */}
         {state.kind === 'success' && (
-          <div className="flex items-center justify-between pt-2 border-t border-border mt-1 shrink-0">
-            <div className="text-[11px] text-muted-foreground">
-              {cached && cachedAt
-                ? `${t('aiMatch.modal.cachedResult')} · ${t('aiMatch.modal.cachedAt').replace('{date}', new Date(cachedAt).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' }))}`
-                : t('aiMatch.modal.cachedResult')}
+          <div className="pt-2 border-t border-border mt-1 shrink-0 space-y-1.5">
+            {/* Cache / fresh info row */}
+            <div className="flex items-center justify-between">
+              <div className="text-[11px] text-muted-foreground">
+                {cached && cachedAt
+                  ? `${t('aiMatch.modal.cachedResult')} · ${t('aiMatch.modal.cachedAt').replace('{date}', fmtDate(cachedAt))}`
+                  : t('aiMatch.modal.freshResult')}
+              </div>
+              <div className="flex flex-col items-end gap-0.5">
+                {refreshError === 'insufficient' && (
+                  <span className="text-[10px] text-destructive">
+                    {t('aiMatch.modal.refreshNoCredits')}
+                  </span>
+                )}
+                {refreshError === 'error' && (
+                  <span className="text-[10px] text-destructive">
+                    {t('aiMatch.modal.error')}
+                  </span>
+                )}
+                <button
+                  onClick={handleRefresh}
+                  className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <RefreshCw className="h-3 w-3" />
+                  {refreshLabel}
+                </button>
+              </div>
             </div>
-            <button
-              onClick={() => run(true)}
-              className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <RefreshCw className="h-3 w-3" />
-              {refreshLabel}
-            </button>
+
+            {/* Balance + runs left row */}
+            {(balance !== null || runsLeft !== null) && (
+              <div className="flex items-center justify-between text-[10px] text-muted-foreground/70">
+                {balance !== null ? (
+                  <span className="flex items-center gap-1">
+                    <Coins className="h-3 w-3" />
+                    {t('aiMatch.modal.balance').replace('{n}', String(balance))}
+                  </span>
+                ) : <span />}
+                {runsLeft !== null && (
+                  <span>{t('aiMatch.modal.runsLeft').replace('{n}', String(runsLeft))}</span>
+                )}
+              </div>
+            )}
           </div>
         )}
       </DialogContent>
