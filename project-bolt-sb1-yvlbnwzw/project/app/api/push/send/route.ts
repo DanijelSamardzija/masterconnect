@@ -137,6 +137,9 @@ async function processPush(body: any) {
     bkgCompletedHeading: string;
     bkgCompletedBody: (biz: string) => string;
     bkgCompletedCta: string;
+    bkgReminderHeading: string;
+    bkgReminderBody: (biz: string, dt: string) => string;
+    bkgReminderCta: string;
   }> = {
     en: {
       fb: 'Someone',
@@ -161,6 +164,9 @@ async function processPush(body: any) {
       bkgCompletedHeading: 'Appointment completed ✅',
       bkgCompletedBody: (biz) => `Your appointment at <strong>${biz}</strong> is complete. Leave a review!`,
       bkgCompletedCta: 'Leave a review',
+      bkgReminderHeading: 'Appointment tomorrow ⏰',
+      bkgReminderBody: (biz, dt) => `Your appointment at <strong>${biz}</strong> is tomorrow.<br><span style="color:#888;font-size:14px">📅 ${dt}</span>`,
+      bkgReminderCta: 'View booking',
     },
     de: {
       fb: 'Jemand',
@@ -185,6 +191,9 @@ async function processPush(body: any) {
       bkgCompletedHeading: 'Termin abgeschlossen ✅',
       bkgCompletedBody: (biz) => `Ihr Termin bei <strong>${biz}</strong> ist abgeschlossen. Hinterlassen Sie eine Bewertung!`,
       bkgCompletedCta: 'Bewertung hinterlassen',
+      bkgReminderHeading: 'Termin morgen ⏰',
+      bkgReminderBody: (biz, dt) => `Ihr Termin bei <strong>${biz}</strong> ist morgen.<br><span style="color:#888;font-size:14px">📅 ${dt}</span>`,
+      bkgReminderCta: 'Buchung ansehen',
     },
     es: {
       fb: 'Alguien',
@@ -209,6 +218,9 @@ async function processPush(body: any) {
       bkgCompletedHeading: 'Cita completada ✅',
       bkgCompletedBody: (biz) => `Tu cita en <strong>${biz}</strong> ha concluido. ¡Deja una reseña!`,
       bkgCompletedCta: 'Dejar una reseña',
+      bkgReminderHeading: 'Cita mañana ⏰',
+      bkgReminderBody: (biz, dt) => `Tu cita en <strong>${biz}</strong> es mañana.<br><span style="color:#888;font-size:14px">📅 ${dt}</span>`,
+      bkgReminderCta: 'Ver reserva',
     },
     fr: {
       fb: 'Quelqu\'un',
@@ -233,6 +245,9 @@ async function processPush(body: any) {
       bkgCompletedHeading: 'Rendez-vous terminé ✅',
       bkgCompletedBody: (biz) => `Votre rendez-vous chez <strong>${biz}</strong> est terminé. Laissez un avis !`,
       bkgCompletedCta: 'Laisser un avis',
+      bkgReminderHeading: 'Rendez-vous demain ⏰',
+      bkgReminderBody: (biz, dt) => `Votre rendez-vous chez <strong>${biz}</strong> est demain.<br><span style="color:#888;font-size:14px">📅 ${dt}</span>`,
+      bkgReminderCta: 'Voir la réservation',
     },
     sr: {
       fb: 'Neko',
@@ -257,6 +272,9 @@ async function processPush(body: any) {
       bkgCompletedHeading: 'Termin završen ✅',
       bkgCompletedBody: (biz) => `Vaš termin kod <strong>${biz}</strong> je završen. Ostavite recenziju!`,
       bkgCompletedCta: 'Ostavi recenziju',
+      bkgReminderHeading: 'Termin sutra ⏰',
+      bkgReminderBody: (biz, dt) => `Vaš termin kod <strong>${biz}</strong> je sutra.<br><span style="color:#888;font-size:14px">📅 ${dt}</span>`,
+      bkgReminderCta: 'Pogledaj rezervaciju',
     },
   };
   const eL = emailLocales[pushLang] ?? emailLocales.sr;
@@ -436,6 +454,14 @@ async function processPush(body: any) {
                     ${svcName ? `<p style="color:#333;font-weight:600;margin:0 0 4px">${svcName}</p>` : ''}
                     ${dtStr ? `<p style="color:#888;margin:0 0 20px;font-size:14px">📅 ${dtStr}</p>` : '<div style="margin-bottom:20px"></div>'}`;
         ctaText  = eL.bkgCompletedCta;
+        ctaUrl   = `https://www.gigzone.app/dashboard/bookings`;
+      } else if (action_type === 'booking_reminder') {
+        const reminderDt = notifBody || dtStr;
+        subject  = subject || eL.bkgReminderHeading;
+        heading  = eL.bkgReminderHeading;
+        bodyHtml = `<p style="color:#555;margin:0 0 8px">${eL.bkgReminderBody(bizName, reminderDt)}</p>
+                    ${svcName ? `<p style="color:#333;font-weight:600;margin:0 0 20px">${svcName}</p>` : '<div style="margin-bottom:20px"></div>'}`;
+        ctaText  = eL.bkgReminderCta;
         ctaUrl   = `https://www.gigzone.app/dashboard/bookings`;
       }
 
