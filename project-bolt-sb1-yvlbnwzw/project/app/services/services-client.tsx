@@ -148,7 +148,7 @@ export function ServicesClient({ initialSearch = '' }: ServicesClientProps) {
           hashtag_count,
           is_promoted,
           promoted_until,
-          profiles (
+          profiles!posts_user_id_fkey (
             name,
             avatar_url,
             account_type,

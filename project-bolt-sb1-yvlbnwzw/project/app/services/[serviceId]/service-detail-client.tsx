@@ -108,7 +108,7 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
           price_value,
           currency,
           created_at,
-          profiles (
+          profiles!posts_user_id_fkey (
             name,
             avatar_url,
             account_type,

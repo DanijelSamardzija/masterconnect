@@ -26,7 +26,7 @@ async function fetchService(serviceId: string) {
       created_at,
       booking_enabled,
       business_id,
-      profiles (
+      profiles!posts_user_id_fkey (
         name,
         avatar_url,
         account_type,

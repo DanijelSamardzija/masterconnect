@@ -25,7 +25,7 @@ function makeSupabase() {
 const fetchServiceMeta = cache(async (serviceId: string) => {
   const { data } = await makeSupabase()
     .from('posts')
-    .select('id, job_title, category, text, city, price_value, price_type, currency, post_media(url, order, type), profiles(name, avatar_url, average_rating, review_count)')
+    .select('id, job_title, category, text, city, price_value, price_type, currency, post_media(url, order, type), profiles!posts_user_id_fkey(name, avatar_url, average_rating, review_count)')
     .eq('id', serviceId)
     .eq('post_type', 'service_listing')
     .eq('is_active', true)
