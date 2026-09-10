@@ -27,7 +27,7 @@ async function buildListingQuery(supabase: SupabaseClient, filter: ListingFilter
   let query = supabase
     .from('posts')
     .select(
-      'id, user_id, job_title, text, category, city, country, price_type, price_value, currency, created_at, profiles(name, avatar_url, account_type, average_rating, review_count, last_seen, is_premium), post_media(id, type, url, order)'
+      'id, user_id, job_title, text, category, city, country, price_type, price_value, currency, created_at, profiles!posts_user_id_fkey(name, avatar_url, account_type, average_rating, review_count, last_seen, is_premium), post_media(id, type, url, order)'
     )
     .eq('post_type', 'service_listing')
     .eq('category', filter.category)
