@@ -9,6 +9,7 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
 import { Calendar, Check, X, ChevronRight, Users, CheckCircle, UserX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { LiveStatusToggle } from '@/components/live-status-toggle';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,6 +59,8 @@ export default function BusinessBookingsPage() {
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterValue>('all');
+  const [primaryBizId, setPrimaryBizId] = useState<string | null>(null);
+  const [primaryLiveStatus, setPrimaryLiveStatus] = useState<'available_now' | 'available_today' | 'by_schedule' | 'unavailable'>('by_schedule');
 
   // Action state
   const [confirmTarget, setConfirmTarget] = useState<string | null>(null);
@@ -82,6 +85,18 @@ export default function BusinessBookingsPage() {
         setBookings([]);
         setLoading(false);
         return;
+      }
+
+      // Fetch live_status for primary (first) business
+      const firstBizId = businessIds[0];
+      setPrimaryBizId(firstBizId);
+      const { data: profileRow } = await supabase
+        .from('profiles')
+        .select('live_status')
+        .eq('id', firstBizId)
+        .single();
+      if (profileRow?.live_status) {
+        setPrimaryLiveStatus(profileRow.live_status as typeof primaryLiveStatus);
       }
 
       const { data } = await supabase
@@ -186,6 +201,16 @@ export default function BusinessBookingsPage() {
             </button>
             <h1 className="text-xl font-semibold">{t('booking.businessBookings')}</h1>
           </div>
+
+          {/* Live availability toggle */}
+          {primaryBizId && (
+            <div className="mb-5 p-4 border border-border rounded-xl bg-card">
+              <LiveStatusToggle
+                businessId={primaryBizId}
+                initialStatus={primaryLiveStatus}
+              />
+            </div>
+          )}
 
           {/* Filter chips */}
           <div className="flex flex-wrap gap-2 mb-6">

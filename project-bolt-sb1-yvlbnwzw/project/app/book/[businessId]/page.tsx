@@ -11,6 +11,7 @@ type Business = {
   id: string;
   name: string;
   avatar_url: string | null;
+  live_status: string | null;
 };
 
 type Service = {
@@ -40,7 +41,7 @@ export default function BusinessBookingPage() {
       const [bizRes, svcRes] = await Promise.all([
         supabase
           .from('profiles')
-          .select('id, name, avatar_url')
+          .select('id, name, avatar_url, live_status')
           .eq('id', businessId)
           .eq('is_business', true)
           .maybeSingle(),
@@ -108,7 +109,18 @@ export default function BusinessBookingPage() {
           )}
           <div>
             <h1 className="text-xl font-semibold">{business.name}</h1>
-            <p className="text-sm text-muted-foreground">{t('booking.selectServiceDesc')}</p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <p className="text-sm text-muted-foreground">{t('booking.selectServiceDesc')}</p>
+              {business.live_status && business.live_status !== 'unavailable' && business.live_status !== 'by_schedule' && (
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                  business.live_status === 'available_now'
+                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                    : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                }`}>
+                  {t(`live.status.${business.live_status}` as Parameters<typeof t>[0])}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
