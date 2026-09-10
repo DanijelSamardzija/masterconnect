@@ -1,7 +1,7 @@
 import { supabase } from './supabase/client';
 
 export async function ensureThreadParticipants(threadId: string, customerId: string, proId: string) {
-  const { error } = await supabase.rpc('add_thread_participants', {
+  const { error } = await (supabase as any).rpc('add_thread_participants', {
     p_thread_id: threadId,
     p_customer_id: customerId,
     p_pro_id: proId,
