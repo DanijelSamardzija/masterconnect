@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
-import { Calendar, Check, X, ChevronRight, Users, CheckCircle, UserX } from 'lucide-react';
+import { Calendar, Check, X, ChevronRight, Users, CheckCircle, UserX, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LiveStatusToggle } from '@/components/live-status-toggle';
 import {
@@ -199,7 +199,14 @@ export default function BusinessBookingsPage() {
             <button onClick={() => router.push('/dashboard')} className="text-muted-foreground hover:text-foreground transition-colors">
               <ChevronRight className="w-5 h-5 rotate-180" />
             </button>
-            <h1 className="text-xl font-semibold">{t('booking.businessBookings')}</h1>
+            <h1 className="text-xl font-semibold flex-1">{t('booking.businessBookings')}</h1>
+            <button
+              onClick={() => router.push('/dashboard/business/setup')}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground border border-border rounded-lg px-3 py-1.5 transition-colors"
+            >
+              <Settings className="w-3.5 h-3.5" />
+              {t('setup.nav.setup')}
+            </button>
           </div>
 
           {/* Live availability toggle */}
