@@ -1788,4 +1788,17 @@ export default {
   'booking.loadingSlots': 'Chargement des créneaux disponibles...',
   'booking.slotAt': 'à',
   'booking.for': 'pour',
+  // F7 — lifecycle completion + Post→Book widget
+  'booking.markComplete': 'Marquer comme terminé',
+  'booking.markNoShow': 'Marquer comme absent',
+  'booking.markCompleteConfirm': 'Marquer ce rendez-vous comme terminé ?',
+  'booking.markNoShowConfirm': 'Marquer ce rendez-vous comme absent ? Le client ne s\'est pas présenté.',
+  'booking.completing': 'Enregistrement...',
+  'booking.completeSuccess': 'Rendez-vous marqué comme terminé',
+  'booking.noShowSuccess': 'Rendez-vous marqué comme absent',
+  'booking.leaveReview': 'Laisser un avis',
+  'booking.bookNow': 'Réserver maintenant',
+  'booking.onlineBooking': 'Réservation en ligne disponible',
+  'booking.error.notConfirmed': 'Seules les réservations confirmées peuvent être terminées',
+  'booking.error.notStarted': 'Le rendez-vous n\'a pas encore commencé — impossible de marquer comme absent',
 } as const;

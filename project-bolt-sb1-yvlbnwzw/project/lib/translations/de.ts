@@ -1848,4 +1848,17 @@ export default {
   'booking.loadingSlots': 'Verfügbare Zeitfenster werden geladen...',
   'booking.slotAt': 'um',
   'booking.for': 'für',
+  // F7 — lifecycle completion + Post→Book widget
+  'booking.markComplete': 'Als abgeschlossen markieren',
+  'booking.markNoShow': 'Als Nichterscheinen markieren',
+  'booking.markCompleteConfirm': 'Diesen Termin als abgeschlossen markieren?',
+  'booking.markNoShowConfirm': 'Diesen Termin als Nichterscheinen markieren? Der Kunde ist nicht erschienen.',
+  'booking.completing': 'Speichern...',
+  'booking.completeSuccess': 'Termin als abgeschlossen markiert',
+  'booking.noShowSuccess': 'Termin als Nichterscheinen markiert',
+  'booking.leaveReview': 'Bewertung hinterlassen',
+  'booking.bookNow': 'Jetzt buchen',
+  'booking.onlineBooking': 'Online-Buchung verfügbar',
+  'booking.error.notConfirmed': 'Nur bestätigte Buchungen können abgeschlossen werden',
+  'booking.error.notStarted': 'Der Termin hat noch nicht begonnen — kann nicht als Nichterscheinen markiert werden',
 } as const;

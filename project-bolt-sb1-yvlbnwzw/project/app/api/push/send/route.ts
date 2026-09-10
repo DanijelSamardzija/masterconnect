@@ -134,6 +134,9 @@ async function processPush(body: any) {
     bkgCancelledHeading: string;
     bkgCancelledBody: (biz: string) => string;
     bkgCancelledCta: string;
+    bkgCompletedHeading: string;
+    bkgCompletedBody: (biz: string) => string;
+    bkgCompletedCta: string;
   }> = {
     en: {
       fb: 'Someone',
@@ -155,6 +158,9 @@ async function processPush(body: any) {
       bkgCancelledHeading: 'Booking cancelled',
       bkgCancelledBody: (biz) => `Your booking at <strong>${biz}</strong> has been cancelled.`,
       bkgCancelledCta: 'View dashboard',
+      bkgCompletedHeading: 'Appointment completed ✅',
+      bkgCompletedBody: (biz) => `Your appointment at <strong>${biz}</strong> is complete. Leave a review!`,
+      bkgCompletedCta: 'Leave a review',
     },
     de: {
       fb: 'Jemand',
@@ -176,6 +182,9 @@ async function processPush(body: any) {
       bkgCancelledHeading: 'Buchung storniert',
       bkgCancelledBody: (biz) => `Ihre Buchung bei <strong>${biz}</strong> wurde storniert.`,
       bkgCancelledCta: 'Dashboard öffnen',
+      bkgCompletedHeading: 'Termin abgeschlossen ✅',
+      bkgCompletedBody: (biz) => `Ihr Termin bei <strong>${biz}</strong> ist abgeschlossen. Hinterlassen Sie eine Bewertung!`,
+      bkgCompletedCta: 'Bewertung hinterlassen',
     },
     es: {
       fb: 'Alguien',
@@ -197,6 +206,9 @@ async function processPush(body: any) {
       bkgCancelledHeading: 'Reserva cancelada',
       bkgCancelledBody: (biz) => `Tu reserva en <strong>${biz}</strong> ha sido cancelada.`,
       bkgCancelledCta: 'Ver panel',
+      bkgCompletedHeading: 'Cita completada ✅',
+      bkgCompletedBody: (biz) => `Tu cita en <strong>${biz}</strong> ha concluido. ¡Deja una reseña!`,
+      bkgCompletedCta: 'Dejar una reseña',
     },
     fr: {
       fb: 'Quelqu\'un',
@@ -218,6 +230,9 @@ async function processPush(body: any) {
       bkgCancelledHeading: 'Réservation annulée',
       bkgCancelledBody: (biz) => `Votre réservation chez <strong>${biz}</strong> a été annulée.`,
       bkgCancelledCta: 'Voir le tableau de bord',
+      bkgCompletedHeading: 'Rendez-vous terminé ✅',
+      bkgCompletedBody: (biz) => `Votre rendez-vous chez <strong>${biz}</strong> est terminé. Laissez un avis !`,
+      bkgCompletedCta: 'Laisser un avis',
     },
     sr: {
       fb: 'Neko',
@@ -239,6 +254,9 @@ async function processPush(body: any) {
       bkgCancelledHeading: 'Rezervacija otkazana',
       bkgCancelledBody: (biz) => `Vaša rezervacija kod <strong>${biz}</strong> je otkazana.`,
       bkgCancelledCta: 'Otvori dashboard',
+      bkgCompletedHeading: 'Termin završen ✅',
+      bkgCompletedBody: (biz) => `Vaš termin kod <strong>${biz}</strong> je završen. Ostavite recenziju!`,
+      bkgCompletedCta: 'Ostavi recenziju',
     },
   };
   const eL = emailLocales[pushLang] ?? emailLocales.sr;
@@ -411,6 +429,14 @@ async function processPush(body: any) {
                     ${svcName ? `<p style="color:#333;font-weight:600;margin:0 0 4px">${svcName}</p>` : ''}
                     ${dtStr ? `<p style="color:#888;margin:0 0 20px;font-size:14px">📅 ${dtStr}</p>` : '<div style="margin-bottom:20px"></div>'}`;
         ctaText  = eL.bkgCancelledCta;
+      } else if (action_type === 'booking_completed') {
+        subject  = subject || eL.bkgCompletedHeading;
+        heading  = eL.bkgCompletedHeading;
+        bodyHtml = `<p style="color:#555;margin:0 0 8px">${eL.bkgCompletedBody(bizName)}</p>
+                    ${svcName ? `<p style="color:#333;font-weight:600;margin:0 0 4px">${svcName}</p>` : ''}
+                    ${dtStr ? `<p style="color:#888;margin:0 0 20px;font-size:14px">📅 ${dtStr}</p>` : '<div style="margin-bottom:20px"></div>'}`;
+        ctaText  = eL.bkgCompletedCta;
+        ctaUrl   = `https://www.gigzone.app/dashboard/bookings`;
       }
 
       if (heading && ctaText) {

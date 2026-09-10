@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
-import { Calendar, Check, X, ChevronRight, Users } from 'lucide-react';
+import { Calendar, Check, X, ChevronRight, Users, CheckCircle, UserX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -33,7 +33,7 @@ type BookingRow = {
   business_id: string;
 };
 
-type FilterValue = 'all' | 'pending' | 'confirmed' | 'cancelled';
+type FilterValue = 'all' | 'pending' | 'confirmed' | 'cancelled' | 'completed';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
@@ -63,6 +63,7 @@ export default function BusinessBookingsPage() {
   const [confirmTarget, setConfirmTarget] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState('');
+  const [completeTarget, setCompleteTarget] = useState<{ id: string; status: 'completed' | 'no_show' } | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
@@ -143,7 +144,33 @@ export default function BusinessBookingsPage() {
     setCancelReason('');
   }
 
-  const FILTERS: FilterValue[] = ['all', 'pending', 'confirmed', 'cancelled'];
+  async function handleComplete() {
+    if (!completeTarget) return;
+    setActionLoading(true);
+    const { data } = await (supabase as any).rpc('complete_booking', {
+      p_booking_id: completeTarget.id,
+      p_status: completeTarget.status,
+    });
+    setActionLoading(false);
+    const result = data as { ok: boolean; error?: string } | null;
+    if (!result?.ok) {
+      const errKey = result?.error === 'not_confirmed'
+        ? 'booking.error.notConfirmed'
+        : result?.error === 'booking_not_started'
+        ? 'booking.error.notStarted'
+        : 'booking.error.generic';
+      toast.error(t(errKey));
+      setCompleteTarget(null);
+      return;
+    }
+    toast.success(completeTarget.status === 'no_show' ? t('booking.noShowSuccess') : t('booking.completeSuccess'));
+    setBookings((prev) =>
+      prev.map((b) => b.id === completeTarget.id ? { ...b, status: completeTarget.status } : b)
+    );
+    setCompleteTarget(null);
+  }
+
+  const FILTERS: FilterValue[] = ['all', 'pending', 'confirmed', 'completed', 'cancelled'];
   const filtered = bookings.filter((b) => {
     if (filter === 'all') return true;
     return b.status === filter;
@@ -227,9 +254,9 @@ export default function BusinessBookingsPage() {
                     <p className="text-xs text-muted-foreground italic">&ldquo;{b.notes}&rdquo;</p>
                   )}
 
-                  {(b.status === 'pending' || b.status === 'confirmed') && new Date(b.starts_at) > new Date() && (
-                    <div className="flex gap-2 pt-1">
-                      {b.status === 'pending' && (
+                  {(b.status === 'pending' || b.status === 'confirmed') && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {b.status === 'pending' && new Date(b.starts_at) > new Date() && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -240,15 +267,41 @@ export default function BusinessBookingsPage() {
                           {t('booking.confirmBooking')}
                         </Button>
                       )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 text-destructive hover:text-destructive hover:bg-destructive/10 px-2"
-                        onClick={() => { setCancelTarget(b.id); setCancelReason(''); }}
-                      >
-                        <X className="w-3.5 h-3.5 mr-1" />
-                        {t('booking.cancelBooking')}
-                      </Button>
+                      {b.status === 'confirmed' && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-blue-700 border-blue-200 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-800 dark:hover:bg-blue-900/20"
+                            onClick={() => setCompleteTarget({ id: b.id, status: 'completed' })}
+                          >
+                            <CheckCircle className="w-3.5 h-3.5 mr-1" />
+                            {t('booking.markComplete')}
+                          </Button>
+                          {new Date(b.starts_at) <= new Date() && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-gray-600 border-gray-200 hover:bg-gray-50 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-gray-800/50"
+                              onClick={() => setCompleteTarget({ id: b.id, status: 'no_show' })}
+                            >
+                              <UserX className="w-3.5 h-3.5 mr-1" />
+                              {t('booking.markNoShow')}
+                            </Button>
+                          )}
+                        </>
+                      )}
+                      {new Date(b.starts_at) > new Date() && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-destructive hover:text-destructive hover:bg-destructive/10 px-2"
+                          onClick={() => { setCancelTarget(b.id); setCancelReason(''); }}
+                        >
+                          <X className="w-3.5 h-3.5 mr-1" />
+                          {t('booking.cancelBooking')}
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -299,6 +352,26 @@ export default function BusinessBookingsPage() {
                 className="bg-destructive hover:bg-destructive/90"
               >
                 {actionLoading ? t('booking.cancelling') : t('booking.cancelBooking')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Complete / No-show dialog */}
+        <AlertDialog open={!!completeTarget} onOpenChange={(open) => !open && setCompleteTarget(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {completeTarget?.status === 'no_show' ? t('booking.markNoShow') : t('booking.markComplete')}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {completeTarget?.status === 'no_show' ? t('booking.markNoShowConfirm') : t('booking.markCompleteConfirm')}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={actionLoading}>{t('block.cancel')}</AlertDialogCancel>
+              <AlertDialogAction onClick={handleComplete} disabled={actionLoading}>
+                {actionLoading ? t('booking.completing') : (completeTarget?.status === 'no_show' ? t('booking.markNoShow') : t('booking.markComplete'))}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -1858,4 +1858,17 @@ export default {
   'booking.loadingSlots': 'Učitavanje slobodnih termina...',
   'booking.slotAt': 'u',
   'booking.for': 'za',
+  // F7 — lifecycle completion + Post→Book widget
+  'booking.markComplete': 'Označi kao završeno',
+  'booking.markNoShow': 'Označi kao nedolazak',
+  'booking.markCompleteConfirm': 'Označiti ovaj termin kao završen?',
+  'booking.markNoShowConfirm': 'Označiti ovaj termin kao nedolazak? Klijent se nije pojavio.',
+  'booking.completing': 'Čuvanje...',
+  'booking.completeSuccess': 'Termin označen kao završen',
+  'booking.noShowSuccess': 'Termin označen kao nedolazak',
+  'booking.leaveReview': 'Ostavi recenziju',
+  'booking.bookNow': 'Rezerviši odmah',
+  'booking.onlineBooking': 'Online rezervacija dostupna',
+  'booking.error.notConfirmed': 'Samo potvrđene rezervacije mogu biti završene',
+  'booking.error.notStarted': 'Termin još nije počeo — ne može se označiti kao nedolazak',
 } as const;

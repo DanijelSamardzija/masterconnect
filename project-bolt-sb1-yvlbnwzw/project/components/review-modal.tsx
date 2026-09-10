@@ -18,10 +18,11 @@ type ReviewModalProps = {
   proId: string;
   proName: string;
   threadId?: string;
+  bookingId?: string;
   onSuccess?: () => void;
 };
 
-export function ReviewModal({ open, onClose, jobId, proId, proName, threadId, onSuccess }: ReviewModalProps) {
+export function ReviewModal({ open, onClose, jobId, proId, proName, threadId, bookingId, onSuccess }: ReviewModalProps) {
   const { user } = useAuth();
   const { language } = useLanguage();
   const [rating, setRating] = useState(0);
@@ -87,71 +88,75 @@ export function ReviewModal({ open, onClose, jobId, proId, proName, threadId, on
         return;
       }
 
-      const { data: threadCheck } = await supabase
-        .from('thread_participants')
-        .select('thread_id, deleted_at')
-        .eq('user_id', user.id);
+      // Booking reviews bypass the conversation check — the completed booking
+      // is the authorisation proof that the parties interacted.
+      if (!bookingId) {
+        const { data: threadCheck } = await supabase
+          .from('thread_participants')
+          .select('thread_id, deleted_at')
+          .eq('user_id', user.id);
 
-      const { data: proThreadCheck } = await supabase
-        .from('thread_participants')
-        .select('thread_id, deleted_at')
-        .eq('user_id', proId);
+        const { data: proThreadCheck } = await supabase
+          .from('thread_participants')
+          .select('thread_id, deleted_at')
+          .eq('user_id', proId);
 
-      const commonThreads = threadCheck?.filter((t1: any) =>
-        proThreadCheck?.some((t2: any) => t2.thread_id === t1.thread_id)
-      );
+        const commonThreads = threadCheck?.filter((t1: any) =>
+          proThreadCheck?.some((t2: any) => t2.thread_id === t1.thread_id)
+        );
 
-      if (!commonThreads || commonThreads.length === 0) {
-        setError('You must have a conversation with this professional before leaving a review');
-        return;
-      }
-
-      let hasValidMessages = false;
-
-      for (const commonThread of commonThreads) {
-        const customerParticipant = threadCheck?.find((t: any) => t.thread_id === commonThread.thread_id);
-        const proParticipant = proThreadCheck?.find((t: any) => t.thread_id === commonThread.thread_id);
-
-        const customerHiddenAt = customerParticipant?.deleted_at;
-        const proHiddenAt = proParticipant?.deleted_at;
-
-        let customerQuery = supabase
-          .from('messages')
-          .select('id')
-          .eq('thread_id', commonThread.thread_id)
-          .eq('sender_id', user.id)
-          .eq('is_system', false)
-          .eq('is_deleted', false);
-
-        if (customerHiddenAt) {
-          customerQuery = customerQuery.gt('created_at', customerHiddenAt);
+        if (!commonThreads || commonThreads.length === 0) {
+          setError('You must have a conversation with this professional before leaving a review');
+          return;
         }
 
-        const { data: customerMessages } = await customerQuery.limit(1);
+        let hasValidMessages = false;
 
-        let proQuery = supabase
-          .from('messages')
-          .select('id')
-          .eq('thread_id', commonThread.thread_id)
-          .eq('sender_id', proId)
-          .eq('is_system', false)
-          .eq('is_deleted', false);
+        for (const commonThread of commonThreads) {
+          const customerParticipant = threadCheck?.find((t: any) => t.thread_id === commonThread.thread_id);
+          const proParticipant = proThreadCheck?.find((t: any) => t.thread_id === commonThread.thread_id);
 
-        if (proHiddenAt) {
-          proQuery = proQuery.gt('created_at', proHiddenAt);
+          const customerHiddenAt = customerParticipant?.deleted_at;
+          const proHiddenAt = proParticipant?.deleted_at;
+
+          let customerQuery = supabase
+            .from('messages')
+            .select('id')
+            .eq('thread_id', commonThread.thread_id)
+            .eq('sender_id', user.id)
+            .eq('is_system', false)
+            .eq('is_deleted', false);
+
+          if (customerHiddenAt) {
+            customerQuery = customerQuery.gt('created_at', customerHiddenAt);
+          }
+
+          const { data: customerMessages } = await customerQuery.limit(1);
+
+          let proQuery = supabase
+            .from('messages')
+            .select('id')
+            .eq('thread_id', commonThread.thread_id)
+            .eq('sender_id', proId)
+            .eq('is_system', false)
+            .eq('is_deleted', false);
+
+          if (proHiddenAt) {
+            proQuery = proQuery.gt('created_at', proHiddenAt);
+          }
+
+          const { data: proMessages } = await proQuery.limit(1);
+
+          if (customerMessages && customerMessages.length > 0 && proMessages && proMessages.length > 0) {
+            hasValidMessages = true;
+            break;
+          }
         }
 
-        const { data: proMessages } = await proQuery.limit(1);
-
-        if (customerMessages && customerMessages.length > 0 && proMessages && proMessages.length > 0) {
-          hasValidMessages = true;
-          break;
+        if (!hasValidMessages) {
+          setError('You must exchange messages with this professional before leaving a review');
+          return;
         }
-      }
-
-      if (!hasValidMessages) {
-        setError('You must exchange messages with this professional before leaving a review');
-        return;
       }
 
       if (existingReviewId) {
@@ -177,6 +182,7 @@ export function ReviewModal({ open, onClose, jobId, proId, proName, threadId, on
             rating,
             comment: comment.trim() || '',
             job_id: null,
+            ...(bookingId ? { booking_id: bookingId } : {}),
           });
 
         if (insertError) {

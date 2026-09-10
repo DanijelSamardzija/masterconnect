@@ -1781,4 +1781,17 @@ export default {
   'booking.loadingSlots': 'Cargando horarios disponibles...',
   'booking.slotAt': 'a las',
   'booking.for': 'para',
+  // F7 — lifecycle completion + Post→Book widget
+  'booking.markComplete': 'Marcar como completado',
+  'booking.markNoShow': 'Marcar como no presentado',
+  'booking.markCompleteConfirm': '¿Marcar esta cita como completada?',
+  'booking.markNoShowConfirm': '¿Marcar esta cita como no presentado? El cliente no asistió.',
+  'booking.completing': 'Guardando...',
+  'booking.completeSuccess': 'Cita marcada como completada',
+  'booking.noShowSuccess': 'Cita marcada como no presentado',
+  'booking.leaveReview': 'Dejar una reseña',
+  'booking.bookNow': 'Reservar ahora',
+  'booking.onlineBooking': 'Reserva en línea disponible',
+  'booking.error.notConfirmed': 'Solo las reservas confirmadas pueden completarse',
+  'booking.error.notStarted': 'La cita aún no ha comenzado — no se puede marcar como no presentado',
 } as const;

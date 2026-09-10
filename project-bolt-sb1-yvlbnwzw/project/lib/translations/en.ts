@@ -1858,4 +1858,17 @@ export default {
   'booking.loadingSlots': 'Loading available slots...',
   'booking.slotAt': 'at',
   'booking.for': 'for',
+  // F7 — lifecycle completion + Post→Book widget
+  'booking.markComplete': 'Mark as completed',
+  'booking.markNoShow': 'Mark as no-show',
+  'booking.markCompleteConfirm': 'Mark this appointment as completed?',
+  'booking.markNoShowConfirm': 'Mark this appointment as no-show? The client did not attend.',
+  'booking.completing': 'Saving...',
+  'booking.completeSuccess': 'Appointment marked as completed',
+  'booking.noShowSuccess': 'Appointment marked as no-show',
+  'booking.leaveReview': 'Leave a review',
+  'booking.bookNow': 'Book now',
+  'booking.onlineBooking': 'Online booking available',
+  'booking.error.notConfirmed': 'Only confirmed bookings can be completed',
+  'booking.error.notStarted': 'Appointment has not started yet — cannot mark as no-show',
 } as const;

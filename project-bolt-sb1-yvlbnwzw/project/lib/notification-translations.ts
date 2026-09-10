@@ -96,6 +96,10 @@ export function translateNotification(
         return { title: 'Booking confirmed', body: n.body || '' };
       case 'booking_cancelled':
         return { title: 'Booking cancelled', body: n.body || '' };
+      case 'booking_completed':
+        return { title: 'Appointment completed', body: n.body || '' };
+      case 'booking_no_show':
+        return { title: 'Appointment missed', body: n.body || '' };
       case 'missing_location':
         return { title: 'Add your location', body: "We couldn't find your city. Add your location to receive listings from your region." };
       case 'no_city_reminder':
@@ -152,6 +156,10 @@ export function translateNotification(
         return { title: 'Buchung bestätigt', body: n.body || '' };
       case 'booking_cancelled':
         return { title: 'Buchung storniert', body: n.body || '' };
+      case 'booking_completed':
+        return { title: 'Termin abgeschlossen', body: n.body || '' };
+      case 'booking_no_show':
+        return { title: 'Termin verpasst', body: n.body || '' };
       case 'missing_location':
         return { title: 'Fügen Sie Ihren Standort hinzu', body: 'Wir konnten Ihre Stadt nicht finden. Fügen Sie Ihren Standort hinzu, um Anzeigen aus Ihrer Region zu erhalten.' };
       case 'no_city_reminder':
@@ -208,6 +216,10 @@ export function translateNotification(
         return { title: 'Reserva confirmada', body: n.body || '' };
       case 'booking_cancelled':
         return { title: 'Reserva cancelada', body: n.body || '' };
+      case 'booking_completed':
+        return { title: 'Cita completada', body: n.body || '' };
+      case 'booking_no_show':
+        return { title: 'Cita perdida', body: n.body || '' };
       case 'missing_location':
         return { title: 'Añade tu ubicación', body: 'No pudimos encontrar tu ciudad. Añade tu ubicación para recibir anuncios de tu región.' };
       case 'no_city_reminder':
@@ -264,6 +276,10 @@ export function translateNotification(
         return { title: 'Réservation confirmée', body: n.body || '' };
       case 'booking_cancelled':
         return { title: 'Réservation annulée', body: n.body || '' };
+      case 'booking_completed':
+        return { title: 'Rendez-vous terminé', body: n.body || '' };
+      case 'booking_no_show':
+        return { title: 'Rendez-vous manqué', body: n.body || '' };
       case 'missing_location':
         return { title: 'Ajoutez votre emplacement', body: 'Nous n\'avons pas pu trouver votre ville. Ajoutez votre emplacement pour recevoir des annonces de votre région.' };
       case 'no_city_reminder':

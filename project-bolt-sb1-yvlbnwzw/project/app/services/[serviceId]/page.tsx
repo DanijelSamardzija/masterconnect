@@ -24,6 +24,8 @@ async function fetchService(serviceId: string) {
       price_value,
       currency,
       created_at,
+      booking_enabled,
+      business_id,
       profiles (
         name,
         avatar_url,

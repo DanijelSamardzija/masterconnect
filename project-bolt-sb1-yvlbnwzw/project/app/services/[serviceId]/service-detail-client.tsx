@@ -36,6 +36,8 @@ type ServiceDetail = {
   price_value?: number;
   currency?: string;
   created_at: string;
+  booking_enabled?: boolean;
+  business_id?: string | null;
   profiles: {
     name: string;
     avatar_url?: string;
@@ -510,6 +512,18 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
 
                   {!isOwner && (
                     <div className="space-y-2">
+                      {service.booking_enabled && service.business_id && (
+                        <Button
+                          size="lg"
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-11 text-base gap-2"
+                          asChild
+                        >
+                          <Link href={`/book/${service.business_id}`}>
+                            <Calendar className="h-4 w-4" />
+                            {t('booking.bookNow')}
+                          </Link>
+                        </Button>
+                      )}
                       <Button
                         size="lg"
                         className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold h-11 text-base"
