@@ -12,6 +12,7 @@ const SR_SUFFIXES: Record<string, string> = {
   application_received: ' se prijavio/la na tvoj oglas',
   offer_received:       ' ti je poslao/la ponudu',
   inquiry_received:     ' ti je poslao/la upit',
+  booking_created:      ' je rezervisao termin',
 };
 
 function extractActorName(title: string, actionType: string): string {
@@ -89,6 +90,12 @@ export function translateNotification(
         return { title: `${actorName} accepted your inquiry`, body: n.body || '' };
       case 'inquiry_declined':
         return { title: `${actorName} declined your inquiry`, body: n.body || '' };
+      case 'booking_created':
+        return { title: `${actorName} booked an appointment`, body: n.body || '' };
+      case 'booking_confirmed':
+        return { title: 'Booking confirmed', body: n.body || '' };
+      case 'booking_cancelled':
+        return { title: 'Booking cancelled', body: n.body || '' };
       case 'missing_location':
         return { title: 'Add your location', body: "We couldn't find your city. Add your location to receive listings from your region." };
       case 'no_city_reminder':
@@ -139,6 +146,12 @@ export function translateNotification(
         return { title: `${actorName} hat Ihre Anfrage angenommen`, body: n.body || '' };
       case 'inquiry_declined':
         return { title: `${actorName} hat Ihre Anfrage abgelehnt`, body: n.body || '' };
+      case 'booking_created':
+        return { title: `${actorName} hat einen Termin gebucht`, body: n.body || '' };
+      case 'booking_confirmed':
+        return { title: 'Buchung bestätigt', body: n.body || '' };
+      case 'booking_cancelled':
+        return { title: 'Buchung storniert', body: n.body || '' };
       case 'missing_location':
         return { title: 'Fügen Sie Ihren Standort hinzu', body: 'Wir konnten Ihre Stadt nicht finden. Fügen Sie Ihren Standort hinzu, um Anzeigen aus Ihrer Region zu erhalten.' };
       case 'no_city_reminder':
@@ -189,6 +202,12 @@ export function translateNotification(
         return { title: `${actorName} aceptó tu consulta`, body: n.body || '' };
       case 'inquiry_declined':
         return { title: `${actorName} rechazó tu consulta`, body: n.body || '' };
+      case 'booking_created':
+        return { title: `${actorName} ha reservado una cita`, body: n.body || '' };
+      case 'booking_confirmed':
+        return { title: 'Reserva confirmada', body: n.body || '' };
+      case 'booking_cancelled':
+        return { title: 'Reserva cancelada', body: n.body || '' };
       case 'missing_location':
         return { title: 'Añade tu ubicación', body: 'No pudimos encontrar tu ciudad. Añade tu ubicación para recibir anuncios de tu región.' };
       case 'no_city_reminder':
@@ -239,6 +258,12 @@ export function translateNotification(
         return { title: `${actorName} a accepté votre demande`, body: n.body || '' };
       case 'inquiry_declined':
         return { title: `${actorName} a refusé votre demande`, body: n.body || '' };
+      case 'booking_created':
+        return { title: `${actorName} a réservé un rendez-vous`, body: n.body || '' };
+      case 'booking_confirmed':
+        return { title: 'Réservation confirmée', body: n.body || '' };
+      case 'booking_cancelled':
+        return { title: 'Réservation annulée', body: n.body || '' };
       case 'missing_location':
         return { title: 'Ajoutez votre emplacement', body: 'Nous n\'avons pas pu trouver votre ville. Ajoutez votre emplacement pour recevoir des annonces de votre région.' };
       case 'no_city_reminder':

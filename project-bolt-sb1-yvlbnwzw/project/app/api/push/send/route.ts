@@ -113,7 +113,7 @@ async function processPush(body: any) {
     await supabase.from('push_subscriptions').delete().in('endpoint', expiredEndpoints);
   }
 
-  // Email locale — drives all 4 email types below
+  // Email locale — drives all email types below
   const emailLocales: Record<string, {
     fb: string;
     msgCta: string;
@@ -126,6 +126,14 @@ async function processPush(body: any) {
     comHeading: (r: boolean) => string;
     comBody: (n: string, r: boolean) => string;
     comCta: string;
+    bkgCreatedHeading: (n: string) => string;
+    bkgCreatedCta: string;
+    bkgConfirmedHeading: string;
+    bkgConfirmedBody: (biz: string) => string;
+    bkgConfirmedCta: string;
+    bkgCancelledHeading: string;
+    bkgCancelledBody: (biz: string) => string;
+    bkgCancelledCta: string;
   }> = {
     en: {
       fb: 'Someone',
@@ -139,6 +147,14 @@ async function processPush(body: any) {
       comHeading: (r) => r ? 'New reply 💬' : 'New comment 💬',
       comBody: (n, r) => `<strong>${n}</strong> ${r ? 'replied to your comment' : 'commented on your post'}.`,
       comCta: 'View post',
+      bkgCreatedHeading: (n) => `New booking from ${n}`,
+      bkgCreatedCta: 'View booking',
+      bkgConfirmedHeading: 'Booking confirmed ✅',
+      bkgConfirmedBody: (biz) => `Your booking at <strong>${biz}</strong> has been confirmed.`,
+      bkgConfirmedCta: 'View booking',
+      bkgCancelledHeading: 'Booking cancelled',
+      bkgCancelledBody: (biz) => `Your booking at <strong>${biz}</strong> has been cancelled.`,
+      bkgCancelledCta: 'View dashboard',
     },
     de: {
       fb: 'Jemand',
@@ -152,6 +168,14 @@ async function processPush(body: any) {
       comHeading: (r) => r ? 'Neue Antwort 💬' : 'Neuer Kommentar 💬',
       comBody: (n, r) => `<strong>${n}</strong> ${r ? 'hat auf Ihren Kommentar geantwortet' : 'hat Ihren Beitrag kommentiert'}.`,
       comCta: 'Beitrag ansehen',
+      bkgCreatedHeading: (n) => `Neue Buchung von ${n}`,
+      bkgCreatedCta: 'Buchung ansehen',
+      bkgConfirmedHeading: 'Buchung bestätigt ✅',
+      bkgConfirmedBody: (biz) => `Ihre Buchung bei <strong>${biz}</strong> wurde bestätigt.`,
+      bkgConfirmedCta: 'Buchung ansehen',
+      bkgCancelledHeading: 'Buchung storniert',
+      bkgCancelledBody: (biz) => `Ihre Buchung bei <strong>${biz}</strong> wurde storniert.`,
+      bkgCancelledCta: 'Dashboard öffnen',
     },
     es: {
       fb: 'Alguien',
@@ -165,6 +189,14 @@ async function processPush(body: any) {
       comHeading: (r) => r ? 'Nueva respuesta 💬' : 'Nuevo comentario 💬',
       comBody: (n, r) => `<strong>${n}</strong> ${r ? 'respondió a tu comentario' : 'comentó tu publicación'}.`,
       comCta: 'Ver publicación',
+      bkgCreatedHeading: (n) => `Nueva reserva de ${n}`,
+      bkgCreatedCta: 'Ver reserva',
+      bkgConfirmedHeading: 'Reserva confirmada ✅',
+      bkgConfirmedBody: (biz) => `Tu reserva en <strong>${biz}</strong> ha sido confirmada.`,
+      bkgConfirmedCta: 'Ver reserva',
+      bkgCancelledHeading: 'Reserva cancelada',
+      bkgCancelledBody: (biz) => `Tu reserva en <strong>${biz}</strong> ha sido cancelada.`,
+      bkgCancelledCta: 'Ver panel',
     },
     fr: {
       fb: 'Quelqu\'un',
@@ -178,6 +210,14 @@ async function processPush(body: any) {
       comHeading: (r) => r ? 'Nouvelle réponse 💬' : 'Nouveau commentaire 💬',
       comBody: (n, r) => `<strong>${n}</strong> ${r ? 'a répondu à votre commentaire' : 'a commenté votre publication'}.`,
       comCta: 'Voir la publication',
+      bkgCreatedHeading: (n) => `Nouvelle réservation de ${n}`,
+      bkgCreatedCta: 'Voir la réservation',
+      bkgConfirmedHeading: 'Réservation confirmée ✅',
+      bkgConfirmedBody: (biz) => `Votre réservation chez <strong>${biz}</strong> a été confirmée.`,
+      bkgConfirmedCta: 'Voir la réservation',
+      bkgCancelledHeading: 'Réservation annulée',
+      bkgCancelledBody: (biz) => `Votre réservation chez <strong>${biz}</strong> a été annulée.`,
+      bkgCancelledCta: 'Voir le tableau de bord',
     },
     sr: {
       fb: 'Neko',
@@ -191,6 +231,14 @@ async function processPush(body: any) {
       comHeading: (r) => r ? 'Novi odgovor na komentar 💬' : 'Novi komentar 💬',
       comBody: (n, r) => `<strong>${n}</strong> ${r ? 'je odgovorio/la na tvoj komentar' : 'je komentarisao/la tvoj post'}.`,
       comCta: 'Pogledaj post',
+      bkgCreatedHeading: (n) => `Nova rezervacija od ${n}`,
+      bkgCreatedCta: 'Pogledaj rezervaciju',
+      bkgConfirmedHeading: 'Rezervacija potvrđena ✅',
+      bkgConfirmedBody: (biz) => `Vaša rezervacija kod <strong>${biz}</strong> je potvrđena.`,
+      bkgConfirmedCta: 'Pogledaj rezervaciju',
+      bkgCancelledHeading: 'Rezervacija otkazana',
+      bkgCancelledBody: (biz) => `Vaša rezervacija kod <strong>${biz}</strong> je otkazana.`,
+      bkgCancelledCta: 'Otvori dashboard',
     },
   };
   const eL = emailLocales[pushLang] ?? emailLocales.sr;
@@ -320,6 +368,72 @@ async function processPush(body: any) {
           </div>
         `,
       }).catch(() => {});
+    }
+  }
+
+  // Email for booking notifications (booking_created / booking_confirmed / booking_cancelled)
+  if (notifType === 'booking' && meta?.booking_id) {
+    const { data: recipientProfile } = await supabase
+      .from('profiles').select('name, email').eq('id', user_id).maybeSingle();
+
+    if (recipientProfile?.email) {
+      const bizName    = meta.business_name || eL.fb;
+      const clientName = meta.client_name   || eL.fb;
+      const svcName    = meta.service_name  || '';
+      const dtStr      = meta.starts_at
+        ? new Date(meta.starts_at).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })
+        : '';
+      const dashUrl = 'https://www.gigzone.app/dashboard';
+
+      let subject = translated.title || '';
+      let heading = '';
+      let bodyHtml = '';
+      let ctaText  = '';
+      let ctaUrl   = dashUrl;
+
+      if (action_type === 'booking_created') {
+        subject  = subject || eL.bkgCreatedHeading(clientName);
+        heading  = eL.bkgCreatedHeading(clientName);
+        bodyHtml = `<p style="color:#555;margin:0 0 8px">${svcName ? `<strong>${svcName}</strong>` : ''}</p>
+                    ${dtStr ? `<p style="color:#888;margin:0 0 20px;font-size:14px">📅 ${dtStr}</p>` : '<div style="margin-bottom:20px"></div>'}`;
+        ctaText  = eL.bkgCreatedCta;
+      } else if (action_type === 'booking_confirmed') {
+        subject  = subject || eL.bkgConfirmedHeading;
+        heading  = eL.bkgConfirmedHeading;
+        bodyHtml = `<p style="color:#555;margin:0 0 8px">${eL.bkgConfirmedBody(bizName)}</p>
+                    ${svcName ? `<p style="color:#333;font-weight:600;margin:0 0 4px">${svcName}</p>` : ''}
+                    ${dtStr ? `<p style="color:#888;margin:0 0 20px;font-size:14px">📅 ${dtStr}</p>` : '<div style="margin-bottom:20px"></div>'}`;
+        ctaText  = eL.bkgConfirmedCta;
+      } else if (action_type === 'booking_cancelled') {
+        subject  = subject || eL.bkgCancelledHeading;
+        heading  = eL.bkgCancelledHeading;
+        bodyHtml = `<p style="color:#555;margin:0 0 8px">${eL.bkgCancelledBody(bizName)}</p>
+                    ${svcName ? `<p style="color:#333;font-weight:600;margin:0 0 4px">${svcName}</p>` : ''}
+                    ${dtStr ? `<p style="color:#888;margin:0 0 20px;font-size:14px">📅 ${dtStr}</p>` : '<div style="margin-bottom:20px"></div>'}`;
+        ctaText  = eL.bkgCancelledCta;
+      }
+
+      if (heading && ctaText) {
+        await sendEmail({
+          to: recipientProfile.email,
+          replyTo: 'support@gigzone.app',
+          subject,
+          html: `
+            <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+              ${emailLogo}
+              <div style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:28px">
+                <h2 style="margin:0 0 12px;color:#1a1a1a">${heading}</h2>
+                ${bodyHtml}
+                <a href="${ctaUrl}"
+                   style="display:inline-block;background:#ea580c;color:#fff;padding:12px 28px;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px">
+                  ${ctaText}
+                </a>
+              </div>
+              ${emailFooter}
+            </div>
+          `,
+        }).catch(() => {});
+      }
     }
   }
 }
