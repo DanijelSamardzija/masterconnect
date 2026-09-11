@@ -2075,4 +2075,8 @@ export default {
   'staffDashboard.title': 'Mis Reservas',
   'staffDashboard.empty': 'No hay próximas reservas.',
   'staffDashboard.pastEmpty': 'No hay reservas pasadas.',
+  'setup.services.delete': 'Eliminar',
+  'setup.services.deleteConfirm': '¿Está seguro de que desea eliminar este servicio?',
+  'setup.services.deleted': 'Servicio eliminado',
+  'setup.services.delete.activeBookings': 'Este servicio tiene reservas activas y no puede ser eliminado',
 } as const;

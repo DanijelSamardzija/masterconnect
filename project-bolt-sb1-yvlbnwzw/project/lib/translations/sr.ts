@@ -2152,4 +2152,8 @@ export default {
   'staffDashboard.title': 'Moje Rezervacije',
   'staffDashboard.empty': 'Nema nadolazećih rezervacija.',
   'staffDashboard.pastEmpty': 'Nema prošlih rezervacija.',
+  'setup.services.delete': 'Obriši',
+  'setup.services.deleteConfirm': 'Da li ste sigurni da želite da obrišete ovu uslugu?',
+  'setup.services.deleted': 'Usluga obrisana',
+  'setup.services.delete.activeBookings': 'Usluga ima aktivne rezervacije i ne može biti obrisana',
 } as const;

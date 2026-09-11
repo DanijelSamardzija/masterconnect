@@ -333,6 +333,7 @@ export default function BusinessSetupPage() {
   // Service-location assignment state
   const [serviceLocMap, setServiceLocMap] = useState<Record<string, string[]>>({});
   const [serviceLocSaving, setServiceLocSaving] = useState<string | null>(null);
+  const [deletingSvcId, setDeletingSvcId] = useState<string | null>(null);
 
   // ── Load profile on mount ──────────────────────────────────────────────────
   useEffect(() => {
@@ -616,6 +617,27 @@ export default function BusinessSetupPage() {
       const result = data as { ok: boolean } | null;
       if (!result?.ok) { toast.error(t('setup.error.saveFailed')); return; }
     }
+    loadServices();
+  }
+
+  function handleDeleteSvc(svcId: string) {
+    setDeletingSvcId(svcId);
+  }
+
+  async function confirmDeleteSvc(svcId: string) {
+    const { data } = await (supabase as any).rpc('delete_service', { p_service_id: svcId });
+    const result = data as { ok: boolean; error?: string } | null;
+    if (!result?.ok) {
+      if (result?.error === 'has_active_bookings') {
+        toast.error(t('setup.services.delete.activeBookings'));
+      } else {
+        toast.error(t('setup.error.saveFailed'));
+      }
+      setDeletingSvcId(null);
+      return;
+    }
+    toast.success(t('setup.services.deleted'));
+    setDeletingSvcId(null);
     loadServices();
   }
 
@@ -1386,7 +1408,7 @@ export default function BusinessSetupPage() {
                             <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{svc.description}</p>
                           )}
                         </div>
-                        <div className="flex gap-1 shrink-0">
+                        <div className="flex gap-1 shrink-0 items-center">
                           <button
                             onClick={() => openEditSvc(svc)}
                             className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-accent transition-colors"
@@ -1401,6 +1423,31 @@ export default function BusinessSetupPage() {
                           >
                             {svc.is_active ? t('setup.services.deactivate') : t('setup.services.activate')}
                           </button>
+                          {deletingSvcId === svc.id ? (
+                            <span className="flex items-center gap-1 text-xs">
+                              <span className="text-muted-foreground">{t('setup.services.deleteConfirm')}</span>
+                              <button
+                                onClick={() => confirmDeleteSvc(svc.id)}
+                                className="text-destructive font-medium hover:text-destructive/80 transition-colors"
+                              >
+                                Da
+                              </button>
+                              <button
+                                onClick={() => setDeletingSvcId(null)}
+                                className="text-muted-foreground font-medium hover:text-foreground transition-colors"
+                              >
+                                Ne
+                              </button>
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => handleDeleteSvc(svc.id)}
+                              className="text-destructive/70 hover:text-destructive p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-xs font-medium"
+                              title={t('setup.services.delete')}
+                            >
+                              {t('setup.services.delete')}
+                            </button>
+                          )}
                         </div>
                       </div>
                       {/* Location assignments — only show when multiple locations exist */}
