@@ -1490,50 +1490,7 @@ export default function BusinessSetupPage() {
                 </div>
               )}
 
-              {/* ── F11B: Enable booking on service listings ─────────────── */}
-              {isBusinessActive && (
-                <div className="mt-4 pt-4 border-t border-border flex flex-col gap-3">
-                  <div>
-                    <h3 className="text-sm font-semibold">{t('setup.posts.heading')}</h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">{t('setup.posts.desc')}</p>
-                  </div>
-                  {postsLoading ? (
-                    <div className="flex justify-center py-4">
-                      <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                    </div>
-                  ) : postListings.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4">{t('setup.posts.empty')}</p>
-                  ) : (
-                    <div className="flex flex-col gap-2">
-                      {postListings.map((post) => (
-                        <div key={post.id} className="flex items-center justify-between border border-border rounded-xl px-4 py-3">
-                          <div className="flex-1 min-w-0 mr-3">
-                            <span className="text-sm font-medium truncate block">{post.job_title || '—'}</span>
-                            {post.booking_enabled && (
-                              <span className="text-xs text-green-600 dark:text-green-400">{t('setup.posts.enabled')}</span>
-                            )}
-                          </div>
-                          <button
-                            onClick={() => handleTogglePost(post)}
-                            disabled={togglingPost === post.id}
-                            className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors shrink-0 disabled:opacity-50 ${
-                              post.booking_enabled
-                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30 dark:hover:text-red-400'
-                                : 'bg-accent text-muted-foreground hover:bg-primary/10 hover:text-primary'
-                            }`}
-                          >
-                            {togglingPost === post.id
-                              ? t('setup.posts.saving')
-                              : post.booking_enabled
-                                ? t('setup.posts.disable')
-                                : t('setup.posts.enable')}
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+
             </div>
           )}
 
