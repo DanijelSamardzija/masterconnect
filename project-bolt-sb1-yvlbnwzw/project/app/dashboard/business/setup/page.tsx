@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { ChevronRight, Plus, Pencil, X, CheckCircle2, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CityAutocomplete } from '@/components/city-autocomplete';
+import { countries } from '@/lib/countries';
 
 type Tab = 'profile' | 'services' | 'hours' | 'locations' | 'rules';
 
@@ -156,6 +157,19 @@ const TIMEZONE_OPTIONS: { value: string; label: string }[] = [
   { value: 'Pacific/Auckland',    label: 'Auckland (Pacific/Auckland)' },
 ];
 
+function matchCountryValue(nominatimCountry: string): string {
+  if (!nominatimCountry) return '';
+  const lower = nominatimCountry.toLowerCase().trim();
+  const match = countries.find(
+    (c) =>
+      c.value.toLowerCase() === lower ||
+      c.sr.toLowerCase() === lower ||
+      c.en.toLowerCase() === lower ||
+      c.de.toLowerCase() === lower
+  );
+  return match?.value ?? '';
+}
+
 function getBrowserTimezone(): string {
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Sarajevo';
@@ -197,7 +211,7 @@ function labelInput(label: string, children: React.ReactNode) {
 
 export default function BusinessSetupPage() {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { hasAccess, loading: authLoading } = useBookingAccess();
@@ -1465,14 +1479,27 @@ export default function BusinessSetupPage() {
                         value={locCity}
                         onChange={(city, placeData) => {
                           setLocCity(city);
-                          if (placeData?.country) setLocCountry(placeData.country);
+                          if (placeData?.country) {
+                            const matched = matchCountryValue(placeData.country);
+                            if (matched) setLocCountry(matched);
+                          }
                         }}
                         placeholder={t('setup.locations.city')}
                       />
                     )}
                     {labelInput(t('setup.locations.country'),
-                      <input type="text" value={locCountry} onChange={(e) => setLocCountry(e.target.value)}
-                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
+                      <select
+                        value={locCountry}
+                        onChange={(e) => setLocCountry(e.target.value)}
+                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary w-full"
+                      >
+                        <option value=""></option>
+                        {countries.map((c) => (
+                          <option key={c.value} value={c.value}>
+                            {language === 'sr' ? c.sr : language === 'de' ? c.de : c.en}
+                          </option>
+                        ))}
+                      </select>
                     )}
                   </div>
 
