@@ -7,11 +7,19 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
-import { Check, Copy, ExternalLink, ChevronLeft } from 'lucide-react';
+import { Check, Copy, ExternalLink, ChevronLeft, Loader2, X } from 'lucide-react';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
-type DayHour = { day: number; open: boolean; from: string; to: string; };
+type DayHour = {
+  day: number;
+  open: boolean;
+  from: string;
+  to: string;
+  open2: boolean;
+  from2: string;
+  to2: string;
+};
 
 type Rules = {
   confirmation_mode: 'instant' | 'requires_approval';
@@ -21,19 +29,25 @@ type Rules = {
   slot_interval_min: number;
 };
 
+type StaffResult = {
+  id: string;
+  name: string;
+  avatar_url: string | null;
+  city: string | null;
+};
+
 const STEP_COUNT = 7;
 const STEP_KEYS = ['profile', 'service', 'location', 'hours', 'staff', 'rules', 'done'] as const;
 type StepKey = typeof STEP_KEYS[number];
 
-// Default Mon-Sat open, Sun closed — suitable for salon/barber businesses
 const DEFAULT_HOURS: DayHour[] = [
-  { day: 1, open: true,  from: '09:00', to: '18:00' },
-  { day: 2, open: true,  from: '09:00', to: '18:00' },
-  { day: 3, open: true,  from: '09:00', to: '18:00' },
-  { day: 4, open: true,  from: '09:00', to: '18:00' },
-  { day: 5, open: true,  from: '09:00', to: '18:00' },
-  { day: 6, open: true,  from: '09:00', to: '15:00' },
-  { day: 0, open: false, from: '09:00', to: '14:00' },
+  { day: 1, open: true,  from: '09:00', to: '18:00', open2: false, from2: '13:00', to2: '17:00' },
+  { day: 2, open: true,  from: '09:00', to: '18:00', open2: false, from2: '13:00', to2: '17:00' },
+  { day: 3, open: true,  from: '09:00', to: '18:00', open2: false, from2: '13:00', to2: '17:00' },
+  { day: 4, open: true,  from: '09:00', to: '18:00', open2: false, from2: '13:00', to2: '17:00' },
+  { day: 5, open: true,  from: '09:00', to: '18:00', open2: false, from2: '13:00', to2: '17:00' },
+  { day: 6, open: true,  from: '09:00', to: '15:00', open2: false, from2: '13:00', to2: '15:00' },
+  { day: 0, open: false, from: '09:00', to: '14:00', open2: false, from2: '13:00', to2: '17:00' },
 ];
 
 const DEFAULT_RULES: Rules = {
@@ -75,16 +89,39 @@ export default function BookingSetupWizardPage() {
   const [locName, setLocName] = useState('');
   const [locAddress, setLocAddress] = useState('');
   const [locCity, setLocCity] = useState('');
+  const [locCountry, setLocCountry] = useState('');
 
   // Step 3 — Hours
   const [dayHours, setDayHours] = useState<DayHour[]>(DEFAULT_HOURS);
 
-  // Step 4 — Staff
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<'manager' | 'worker'>('worker');
+  // Step 4 — Staff (search)
+  const [staffSearch, setStaffSearch] = useState('');
+  const [staffResults, setStaffResults] = useState<StaffResult[]>([]);
+  const [staffSearching, setStaffSearching] = useState(false);
+  const [selectedStaff, setSelectedStaff] = useState<StaffResult | null>(null);
+  const [staffRole, setStaffRole] = useState<'manager' | 'worker'>('worker');
+  const [staffAdded, setStaffAdded] = useState(false);
 
   // Step 5 — Rules
   const [rules, setRules] = useState<Rules>(DEFAULT_RULES);
+
+  // ── Staff search debounce ───────────────────────────────────────────────
+
+  useEffect(() => {
+    if (staffSearch.length < 2) { setStaffResults([]); return; }
+    const timer = setTimeout(async () => {
+      setStaffSearching(true);
+      const { data } = await (supabase as any).rpc('search_profiles', {
+        p_search: staffSearch,
+        p_limit: 6,
+      });
+      setStaffSearching(false);
+      if (Array.isArray(data)) {
+        setStaffResults((data as any[]).filter((u) => u.id !== user?.id));
+      }
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [staffSearch, user?.id]);
 
   // ── Load existing data ──────────────────────────────────────────────────
 
@@ -92,7 +129,6 @@ export default function BookingSetupWizardPage() {
     if (!user) return;
     setLoading(true);
 
-    // profiles.name is the business name (not full_name)
     const { data: profile } = await supabase
       .from('profiles')
       .select('name')
@@ -100,7 +136,6 @@ export default function BookingSetupWizardPage() {
       .single();
     if (profile?.name) setBizName(profile.name);
 
-    // First active service
     const { data: svcs } = await (supabase as any)
       .from('service_catalog')
       .select('id, name, description, duration_minutes, price, price_type, currency')
@@ -119,10 +154,9 @@ export default function BookingSetupWizardPage() {
       setSvcCurrency(svc.currency || 'BAM');
     }
 
-    // First active location (primary first)
     const { data: locs } = await (supabase as any)
       .from('business_locations')
-      .select('id, name, address, city')
+      .select('id, name, address, city, country')
       .eq('business_id', user.id)
       .eq('is_active', true)
       .order('is_primary', { ascending: false })
@@ -133,24 +167,34 @@ export default function BookingSetupWizardPage() {
       setLocName(loc.name);
       setLocAddress(loc.address ?? '');
       setLocCity(loc.city ?? '');
+      setLocCountry(loc.country ?? '');
 
-      // Load hours via RPC (returns { day_of_week, start_time, end_time, is_closed, sort_order })
       const { data: hoursData } = await (supabase as any).rpc('get_opening_hours', {
         p_location_id: loc.id,
       });
       if (Array.isArray(hoursData) && hoursData.length > 0) {
-        type HRow = { day_of_week: number; start_time: string; end_time: string; is_closed: boolean; sort_order: number; };
-        // Keep only sort_order=0 rows (wizard uses single period per day)
-        const primary = (hoursData as HRow[]).filter((r) => r.sort_order === 0);
+        type HRow = {
+          day_of_week: number;
+          start_time: string;
+          end_time: string;
+          is_closed: boolean;
+          sort_order: number;
+        };
+        const rows = hoursData as HRow[];
+        const primary   = rows.filter((r) => r.sort_order === 0);
+        const secondary = rows.filter((r) => r.sort_order === 1);
         setDayHours(DEFAULT_HOURS.map((dh) => {
-          const found = primary.find((r) => r.day_of_week === dh.day);
-          if (!found) return dh;
-          return { ...dh, open: !found.is_closed, from: found.start_time, to: found.end_time };
+          const p = primary.find((r) => r.day_of_week === dh.day);
+          const s = secondary.find((r) => r.day_of_week === dh.day);
+          return {
+            ...dh,
+            ...(p ? { open: !p.is_closed, from: p.start_time, to: p.end_time } : {}),
+            ...(s ? { open2: true, from2: s.start_time, to2: s.end_time } : {}),
+          };
         }));
       }
     }
 
-    // Rules
     const { data: rulesData } = await (supabase as any)
       .from('booking_rules')
       .select('confirmation_mode, min_notice_minutes, max_advance_days, cancellation_hours, slot_interval_min')
@@ -200,7 +244,6 @@ export default function BookingSetupWizardPage() {
         p_capacity: 1, p_booking_type: 'appointment_service', p_currency: svcCurrency,
       });
       if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); setSaving(false); return; }
-      // Fetch the ID of the service just created
       const { data: row } = await (supabase as any)
         .from('service_catalog').select('id')
         .eq('business_id', user.id).order('created_at', { ascending: false }).limit(1).single();
@@ -212,19 +255,20 @@ export default function BookingSetupWizardPage() {
 
   async function saveLocation() {
     if (!user || !locName.trim()) { toast.error(t('setup.error.nameRequired')); return; }
+    if (!locCity.trim() || !locCountry.trim()) { toast.error(t('setup.error.nameRequired')); return; }
     setSaving(true);
     if (locId) {
       const { data } = await (supabase as any).rpc('update_location', {
         p_location_id: locId, p_name: locName.trim(),
-        p_address: locAddress.trim() || null, p_city: locCity.trim() || null,
-        p_country: null, p_timezone: 'Europe/Sarajevo', p_phone: null,
+        p_address: locAddress.trim() || null, p_city: locCity.trim(),
+        p_country: locCountry.trim(), p_timezone: 'Europe/Sarajevo', p_phone: null,
       });
       if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); setSaving(false); return; }
     } else {
       const { data } = await (supabase as any).rpc('create_location', {
         p_business_id: user.id, p_name: locName.trim(),
-        p_address: locAddress.trim() || null, p_city: locCity.trim() || null,
-        p_country: null, p_timezone: 'Europe/Sarajevo', p_phone: null, p_is_primary: true,
+        p_address: locAddress.trim() || null, p_city: locCity.trim(),
+        p_country: locCountry.trim(), p_timezone: 'Europe/Sarajevo', p_phone: null, p_is_primary: true,
       });
       if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); setSaving(false); return; }
       const { data: row } = await (supabase as any)
@@ -240,28 +284,43 @@ export default function BookingSetupWizardPage() {
     if (!locId) { toast.error(t('setup.error.saveFailed')); return; }
     setSaving(true);
     for (const dh of dayHours) {
-      const { data } = await (supabase as any).rpc('upsert_opening_hours', {
+      // Primary period (sort_order = 0)
+      const { data: r1 } = await (supabase as any).rpc('upsert_opening_hours', {
         p_location_id: locId, p_day_of_week: dh.day,
         p_open_time: dh.from, p_close_time: dh.to,
         p_is_closed: !dh.open, p_sort_order: 0,
       });
-      if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); setSaving(false); return; }
+      if (!(r1 as any)?.ok) { toast.error(t('setup.error.saveFailed')); setSaving(false); return; }
+
+      // Secondary period (sort_order = 1) — upsert if enabled, delete otherwise
+      if (dh.open && dh.open2) {
+        const { data: r2 } = await (supabase as any).rpc('upsert_opening_hours', {
+          p_location_id: locId, p_day_of_week: dh.day,
+          p_open_time: dh.from2, p_close_time: dh.to2,
+          p_is_closed: false, p_sort_order: 1,
+        });
+        if (!(r2 as any)?.ok) { toast.error(t('setup.error.saveFailed')); setSaving(false); return; }
+      } else {
+        await (supabase as any).rpc('delete_opening_hour_period', {
+          p_location_id: locId, p_day_of_week: dh.day, p_sort_order: 1,
+        });
+      }
     }
     setSaving(false);
     advance();
   }
 
   async function saveStaff() {
-    // Staff is optional — skip if email empty
-    if (!user || !inviteEmail.trim()) { advance(); return; }
+    if (!selectedStaff || staffAdded) { advance(); return; }
     setSaving(true);
-    const { data } = await (supabase as any).rpc('send_staff_invitation', {
-      p_business_id: user.id, p_email: inviteEmail.trim(),
-      p_role: inviteRole, p_location_id: locId,
+    const { data } = await (supabase as any).rpc('add_staff_direct', {
+      p_user_id: selectedStaff.id,
+      p_role: staffRole,
+      p_location_id: locId,
     });
     setSaving(false);
     if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); return; }
-    toast.success(t('setup.staff.invite.sent'));
+    setStaffAdded(true);
     advance();
   }
 
@@ -280,10 +339,22 @@ export default function BookingSetupWizardPage() {
   }
 
   function toggleDay(day: number) {
-    setDayHours((prev) => prev.map((dh) => dh.day === day ? { ...dh, open: !dh.open } : dh));
+    setDayHours((prev) => prev.map((dh) =>
+      dh.day === day ? { ...dh, open: !dh.open, open2: !dh.open ? dh.open2 : false } : dh
+    ));
+  }
+
+  function toggleSecondPeriod(day: number) {
+    setDayHours((prev) => prev.map((dh) =>
+      dh.day === day ? { ...dh, open2: !dh.open2 } : dh
+    ));
   }
 
   function updateDayTime(day: number, field: 'from' | 'to', value: string) {
+    setDayHours((prev) => prev.map((dh) => dh.day === day ? { ...dh, [field]: value } : dh));
+  }
+
+  function updateDayTime2(day: number, field: 'from2' | 'to2', value: string) {
     setDayHours((prev) => prev.map((dh) => dh.day === day ? { ...dh, [field]: value } : dh));
   }
 
@@ -309,6 +380,10 @@ export default function BookingSetupWizardPage() {
 
   const isReady = !!bizName && !!svcId && !!locId;
   const currentKey: StepKey = STEP_KEYS[step];
+
+  const inputCls = 'w-full border border-border rounded-xl px-4 py-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30';
+  const selectCls = 'w-full border border-border rounded-xl px-3 py-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30';
+  const timeCls = 'border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary/30 w-[88px]';
 
   // ── Loading state ───────────────────────────────────────────────────────
 
@@ -367,7 +442,7 @@ export default function BookingSetupWizardPage() {
                     value={bizName}
                     onChange={(e) => setBizName(e.target.value)}
                     placeholder={t('setup.profile.namePlaceholder')}
-                    className="w-full border border-border rounded-xl px-4 py-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    className={inputCls}
                   />
                   <p className="text-xs text-muted-foreground">{t('setup.profile.nameHelp')}</p>
                 </div>
@@ -389,7 +464,7 @@ export default function BookingSetupWizardPage() {
                       value={svcName}
                       onChange={(e) => setSvcName(e.target.value)}
                       placeholder={t('setup.services.namePlaceholder.appointment_service')}
-                      className="w-full border border-border rounded-xl px-4 py-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                      className={inputCls}
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
@@ -407,7 +482,7 @@ export default function BookingSetupWizardPage() {
                       <select
                         value={svcDuration}
                         onChange={(e) => setSvcDuration(Number(e.target.value))}
-                        className="w-full border border-border rounded-xl px-3 py-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        className={selectCls}
                       >
                         {DURATIONS.map((d) => <option key={d} value={d}>{d} min</option>)}
                       </select>
@@ -417,7 +492,7 @@ export default function BookingSetupWizardPage() {
                       <select
                         value={svcPriceType}
                         onChange={(e) => setSvcPriceType(e.target.value)}
-                        className="w-full border border-border rounded-xl px-3 py-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        className={selectCls}
                       >
                         <option value="fixed">{t('setup.services.ptype.fixed')}</option>
                         <option value="from">{t('setup.services.ptype.from')}</option>
@@ -436,7 +511,7 @@ export default function BookingSetupWizardPage() {
                           onChange={(e) => setSvcPrice(e.target.value)}
                           min="0"
                           placeholder="0"
-                          className="w-full border border-border rounded-xl px-4 py-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                          className={inputCls}
                         />
                       </div>
                       <div className="flex flex-col gap-1.5 w-24">
@@ -444,7 +519,7 @@ export default function BookingSetupWizardPage() {
                         <select
                           value={svcCurrency}
                           onChange={(e) => setSvcCurrency(e.target.value)}
-                          className="w-full border border-border rounded-xl px-3 py-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                          className={selectCls}
                         >
                           <option>BAM</option>
                           <option>EUR</option>
@@ -479,7 +554,7 @@ export default function BookingSetupWizardPage() {
                       value={locName}
                       onChange={(e) => setLocName(e.target.value)}
                       placeholder="npr. Salon Ana – Centar"
-                      className="w-full border border-border rounded-xl px-4 py-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                      className={inputCls}
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
@@ -489,18 +564,30 @@ export default function BookingSetupWizardPage() {
                       value={locAddress}
                       onChange={(e) => setLocAddress(e.target.value)}
                       placeholder="npr. Titova 15"
-                      className="w-full border border-border rounded-xl px-4 py-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                      className={inputCls}
                     />
                   </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium">{t('setup.locations.city')}</label>
-                    <input
-                      type="text"
-                      value={locCity}
-                      onChange={(e) => setLocCity(e.target.value)}
-                      placeholder="npr. Sarajevo"
-                      className="w-full border border-border rounded-xl px-4 py-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
+                  <div className="flex gap-3">
+                    <div className="flex flex-col gap-1.5 flex-1">
+                      <label className="text-sm font-medium">{t('setup.locations.city')} *</label>
+                      <input
+                        type="text"
+                        value={locCity}
+                        onChange={(e) => setLocCity(e.target.value)}
+                        placeholder="npr. Sarajevo"
+                        className={inputCls}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5 flex-1">
+                      <label className="text-sm font-medium">{t('setup.locations.country')} *</label>
+                      <input
+                        type="text"
+                        value={locCountry}
+                        onChange={(e) => setLocCountry(e.target.value)}
+                        placeholder="npr. Bosna i Hercegovina"
+                        className={inputCls}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -513,36 +600,77 @@ export default function BookingSetupWizardPage() {
                   <h2 className="text-lg font-semibold">{t('setup.hours.heading')}</h2>
                   <p className="text-sm text-muted-foreground mt-0.5">{t('bookingSetup.hours.desc')}</p>
                 </div>
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-0.5">
                   {dayHours.map((dh) => (
-                    <div key={dh.day} className="flex items-center gap-3 py-2.5 border-b border-border/40 last:border-0">
+                    <div
+                      key={dh.day}
+                      className={`flex gap-3 py-2.5 border-b border-border/40 last:border-0 ${dh.open && dh.open2 ? 'items-start' : 'items-center'}`}
+                    >
                       <button
                         type="button"
                         onClick={() => toggleDay(dh.day)}
-                        className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors shrink-0 ${
+                        className={`mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors shrink-0 ${
                           dh.open ? 'bg-primary border-primary' : 'border-border bg-background'
                         }`}
                       >
                         {dh.open && <Check className="w-3 h-3 text-primary-foreground" />}
                       </button>
-                      <span className="text-sm w-28 shrink-0">
+                      <span className="text-sm w-24 shrink-0 mt-0.5">
                         {t(`setup.hours.day.${dh.day}` as Parameters<typeof t>[0])}
                       </span>
                       {dh.open ? (
-                        <div className="flex items-center gap-2 flex-1">
-                          <input
-                            type="time"
-                            value={dh.from}
-                            onChange={(e) => updateDayTime(dh.day, 'from', e.target.value)}
-                            className="border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
-                          />
-                          <span className="text-xs text-muted-foreground">–</span>
-                          <input
-                            type="time"
-                            value={dh.to}
-                            onChange={(e) => updateDayTime(dh.day, 'to', e.target.value)}
-                            className="border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
-                          />
+                        <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                          {/* Primary period */}
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <input
+                              type="time"
+                              value={dh.from}
+                              onChange={(e) => updateDayTime(dh.day, 'from', e.target.value)}
+                              className={timeCls}
+                            />
+                            <span className="text-xs text-muted-foreground">–</span>
+                            <input
+                              type="time"
+                              value={dh.to}
+                              onChange={(e) => updateDayTime(dh.day, 'to', e.target.value)}
+                              className={timeCls}
+                            />
+                            {!dh.open2 && (
+                              <button
+                                type="button"
+                                onClick={() => toggleSecondPeriod(dh.day)}
+                                className="text-[11px] font-medium text-primary/70 hover:text-primary transition-colors px-1.5 py-0.5 rounded border border-primary/20 hover:border-primary/50"
+                              >
+                                + {t('bookingSetup.hours.addSecondPeriod')}
+                              </button>
+                            )}
+                          </div>
+                          {/* Secondary period */}
+                          {dh.open2 && (
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <input
+                                type="time"
+                                value={dh.from2}
+                                onChange={(e) => updateDayTime2(dh.day, 'from2', e.target.value)}
+                                className={timeCls}
+                              />
+                              <span className="text-xs text-muted-foreground">–</span>
+                              <input
+                                type="time"
+                                value={dh.to2}
+                                onChange={(e) => updateDayTime2(dh.day, 'to2', e.target.value)}
+                                className={timeCls}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => toggleSecondPeriod(dh.day)}
+                                className="text-[11px] font-medium text-destructive/60 hover:text-destructive transition-colors flex items-center gap-0.5"
+                              >
+                                <X className="w-3 h-3" />
+                                {t('bookingSetup.hours.removeSecondPeriod')}
+                              </button>
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <span className="text-xs text-muted-foreground flex-1">{t('setup.hours.closed')}</span>
@@ -557,35 +685,110 @@ export default function BookingSetupWizardPage() {
             {currentKey === 'staff' && (
               <div className="flex flex-col gap-5">
                 <div>
-                  <h2 className="text-lg font-semibold">{t('setup.tab.staff')}</h2>
+                  <h2 className="text-lg font-semibold">{t('bookingSetup.staff.search.heading')}</h2>
                   <p className="text-sm text-muted-foreground mt-0.5">{t('bookingSetup.staff.desc')}</p>
                   <span className="inline-block mt-2 text-xs text-primary font-medium bg-primary/10 px-2.5 py-1 rounded-full">
                     {t('bookingSetup.staff.free')}
                   </span>
                 </div>
+
                 <div className="flex flex-col gap-4">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium">{t('setup.staff.inviteEmail')}</label>
-                    <input
-                      type="email"
-                      value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                      placeholder="radnik@example.com"
-                      className="w-full border border-border rounded-xl px-4 py-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium">{t('setup.staff.inviteRole')}</label>
-                    <select
-                      value={inviteRole}
-                      onChange={(e) => setInviteRole(e.target.value as 'manager' | 'worker')}
-                      className="w-full border border-border rounded-xl px-3 py-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    >
-                      <option value="worker">{t('setup.staff.role.worker')}</option>
-                      <option value="manager">{t('setup.staff.role.manager')}</option>
-                    </select>
-                  </div>
+                  {selectedStaff ? (
+                    /* Selected user card */
+                    <div className="flex items-center gap-3 p-3 rounded-xl border-2 border-primary/30 bg-primary/5">
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0 overflow-hidden text-sm font-bold text-primary">
+                        {selectedStaff.avatar_url ? (
+                          <img src={selectedStaff.avatar_url} alt={selectedStaff.name} className="w-full h-full object-cover" />
+                        ) : (
+                          selectedStaff.name.charAt(0).toUpperCase()
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{selectedStaff.name}</p>
+                        {selectedStaff.city && (
+                          <p className="text-xs text-muted-foreground">{selectedStaff.city}</p>
+                        )}
+                      </div>
+                      {staffAdded ? (
+                        <span className="text-xs font-medium text-green-600 dark:text-green-400 shrink-0">
+                          {t('bookingSetup.staff.search.added')}
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => { setSelectedStaff(null); setStaffAdded(false); }}
+                          className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    /* Search input */
+                    <div className="flex flex-col gap-2">
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={staffSearch}
+                          onChange={(e) => setStaffSearch(e.target.value)}
+                          placeholder={t('bookingSetup.staff.search.placeholder')}
+                          className={inputCls}
+                        />
+                        {staffSearching && (
+                          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
+                        )}
+                      </div>
+
+                      {/* Search results */}
+                      {staffResults.length > 0 && (
+                        <div className="border border-border rounded-xl overflow-hidden">
+                          {staffResults.map((u, i) => (
+                            <button
+                              key={u.id}
+                              onClick={() => { setSelectedStaff(u); setStaffResults([]); setStaffSearch(''); }}
+                              className={`flex items-center gap-3 p-3 hover:bg-muted/60 w-full text-left transition-colors ${i < staffResults.length - 1 ? 'border-b border-border/50' : ''}`}
+                            >
+                              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden text-xs font-bold">
+                                {u.avatar_url ? (
+                                  <img src={u.avatar_url} alt={u.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  u.name.charAt(0).toUpperCase()
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-medium text-sm truncate">{u.name}</p>
+                                {u.city && <p className="text-xs text-muted-foreground">{u.city}</p>}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      {staffSearch.length >= 2 && staffResults.length === 0 && !staffSearching && (
+                        <p className="text-xs text-muted-foreground">{t('bookingSetup.staff.search.noResults')}</p>
+                      )}
+
+                      <p className="text-xs text-muted-foreground/70 mt-1">
+                        {t('bookingSetup.staff.search.mustHaveAccount')}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Role selector — show when a user is selected and not yet added */}
+                  {selectedStaff && !staffAdded && (
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-sm font-medium">{t('setup.staff.inviteRole')}</label>
+                      <select
+                        value={staffRole}
+                        onChange={(e) => setStaffRole(e.target.value as 'manager' | 'worker')}
+                        className={selectCls}
+                      >
+                        <option value="worker">{t('setup.staff.role.worker')}</option>
+                        <option value="manager">{t('setup.staff.role.manager')}</option>
+                      </select>
+                    </div>
+                  )}
                 </div>
+
                 <p className="text-xs text-muted-foreground">{t('bookingSetup.staff.skipHint')}</p>
               </div>
             )}
@@ -597,7 +800,9 @@ export default function BookingSetupWizardPage() {
                   <h2 className="text-lg font-semibold">{t('setup.rules.heading')}</h2>
                   <p className="text-sm text-muted-foreground mt-0.5">{t('bookingSetup.rules.desc')}</p>
                 </div>
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-5">
+
+                  {/* Confirmation mode */}
                   <div className="flex flex-col gap-2">
                     <label className="text-sm font-medium">{t('setup.rules.confirmation')}</label>
                     <div className="flex gap-2">
@@ -612,40 +817,55 @@ export default function BookingSetupWizardPage() {
                               : 'border-border text-muted-foreground hover:border-primary/40'
                           }`}
                         >
-                          {mode === 'instant' ? t('setup.rules.confirmation.instant') : t('setup.rules.confirmation.approval')}
+                          {mode === 'instant'
+                            ? t('setup.rules.confirmation.instant')
+                            : t('setup.rules.confirmation.approval')}
                         </button>
                       ))}
                     </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {rules.confirmation_mode === 'instant'
+                        ? t('setup.rules.confirmation.instant.desc')
+                        : t('setup.rules.confirmation.approval.desc')}
+                    </p>
                   </div>
+
+                  {/* Slot interval */}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium">{t('setup.rules.slotInterval')}</label>
+                    <select
+                      value={rules.slot_interval_min}
+                      onChange={(e) => setRules((r) => ({ ...r, slot_interval_min: Number(e.target.value) }))}
+                      className={selectCls}
+                    >
+                      {[15, 30, 45, 60].map((v) => <option key={v} value={v}>{v} min</option>)}
+                    </select>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {t('setup.rules.slotInterval.desc')}
+                    </p>
+                  </div>
+
+                  {/* Cancellation + Min notice */}
                   <div className="flex gap-3">
-                    <div className="flex flex-col gap-1.5 flex-1">
-                      <label className="text-xs font-medium text-muted-foreground">{t('setup.rules.slotInterval')}</label>
-                      <select
-                        value={rules.slot_interval_min}
-                        onChange={(e) => setRules((r) => ({ ...r, slot_interval_min: Number(e.target.value) }))}
-                        className="border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
-                      >
-                        {[15, 30, 45, 60].map((v) => <option key={v} value={v}>{v} min</option>)}
-                      </select>
-                    </div>
                     <div className="flex flex-col gap-1.5 flex-1">
                       <label className="text-xs font-medium text-muted-foreground">{t('setup.rules.cancellation')}</label>
                       <select
                         value={rules.cancellation_hours}
                         onChange={(e) => setRules((r) => ({ ...r, cancellation_hours: Number(e.target.value) }))}
-                        className="border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        className={selectCls}
                       >
                         {[1, 2, 4, 6, 12, 24, 48].map((v) => <option key={v} value={v}>{v}h</option>)}
                       </select>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed">
+                        {t('setup.rules.cancellation.desc')}
+                      </p>
                     </div>
-                  </div>
-                  <div className="flex gap-3">
                     <div className="flex flex-col gap-1.5 flex-1">
                       <label className="text-xs font-medium text-muted-foreground">{t('setup.rules.minNotice')}</label>
                       <select
                         value={rules.min_notice_minutes}
                         onChange={(e) => setRules((r) => ({ ...r, min_notice_minutes: Number(e.target.value) }))}
-                        className="border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        className={selectCls}
                       >
                         {[15, 30, 60, 120, 240, 480, 1440].map((v) => (
                           <option key={v} value={v}>
@@ -653,18 +873,27 @@ export default function BookingSetupWizardPage() {
                           </option>
                         ))}
                       </select>
-                    </div>
-                    <div className="flex flex-col gap-1.5 flex-1">
-                      <label className="text-xs font-medium text-muted-foreground">{t('setup.rules.maxAdvance')}</label>
-                      <select
-                        value={rules.max_advance_days}
-                        onChange={(e) => setRules((r) => ({ ...r, max_advance_days: Number(e.target.value) }))}
-                        className="border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
-                      >
-                        {[7, 14, 30, 60, 90].map((v) => <option key={v} value={v}>{v} dana</option>)}
-                      </select>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed">
+                        {t('setup.rules.minNotice.desc')}
+                      </p>
                     </div>
                   </div>
+
+                  {/* Max advance */}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium">{t('setup.rules.maxAdvance')}</label>
+                    <select
+                      value={rules.max_advance_days}
+                      onChange={(e) => setRules((r) => ({ ...r, max_advance_days: Number(e.target.value) }))}
+                      className={selectCls}
+                    >
+                      {[7, 14, 30, 60, 90].map((v) => <option key={v} value={v}>{v} dana</option>)}
+                    </select>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {t('setup.rules.maxAdvance.desc')}
+                    </p>
+                  </div>
+
                 </div>
               </div>
             )}
@@ -680,7 +909,6 @@ export default function BookingSetupWizardPage() {
                   <p className="text-sm text-muted-foreground mt-1">{t('bookingSetup.activate.desc')}</p>
                 </div>
 
-                {/* Setup checklist */}
                 <div className="flex flex-col gap-2">
                   {[
                     { label: t('setup.tab.profile'),   done: !!bizName },
@@ -700,7 +928,6 @@ export default function BookingSetupWizardPage() {
                   ))}
                 </div>
 
-                {/* Booking link */}
                 {isReady && bookingUrl && (
                   <div className="bg-muted/50 border border-border rounded-xl p-4 flex flex-col gap-2">
                     <p className="text-xs font-medium text-muted-foreground">{t('bookingSetup.activate.link')}</p>
@@ -717,7 +944,6 @@ export default function BookingSetupWizardPage() {
                   </div>
                 )}
 
-                {/* Actions */}
                 <div className="flex flex-col gap-2 pt-2">
                   <button
                     onClick={() => router.push('/dashboard/business/setup')}
@@ -765,7 +991,7 @@ export default function BookingSetupWizardPage() {
                 disabled={saving}
                 className="px-6 py-2.5 text-sm font-medium bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
               >
-                {saving ? '...' : t('bookingSetup.saveAndContinue')}
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : t('bookingSetup.saveAndContinue')}
               </button>
             </div>
           )}
