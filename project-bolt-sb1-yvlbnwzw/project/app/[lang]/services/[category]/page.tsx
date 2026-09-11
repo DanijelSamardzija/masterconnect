@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { unstable_noStore as noStore } from 'next/cache';
+import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
@@ -80,7 +80,7 @@ export default async function CategoryLandingPage({
 
   // UUID: render individual service detail (layout handles JSON-LD and metadata)
   if (UUID_RE.test(category)) {
-    noStore(); // service detail is user-specific and has mutable booking state — bypass ISR
+    cookies(); // calling cookies() opts this render out of ISR (Next.js 13 equivalent of noStore)
     const data = await fetchServiceDetail(category);
     if (!data) notFound();
     return <ServiceDetailClient serviceId={category} initialData={data as any} />;
