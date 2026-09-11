@@ -23,6 +23,7 @@ type ServiceRow = {
   price_type: string;
   capacity: number;
   booking_type: string;
+  currency: string;
   is_active: boolean;
 };
 
@@ -61,14 +62,20 @@ type PostListing = {
 
 const BOOKING_TYPES = [
   'appointment_service',
+  'tradespeople',
   'restaurant',
   'accommodation',
   'event',
   'order',
-  'tradespeople',
 ] as const;
 
 const PRICE_TYPES = ['fixed', 'from', 'negotiable', 'free'] as const;
+
+const CURRENCIES = [
+  'BAM', 'EUR', 'RSD', 'USD', 'GBP', 'CHF',
+  'MKD', 'ALL', 'HUF', 'CZK', 'PLN',
+  'CAD', 'AUD', 'NOK', 'SEK', 'DKK',
+] as const;
 
 const DEFAULT_HOURS: HourRow[] = Array.from({ length: 7 }, (_, i) => ({
   day_of_week: i,
@@ -199,6 +206,7 @@ export default function BusinessSetupPage() {
   const [svcDuration, setSvcDuration] = useState('60');
   const [svcPrice, setSvcPrice] = useState('');
   const [svcPriceType, setSvcPriceType] = useState<string>('fixed');
+  const [svcCurrency, setSvcCurrency] = useState('BAM');
   const [svcCapacity, setSvcCapacity] = useState('1');
   const [svcBookingType, setSvcBookingType] = useState<string>('appointment_service');
   const [svcSaving, setSvcSaving] = useState(false);
@@ -263,10 +271,10 @@ export default function BusinessSetupPage() {
     setServicesLoading(true);
     const { data } = await supabase
       .from('service_catalog')
-      .select('id, name, description, duration_minutes, price, price_type, capacity, booking_type, is_active')
+      .select('id, name, description, duration_minutes, price, price_type, capacity, booking_type, currency, is_active')
       .eq('business_id', user.id)
       .order('created_at', { ascending: true });
-    setServices((data as ServiceRow[]) ?? []);
+    setServices((data as unknown as ServiceRow[]) ?? []);
     setServicesLoading(false);
   }, [user]);
 
@@ -373,7 +381,7 @@ export default function BusinessSetupPage() {
   function openAddSvc() {
     setEditingSvc(null);
     setSvcName(''); setSvcDesc(''); setSvcDuration('60');
-    setSvcPrice(''); setSvcPriceType('fixed'); setSvcCapacity('1');
+    setSvcPrice(''); setSvcPriceType('fixed'); setSvcCurrency('BAM'); setSvcCapacity('1');
     setSvcBookingType('appointment_service');
     setShowSvcForm(true);
   }
@@ -385,6 +393,7 @@ export default function BusinessSetupPage() {
     setSvcDuration(String(svc.duration_minutes));
     setSvcPrice(svc.price !== null ? String(svc.price) : '');
     setSvcPriceType(svc.price_type);
+    setSvcCurrency(svc.currency || 'BAM');
     setSvcCapacity(String(svc.capacity));
     setSvcBookingType(svc.booking_type);
     setShowSvcForm(true);
@@ -413,6 +422,7 @@ export default function BusinessSetupPage() {
         p_price_type: svcPriceType,
         p_capacity: parseInt(svcCapacity, 10) || 1,
         p_is_active: editingSvc.is_active,
+        p_currency: svcCurrency,
       });
       const result = data as { ok: boolean } | null;
       if (!result?.ok) { toast.error(t('setup.error.saveFailed')); setSvcSaving(false); return; }
@@ -426,6 +436,7 @@ export default function BusinessSetupPage() {
         p_price_type: svcPriceType,
         p_capacity: parseInt(svcCapacity, 10) || 1,
         p_booking_type: svcBookingType,
+        p_currency: svcCurrency,
       });
       const result = data as { ok: boolean } | null;
       if (!result?.ok) { toast.error(t('setup.error.saveFailed')); setSvcSaving(false); return; }
@@ -736,16 +747,42 @@ export default function BusinessSetupPage() {
                     </button>
                   </div>
 
+                  {/* Vrsta rezervacije — chips, samo pri dodavanju */}
+                  {!editingSvc && (
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-medium text-muted-foreground">{t('setup.btype.label')}</label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {BOOKING_TYPES.map((bt) => (
+                          <button
+                            key={bt}
+                            type="button"
+                            onClick={() => setSvcBookingType(bt)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                              svcBookingType === bt
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'bg-background text-muted-foreground border-border hover:border-primary hover:text-foreground'
+                            }`}
+                          >
+                            {t(`setup.btype.${bt}`)}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{t('setup.btype.help')}</p>
+                    </div>
+                  )}
+
                   {labelInput(t('setup.services.name'),
                     <>
                       <input
                         type="text"
                         value={svcName}
                         onChange={(e) => setSvcName(e.target.value)}
-                        placeholder={t('setup.services.namePlaceholder')}
+                        placeholder={t((`setup.services.namePlaceholder.${svcBookingType}`) as Parameters<typeof t>[0])}
                         className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                       />
-                      <p className="text-xs text-muted-foreground mt-0.5">{t('setup.services.nameHelp')}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {t((`setup.services.nameHelp.${svcBookingType}`) as Parameters<typeof t>[0])}
+                      </p>
                     </>
                   )}
 
@@ -788,48 +825,43 @@ export default function BusinessSetupPage() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    {labelInput(t('setup.services.priceType'),
-                      <>
+                  {labelInput(t('setup.services.priceType'),
+                    <>
+                      <select
+                        value={svcPriceType}
+                        onChange={(e) => setSvcPriceType(e.target.value)}
+                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                      >
+                        {PRICE_TYPES.map((pt) => (
+                          <option key={pt} value={pt}>{t(`setup.services.ptype.${pt}`)}</option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-muted-foreground mt-0.5">{t('setup.services.priceTypeHelp')}</p>
+                    </>
+                  )}
+
+                  {(svcPriceType === 'fixed' || svcPriceType === 'from') && labelInput(t('setup.services.price'),
+                    <>
+                      <div className="flex rounded-lg overflow-hidden border border-border focus-within:ring-2 focus-within:ring-primary">
                         <select
-                          value={svcPriceType}
-                          onChange={(e) => setSvcPriceType(e.target.value)}
-                          className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                          value={svcCurrency}
+                          onChange={(e) => setSvcCurrency(e.target.value)}
+                          className="px-2 py-2 text-sm bg-muted border-r border-border focus:outline-none shrink-0 w-[72px]"
                         >
-                          {PRICE_TYPES.map((pt) => (
-                            <option key={pt} value={pt}>{t(`setup.services.ptype.${pt}`)}</option>
+                          {CURRENCIES.map((c) => (
+                            <option key={c} value={c}>{c}</option>
                           ))}
                         </select>
-                        <p className="text-xs text-muted-foreground mt-0.5">{t('setup.services.priceTypeHelp')}</p>
-                      </>
-                    )}
-                    {(svcPriceType === 'fixed' || svcPriceType === 'from') && labelInput(t('setup.services.price'),
-                      <>
                         <input
                           type="number"
                           min="0"
                           step="0.01"
                           value={svcPrice}
                           onChange={(e) => setSvcPrice(e.target.value)}
-                          className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                          className="px-3 py-2 text-sm bg-background flex-1 focus:outline-none min-w-0"
                         />
-                        <p className="text-xs text-muted-foreground mt-0.5">{t('setup.services.priceHelp')}</p>
-                      </>
-                    )}
-                  </div>
-
-                  {!editingSvc && labelInput(t('setup.btype.label'),
-                    <>
-                      <select
-                        value={svcBookingType}
-                        onChange={(e) => setSvcBookingType(e.target.value)}
-                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                      >
-                        {BOOKING_TYPES.map((bt) => (
-                          <option key={bt} value={bt}>{t(`setup.btype.${bt}`)}</option>
-                        ))}
-                      </select>
-                      <p className="text-xs text-muted-foreground mt-0.5">{t('setup.btype.help')}</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">{t('setup.services.priceHelp')}</p>
                     </>
                   )}
 
@@ -867,7 +899,7 @@ export default function BusinessSetupPage() {
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {svc.duration_minutes} min
-                          {svc.price !== null && ` · ${svc.price} €`}
+                          {svc.price !== null && ` · ${svc.price} ${svc.currency}`}
                           {svc.price_type === 'free' && ` · ${t('setup.services.ptype.free')}`}
                           {svc.price_type === 'negotiable' && ` · ${t('setup.services.ptype.negotiable')}`}
                         </p>
