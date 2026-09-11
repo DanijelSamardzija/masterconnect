@@ -203,9 +203,8 @@ export default function BusinessSetupPage() {
 
   const VALID_TABS: Tab[] = ['profile', 'services', 'hours', 'locations', 'rules'];
   const tabFromUrl = searchParams.get('tab') as Tab | null;
-  const [activeTab, setActiveTab] = useState<Tab>(
-    tabFromUrl && VALID_TABS.includes(tabFromUrl) ? tabFromUrl : 'profile'
-  );
+  const initialTab: Tab = tabFromUrl && VALID_TABS.includes(tabFromUrl) ? tabFromUrl : 'profile';
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab);
 
   // ── Profile state ──────────────────────────────────────────────────────────
   const [bizName, setBizName] = useState('');
@@ -216,7 +215,7 @@ export default function BusinessSetupPage() {
 
   // ── Services state ─────────────────────────────────────────────────────────
   const [services, setServices] = useState<ServiceRow[]>([]);
-  const [servicesLoading, setServicesLoading] = useState(false);
+  const [servicesLoading, setServicesLoading] = useState(initialTab === 'services');
   const [showSvcForm, setShowSvcForm] = useState(false);
   const [editingSvc, setEditingSvc] = useState<ServiceRow | null>(null);
   const [svcName, setSvcName] = useState('');
@@ -237,19 +236,19 @@ export default function BusinessSetupPage() {
     cancellation_hours: 24,
     slot_interval_min: 15,
   });
-  const [rulesLoading, setRulesLoading] = useState(false);
+  const [rulesLoading, setRulesLoading] = useState(initialTab === 'rules');
   const [rulesSaving, setRulesSaving] = useState(false);
 
   // ── Post listings state (F11B) ─────────────────────────────────────────────
   const [postListings, setPostListings] = useState<PostListing[]>([]);
-  const [postsLoading, setPostsLoading] = useState(false);
+  const [postsLoading, setPostsLoading] = useState(initialTab === 'services');
   const [togglingPost, setTogglingPost] = useState<string | null>(null);
 
   // ── Hours state ────────────────────────────────────────────────────────────
   const [primaryLocId, setPrimaryLocId] = useState<string | null>(null);
   const [hours, setHours] = useState<DayHours[]>(DEFAULT_HOURS);
   const [deletedPeriods, setDeletedPeriods] = useState<Array<{ day_of_week: number; sort_order: number }>>([]);
-  const [hoursLoading, setHoursLoading] = useState(false);
+  const [hoursLoading, setHoursLoading] = useState(initialTab === 'hours');
   const [hoursSaving, setHoursSaving] = useState(false);
 
   // ── Closures state ─────────────────────────────────────────────────────────
@@ -265,7 +264,7 @@ export default function BusinessSetupPage() {
 
   // ── Locations state ────────────────────────────────────────────────────────
   const [locations, setLocations] = useState<LocationRow[]>([]);
-  const [locsLoading, setLocsLoading] = useState(false);
+  const [locsLoading, setLocsLoading] = useState(initialTab === 'locations');
   const [showLocForm, setShowLocForm] = useState(false);
   const [editingLoc, setEditingLoc] = useState<LocationRow | null>(null);
   const [locName, setLocName] = useState('');
@@ -400,13 +399,13 @@ export default function BusinessSetupPage() {
 
   // ── Tab switch loaders ─────────────────────────────────────────────────────
   useEffect(() => {
+    if (!user) return; // wait for auth before loading any tab data
     if (activeTab === 'services') { loadServices(); loadPostListings(); }
     if (activeTab === 'locations') loadLocations();
     if (activeTab === 'rules') loadRules();
     if (activeTab === 'hours') {
       setHoursLoading(true); // show spinner immediately while finding primary location
       loadLocations().then(async () => {
-        if (!user) { setHoursLoading(false); return; }
         const { data: locData } = await supabase
           .from('business_locations')
           .select('id')
@@ -423,7 +422,7 @@ export default function BusinessSetupPage() {
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
+  }, [activeTab, user]);
 
   // ── Profile save ───────────────────────────────────────────────────────────
   async function handleSaveProfile() {
