@@ -6,6 +6,8 @@ import { ProtectedRoute } from '@/components/protected-route';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { useBookingAccess } from '@/lib/hooks/use-booking-access';
+import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
 import { Calendar, Clock, X, ChevronRight, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -60,6 +62,7 @@ export default function MyBookingsPage() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const router = useRouter();
+  const { hasAccess, loading: authLoading } = useBookingAccess();
 
   const [upcoming, setUpcoming] = useState<Booking[]>([]);
   const [past, setPast] = useState<Booking[]>([]);
@@ -119,6 +122,14 @@ export default function MyBookingsPage() {
 
   const canCancel = (b: Booking) =>
     ['pending', 'confirmed'].includes(b.status) && new Date(b.starts_at) > new Date();
+
+  if (!authLoading && !hasAccess) {
+    return (
+      <ProtectedRoute>
+        <BookingBetaBanner />
+      </ProtectedRoute>
+    );
+  }
 
   return (
     <ProtectedRoute>

@@ -1421,6 +1421,9 @@ export default {
   'dashboard.business.activeTitle': 'Business & Booking',
   'dashboard.business.activeStatus': 'Aktiv',
   'dashboard.business.activeButton': 'Einstellungen',
+  'dashboard.business.needsPremiumTitle': 'Business & Buchung',
+  'dashboard.business.needsPremiumMessage': 'Ein Pro Premium-Abonnement ist erforderlich, um Business & Buchung zu aktivieren.',
+  'dashboard.business.needsPremiumButton': 'Pro Premium aktivieren',
 
   // Navigation — Invest
   'nav.invest': 'Invest',
@@ -1886,6 +1889,10 @@ export default {
   'booking.onlineBooking': 'Online-Buchung verfügbar',
   'booking.error.notConfirmed': 'Nur bestätigte Buchungen können abgeschlossen werden',
   'booking.error.notStarted': 'Der Termin hat noch nicht begonnen — kann nicht als Nichterscheinen markiert werden',
+  'booking.beta.badge': 'Beta',
+  'booking.beta.title': 'Buchung — Demnächst verfügbar',
+  'booking.beta.message': 'Die Buchungsfunktion befindet sich derzeit in der Betaphase mit einer begrenzten Nutzergruppe. Sie wird bald für alle verfügbar sein.',
+  'booking.beta.inlineNote': 'Buchung ist in der Betaphase — demnächst für alle verfügbar.',
   'live.status.available_now': 'Jetzt verfügbar',
   'live.status.available_today': 'Heute verfügbar',
   'live.status.by_schedule': 'Nach Zeitplan',

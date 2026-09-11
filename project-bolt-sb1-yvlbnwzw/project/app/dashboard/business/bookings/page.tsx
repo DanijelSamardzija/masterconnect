@@ -6,6 +6,8 @@ import { ProtectedRoute } from '@/components/protected-route';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { useBookingAccess } from '@/lib/hooks/use-booking-access';
+import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
 import { Calendar, Check, X, ChevronRight, Users, CheckCircle, UserX, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -55,6 +57,7 @@ export default function BusinessBookingsPage() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const router = useRouter();
+  const { hasAccess, loading: authLoading } = useBookingAccess();
 
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -190,6 +193,14 @@ export default function BusinessBookingsPage() {
     if (filter === 'all') return true;
     return b.status === filter;
   });
+
+  if (!authLoading && !hasAccess) {
+    return (
+      <ProtectedRoute>
+        <BookingBetaBanner />
+      </ProtectedRoute>
+    );
+  }
 
   return (
     <ProtectedRoute>

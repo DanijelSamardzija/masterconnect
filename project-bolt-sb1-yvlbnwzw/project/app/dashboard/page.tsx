@@ -88,6 +88,7 @@ function DashboardContent() {
   const [recentViewers, setRecentViewers] = useState<{ id: string; name: string; avatar_url: string | null; viewed_at: string }[]>([]);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
   const [isBusinessProfile, setIsBusinessProfile] = useState<boolean | null>(null);
+  const [hasServiceListing, setHasServiceListing] = useState<boolean | null>(null);
   const [donations, setDonations] = useState<{ id: string; amount: number; anonymous: boolean; sender_name: string | null; sender_avatar: string | null; created_at: string }[]>([]);
   const [donationsOpen, setDonationsOpen] = useState(false);
   const [allReviewsOpen, setAllReviewsOpen] = useState(false);
@@ -101,7 +102,8 @@ function DashboardContent() {
     fetchNotifications();
     if (profile?.account_type === 'customer') fetchPendingReview();
     if (profile?.account_type === 'professional' || (profile as any)?.is_premium) fetchProfileViews();
-    if ((profile as any)?.is_premium) fetchIsBusinessProfile();
+    fetchHasServiceListing();
+    fetchIsBusinessProfile();
     if ((profile as any)?.is_premium) { fetchCreditBalance(); fetchRecentViewers(); fetchDonations(); }
 
     const handleUnreadCountChanged = () => {
@@ -176,6 +178,17 @@ function DashboardContent() {
     if (!profile) return;
     const { data } = await supabase.from('profiles').select('is_business').eq('id', profile.id).single();
     setIsBusinessProfile(data?.is_business ?? false);
+  };
+
+  const fetchHasServiceListing = async () => {
+    if (!profile) return;
+    const { count } = await supabase
+      .from('posts')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', profile.id)
+      .eq('post_type', 'service_listing')
+      .eq('is_active', true);
+    setHasServiceListing((count ?? 0) > 0);
   };
 
   const fetchProfileViews = async () => {
@@ -363,9 +376,25 @@ function DashboardContent() {
           </div>
         </div>
 
-        {/* Business & Booking CTA — samo za Pro Premium korisnike */}
-        {isPremium && isBusinessProfile !== null && (
-          isBusinessProfile ? (
+        {/* Business & Booking CTA — for all users who have a service listing */}
+        {hasServiceListing && isBusinessProfile !== null && (
+          !isPremium ? (
+            <div className="bg-card border border-blue-200 dark:border-blue-900 rounded-2xl p-4 flex items-center gap-3">
+              <div className="p-2.5 bg-blue-100 dark:bg-blue-950 rounded-xl shrink-0">
+                <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground">{t('dashboard.business.needsPremiumTitle')}</p>
+                <p className="text-xs text-muted-foreground truncate">{t('dashboard.business.needsPremiumMessage')}</p>
+              </div>
+              <button
+                onClick={() => router.push('/profile')}
+                className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 shrink-0"
+              >
+                {t('dashboard.business.needsPremiumButton')} →
+              </button>
+            </div>
+          ) : isBusinessProfile ? (
             <div className="bg-card border border-border rounded-2xl p-4 flex items-center gap-3">
               <div className="p-2.5 bg-blue-100 dark:bg-blue-950 rounded-xl shrink-0">
                 <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />

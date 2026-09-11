@@ -23,6 +23,7 @@ import { toast } from 'sonner';
 import { Loader2, MapPin, MessageCircle, Star, ChevronLeft, ChevronRight, User, Share2, Edit, Trash2, ImageOff, Calendar } from 'lucide-react';
 import { ContactCard } from '@/components/contact-card';
 import { EditPostModal } from '@/components/edit-post-modal';
+import { isBookingBetaUser } from '@/lib/booking-whitelist';
 import { timeAgo } from '@/lib/utils/date';
 import { trackView } from '@/lib/recently-viewed';
 
@@ -777,6 +778,15 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                         >
                           {t('serviceDetail.booking.setupLink')} →
                         </button>
+                      </div>
+                    ) : !isBookingBetaUser(user?.id) ? (
+                      <div className="flex flex-col gap-1.5">
+                        <span className="self-start text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400">
+                          {t('booking.beta.badge')}
+                        </span>
+                        <p className="text-xs text-orange-600 dark:text-orange-400">
+                          {t('booking.beta.inlineNote')}
+                        </p>
                       </div>
                     ) : (
                       <div className="flex flex-col gap-2">

@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { useBookingAccess } from '@/lib/hooks/use-booking-access';
+import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { ArrowLeft, Clock, Users, DollarSign, Calendar } from 'lucide-react';
 
 type Business = {
@@ -29,13 +31,14 @@ export default function BusinessBookingPage() {
   const { businessId } = useParams<{ businessId: string }>();
   const router = useRouter();
   const { t } = useLanguage();
+  const { hasAccess, loading: authLoading } = useBookingAccess();
 
   const [business, setBusiness] = useState<Business | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!businessId) return;
+    if (!businessId || !hasAccess) return;
     async function load() {
       setLoading(true);
       const [bizRes, svcRes] = await Promise.all([
@@ -64,6 +67,16 @@ export default function BusinessBookingPage() {
     if (!svc.price || svc.price === 0) return t('booking.priceFree');
     return `${svc.price.toLocaleString()} €`;
   }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!hasAccess) return <BookingBetaBanner />;
 
   if (loading) {
     return (

@@ -1425,6 +1425,9 @@ export default {
   'dashboard.business.activeTitle': 'Business & Booking',
   'dashboard.business.activeStatus': 'Active',
   'dashboard.business.activeButton': 'Settings',
+  'dashboard.business.needsPremiumTitle': 'Business & Booking',
+  'dashboard.business.needsPremiumMessage': 'Pro Premium subscription required to activate Business & Booking features.',
+  'dashboard.business.needsPremiumButton': 'Activate Pro Premium',
 
   // Navigation — Invest
   'nav.invest': 'Invest',
@@ -1896,6 +1899,10 @@ export default {
   'booking.onlineBooking': 'Online booking available',
   'booking.error.notConfirmed': 'Only confirmed bookings can be completed',
   'booking.error.notStarted': 'Appointment has not started yet — cannot mark as no-show',
+  'booking.beta.badge': 'Beta',
+  'booking.beta.title': 'Booking — Coming Soon',
+  'booking.beta.message': 'Booking is currently in beta testing with a limited group of users. It will be available to everyone soon.',
+  'booking.beta.inlineNote': 'Booking is currently in beta — coming soon for all users.',
   'live.status.available_now': 'Available now',
   'live.status.available_today': 'Available today',
   'live.status.by_schedule': 'By schedule',

@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { useBookingAccess } from '@/lib/hooks/use-booking-access';
+import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { ArrowLeft, Search, Star } from 'lucide-react';
 
 type AvailabilityFilter = 'any' | 'available_today' | 'available_now';
@@ -36,6 +38,7 @@ const FILTERS: AvailabilityFilter[] = ['any', 'available_today', 'available_now'
 export default function AvailableNowPage() {
   const { t } = useLanguage();
   const router = useRouter();
+  const { hasAccess, loading: authLoading } = useBookingAccess();
 
   const [profiles, setProfiles] = useState<BookableProfile[]>([]);
   const [loading, setLoading]   = useState(true);
@@ -43,6 +46,7 @@ export default function AvailableNowPage() {
   const [citySearch, setCitySearch] = useState('');
 
   useEffect(() => {
+    if (!hasAccess) return;
     let cancelled = false;
     async function load() {
       setLoading(true);
@@ -58,7 +62,17 @@ export default function AvailableNowPage() {
     }
     load();
     return () => { cancelled = true; };
-  }, [filter, citySearch]);
+  }, [filter, citySearch, hasAccess]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!hasAccess) return <BookingBetaBanner />;
 
   return (
     <div className="min-h-screen bg-background">

@@ -6,6 +6,8 @@ import { ProtectedRoute } from '@/components/protected-route';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { useBookingAccess } from '@/lib/hooks/use-booking-access';
+import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
 import { ChevronRight, Plus, Pencil, X, CheckCircle2, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -88,6 +90,7 @@ export default function BusinessSetupPage() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const router = useRouter();
+  const { hasAccess, loading: authLoading } = useBookingAccess();
 
   const [activeTab, setActiveTab] = useState<Tab>('profile');
 
@@ -516,6 +519,14 @@ export default function BusinessSetupPage() {
   ];
 
   // ── Render ─────────────────────────────────────────────────────────────────
+  if (!authLoading && !hasAccess) {
+    return (
+      <ProtectedRoute>
+        <BookingBetaBanner />
+      </ProtectedRoute>
+    );
+  }
+
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-background">

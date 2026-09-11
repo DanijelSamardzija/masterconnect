@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useAuth } from '@/lib/contexts/auth-context';
+import { useBookingAccess } from '@/lib/hooks/use-booking-access';
+import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
 import {
   ArrowLeft, ChevronLeft, ChevronRight, Clock, Users,
@@ -101,6 +103,7 @@ export default function SlotPickerPage() {
   const router = useRouter();
   const { t } = useLanguage();
   const { user } = useAuth();
+  const { hasAccess, loading: authLoading } = useBookingAccess();
 
   const [business, setBusiness] = useState<Business | null>(null);
   const [service, setService] = useState<Service | null>(null);
@@ -207,6 +210,16 @@ export default function SlotPickerPage() {
     const msg = result.status === 'confirmed' ? t('booking.successConfirmed') : t('booking.successPending');
     toast.success(msg);
   }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!hasAccess) return <BookingBetaBanner />;
 
   if (loadingMeta) {
     return (

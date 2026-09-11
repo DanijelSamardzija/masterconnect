@@ -1425,6 +1425,9 @@ export default {
   'dashboard.business.activeTitle': 'Business & Booking',
   'dashboard.business.activeStatus': 'Aktivno',
   'dashboard.business.activeButton': 'Podešavanja',
+  'dashboard.business.needsPremiumTitle': 'Business & Booking',
+  'dashboard.business.needsPremiumMessage': 'Za korištenje Business & Booking funkcija potrebna je Pro Premium pretplata.',
+  'dashboard.business.needsPremiumButton': 'Aktiviraj Pro Premium',
 
   // Navigation — Invest
   'nav.invest': 'Invest',
@@ -1896,6 +1899,10 @@ export default {
   'booking.onlineBooking': 'Online rezervacija dostupna',
   'booking.error.notConfirmed': 'Samo potvrđene rezervacije mogu biti završene',
   'booking.error.notStarted': 'Termin još nije počeo — ne može se označiti kao nedolazak',
+  'booking.beta.badge': 'Beta',
+  'booking.beta.title': 'Booking — Uskoro dostupno',
+  'booking.beta.message': 'Booking je trenutno u testnoj fazi s ograničenim brojem korisnika. Uskoro će biti dostupan svima.',
+  'booking.beta.inlineNote': 'Booking je u testnoj fazi — uskoro dostupno za sve.',
   'live.status.available_now': 'Dostupan odmah',
   'live.status.available_today': 'Dostupan danas',
   'live.status.by_schedule': 'Po rasporedu',
