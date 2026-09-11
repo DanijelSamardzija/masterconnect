@@ -254,6 +254,12 @@ export default {
   'serviceDetail.booking.toggling': 'Enregistrement...',
   'serviceDetail.booking.needsBusiness': 'Activez d\'abord votre profil de réservation pour accepter les réservations en ligne.',
   'serviceDetail.booking.setupLink': 'Aller à la configuration du commerce',
+  'serviceDetail.booking.checklist.profile': 'Profil commercial',
+  'serviceDetail.booking.checklist.services': 'Catalogue de services',
+  'serviceDetail.booking.checklist.hours': 'Horaires de travail',
+  'serviceDetail.booking.checklist.setupServices': 'Ajouter des services',
+  'serviceDetail.booking.checklist.setupHours': 'Définir les horaires',
+  'serviceDetail.booking.checklist.ready': 'Réservation prête',
 
   'reviewsModal.title': 'Avis pour',
   'reviewsModal.review': 'avis',
@@ -1353,6 +1359,14 @@ export default {
   'dashboard.creditBalance': 'solde actuel',
   'dashboard.rating': 'Note',
   'dashboard.noReviewsYet': 'pas encore d\'avis',
+
+  // Business & Booking CTA sur le tableau de bord
+  'dashboard.business.ctaTitle': 'Activer Business & Réservations',
+  'dashboard.business.ctaDesc': 'Permettez aux clients de réserver vos services en ligne.',
+  'dashboard.business.ctaButton': 'Configurer le business',
+  'dashboard.business.activeTitle': 'Business & Réservations',
+  'dashboard.business.activeStatus': 'Actif',
+  'dashboard.business.activeButton': 'Paramètres',
 
   'nav.invest': 'Investir',
   'nav.soon': 'BIENTÔT',

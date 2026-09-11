@@ -267,6 +267,12 @@ export default {
   'serviceDetail.booking.toggling': 'Saving...',
   'serviceDetail.booking.needsBusiness': 'Activate your booking profile first to enable online bookings.',
   'serviceDetail.booking.setupLink': 'Go to Business Setup',
+  'serviceDetail.booking.checklist.profile': 'Business profile',
+  'serviceDetail.booking.checklist.services': 'Service catalog',
+  'serviceDetail.booking.checklist.hours': 'Working hours',
+  'serviceDetail.booking.checklist.setupServices': 'Add services',
+  'serviceDetail.booking.checklist.setupHours': 'Set working hours',
+  'serviceDetail.booking.checklist.ready': 'Booking ready',
 
   // Reviews Modal
   'reviewsModal.title': 'Reviews for',
@@ -1409,6 +1415,14 @@ export default {
   'dashboard.creditBalance': 'current balance',
   'dashboard.rating': 'Rating',
   'dashboard.noReviewsYet': 'no reviews yet',
+
+  // Business & Booking CTA on dashboard
+  'dashboard.business.ctaTitle': 'Activate Business & Booking',
+  'dashboard.business.ctaDesc': 'Let clients book your services online.',
+  'dashboard.business.ctaButton': 'Set up Business',
+  'dashboard.business.activeTitle': 'Business & Booking',
+  'dashboard.business.activeStatus': 'Active',
+  'dashboard.business.activeButton': 'Settings',
 
   // Navigation — Invest
   'nav.invest': 'Invest',

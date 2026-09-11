@@ -26,7 +26,7 @@ import {
   Briefcase, MessageSquare, Star, Plus,
   CheckCircle2, Clock, Bell, Trash2, Rss, UserCircle,
   ChevronRight, AlertCircle, Eye, TrendingUp, Calendar, Coins, ShieldCheck,
-  Search, Wrench
+  Search, Wrench, Settings
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { NotificationsModal, Notification } from '@/components/notifications-modal';
@@ -87,6 +87,7 @@ function DashboardContent() {
   const [creditBalance, setCreditBalance] = useState<number | null>(null);
   const [recentViewers, setRecentViewers] = useState<{ id: string; name: string; avatar_url: string | null; viewed_at: string }[]>([]);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
+  const [isBusinessProfile, setIsBusinessProfile] = useState<boolean | null>(null);
   const [donations, setDonations] = useState<{ id: string; amount: number; anonymous: boolean; sender_name: string | null; sender_avatar: string | null; created_at: string }[]>([]);
   const [donationsOpen, setDonationsOpen] = useState(false);
   const [allReviewsOpen, setAllReviewsOpen] = useState(false);
@@ -99,7 +100,10 @@ function DashboardContent() {
     fetchUnreadCount();
     fetchNotifications();
     if (profile?.account_type === 'customer') fetchPendingReview();
-    if (profile?.account_type === 'professional' || (profile as any)?.is_premium) fetchProfileViews();
+    if (profile?.account_type === 'professional' || (profile as any)?.is_premium) {
+      fetchProfileViews();
+      fetchIsBusinessProfile();
+    }
     if ((profile as any)?.is_premium) { fetchCreditBalance(); fetchRecentViewers(); fetchDonations(); }
 
     const handleUnreadCountChanged = () => {
@@ -168,6 +172,12 @@ function DashboardContent() {
     const reviewedIds = new Set((existingReviews || []).map((r: any) => r.pro_id));
     const unreviewed = pros.find((p: any) => !reviewedIds.has(p.id));
     if (unreviewed) setPendingReviewPro({ id: unreviewed.id, name: unreviewed.name });
+  };
+
+  const fetchIsBusinessProfile = async () => {
+    if (!profile) return;
+    const { data } = await supabase.from('profiles').select('is_business').eq('id', profile.id).single();
+    setIsBusinessProfile(data?.is_business ?? false);
   };
 
   const fetchProfileViews = async () => {
@@ -354,6 +364,44 @@ function DashboardContent() {
             {isPremium && <ProfessionalBadge size="sm" variant="premium" />}
           </div>
         </div>
+
+        {/* Business & Booking CTA — samo za profesionalce */}
+        {(profile?.account_type === 'professional' || (profile as any)?.is_premium) && isBusinessProfile !== null && (
+          isBusinessProfile ? (
+            <div className="bg-card border border-border rounded-2xl p-4 flex items-center gap-3">
+              <div className="p-2.5 bg-blue-100 dark:bg-blue-950 rounded-xl shrink-0">
+                <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground">{t('dashboard.business.activeTitle')}</p>
+                <span className="text-xs font-medium text-green-600 dark:text-green-400">{t('dashboard.business.activeStatus')}</span>
+              </div>
+              <button
+                onClick={() => router.push('/dashboard/business/setup')}
+                className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground shrink-0 transition-colors"
+              >
+                <Settings className="h-3.5 w-3.5" />
+                {t('dashboard.business.activeButton')}
+              </button>
+            </div>
+          ) : (
+            <div className="bg-card border border-blue-200 dark:border-blue-900 rounded-2xl p-4 flex items-center gap-3">
+              <div className="p-2.5 bg-blue-100 dark:bg-blue-950 rounded-xl shrink-0">
+                <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground">{t('dashboard.business.ctaTitle')}</p>
+                <p className="text-xs text-muted-foreground truncate">{t('dashboard.business.ctaDesc')}</p>
+              </div>
+              <button
+                onClick={() => router.push('/dashboard/business/setup')}
+                className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 shrink-0"
+              >
+                {t('dashboard.business.ctaButton')} →
+              </button>
+            </div>
+          )
+        )}
 
         {error && (
           <Alert variant="destructive" className="rounded-2xl">

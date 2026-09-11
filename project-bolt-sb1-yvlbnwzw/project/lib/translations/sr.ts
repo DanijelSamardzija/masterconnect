@@ -267,6 +267,12 @@ export default {
   'serviceDetail.booking.toggling': 'Čuvanje...',
   'serviceDetail.booking.needsBusiness': 'Prvo aktivirajte booking profil da biste omogućili online rezervacije.',
   'serviceDetail.booking.setupLink': 'Idi na Business Setup',
+  'serviceDetail.booking.checklist.profile': 'Business profil',
+  'serviceDetail.booking.checklist.services': 'Katalog usluga',
+  'serviceDetail.booking.checklist.hours': 'Radno vrijeme',
+  'serviceDetail.booking.checklist.setupServices': 'Dodaj usluge',
+  'serviceDetail.booking.checklist.setupHours': 'Podesi radno vrijeme',
+  'serviceDetail.booking.checklist.ready': 'Booking spreman',
 
   // Reviews Modal
   'reviewsModal.title': 'Recenzije za',
@@ -1409,6 +1415,14 @@ export default {
   'dashboard.creditBalance': 'trenutni saldo',
   'dashboard.rating': 'Ocjena',
   'dashboard.noReviewsYet': 'nema recenzija još',
+
+  // Business & Booking CTA na dashboardu
+  'dashboard.business.ctaTitle': 'Aktiviraj Business & Booking',
+  'dashboard.business.ctaDesc': 'Omogući klijentima da rezervišu tvoje usluge online.',
+  'dashboard.business.ctaButton': 'Podesi Business',
+  'dashboard.business.activeTitle': 'Business & Booking',
+  'dashboard.business.activeStatus': 'Aktivno',
+  'dashboard.business.activeButton': 'Podešavanja',
 
   // Navigation — Invest
   'nav.invest': 'Invest',

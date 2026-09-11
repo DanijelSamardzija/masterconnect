@@ -22,6 +22,7 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Loader2, MapPin, MessageCircle, Star, ChevronLeft, ChevronRight, User, Share2, Edit, Trash2, ImageOff, Calendar } from 'lucide-react';
 import { ContactCard } from '@/components/contact-card';
+import { EditPostModal } from '@/components/edit-post-modal';
 import { timeAgo } from '@/lib/utils/date';
 import { trackView } from '@/lib/recently-viewed';
 
@@ -69,6 +70,8 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
   const [bookingEnabled, setBookingEnabled] = useState<boolean>(initialData?.booking_enabled ?? false);
   const [isBusinessProfile, setIsBusinessProfile] = useState<boolean | null>(null);
   const [bookingToggling, setBookingToggling] = useState(false);
+  const [bookingChecklist, setBookingChecklist] = useState<{ hasServices: boolean | null; hasHours: boolean | null }>({ hasServices: null, hasHours: null });
+  const [showEditModal, setShowEditModal] = useState(false);
   const [similarServices, setSimilarServices] = useState<ServiceDetail[]>([]);
   const [providerServices, setProviderServices] = useState<ServiceDetail[]>([]);
   const [showOfferModal, setShowOfferModal] = useState(false);
@@ -94,6 +97,23 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
       .single()
       .then(({ data }) => setIsBusinessProfile(data?.is_business ?? false));
   }, [user, initialData?.user_id]);
+
+  useEffect(() => {
+    if (!isBusinessProfile || !user || !initialData || user.id !== initialData.user_id) return;
+    (async () => {
+      const [svcRes, locRes] = await Promise.all([
+        supabase.from('service_catalog').select('id', { count: 'exact', head: true }).eq('business_id', user.id).eq('is_active', true),
+        supabase.from('business_locations').select('id').eq('business_id', user.id).eq('is_primary', true).eq('is_active', true).maybeSingle(),
+      ]);
+      const hasServices = (svcRes.count ?? 0) > 0;
+      let hasHours = false;
+      if (locRes.data?.id) {
+        const { count } = await supabase.from('opening_hours').select('id', { count: 'exact', head: true }).eq('location_id', locRes.data.id);
+        hasHours = (count ?? 0) > 0;
+      }
+      setBookingChecklist({ hasServices, hasHours });
+    })();
+  }, [isBusinessProfile, user?.id]);
 
   useEffect(() => {
     if (!initialData) return;
@@ -690,7 +710,7 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                     </div>
                   </div>
                   <div className="flex gap-2 mb-3">
-                    <Button size="sm" variant="outline" className="flex-1 gap-2 border-orange-300 text-orange-700 hover:bg-orange-100 dark:border-orange-700 dark:text-orange-400" onClick={() => router.push('/profile')}>
+                    <Button size="sm" variant="outline" className="flex-1 gap-2 border-orange-300 text-orange-700 hover:bg-orange-100 dark:border-orange-700 dark:text-orange-400" onClick={() => setShowEditModal(true)}>
                       <Edit className="h-3.5 w-3.5" />
                       {t('serviceDetail.editListing')}
                     </Button>
@@ -731,25 +751,84 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                         </button>
                       </div>
                     ) : (
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="text-xs text-orange-600 dark:text-orange-400 flex-1">
-                          {t('serviceDetail.booking.desc')}
-                        </p>
-                        <button
-                          onClick={handleToggleBooking}
-                          disabled={bookingToggling}
-                          className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 ${
-                            bookingEnabled
-                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30 dark:hover:text-red-400'
-                              : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50'
-                          }`}
-                        >
-                          {bookingToggling
-                            ? t('serviceDetail.booking.toggling')
-                            : bookingEnabled
-                              ? t('serviceDetail.booking.disable')
-                              : t('serviceDetail.booking.enable')}
-                        </button>
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs text-orange-600 dark:text-orange-400 flex-1">
+                            {t('serviceDetail.booking.desc')}
+                          </p>
+                          <button
+                            onClick={handleToggleBooking}
+                            disabled={bookingToggling}
+                            className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 ${
+                              bookingEnabled
+                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30 dark:hover:text-red-400'
+                                : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50'
+                            }`}
+                          >
+                            {bookingToggling
+                              ? t('serviceDetail.booking.toggling')
+                              : bookingEnabled
+                                ? t('serviceDetail.booking.disable')
+                                : t('serviceDetail.booking.enable')}
+                          </button>
+                        </div>
+
+                        {/* Booking setup checklist */}
+                        {bookingEnabled && (
+                          <div className="mt-1 space-y-1">
+                            {/* ✅ Business profile — always done at this point */}
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <span className="text-green-500">✓</span>
+                              <span className="text-orange-700 dark:text-orange-300">{t('serviceDetail.booking.checklist.profile')}</span>
+                            </div>
+
+                            {/* Services */}
+                            <div className="flex items-center gap-1.5 text-xs">
+                              {bookingChecklist.hasServices === null ? (
+                                <Loader2 className="h-3 w-3 animate-spin text-orange-400" />
+                              ) : bookingChecklist.hasServices ? (
+                                <span className="text-green-500">✓</span>
+                              ) : (
+                                <span className="text-orange-400">○</span>
+                              )}
+                              <span className="text-orange-700 dark:text-orange-300">{t('serviceDetail.booking.checklist.services')}</span>
+                              {bookingChecklist.hasServices === false && (
+                                <button
+                                  onClick={() => router.push('/dashboard/business/setup')}
+                                  className="ml-auto text-orange-600 dark:text-orange-400 font-semibold underline underline-offset-2 hover:no-underline"
+                                >
+                                  {t('serviceDetail.booking.checklist.setupServices')} →
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Hours */}
+                            <div className="flex items-center gap-1.5 text-xs">
+                              {bookingChecklist.hasHours === null ? (
+                                <Loader2 className="h-3 w-3 animate-spin text-orange-400" />
+                              ) : bookingChecklist.hasHours ? (
+                                <span className="text-green-500">✓</span>
+                              ) : (
+                                <span className="text-orange-400">○</span>
+                              )}
+                              <span className="text-orange-700 dark:text-orange-300">{t('serviceDetail.booking.checklist.hours')}</span>
+                              {bookingChecklist.hasHours === false && (
+                                <button
+                                  onClick={() => router.push('/dashboard/business/setup')}
+                                  className="ml-auto text-orange-600 dark:text-orange-400 font-semibold underline underline-offset-2 hover:no-underline"
+                                >
+                                  {t('serviceDetail.booking.checklist.setupHours')} →
+                                </button>
+                              )}
+                            </div>
+
+                            {bookingChecklist.hasServices && bookingChecklist.hasHours && (
+                              <p className="text-xs text-green-600 dark:text-green-400 font-semibold mt-0.5">
+                                ✓ {t('serviceDetail.booking.checklist.ready')}
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -869,6 +948,25 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
             urlPath={`/services/${service.id}`}
             open={showShareModal}
             onOpenChange={setShowShareModal}
+          />
+
+          <EditPostModal
+            open={showEditModal}
+            onOpenChange={setShowEditModal}
+            postId={service.id}
+            postType="service_listing"
+            initialText={service.text ?? null}
+            media={(service.post_media ?? []) as Array<{ id: string; type: 'image' | 'video'; url: string; order: number }>}
+            initialCategory={service.category ?? null}
+            initialCity={service.city ?? null}
+            initialJobTitle={service.job_title ?? null}
+            initialPriceType={service.price_type ?? null}
+            initialPriceValue={service.price_value ?? null}
+            initialCurrency={service.currency ?? null}
+            onSave={async () => {
+              setShowEditModal(false);
+              router.refresh();
+            }}
           />
         </>
       )}
