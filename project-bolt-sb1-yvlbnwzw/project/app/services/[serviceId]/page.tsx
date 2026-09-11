@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import { ServiceDetailClient } from './service-detail-client';
+
+export const dynamic = 'force-dynamic';
 import { isValidCategory, getCategoryLabel, type CategorySlug } from '@/lib/seo/categories';
 
 type Props = { params: { serviceId: string } };

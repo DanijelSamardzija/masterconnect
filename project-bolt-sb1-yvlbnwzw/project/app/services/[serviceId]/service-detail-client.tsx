@@ -66,7 +66,7 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
   const { user } = useAuth();
   const { t, language } = useLanguage();
   const { openGuestGate } = useGuestGate();
-  const [service] = useState<ServiceDetail | null>(initialData);
+  const [service, setService] = useState<ServiceDetail | null>(initialData);
   const [bookingEnabled, setBookingEnabled] = useState<boolean>(initialData?.booking_enabled ?? false);
   const [isOwnerPremium, setIsOwnerPremium] = useState<boolean | null>(null);
   const [isBusinessProfile, setIsBusinessProfile] = useState<boolean | null>(null);
@@ -88,6 +88,14 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
     created_at: string;
     customer: { name: string; avatar_url: string | null };
   }>>([]);
+
+  useEffect(() => {
+    if (initialData) {
+      setService(initialData);
+      setBookingEnabled(initialData.booking_enabled ?? false);
+      setBookingChecklist({ hasServices: null, hasHours: null });
+    }
+  }, [initialData]);
 
   useEffect(() => {
     if (!user || !initialData || user.id !== initialData.user_id) return;

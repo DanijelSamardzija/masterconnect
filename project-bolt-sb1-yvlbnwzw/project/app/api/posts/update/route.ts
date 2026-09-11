@@ -339,7 +339,13 @@ export async function PUT(request: NextRequest) {
     devLog('[UPDATE] Success - Post ID:', postId);
 
     // ISR: invalidate cached page so the next request gets fresh server-rendered HTML
-    if (updatedPost.post_type !== 'service_listing') {
+    if (updatedPost.post_type === 'service_listing') {
+      const INDEXNOW_LANGS_REVAL = ['sr', 'en', 'de', 'es', 'fr'] as const;
+      revalidatePath(`/services/${postId}`);
+      for (const lang of INDEXNOW_LANGS_REVAL) {
+        revalidatePath(`/${lang}/services/${postId}`);
+      }
+    } else {
       revalidatePath(`/posts/${postId}`);
     }
 
