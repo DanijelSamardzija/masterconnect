@@ -11,6 +11,7 @@ import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
 import { ChevronRight, Plus, Pencil, X, CheckCircle2, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { CityAutocomplete } from '@/components/city-autocomplete';
 
 type Tab = 'profile' | 'services' | 'hours' | 'locations' | 'rules';
 
@@ -1460,8 +1461,14 @@ export default function BusinessSetupPage() {
 
                   <div className="grid grid-cols-2 gap-3">
                     {labelInput(t('setup.locations.city'),
-                      <input type="text" value={locCity} onChange={(e) => setLocCity(e.target.value)}
-                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
+                      <CityAutocomplete
+                        value={locCity}
+                        onChange={(city, placeData) => {
+                          setLocCity(city);
+                          if (placeData?.country) setLocCountry(placeData.country);
+                        }}
+                        placeholder={t('setup.locations.city')}
+                      />
                     )}
                     {labelInput(t('setup.locations.country'),
                       <input type="text" value={locCountry} onChange={(e) => setLocCountry(e.target.value)}
