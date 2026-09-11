@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { unstable_noStore as noStore } from 'next/cache';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
@@ -26,6 +27,7 @@ async function fetchServiceDetail(serviceId: string) {
     .from('posts')
     .select(`
       id, user_id, text, job_title, category, city, price_type, price_value, currency, created_at,
+      booking_enabled, business_id,
       profiles!posts_user_id_fkey(name, avatar_url, account_type, is_premium, average_rating, review_count, phone, show_phone),
       post_media(id, type, url, order)
     `)
@@ -78,6 +80,7 @@ export default async function CategoryLandingPage({
 
   // UUID: render individual service detail (layout handles JSON-LD and metadata)
   if (UUID_RE.test(category)) {
+    noStore(); // service detail is user-specific and has mutable booking state — bypass ISR
     const data = await fetchServiceDetail(category);
     if (!data) notFound();
     return <ServiceDetailClient serviceId={category} initialData={data as any} />;
