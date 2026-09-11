@@ -65,6 +65,15 @@ type PostListing = {
   booking_enabled: boolean;
 };
 
+type BusinessClosure = {
+  id: string;
+  reason: string;
+  note: string | null;
+  date_from: string; // 'YYYY-MM-DD'
+  date_to: string;   // 'YYYY-MM-DD'
+  is_past: boolean;
+};
+
 const BOOKING_TYPES = [
   'appointment_service',
   'tradespeople',
@@ -243,6 +252,17 @@ export default function BusinessSetupPage() {
   const [hoursLoading, setHoursLoading] = useState(false);
   const [hoursSaving, setHoursSaving] = useState(false);
 
+  // ── Closures state ─────────────────────────────────────────────────────────
+  const [closures, setClosures] = useState<BusinessClosure[]>([]);
+  const [showClosureForm, setShowClosureForm] = useState(false);
+  const [closureFrom, setClosureFrom] = useState('');
+  const [closureTo, setClosureTo] = useState('');
+  const [closureReason, setClosureReason] = useState('vacation');
+  const [closureNote, setClosureNote] = useState('');
+  const [closureSaving, setClosureSaving] = useState(false);
+  const [closureWarning, setClosureWarning] = useState<number | null>(null);
+  const [deletingClosureId, setDeletingClosureId] = useState<string | null>(null);
+
   // ── Locations state ────────────────────────────────────────────────────────
   const [locations, setLocations] = useState<LocationRow[]>([]);
   const [locsLoading, setLocsLoading] = useState(false);
@@ -303,6 +323,14 @@ export default function BusinessSetupPage() {
     if (primary) setPrimaryLocId(primary.id);
     setLocsLoading(false);
   }, [user]);
+
+  // ── Load business closures ─────────────────────────────────────────────────
+  const loadClosures = useCallback(async (locId: string) => {
+    const { data } = await (supabase as any).rpc('get_business_closures', {
+      p_location_id: locId,
+    });
+    setClosures((data as BusinessClosure[]) ?? []);
+  }, []);
 
   // ── Load opening hours ─────────────────────────────────────────────────────
   const loadHours = useCallback(async (locId: string) => {
@@ -376,10 +404,9 @@ export default function BusinessSetupPage() {
     if (activeTab === 'locations') loadLocations();
     if (activeTab === 'rules') loadRules();
     if (activeTab === 'hours') {
+      setHoursLoading(true); // show spinner immediately while finding primary location
       loadLocations().then(async () => {
-        // After locations loaded, primary will be set; we use a short poll workaround
-        // by fetching directly since state may not have updated yet
-        if (!user) return;
+        if (!user) { setHoursLoading(false); return; }
         const { data: locData } = await supabase
           .from('business_locations')
           .select('id')
@@ -389,7 +416,9 @@ export default function BusinessSetupPage() {
           .single();
         if (locData?.id) {
           setPrimaryLocId(locData.id);
-          loadHours(locData.id);
+          await Promise.all([loadHours(locData.id), loadClosures(locData.id)]);
+        } else {
+          setHoursLoading(false);
         }
       });
     }
@@ -652,6 +681,69 @@ export default function BusinessSetupPage() {
     setDeletedPeriods([]);
     setHoursSaving(false);
     toast.success(t('setup.hours.saved'));
+  }
+
+  // ── Closure helpers ────────────────────────────────────────────────────────
+  function formatClosureDate(dateStr: string): string {
+    const [y, m, d] = dateStr.split('-');
+    return `${d}.${m}.${y}.`;
+  }
+
+  function openClosureForm() {
+    setClosureWarning(null);
+    setClosureFrom('');
+    setClosureTo('');
+    setClosureReason('vacation');
+    setClosureNote('');
+    setShowClosureForm(true);
+  }
+
+  function closeClosureForm() {
+    setShowClosureForm(false);
+    setClosureWarning(null);
+  }
+
+  async function handleSaveClosure(force = false) {
+    if (!primaryLocId || !closureFrom || !closureTo) return;
+    if (closureTo < closureFrom) {
+      toast.error(t('setup.closures.from') + ' > ' + t('setup.closures.to'));
+      return;
+    }
+    setClosureSaving(true);
+    setClosureWarning(null);
+    const { data } = await (supabase as any).rpc('create_business_closure', {
+      p_location_id: primaryLocId,
+      p_date_from: closureFrom,
+      p_date_to: closureTo,
+      p_reason: closureReason,
+      p_note: closureNote.trim() || null,
+      p_force: force,
+    });
+    setClosureSaving(false);
+    const result = data as { ok: boolean; warning?: string; booking_count?: number; closure_id?: string } | null;
+    if (!result?.ok) {
+      if (result?.warning === 'has_bookings' && result?.booking_count) {
+        setClosureWarning(result.booking_count);
+        return;
+      }
+      toast.error(t('setup.error.saveFailed'));
+      return;
+    }
+    toast.success(t('setup.closures.saved'));
+    closeClosureForm();
+    loadClosures(primaryLocId);
+  }
+
+  async function handleDeleteClosure(id: string) {
+    setDeletingClosureId(id);
+    const { data } = await (supabase as any).rpc('delete_business_closure', {
+      p_closure_id: id,
+    });
+    setDeletingClosureId(null);
+    const result = data as { ok: boolean } | null;
+    if (!result?.ok) { toast.error(t('setup.error.saveFailed')); return; }
+    toast.success(t('setup.closures.deleted'));
+    if (primaryLocId) loadClosures(primaryLocId);
   }
 
   // ── Location form helpers ──────────────────────────────────────────────────
@@ -1112,14 +1204,14 @@ export default function BusinessSetupPage() {
                 </div>
               </div>
 
-              {!primaryLocId ? (
-                <p className="text-sm text-muted-foreground border border-border rounded-lg p-4 bg-accent/40">
-                  {t('setup.profile.inactive')}
-                </p>
-              ) : hoursLoading ? (
+              {hoursLoading ? (
                 <div className="flex justify-center py-8">
                   <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                 </div>
+              ) : !primaryLocId ? (
+                <p className="text-sm text-muted-foreground border border-border rounded-lg p-4 bg-accent/40">
+                  {t('setup.profile.inactive')}
+                </p>
               ) : (
                 <>
                   <div className="flex flex-col divide-y divide-border border border-border rounded-xl overflow-hidden">
@@ -1184,6 +1276,154 @@ export default function BusinessSetupPage() {
                   <Button onClick={handleSaveHours} disabled={hoursSaving} className="self-start">
                     {hoursSaving ? t('setup.hours.saving') : t('setup.hours.save')}
                   </Button>
+
+                  {/* ── Privremeno zatvaranje ─────────────────────────────── */}
+                  <div className="pt-4 border-t border-border">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-semibold">{t('setup.closures.heading')}</h3>
+                      {!showClosureForm && (
+                        <button
+                          onClick={openClosureForm}
+                          className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
+                        >
+                          {t('setup.closures.add')}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Add closure form */}
+                    {showClosureForm && (
+                      <div className="border border-border rounded-xl p-4 flex flex-col gap-3 bg-card mb-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="flex flex-col gap-1">
+                            <label className="text-xs font-medium text-muted-foreground">{t('setup.closures.from')}</label>
+                            <input
+                              type="date"
+                              value={closureFrom}
+                              onChange={(e) => { setClosureFrom(e.target.value); setClosureWarning(null); }}
+                              className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="text-xs font-medium text-muted-foreground">{t('setup.closures.to')}</label>
+                            <input
+                              type="date"
+                              value={closureTo}
+                              min={closureFrom}
+                              onChange={(e) => { setClosureTo(e.target.value); setClosureWarning(null); }}
+                              className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs font-medium text-muted-foreground">{t('setup.closures.reason')}</label>
+                          <select
+                            value={closureReason}
+                            onChange={(e) => setClosureReason(e.target.value)}
+                            className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                          >
+                            <option value="vacation">{t('setup.closures.reason.vacation')}</option>
+                            <option value="holiday">{t('setup.closures.reason.holiday')}</option>
+                            <option value="renovation">{t('setup.closures.reason.renovation')}</option>
+                            <option value="other">{t('setup.closures.reason.other')}</option>
+                          </select>
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs font-medium text-muted-foreground">{t('setup.closures.note')}</label>
+                          <input
+                            type="text"
+                            value={closureNote}
+                            onChange={(e) => setClosureNote(e.target.value)}
+                            placeholder=""
+                            className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                          />
+                        </div>
+
+                        {/* Conflict warning */}
+                        {closureWarning !== null && (
+                          <div className="flex flex-col gap-2 border border-yellow-300 dark:border-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3">
+                            <p className="text-xs text-yellow-800 dark:text-yellow-300">
+                              ⚠️ {t('setup.closures.warning')}
+                            </p>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => handleSaveClosure(true)}
+                                disabled={closureSaving}
+                                className="text-xs"
+                              >
+                                {closureSaving ? t('setup.closures.saving') : t('setup.closures.confirm')}
+                              </Button>
+                              <Button size="sm" variant="ghost" onClick={closeClosureForm} className="text-xs">
+                                {t('setup.closures.cancel')}
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
+                        {closureWarning === null && (
+                          <div className="flex gap-2 pt-1">
+                            <Button
+                              size="sm"
+                              onClick={() => handleSaveClosure(false)}
+                              disabled={closureSaving || !closureFrom || !closureTo}
+                            >
+                              {closureSaving ? t('setup.closures.saving') : t('setup.closures.save')}
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={closeClosureForm}>
+                              {t('setup.closures.cancel')}
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Closure list */}
+                    {closures.length === 0 && !showClosureForm ? (
+                      <p className="text-xs text-muted-foreground">{t('setup.closures.empty')}</p>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        {closures.map((c) => {
+                          const reasonKey = `setup.closures.reason.${c.reason}` as Parameters<typeof t>[0];
+                          const reasonLabel = ['vacation','holiday','renovation','other'].includes(c.reason)
+                            ? t(reasonKey)
+                            : c.reason;
+                          return (
+                            <div
+                              key={c.id}
+                              className={`flex items-center justify-between border border-border rounded-lg px-4 py-3 ${c.is_past ? 'opacity-50' : ''}`}
+                            >
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-medium">{reasonLabel}</span>
+                                  {c.is_past && (
+                                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-medium">
+                                      {t('setup.closures.past')}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-0.5">
+                                  {formatClosureDate(c.date_from)} – {formatClosureDate(c.date_to)}
+                                </p>
+                                {c.note && (
+                                  <p className="text-xs text-muted-foreground mt-0.5 truncate">{c.note}</p>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => handleDeleteClosure(c.id)}
+                                disabled={deletingClosureId === c.id}
+                                className="text-xs text-muted-foreground hover:text-destructive transition-colors ml-4 shrink-0"
+                              >
+                                {deletingClosureId === c.id ? t('setup.closures.deleting') : t('setup.closures.delete')}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </>
               )}
             </div>
