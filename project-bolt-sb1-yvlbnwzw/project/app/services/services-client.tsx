@@ -37,6 +37,8 @@ type ServiceListing = {
   price_value?: number;
   currency?: string;
   created_at: string;
+  booking_enabled?: boolean | null;
+  business_id?: string | null;
   profiles: {
     name: string;
     avatar_url?: string;
@@ -52,6 +54,10 @@ type ServiceListing = {
     url: string;
     order: number;
   }>;
+  service_catalog?: Array<{
+    id: string;
+    booking_type: string;
+  }> | null;
 };
 
 interface ServicesClientProps {
@@ -148,6 +154,8 @@ export function ServicesClient({ initialSearch = '' }: ServicesClientProps) {
           hashtag_count,
           is_promoted,
           promoted_until,
+          booking_enabled,
+          business_id,
           profiles!posts_user_id_fkey (
             name,
             avatar_url,
@@ -164,6 +172,10 @@ export function ServicesClient({ initialSearch = '' }: ServicesClientProps) {
             type,
             url,
             order
+          ),
+          service_catalog!service_catalog_post_id_fkey (
+            id,
+            booking_type
           )
         `)
         .eq('post_type', 'service_listing')

@@ -721,6 +721,8 @@ export default {
   'common.all': 'Sve',
   'common.cancel': 'Otkaži',
   'services.viewService': 'Pogledaj uslugu',
+  'services.ctaBook': 'Rezerviši',
+  'services.ctaOrder': 'Poruči',
   'common.save': 'Sačuvaj',
   'common.delete': 'Obriši',
   'common.edit': 'Uredi',

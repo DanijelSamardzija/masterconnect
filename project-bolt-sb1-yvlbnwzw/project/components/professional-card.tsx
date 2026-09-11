@@ -24,6 +24,8 @@ type ProfessionalCardProps = {
     price_value?: number;
     currency?: string;
     created_at: string;
+    booking_enabled?: boolean | null;
+    business_id?: string | null;
     profiles: {
       name: string;
       avatar_url?: string;
@@ -39,6 +41,10 @@ type ProfessionalCardProps = {
       url: string;
       order: number;
     }>;
+    service_catalog?: Array<{
+      id: string;
+      booking_type: string;
+    }> | null;
   };
 };
 
@@ -211,16 +217,29 @@ export function ProfessionalCard({ listing }: ProfessionalCardProps) {
         )}
 
         <div className="mt-auto">
-        <Button
-          size="sm"
-          className="w-full bg-orange-600 hover:bg-orange-700 text-white group/btn h-8 md:h-9 text-xs md:text-sm"
-          asChild
-        >
-          <Link href={`/${language}/services/${listing.id}`} prefetch={false} onClick={(e) => e.stopPropagation()}>
-            {t('services.viewService')}
-            <ArrowRight className="ml-1.5 md:ml-2 h-3.5 w-3.5 md:h-4 md:w-4 group-hover/btn:translate-x-1 transition-transform" />
-          </Link>
-        </Button>
+        {(() => {
+          const catalogEntry = listing.service_catalog?.[0] ?? null;
+          const bookingActive = !!listing.booking_enabled && !!catalogEntry && !!listing.business_id;
+          const isOrder = bookingActive && catalogEntry!.booking_type === 'order';
+          const ctaHref = bookingActive
+            ? `/booking/${listing.business_id}/${catalogEntry!.id}`
+            : `/${language}/services/${listing.id}`;
+          const ctaLabel = bookingActive
+            ? (isOrder ? t('services.ctaOrder') : t('services.ctaBook'))
+            : t('services.viewService');
+          return (
+            <Button
+              size="sm"
+              className="w-full bg-orange-600 hover:bg-orange-700 text-white group/btn h-8 md:h-9 text-xs md:text-sm"
+              asChild
+            >
+              <Link href={ctaHref} prefetch={false} onClick={(e) => e.stopPropagation()}>
+                {ctaLabel}
+                <ArrowRight className="ml-1.5 md:ml-2 h-3.5 w-3.5 md:h-4 md:w-4 group-hover/btn:translate-x-1 transition-transform" />
+              </Link>
+            </Button>
+          );
+        })()}
         </div>
       </CardContent>
     </Card>

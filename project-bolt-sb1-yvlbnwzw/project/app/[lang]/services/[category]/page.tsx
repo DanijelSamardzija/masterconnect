@@ -59,6 +59,8 @@ type Listing = {
   price_value: number | null;
   currency: string | null;
   created_at: string;
+  booking_enabled: boolean | null;
+  business_id: string | null;
   profiles: {
     name: string;
     avatar_url: string | null;
@@ -69,6 +71,7 @@ type Listing = {
     is_premium: boolean | null;
   };
   post_media: Array<{ id: string; type: string; url: string; order: number }>;
+  service_catalog: Array<{ id: string; booking_type: string }> | null;
 };
 
 export default async function CategoryLandingPage({
@@ -102,7 +105,7 @@ export default async function CategoryLandingPage({
     supabase
       .from('posts')
       .select(
-        'id, user_id, job_title, text, category, city, country, price_type, price_value, currency, created_at, profiles!posts_user_id_fkey(name, avatar_url, account_type, average_rating, review_count, last_seen, is_premium), post_media(id, type, url, order)'
+        'id, user_id, job_title, text, category, city, country, price_type, price_value, currency, created_at, booking_enabled, business_id, profiles!posts_user_id_fkey(name, avatar_url, account_type, average_rating, review_count, last_seen, is_premium), post_media(id, type, url, order), service_catalog!service_catalog_post_id_fkey(id, booking_type)'
       )
       .eq('post_type', 'service_listing')
       .eq('category', slug)

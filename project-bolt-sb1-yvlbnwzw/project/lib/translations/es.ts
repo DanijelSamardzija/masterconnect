@@ -684,6 +684,8 @@ export default {
   'common.all': 'Todos',
   'common.cancel': 'Cancelar',
   'services.viewService': 'Ver servicio',
+  'services.ctaBook': 'Reservar',
+  'services.ctaOrder': 'Pedir',
   'common.save': 'Guardar',
   'common.delete': 'Eliminar',
   'common.edit': 'Editar',

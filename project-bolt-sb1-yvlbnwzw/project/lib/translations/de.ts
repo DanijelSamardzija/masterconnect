@@ -719,6 +719,8 @@ export default {
   'common.all': 'Alle',
   'common.cancel': 'Abbrechen',
   'services.viewService': 'Dienst ansehen',
+  'services.ctaBook': 'Buchen',
+  'services.ctaOrder': 'Bestellen',
   'common.save': 'Speichern',
   'common.delete': 'Löschen',
   'common.edit': 'Bearbeiten',
