@@ -22,7 +22,7 @@ const fetchPostMeta = cache(async (postId: string) => {
   const supabase = makeSupabase();
   const { data } = await supabase
     .from('posts')
-    .select('id, user_id, text, job_title, post_type, city, country, category, experience_level, availability, created_at, is_pinned, pinned_at, price_type, price_value, currency, author:profiles!posts_user_id_fkey(id, name, email, avatar_url, account_type, average_rating, review_count, phone, show_phone)')
+    .select('id, user_id, text, job_title, post_type, city, country, category, experience_level, availability, created_at, is_pinned, pinned_at, price_type, price_value, currency, booking_enabled, author:profiles!posts_user_id_fkey(id, name, email, avatar_url, account_type, average_rating, review_count, phone, show_phone)')
     .eq('id', postId)
     .maybeSingle();
   return data;
@@ -235,6 +235,7 @@ export default async function SinglePostPage({ params }: Props) {
     created_at: (rawData as any).created_at as string,
     is_pinned: ((rawData as any).is_pinned as boolean) ?? false,
     pinned_at: (rawData as any).pinned_at as string | null ?? null,
+    booking_enabled: ((rawData as any).booking_enabled as boolean) ?? false,
     user: {
       id: ((author as any)?.id as string) ?? '',
       name: ((author as any)?.name as string) ?? 'GigZone korisnik',

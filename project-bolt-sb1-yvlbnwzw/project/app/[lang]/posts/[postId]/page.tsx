@@ -23,7 +23,7 @@ const fetchPost = cache(async (postId: string) => {
   const { data } = await makeSupabase()
     .from('posts')
     .select(
-      'id, user_id, text, job_title, post_type, city, country, category, experience_level, availability, created_at, is_pinned, pinned_at, price_type, price_value, currency, status, spam_score, post_media(id), author:profiles!posts_user_id_fkey(id, name, email, avatar_url, account_type, average_rating, review_count, phone, show_phone)'
+      'id, user_id, text, job_title, post_type, city, country, category, experience_level, availability, created_at, is_pinned, pinned_at, price_type, price_value, currency, booking_enabled, status, spam_score, post_media(id), author:profiles!posts_user_id_fkey(id, name, email, avatar_url, account_type, average_rating, review_count, phone, show_phone)'
     )
     .eq('id', postId)
     .maybeSingle();
@@ -305,6 +305,7 @@ export default async function LangPostPage({ params }: Props) {
       phone: ((author as any)?.phone as string | null) ?? null,
       show_phone: ((author as any)?.show_phone as boolean) ?? true,
     },
+    booking_enabled: ((rawData as any).booking_enabled as boolean) ?? false,
   };
 
   const relatedPosts = isJobPost

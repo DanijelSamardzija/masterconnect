@@ -56,6 +56,17 @@ type PostUser = {
   show_phone?: boolean;
 };
 
+type BookingService = {
+  id: string;
+  name: string;
+  description: string | null;
+  duration_minutes: number;
+  price: number | null;
+  price_type: string;
+  currency: string | null;
+  booking_type: string;
+};
+
 type Post = {
   id: string;
   user_id: string;
@@ -70,6 +81,7 @@ type Post = {
   category: string | null;
   experience_level: string | null;
   availability: string | null;
+  booking_enabled: boolean;
   user: PostUser;
   media: PostMedia[];
   reactions_count: number;
@@ -131,6 +143,8 @@ function SinglePostContent({ initialData, relatedPosts }: { initialData: PostIni
   const [applicationModalOpen, setApplicationModalOpen] = useState(false);
   const [selectedHiringPost, setSelectedHiringPost] = useState<{ id: string; title: string; ownerId: string } | null>(null);
   const [likeLoading, setLikeLoading] = useState(false);
+  const [bookingServices, setBookingServices] = useState<BookingService[]>([]);
+  const [bookingServicesLoading, setBookingServicesLoading] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
 
@@ -139,6 +153,21 @@ function SinglePostContent({ initialData, relatedPosts }: { initialData: PostIni
     const title = initialData.job_title || initialData.text?.slice(0, 60) || 'Post';
     trackView({ id: postId, title, url: `/posts/${postId}` });
   }, [postId]);
+
+  useEffect(() => {
+    if (!post?.booking_enabled || post.post_type !== 'service_listing') return;
+    setBookingServicesLoading(true);
+    (supabase as any)
+      .from('service_catalog')
+      .select('id, name, description, duration_minutes, price, price_type, currency, booking_type')
+      .eq('business_id', post.user_id)
+      .eq('is_active', true)
+      .order('name')
+      .then(({ data }: { data: BookingService[] | null }) => {
+        setBookingServices(data ?? []);
+        setBookingServicesLoading(false);
+      });
+  }, [post?.booking_enabled, post?.user_id]);
 
   useEffect(() => {
     if (!post) return;
@@ -770,6 +799,63 @@ function SinglePostContent({ initialData, relatedPosts }: { initialData: PostIni
 
         {isJobPost && (
           <ContactCard phone={post.user.phone} showPhone={post.user.show_phone} className="mt-4" />
+        )}
+
+        {/* ── Booking card — visible to all non-owners when booking is active ── */}
+        {post.post_type === 'service_listing' && post.booking_enabled && !isOwner && (
+          <div className="mt-4 border border-border rounded-xl overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-border bg-accent/30 flex items-center justify-between">
+              <h2 className="font-semibold text-sm">{t('serviceDetail.booking.heading')}</h2>
+              {!bookingServicesLoading && bookingServices.length > 1 && (
+                <Link
+                  href={`/booking/${post.user_id}`}
+                  className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
+                >
+                  {t('booking.selectService')}
+                </Link>
+              )}
+            </div>
+            {bookingServicesLoading ? (
+              <div className="flex justify-center py-6">
+                <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : bookingServices.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">{t('booking.noServices')}</p>
+            ) : (
+              <div className="flex flex-col divide-y divide-border">
+                {bookingServices.map((svc) => (
+                  <Link
+                    key={svc.id}
+                    href={`/booking/${post.user_id}/${svc.id}`}
+                    className="flex items-center justify-between gap-3 px-5 py-4 hover:bg-accent/40 transition-colors group"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm">{svc.name}</p>
+                      <div className="flex flex-wrap gap-2 mt-1 text-xs text-muted-foreground">
+                        <span>
+                          {svc.booking_type === 'appointment_service'
+                            ? t('booking.activate.typeAppointment')
+                            : t('booking.activate.typeTradespeople')}
+                        </span>
+                        <span>·</span>
+                        <span>{t('booking.duration').replace('{min}', String(svc.duration_minutes))}</span>
+                        {svc.price_type === 'negotiable' ? (
+                          <><span>·</span><span>{t('booking.priceNegotiable')}</span></>
+                        ) : svc.price && svc.price > 0 ? (
+                          <><span>·</span><span className="font-medium text-foreground">{svc.price} {svc.currency ?? ''}</span></>
+                        ) : svc.price_type === 'free' || !svc.price ? (
+                          <><span>·</span><span>{t('booking.priceFree')}</span></>
+                        ) : null}
+                      </div>
+                    </div>
+                    <span className="shrink-0 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium group-hover:bg-primary/90 transition-colors">
+                      {t('booking.bookNow')}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         )}
 
         {/* Related jobs — same category, prioritised by same city */}
