@@ -262,6 +262,7 @@ export default {
   'serviceDetail.booking.checklist.setupServices': 'Ajouter des services',
   'serviceDetail.booking.checklist.setupHours': 'Définir les horaires',
   'serviceDetail.booking.checklist.ready': 'Réservation prête',
+  'serviceDetail.booking.settingsButton': 'Paramètres de réservation',
 
   'reviewsModal.title': 'Avis pour',
   'reviewsModal.review': 'avis',

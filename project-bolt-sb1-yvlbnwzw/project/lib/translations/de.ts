@@ -276,6 +276,7 @@ export default {
   'serviceDetail.booking.checklist.setupServices': 'Dienste hinzufügen',
   'serviceDetail.booking.checklist.setupHours': 'Öffnungszeiten festlegen',
   'serviceDetail.booking.checklist.ready': 'Buchung bereit',
+  'serviceDetail.booking.settingsButton': 'Buchungseinstellungen',
 
   // Reviews Modal
   'reviewsModal.title': 'Bewertungen für',

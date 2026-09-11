@@ -275,6 +275,7 @@ export default {
   'serviceDetail.booking.checklist.setupServices': 'Dodaj usluge',
   'serviceDetail.booking.checklist.setupHours': 'Podesi radno vrijeme',
   'serviceDetail.booking.checklist.ready': 'Booking spreman',
+  'serviceDetail.booking.settingsButton': 'Podešavanja rezervacija',
 
   // Reviews Modal
   'reviewsModal.title': 'Recenzije za',

@@ -68,20 +68,10 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
   const { t, language } = useLanguage();
   const { openGuestGate } = useGuestGate();
   const [service, setService] = useState<ServiceDetail | null>(initialData);
-  const [bookingEnabled, setBookingEnabled] = useState<boolean>(initialData?.booking_enabled ?? false);
+  const bookingEnabled = service?.booking_enabled ?? false;
   const [isOwnerPremium, setIsOwnerPremium] = useState<boolean | null>(null);
   const [isBusinessProfile, setIsBusinessProfile] = useState<boolean | null>(null);
-  const [bookingChecklist, setBookingChecklist] = useState<{ hasHours: boolean | null }>({ hasHours: null });
   const [linkedSvcId, setLinkedSvcId] = useState<string | null>(null);
-  const [showActivateForm, setShowActivateForm] = useState(false);
-  const [activating, setActivating] = useState(false);
-  const [deactivating, setDeactivating] = useState(false);
-  const [actBookingType, setActBookingType] = useState<'appointment_service' | 'tradespeople'>('appointment_service');
-  const [actDuration, setActDuration] = useState('60');
-  const [actCapacity, setActCapacity] = useState('1');
-  const [actPrice, setActPrice] = useState('0');
-  const [actCurrency, setActCurrency] = useState('BAM');
-  const [actPriceType, setActPriceType] = useState('fixed');
   const [showEditModal, setShowEditModal] = useState(false);
   const [similarServices, setSimilarServices] = useState<ServiceDetail[]>([]);
   const [providerServices, setProviderServices] = useState<ServiceDetail[]>([]);
@@ -102,13 +92,7 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
   useEffect(() => {
     if (initialData) {
       setService(initialData);
-      // bookingEnabled is NOT reset here — it's owned by handleActivateBooking/
-      // handleDeactivateBooking and initialised once via useState. Resetting it
-      // here would conflict with router.refresh() delivering a new initialData
-      // reference after activation before the server read catches up.
-      setBookingChecklist({ hasHours: null });
       setLinkedSvcId(null);
-      setShowActivateForm(false);
     }
   }, [initialData]);
 
@@ -124,25 +108,6 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
         setIsBusinessProfile(data?.is_business ?? false);
       });
   }, [user, initialData?.user_id]);
-
-  useEffect(() => {
-    if (!isBusinessProfile || !user || !initialData || user.id !== initialData.user_id) return;
-    (async () => {
-      const locRes = await supabase
-        .from('business_locations')
-        .select('id')
-        .eq('business_id', user.id)
-        .eq('is_primary', true)
-        .eq('is_active', true)
-        .maybeSingle();
-      let hasHours = false;
-      if (locRes.data?.id) {
-        const { count } = await supabase.from('opening_hours').select('id', { count: 'exact', head: true }).eq('location_id', locRes.data.id);
-        hasHours = (count ?? 0) > 0;
-      }
-      setBookingChecklist({ hasHours });
-    })();
-  }, [isBusinessProfile, user?.id]);
 
   // Fetch linked service_catalog ID for this post (for owner + client Book Now link)
   useEffect(() => {
@@ -248,49 +213,6 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
     } finally {
       setDeleting(false);
     }
-  };
-
-  const handleActivateBooking = async () => {
-    if (!service) return;
-    const dur = parseInt(actDuration);
-    if (!dur || dur <= 0) { toast.error('Unesite trajanje u minutama'); return; }
-    setActivating(true);
-    const { data } = await (supabase as any).rpc('activate_post_booking', {
-      p_post_id: service.id,
-      p_booking_type: actBookingType,
-      p_duration_minutes: dur,
-      p_capacity: parseInt(actCapacity) || 1,
-      p_price: parseFloat(actPrice) || 0,
-      p_price_type: actPriceType,
-      p_currency: actCurrency,
-    });
-    setActivating(false);
-    const result = data as { ok: boolean; service_id?: string; error?: string } | null;
-    if (!result?.ok) {
-      toast.error(t('setup.error.saveFailed'));
-      return;
-    }
-    setLinkedSvcId(result.service_id ?? null);
-    setBookingEnabled(true);
-    setShowActivateForm(false);
-    router.refresh();
-  };
-
-  const handleDeactivateBooking = async () => {
-    if (!service || !confirm(t('booking.activate.deactivateConfirm'))) return;
-    setDeactivating(true);
-    const { data } = await (supabase as any).rpc('deactivate_post_booking', {
-      p_post_id: service.id,
-    });
-    setDeactivating(false);
-    const result = data as { ok: boolean; error?: string } | null;
-    if (!result?.ok) {
-      toast.error(t('setup.error.saveFailed'));
-      return;
-    }
-    setLinkedSvcId(null);
-    setBookingEnabled(false);
-    router.refresh();
   };
 
   const loadRecentReviews = async (proId: string) => {
@@ -792,21 +714,21 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                     </Button>
                   </div>
 
-                  {/* ── Booking activation ────────────────────────────────── */}
+                  {/* ── Booking section ────────────────────────────────── */}
                   <div className="border-t border-orange-200 dark:border-orange-800 pt-3">
                     <div className="flex items-center gap-1.5 mb-2">
                       <Calendar className="h-3.5 w-3.5 text-orange-600 dark:text-orange-400" />
                       <span className="text-xs font-semibold text-orange-700 dark:text-orange-300">
                         {t('serviceDetail.booking.heading')}
                       </span>
-                      {bookingEnabled && !showActivateForm && (
+                      {bookingEnabled && (
                         <span className="ml-1 text-xs font-medium text-green-600 dark:text-green-400">
                           · {t('booking.activate.active')}
                         </span>
                       )}
                     </div>
 
-                    {isOwnerPremium === null ? (
+                    {isOwnerPremium === null || isBusinessProfile === null ? (
                       <div className="flex items-center gap-2 h-7">
                         <Loader2 className="h-3.5 w-3.5 animate-spin text-orange-400" />
                       </div>
@@ -822,21 +744,17 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                           {t('serviceDetail.booking.upgradeButton')}
                         </button>
                       </div>
-                    ) : isBusinessProfile === null ? (
-                      <div className="flex items-center gap-2 h-7">
-                        <Loader2 className="h-3.5 w-3.5 animate-spin text-orange-400" />
-                      </div>
                     ) : !isBusinessProfile ? (
                       <div className="flex flex-col gap-1.5">
                         <p className="text-xs text-orange-600 dark:text-orange-400">
                           {t('serviceDetail.booking.needsBusiness')}
                         </p>
-                        <button
-                          onClick={() => router.push('/dashboard/business/setup')}
+                        <Link
+                          href="/dashboard/business/setup"
                           className="self-start text-xs font-semibold text-orange-700 dark:text-orange-300 underline underline-offset-2 hover:no-underline"
                         >
                           {t('serviceDetail.booking.setupLink')} →
-                        </button>
+                        </Link>
                       </div>
                     ) : !isBookingBetaUser(user?.id) ? (
                       <div className="flex flex-col gap-1.5">
@@ -847,147 +765,36 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                           {t('booking.beta.inlineNote')}
                         </p>
                       </div>
-                    ) : showActivateForm ? (
-                      /* ── Inline activation form ── */
-                      <div className="flex flex-col gap-3">
-                        {/* Booking type chips */}
-                        <div className="flex flex-col gap-1">
-                          <label className="text-xs font-medium text-orange-700 dark:text-orange-300">{t('booking.activate.typeLabel')}</label>
-                          <div className="flex gap-1.5">
-                            {(['appointment_service', 'tradespeople'] as const).map((bt) => (
-                              <button
-                                key={bt}
-                                type="button"
-                                onClick={() => setActBookingType(bt)}
-                                className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                                  actBookingType === bt
-                                    ? 'bg-orange-500 text-white border-orange-500'
-                                    : 'bg-background text-orange-700 border-orange-300 dark:text-orange-300 dark:border-orange-700 hover:border-orange-500'
-                                }`}
-                              >
-                                {bt === 'appointment_service' ? t('booking.activate.typeAppointment') : t('booking.activate.typeTradespeople')}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Duration */}
-                        <div className="flex flex-col gap-1">
-                          <label className="text-xs font-medium text-orange-700 dark:text-orange-300">{t('booking.activate.duration')}</label>
-                          <input
-                            type="number"
-                            min="5"
-                            step="5"
-                            value={actDuration}
-                            onChange={(e) => setActDuration(e.target.value)}
-                            className="border border-orange-200 dark:border-orange-800 rounded-lg px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-orange-400 w-28"
-                          />
-                        </div>
-
-                        {/* Capacity */}
-                        <div className="flex flex-col gap-1">
-                          <label className="text-xs font-medium text-orange-700 dark:text-orange-300">{t('booking.activate.capacity')}</label>
-                          <input
-                            type="number"
-                            min="1"
-                            value={actCapacity}
-                            onChange={(e) => setActCapacity(e.target.value)}
-                            className="border border-orange-200 dark:border-orange-800 rounded-lg px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-orange-400 w-20"
-                          />
-                        </div>
-
-                        {/* Price + currency */}
-                        <div className="flex flex-col gap-1">
-                          <label className="text-xs font-medium text-orange-700 dark:text-orange-300">{t('booking.activate.price')}</label>
-                          <div className="flex rounded-lg overflow-hidden border border-orange-200 dark:border-orange-800 focus-within:ring-1 focus-within:ring-orange-400 w-fit">
-                            <select
-                              value={actCurrency}
-                              onChange={(e) => setActCurrency(e.target.value)}
-                              className="px-2 py-1.5 text-xs bg-muted border-r border-orange-200 dark:border-orange-800 focus:outline-none shrink-0 w-[60px]"
-                            >
-                              {['BAM', 'EUR', 'RSD', 'USD', 'CHF', 'GBP'].map((c) => (
-                                <option key={c} value={c}>{c}</option>
-                              ))}
-                            </select>
-                            <input
-                              type="number"
-                              min="0"
-                              step="0.5"
-                              value={actPrice}
-                              onChange={(e) => setActPrice(e.target.value)}
-                              className="px-2 py-1.5 text-sm bg-background focus:outline-none w-24"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex gap-2">
-                          <button
-                            onClick={handleActivateBooking}
-                            disabled={activating}
-                            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white transition-colors disabled:opacity-50"
-                          >
-                            {activating ? t('booking.activate.saving') : (bookingEnabled ? t('booking.activate.save') : t('booking.activate.submit'))}
-                          </button>
-                          <button
-                            onClick={() => setShowActivateForm(false)}
-                            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-muted text-muted-foreground hover:bg-accent transition-colors"
-                          >
-                            {t('booking.activate.cancel')}
-                          </button>
-                        </div>
-                      </div>
                     ) : bookingEnabled ? (
-                      /* ── Active state ── */
-                      <div className="flex flex-col gap-2">
-                        <p className="text-xs text-green-600 dark:text-green-400">{t('booking.activate.activeDesc')}</p>
-                        {bookingChecklist.hasHours === false && (
-                          <p className="text-xs text-orange-600 dark:text-orange-400">
-                            {t('booking.activate.hoursWarning')}{' '}
-                            <button
-                              onClick={() => router.push('/dashboard/business/setup')}
-                              className="font-semibold underline underline-offset-2 hover:no-underline"
-                            >
-                              {t('booking.activate.setupHours')} →
-                            </button>
-                          </p>
+                      /* ── Active: link to settings ── */
+                      <div className="flex flex-wrap gap-1.5">
+                        {linkedSvcId && service.business_id && (
+                          <Link
+                            href={`/booking/${service.business_id}/${linkedSvcId}`}
+                            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                          >
+                            {t('booking.activate.viewPage')}
+                          </Link>
                         )}
-                        <div className="flex flex-wrap gap-1.5">
-                          {linkedSvcId && service.business_id && (
-                            <Link
-                              href={`/booking/${service.business_id}/${linkedSvcId}`}
-                              className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
-                            >
-                              {t('booking.activate.viewPage')}
-                            </Link>
-                          )}
-                          <button
-                            onClick={() => setShowActivateForm(true)}
-                            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
-                          >
-                            {t('booking.activate.edit')}
-                          </button>
-                          <button
-                            onClick={handleDeactivateBooking}
-                            disabled={deactivating}
-                            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors disabled:opacity-50"
-                          >
-                            {deactivating ? t('booking.activate.deactivating') : t('booking.activate.deactivate')}
-                          </button>
-                        </div>
+                        <Link
+                          href="/dashboard/business/setup"
+                          className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
+                        >
+                          {t('serviceDetail.booking.settingsButton')} →
+                        </Link>
                       </div>
                     ) : (
-                      /* ── Inactive — prompt to activate ── */
+                      /* ── Inactive: link to onboarding wizard ── */
                       <div className="flex flex-col gap-1.5">
                         <p className="text-xs text-orange-600 dark:text-orange-400">
                           {t('serviceDetail.booking.desc')}
                         </p>
-                        <button
-                          onClick={() => setShowActivateForm(true)}
+                        <Link
+                          href="/dashboard/business/onboarding"
                           className="self-start text-xs font-semibold px-3 py-1.5 rounded-lg bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
                         >
                           {t('booking.activate.heading')} →
-                        </button>
+                        </Link>
                       </div>
                     )}
                   </div>
