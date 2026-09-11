@@ -37,6 +37,7 @@ import { toast } from 'sonner';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { timeAgo } from '@/lib/utils/date';
 import { translateNotification } from '@/lib/notification-translations';
+import { isBookingBetaUser } from '@/lib/booking-whitelist';
 
 export const revalidate = 0;
 
@@ -376,9 +377,26 @@ function DashboardContent() {
           </div>
         </div>
 
-        {/* Business & Booking CTA — for all users who have a service listing */}
+        {/* Business & Booking CTA — for users with a service listing */}
         {hasServiceListing && isBusinessProfile !== null && (
-          !isPremium ? (
+          !isBookingBetaUser(profile?.id) ? (
+            // Non-whitelisted: show beta notice regardless of premium status
+            <div className="bg-card border border-border rounded-2xl p-4 flex items-center gap-3">
+              <div className="p-2.5 bg-blue-100 dark:bg-blue-950 rounded-xl shrink-0">
+                <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <p className="text-sm font-semibold text-foreground">{t('dashboard.business.activeTitle')}</p>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400">
+                    {t('booking.beta.badge')}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground truncate">{t('booking.beta.inlineNote')}</p>
+              </div>
+            </div>
+          ) : !isPremium ? (
+            // Whitelisted, no Pro Premium
             <div className="bg-card border border-blue-200 dark:border-blue-900 rounded-2xl p-4 flex items-center gap-3">
               <div className="p-2.5 bg-blue-100 dark:bg-blue-950 rounded-xl shrink-0">
                 <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
@@ -395,6 +413,7 @@ function DashboardContent() {
               </button>
             </div>
           ) : isBusinessProfile ? (
+            // Whitelisted + Premium + active business
             <div className="bg-card border border-border rounded-2xl p-4 flex items-center gap-3">
               <div className="p-2.5 bg-blue-100 dark:bg-blue-950 rounded-xl shrink-0">
                 <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
@@ -412,6 +431,7 @@ function DashboardContent() {
               </button>
             </div>
           ) : (
+            // Whitelisted + Premium + no business profile yet
             <div className="bg-card border border-blue-200 dark:border-blue-900 rounded-2xl p-4 flex items-center gap-3">
               <div className="p-2.5 bg-blue-100 dark:bg-blue-950 rounded-xl shrink-0">
                 <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
