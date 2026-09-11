@@ -667,13 +667,17 @@ export default function BusinessSetupPage() {
               ) : (
                 <>
                   {labelInput(t('setup.profile.name'),
-                    <input
-                      type="text"
-                      value={bizName}
-                      onChange={(e) => setBizName(e.target.value)}
-                      className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                      placeholder={t('setup.profile.name')}
-                    />
+                    <>
+                      <input
+                        type="text"
+                        value={bizName}
+                        onChange={(e) => setBizName(e.target.value)}
+                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                        placeholder={t('setup.profile.namePlaceholder')}
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">{t('setup.profile.nameHelp')}</p>
+                      <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">{t('setup.profile.nameNote')}</p>
+                    </>
                   )}
 
                   {labelInput(t('setup.profile.timezone'),
