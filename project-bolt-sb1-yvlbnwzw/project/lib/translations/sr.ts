@@ -258,6 +258,15 @@ export default {
   'serviceDetail.deleteListing': 'Obriši oglas',
   'serviceDetail.deleteConfirm': 'Da li ste sigurni da želite da obrišete ovaj oglas?',
   'serviceDetail.noImage': 'Bez slike',
+  // F11 — Booking toggle in owner banner
+  'serviceDetail.booking.heading': 'Rezervacije',
+  'serviceDetail.booking.desc': 'Klijenti će vidjeti dugme „Rezerviši sada" na ovom oglasu',
+  'serviceDetail.booking.enable': 'Aktiviraj',
+  'serviceDetail.booking.disable': 'Deaktiviraj',
+  'serviceDetail.booking.enabled': 'Rezervacija aktivna',
+  'serviceDetail.booking.toggling': 'Čuvanje...',
+  'serviceDetail.booking.needsBusiness': 'Prvo aktivirajte booking profil da biste omogućili online rezervacije.',
+  'serviceDetail.booking.setupLink': 'Idi na Business Setup',
 
   // Reviews Modal
   'reviewsModal.title': 'Recenzije za',

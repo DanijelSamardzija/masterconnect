@@ -245,6 +245,15 @@ export default {
   'serviceDetail.deleteListing': 'Eliminar anuncio',
   'serviceDetail.deleteConfirm': '¿Estás seguro de que quieres eliminar este anuncio?',
   'serviceDetail.noImage': 'Sin imagen',
+  // F11 — Booking toggle in owner banner
+  'serviceDetail.booking.heading': 'Reservas',
+  'serviceDetail.booking.desc': 'Los clientes verán un botón «Reservar ahora» en este anuncio',
+  'serviceDetail.booking.enable': 'Activar',
+  'serviceDetail.booking.disable': 'Desactivar',
+  'serviceDetail.booking.enabled': 'Reserva activa',
+  'serviceDetail.booking.toggling': 'Guardando...',
+  'serviceDetail.booking.needsBusiness': 'Activa tu perfil de reservas primero para aceptar reservas online.',
+  'serviceDetail.booking.setupLink': 'Ir a la configuración del negocio',
 
   'reviewsModal.title': 'Reseñas de',
   'reviewsModal.review': 'reseña',

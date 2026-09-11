@@ -258,6 +258,15 @@ export default {
   'serviceDetail.deleteListing': 'Delete listing',
   'serviceDetail.deleteConfirm': 'Are you sure you want to delete this listing?',
   'serviceDetail.noImage': 'No image',
+  // F11 — Booking toggle in owner banner
+  'serviceDetail.booking.heading': 'Booking',
+  'serviceDetail.booking.desc': 'Customers will see a Book Now button on this listing',
+  'serviceDetail.booking.enable': 'Enable',
+  'serviceDetail.booking.disable': 'Disable',
+  'serviceDetail.booking.enabled': 'Booking active',
+  'serviceDetail.booking.toggling': 'Saving...',
+  'serviceDetail.booking.needsBusiness': 'Activate your booking profile first to enable online bookings.',
+  'serviceDetail.booking.setupLink': 'Go to Business Setup',
 
   // Reviews Modal
   'reviewsModal.title': 'Reviews for',

@@ -66,6 +66,9 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
   const { t, language } = useLanguage();
   const { openGuestGate } = useGuestGate();
   const [service] = useState<ServiceDetail | null>(initialData);
+  const [bookingEnabled, setBookingEnabled] = useState<boolean>(initialData?.booking_enabled ?? false);
+  const [isBusinessProfile, setIsBusinessProfile] = useState<boolean | null>(null);
+  const [bookingToggling, setBookingToggling] = useState(false);
   const [similarServices, setSimilarServices] = useState<ServiceDetail[]>([]);
   const [providerServices, setProviderServices] = useState<ServiceDetail[]>([]);
   const [showOfferModal, setShowOfferModal] = useState(false);
@@ -81,6 +84,16 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
     created_at: string;
     customer: { name: string; avatar_url: string | null };
   }>>([]);
+
+  useEffect(() => {
+    if (!user || !initialData || user.id !== initialData.user_id) return;
+    supabase
+      .from('profiles')
+      .select('is_business')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }) => setIsBusinessProfile(data?.is_business ?? false));
+  }, [user, initialData?.user_id]);
 
   useEffect(() => {
     if (!initialData) return;
@@ -172,6 +185,22 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
     } finally {
       setDeleting(false);
     }
+  };
+
+  const handleToggleBooking = async () => {
+    if (!service) return;
+    setBookingToggling(true);
+    const { data } = await (supabase as any).rpc('set_post_booking_enabled', {
+      p_post_id: service.id,
+      p_enabled: !bookingEnabled,
+    });
+    setBookingToggling(false);
+    const result = data as { ok: boolean; error?: string } | null;
+    if (!result?.ok) {
+      toast.error(t('setup.error.saveFailed'));
+      return;
+    }
+    setBookingEnabled((prev) => !prev);
   };
 
   const loadRecentReviews = async (proId: string) => {
@@ -660,7 +689,7 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                       <p className="text-xs text-orange-500 dark:text-orange-500">{t('serviceDetail.ownerBannerDesc')}</p>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 mb-3">
                     <Button size="sm" variant="outline" className="flex-1 gap-2 border-orange-300 text-orange-700 hover:bg-orange-100 dark:border-orange-700 dark:text-orange-400" onClick={() => router.push('/profile')}>
                       <Edit className="h-3.5 w-3.5" />
                       {t('serviceDetail.editListing')}
@@ -669,6 +698,60 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                       {deleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
                       {t('serviceDetail.deleteListing')}
                     </Button>
+                  </div>
+
+                  {/* ── Booking toggle ────────────────────────────────────── */}
+                  <div className="border-t border-orange-200 dark:border-orange-800 pt-3">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Calendar className="h-3.5 w-3.5 text-orange-600 dark:text-orange-400" />
+                      <span className="text-xs font-semibold text-orange-700 dark:text-orange-300">
+                        {t('serviceDetail.booking.heading')}
+                      </span>
+                      {bookingEnabled && (
+                        <span className="ml-1 text-xs font-medium text-green-600 dark:text-green-400">
+                          · {t('serviceDetail.booking.enabled')}
+                        </span>
+                      )}
+                    </div>
+
+                    {isBusinessProfile === null ? (
+                      <div className="flex items-center gap-2 h-7">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-orange-400" />
+                      </div>
+                    ) : !isBusinessProfile ? (
+                      <div className="flex flex-col gap-1.5">
+                        <p className="text-xs text-orange-600 dark:text-orange-400">
+                          {t('serviceDetail.booking.needsBusiness')}
+                        </p>
+                        <button
+                          onClick={() => router.push('/dashboard/business/setup')}
+                          className="self-start text-xs font-semibold text-orange-700 dark:text-orange-300 underline underline-offset-2 hover:no-underline"
+                        >
+                          {t('serviceDetail.booking.setupLink')} →
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-xs text-orange-600 dark:text-orange-400 flex-1">
+                          {t('serviceDetail.booking.desc')}
+                        </p>
+                        <button
+                          onClick={handleToggleBooking}
+                          disabled={bookingToggling}
+                          className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 ${
+                            bookingEnabled
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30 dark:hover:text-red-400'
+                              : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50'
+                          }`}
+                        >
+                          {bookingToggling
+                            ? t('serviceDetail.booking.toggling')
+                            : bookingEnabled
+                              ? t('serviceDetail.booking.disable')
+                              : t('serviceDetail.booking.enable')}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

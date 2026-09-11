@@ -259,6 +259,15 @@ export default {
   'serviceDetail.deleteListing': 'Eintrag löschen',
   'serviceDetail.deleteConfirm': 'Bist du sicher, dass du diesen Eintrag löschen möchtest?',
   'serviceDetail.noImage': 'Kein Bild',
+  // F11 — Booking toggle in owner banner
+  'serviceDetail.booking.heading': 'Buchung',
+  'serviceDetail.booking.desc': 'Kunden sehen einen „Jetzt buchen"-Button auf diesem Eintrag',
+  'serviceDetail.booking.enable': 'Aktivieren',
+  'serviceDetail.booking.disable': 'Deaktivieren',
+  'serviceDetail.booking.enabled': 'Buchung aktiv',
+  'serviceDetail.booking.toggling': 'Speichern...',
+  'serviceDetail.booking.needsBusiness': 'Aktivieren Sie zuerst Ihr Buchungsprofil, um Online-Buchungen zu ermöglichen.',
+  'serviceDetail.booking.setupLink': 'Zur Geschäftseinrichtung',
 
   // Reviews Modal
   'reviewsModal.title': 'Bewertungen für',
