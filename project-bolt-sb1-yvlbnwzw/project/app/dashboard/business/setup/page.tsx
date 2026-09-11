@@ -77,6 +77,94 @@ const DEFAULT_HOURS: HourRow[] = Array.from({ length: 7 }, (_, i) => ({
   is_closed: i === 0 || i === 6, // Sunday + Saturday closed by default
 }));
 
+const TIMEZONE_OPTIONS: { value: string; label: string }[] = [
+  // Balkani & Ex-YU
+  { value: 'Europe/Sarajevo',   label: 'Sarajevo (Europe/Sarajevo)' },
+  { value: 'Europe/Belgrade',   label: 'Beograd (Europe/Belgrade)' },
+  { value: 'Europe/Zagreb',     label: 'Zagreb (Europe/Zagreb)' },
+  { value: 'Europe/Ljubljana',  label: 'Ljubljana (Europe/Ljubljana)' },
+  { value: 'Europe/Skopje',     label: 'Skoplje (Europe/Skopje)' },
+  { value: 'Europe/Podgorica',  label: 'Podgorica (Europe/Podgorica)' },
+  { value: 'Europe/Tirane',     label: 'Tirana (Europe/Tirane)' },
+  { value: 'Europe/Sofia',      label: 'Sofija (Europe/Sofia)' },
+  { value: 'Europe/Bucharest',  label: 'Bukurešt (Europe/Bucharest)' },
+  { value: 'Europe/Athens',     label: 'Atina (Europe/Athens)' },
+  // Central Europe
+  { value: 'Europe/Vienna',     label: 'Beč (Europe/Vienna)' },
+  { value: 'Europe/Berlin',     label: 'Berlin (Europe/Berlin)' },
+  { value: 'Europe/Zurich',     label: 'Cirih (Europe/Zurich)' },
+  { value: 'Europe/Prague',     label: 'Prag (Europe/Prague)' },
+  { value: 'Europe/Warsaw',     label: 'Varšava (Europe/Warsaw)' },
+  { value: 'Europe/Budapest',   label: 'Budimpešta (Europe/Budapest)' },
+  { value: 'Europe/Bratislava', label: 'Bratislava (Europe/Bratislava)' },
+  // Western Europe
+  { value: 'Europe/Paris',      label: 'Pariz (Europe/Paris)' },
+  { value: 'Europe/Amsterdam',  label: 'Amsterdam (Europe/Amsterdam)' },
+  { value: 'Europe/Brussels',   label: 'Brisel (Europe/Brussels)' },
+  { value: 'Europe/Rome',       label: 'Rim (Europe/Rome)' },
+  { value: 'Europe/Madrid',     label: 'Madrid (Europe/Madrid)' },
+  { value: 'Europe/Lisbon',     label: 'Lisabon (Europe/Lisbon)' },
+  { value: 'Europe/London',     label: 'London (Europe/London)' },
+  { value: 'Europe/Dublin',     label: 'Dublin (Europe/Dublin)' },
+  // Nordic
+  { value: 'Europe/Stockholm',  label: 'Stokholm (Europe/Stockholm)' },
+  { value: 'Europe/Copenhagen', label: 'Kopenhagen (Europe/Copenhagen)' },
+  { value: 'Europe/Helsinki',   label: 'Helsinki (Europe/Helsinki)' },
+  // Eastern
+  { value: 'Europe/Kyiv',       label: 'Kijev (Europe/Kyiv)' },
+  { value: 'Europe/Istanbul',   label: 'Istanbul (Europe/Istanbul)' },
+  { value: 'Europe/Moscow',     label: 'Moskva (Europe/Moscow)' },
+  // Middle East & Gulf
+  { value: 'Asia/Riyadh',       label: 'Rijad (Asia/Riyadh)' },
+  { value: 'Asia/Dubai',        label: 'Dubai (Asia/Dubai)' },
+  // Asia
+  { value: 'Asia/Kolkata',      label: 'Mumbai / Delhi (Asia/Kolkata)' },
+  { value: 'Asia/Singapore',    label: 'Singapur (Asia/Singapore)' },
+  { value: 'Asia/Shanghai',     label: 'Šangaj (Asia/Shanghai)' },
+  { value: 'Asia/Tokyo',        label: 'Tokio (Asia/Tokyo)' },
+  // Americas
+  { value: 'America/New_York',    label: 'New York (America/New_York)' },
+  { value: 'America/Chicago',     label: 'Chicago (America/Chicago)' },
+  { value: 'America/Denver',      label: 'Denver (America/Denver)' },
+  { value: 'America/Los_Angeles', label: 'Los Angeles (America/Los_Angeles)' },
+  { value: 'America/Toronto',     label: 'Toronto (America/Toronto)' },
+  { value: 'America/Sao_Paulo',   label: 'São Paulo (America/Sao_Paulo)' },
+  // Australia & Pacific
+  { value: 'Australia/Sydney',    label: 'Sidnej (Australia/Sydney)' },
+  { value: 'Australia/Melbourne', label: 'Melbourne (Australia/Melbourne)' },
+  { value: 'Pacific/Auckland',    label: 'Auckland (Pacific/Auckland)' },
+];
+
+function getBrowserTimezone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Sarajevo';
+  } catch {
+    return 'Europe/Sarajevo';
+  }
+}
+
+function TimezoneSelect({ value, onChange, className }: {
+  value: string;
+  onChange: (v: string) => void;
+  className?: string;
+}) {
+  const options = TIMEZONE_OPTIONS.some(o => o.value === value)
+    ? TIMEZONE_OPTIONS
+    : [{ value, label: value }, ...TIMEZONE_OPTIONS];
+
+  return (
+    <select
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      className={className}
+    >
+      {options.map(opt => (
+        <option key={opt.value} value={opt.value}>{opt.label}</option>
+      ))}
+    </select>
+  );
+}
+
 function labelInput(label: string, children: React.ReactNode) {
   return (
     <div className="flex flex-col gap-1">
@@ -155,15 +243,16 @@ export default function BusinessSetupPage() {
     if (!user) return;
     (async () => {
       setProfileLoading(true);
-      const { data } = await supabase
-        .from('profiles')
-        .select('name, is_business')
-        .eq('id', user.id)
-        .single();
-      if (data) {
-        setBizName(data.name ?? '');
-        setIsBusinessActive(data.is_business ?? false);
+      const [profileRes, locRes] = await Promise.all([
+        supabase.from('profiles').select('name, is_business').eq('id', user.id).single(),
+        supabase.from('business_locations').select('timezone').eq('business_id', user.id).eq('is_primary', true).maybeSingle(),
+      ]);
+      if (profileRes.data) {
+        setBizName(profileRes.data.name ?? '');
+        setIsBusinessActive(profileRes.data.is_business ?? false);
       }
+      // Load saved timezone from primary location; fall back to browser timezone for new users
+      setTimezone(locRes.data?.timezone ?? getBrowserTimezone());
       setProfileLoading(false);
     })();
   }, [user]);
@@ -434,7 +523,7 @@ export default function BusinessSetupPage() {
   function openAddLoc() {
     setEditingLoc(null);
     setLocName(''); setLocAddress(''); setLocCity(''); setLocCountry('');
-    setLocTimezone('Europe/Sarajevo'); setLocPhone('');
+    setLocTimezone(getBrowserTimezone()); setLocPhone('');
     setShowLocForm(true);
   }
 
@@ -588,12 +677,10 @@ export default function BusinessSetupPage() {
                   )}
 
                   {labelInput(t('setup.profile.timezone'),
-                    <input
-                      type="text"
+                    <TimezoneSelect
                       value={timezone}
-                      onChange={(e) => setTimezone(e.target.value)}
+                      onChange={setTimezone}
                       className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                      placeholder="Europe/Sarajevo"
                     />
                   )}
 
@@ -938,9 +1025,11 @@ export default function BusinessSetupPage() {
 
                   <div className="grid grid-cols-2 gap-3">
                     {labelInput(t('setup.locations.timezone'),
-                      <input type="text" value={locTimezone} onChange={(e) => setLocTimezone(e.target.value)}
-                        placeholder="Europe/Sarajevo"
-                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
+                      <TimezoneSelect
+                        value={locTimezone}
+                        onChange={setLocTimezone}
+                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
                     )}
                     {labelInput(t('setup.locations.phone'),
                       <input type="text" value={locPhone} onChange={(e) => setLocPhone(e.target.value)}
