@@ -102,7 +102,10 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
   useEffect(() => {
     if (initialData) {
       setService(initialData);
-      setBookingEnabled(initialData.booking_enabled ?? false);
+      // bookingEnabled is NOT reset here — it's owned by handleActivateBooking/
+      // handleDeactivateBooking and initialised once via useState. Resetting it
+      // here would conflict with router.refresh() delivering a new initialData
+      // reference after activation before the server read catches up.
       setBookingChecklist({ hasHours: null });
       setLinkedSvcId(null);
       setShowActivateForm(false);
