@@ -265,6 +265,8 @@ export default {
   'serviceDetail.booking.disable': 'Deaktiviraj',
   'serviceDetail.booking.enabled': 'Rezervacija aktivna',
   'serviceDetail.booking.toggling': 'Čuvanje...',
+  'serviceDetail.booking.needsPremium': 'Za Business & Booking funkcije potreban je Pro Premium nalog.',
+  'serviceDetail.booking.upgradeButton': 'Aktiviraj Pro Premium',
   'serviceDetail.booking.needsBusiness': 'Prvo aktivirajte booking profil da biste omogućili online rezervacije.',
   'serviceDetail.booking.setupLink': 'Idi na Business Setup',
   'serviceDetail.booking.checklist.profile': 'Business profil',

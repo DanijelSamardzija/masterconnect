@@ -100,10 +100,8 @@ function DashboardContent() {
     fetchUnreadCount();
     fetchNotifications();
     if (profile?.account_type === 'customer') fetchPendingReview();
-    if (profile?.account_type === 'professional' || (profile as any)?.is_premium) {
-      fetchProfileViews();
-      fetchIsBusinessProfile();
-    }
+    if (profile?.account_type === 'professional' || (profile as any)?.is_premium) fetchProfileViews();
+    if ((profile as any)?.is_premium) fetchIsBusinessProfile();
     if ((profile as any)?.is_premium) { fetchCreditBalance(); fetchRecentViewers(); fetchDonations(); }
 
     const handleUnreadCountChanged = () => {
@@ -365,8 +363,8 @@ function DashboardContent() {
           </div>
         </div>
 
-        {/* Business & Booking CTA — samo za profesionalce */}
-        {(profile?.account_type === 'professional' || (profile as any)?.is_premium) && isBusinessProfile !== null && (
+        {/* Business & Booking CTA — samo za Pro Premium korisnike */}
+        {isPremium && isBusinessProfile !== null && (
           isBusinessProfile ? (
             <div className="bg-card border border-border rounded-2xl p-4 flex items-center gap-3">
               <div className="p-2.5 bg-blue-100 dark:bg-blue-950 rounded-xl shrink-0">

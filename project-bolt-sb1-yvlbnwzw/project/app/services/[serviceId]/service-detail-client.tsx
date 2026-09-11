@@ -68,6 +68,7 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
   const { openGuestGate } = useGuestGate();
   const [service] = useState<ServiceDetail | null>(initialData);
   const [bookingEnabled, setBookingEnabled] = useState<boolean>(initialData?.booking_enabled ?? false);
+  const [isOwnerPremium, setIsOwnerPremium] = useState<boolean | null>(null);
   const [isBusinessProfile, setIsBusinessProfile] = useState<boolean | null>(null);
   const [bookingToggling, setBookingToggling] = useState(false);
   const [bookingChecklist, setBookingChecklist] = useState<{ hasServices: boolean | null; hasHours: boolean | null }>({ hasServices: null, hasHours: null });
@@ -92,10 +93,13 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
     if (!user || !initialData || user.id !== initialData.user_id) return;
     supabase
       .from('profiles')
-      .select('is_business')
+      .select('is_business, is_premium')
       .eq('id', user.id)
       .single()
-      .then(({ data }) => setIsBusinessProfile(data?.is_business ?? false));
+      .then(({ data }) => {
+        setIsOwnerPremium(data?.is_premium ?? false);
+        setIsBusinessProfile(data?.is_business ?? false);
+      });
   }, [user, initialData?.user_id]);
 
   useEffect(() => {
@@ -734,7 +738,23 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                       )}
                     </div>
 
-                    {isBusinessProfile === null ? (
+                    {isOwnerPremium === null ? (
+                      <div className="flex items-center gap-2 h-7">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-orange-400" />
+                      </div>
+                    ) : !isOwnerPremium ? (
+                      <div className="flex flex-col gap-1.5">
+                        <p className="text-xs text-orange-600 dark:text-orange-400">
+                          {t('serviceDetail.booking.needsPremium')}
+                        </p>
+                        <button
+                          onClick={() => router.push('/profile')}
+                          className="self-start text-xs font-semibold px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white transition-colors"
+                        >
+                          {t('serviceDetail.booking.upgradeButton')}
+                        </button>
+                      </div>
+                    ) : isBusinessProfile === null ? (
                       <div className="flex items-center gap-2 h-7">
                         <Loader2 className="h-3.5 w-3.5 animate-spin text-orange-400" />
                       </div>

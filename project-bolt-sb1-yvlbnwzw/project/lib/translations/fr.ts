@@ -252,6 +252,8 @@ export default {
   'serviceDetail.booking.disable': 'Désactiver',
   'serviceDetail.booking.enabled': 'Réservation active',
   'serviceDetail.booking.toggling': 'Enregistrement...',
+  'serviceDetail.booking.needsPremium': 'Les fonctionnalités Business & Réservations nécessitent un compte Pro Premium.',
+  'serviceDetail.booking.upgradeButton': 'Activer Pro Premium',
   'serviceDetail.booking.needsBusiness': 'Activez d\'abord votre profil de réservation pour accepter les réservations en ligne.',
   'serviceDetail.booking.setupLink': 'Aller à la configuration du commerce',
   'serviceDetail.booking.checklist.profile': 'Profil commercial',
