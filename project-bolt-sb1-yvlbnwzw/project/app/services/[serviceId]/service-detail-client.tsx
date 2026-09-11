@@ -270,6 +270,7 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
     setLinkedSvcId(result.service_id ?? null);
     setBookingEnabled(true);
     setShowActivateForm(false);
+    router.refresh();
   };
 
   const handleDeactivateBooking = async () => {
@@ -286,6 +287,7 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
     }
     setLinkedSvcId(null);
     setBookingEnabled(false);
+    router.refresh();
   };
 
   const loadRecentReviews = async (proId: string) => {
