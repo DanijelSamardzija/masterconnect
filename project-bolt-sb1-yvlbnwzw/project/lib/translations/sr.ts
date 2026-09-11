@@ -1928,7 +1928,7 @@ export default {
   'setup.profile.desc': 'Aktivirajte online rezervaciju za vaš biznis',
   'setup.profile.name': 'Naziv koji će klijenti vidjeti',
   'setup.profile.namePlaceholder': 'npr. Frizerski salon Ana, Marko Petrović – Keramičar',
-  'setup.profile.nameHelp': 'Unesite naziv pod kojim želite da vas klijenti prepoznaju. Možete unijeti naziv firme, naziv obrta/brenda ili svoje ime i prezime ako radite kao samostalni pružalac usluge.',
+  'setup.profile.nameHelp': 'Unesite naziv pod kojim želite da vas klijenti prepoznaju. Možete unijeti naziv firme, naziv zanata/brenda ili svoje ime i prezime ako radite kao samostalni pružalac usluge.',
   'setup.profile.nameNote': 'Ovo polje predstavlja javni naziv Business/Booking profila koji će klijenti vidjeti prilikom rezervacije, a ne nužno pravni naziv registrovane firme.',
   'setup.profile.timezone': 'Vremenski pojas',
   'setup.profile.save': 'Sačuvaj profil',
