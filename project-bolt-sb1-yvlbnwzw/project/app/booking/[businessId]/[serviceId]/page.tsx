@@ -50,6 +50,13 @@ type Business = {
   name: string;
 };
 
+type StaffOption = {
+  staff_member_id: string;
+  user_id: string;
+  name: string;
+  role: string;
+};
+
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 function getMonday(d: Date): Date {
@@ -117,6 +124,10 @@ export default function BookingSlotPickerPage() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [loadingMeta, setLoadingMeta] = useState(true);
 
+  const [staffOptions, setStaffOptions] = useState<StaffOption[]>([]);
+  const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null); // null = "any"
+  const [loadingStaff, setLoadingStaff] = useState(false);
+
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [notes, setNotes] = useState('');
@@ -147,6 +158,19 @@ export default function BookingSlotPickerPage() {
     loadMeta();
   }, [businessId, serviceId]);
 
+  const loadStaff = useCallback(async (locId: string) => {
+    if (!serviceId) return;
+    setLoadingStaff(true);
+    const { data } = await (supabase as any).rpc('get_staff_for_service', {
+      p_service_id: serviceId,
+      p_location_id: locId,
+    });
+    const members = (data as StaffOption[]) ?? [];
+    setStaffOptions(members);
+    setSelectedStaffId(null); // reset to "any" when location changes
+    setLoadingStaff(false);
+  }, [serviceId]);
+
   const loadSlots = useCallback(async () => {
     if (!selectedLocationId || !businessId || !serviceId) return;
     setLoadingSlots(true);
@@ -157,16 +181,18 @@ export default function BookingSlotPickerPage() {
       p_location_id: selectedLocationId,
       p_service_id: serviceId,
       p_week_start: ws,
+      ...(selectedStaffId ? { p_staff_member_id: selectedStaffId } : {}),
     });
     setSlots((data as Slot[]) ?? []);
     setLoadingSlots(false);
-  }, [businessId, serviceId, selectedLocationId, weekDate]);
+  }, [businessId, serviceId, selectedLocationId, selectedStaffId, weekDate]);
 
   useEffect(() => {
     if (!loadingMeta && selectedLocationId) {
       loadSlots();
+      loadStaff(selectedLocationId);
     }
-  }, [loadingMeta, selectedLocationId, weekDate, loadSlots]);
+  }, [loadingMeta, selectedLocationId, weekDate, loadSlots, loadStaff]);
 
   function onLocationChange(locId: string) {
     const loc = locations.find((l) => l.id === locId);
@@ -198,6 +224,7 @@ export default function BookingSlotPickerPage() {
       p_starts_at: selectedSlot.slot_start,
       p_party_size: partySize,
       p_notes: notes.trim() || null,
+      ...(selectedStaffId ? { p_staff_member_id: selectedStaffId } : {}),
     });
     setBooking(false);
     const result = data as { ok: boolean; error?: string; status?: string } | null;
@@ -298,6 +325,40 @@ export default function BookingSlotPickerPage() {
                 <option key={loc.id} value={loc.id}>{loc.name}</option>
               ))}
             </select>
+          </div>
+        )}
+
+        {/* Staff selection */}
+        {!loadingStaff && staffOptions.length > 0 && (
+          <div className="mb-5">
+            <label className="block text-sm font-medium mb-2">{t('booking.staff.heading')}</label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setSelectedStaffId(null)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                  selectedStaffId === null
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-background text-muted-foreground border-border hover:border-primary hover:text-foreground'
+                }`}
+              >
+                {t('booking.staff.any')}
+              </button>
+              {staffOptions.map((s) => (
+                <button
+                  key={s.staff_member_id}
+                  type="button"
+                  onClick={() => setSelectedStaffId(s.staff_member_id)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                    selectedStaffId === s.staff_member_id
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-background text-muted-foreground border-border hover:border-primary hover:text-foreground'
+                  }`}
+                >
+                  {s.name}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 

@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { CityAutocomplete } from '@/components/city-autocomplete';
 import { countries } from '@/lib/countries';
 
-type Tab = 'profile' | 'services' | 'hours' | 'locations' | 'rules';
+type Tab = 'profile' | 'services' | 'hours' | 'locations' | 'rules' | 'staff';
 
 type ServiceRow = {
   id: string;
@@ -74,6 +74,29 @@ type BusinessClosure = {
   date_from: string; // 'YYYY-MM-DD'
   date_to: string;   // 'YYYY-MM-DD'
   is_past: boolean;
+};
+
+type StaffMember = {
+  id: string;
+  user_id: string;
+  name: string;
+  email: string;
+  role: 'owner' | 'manager' | 'worker';
+  is_active: boolean;
+  primary_location_id: string | null;
+  primary_location_name: string | null;
+  joined_at: string;
+};
+
+type StaffInvitation = {
+  id: string;
+  email: string;
+  role: 'manager' | 'worker';
+  location_id: string | null;
+  location_name: string | null;
+  status: string;
+  expires_at: string;
+  created_at: string;
 };
 
 const BOOKING_TYPES = [
@@ -216,7 +239,7 @@ export default function BusinessSetupPage() {
   const searchParams = useSearchParams();
   const { hasAccess, loading: authLoading } = useBookingAccess();
 
-  const VALID_TABS: Tab[] = ['profile', 'services', 'hours', 'locations', 'rules'];
+  const VALID_TABS: Tab[] = ['profile', 'services', 'hours', 'locations', 'rules', 'staff'];
   const tabFromUrl = searchParams.get('tab') as Tab | null;
   const initialTab: Tab = tabFromUrl && VALID_TABS.includes(tabFromUrl) ? tabFromUrl : 'profile';
   const [activeTab, setActiveTab] = useState<Tab>(initialTab);
@@ -289,6 +312,27 @@ export default function BusinessSetupPage() {
   const [locTimezone, setLocTimezone] = useState('Europe/Sarajevo');
   const [locPhone, setLocPhone] = useState('');
   const [locSaving, setLocSaving] = useState(false);
+  const [deactivatingLocId, setDeactivatingLocId] = useState<string | null>(null);
+
+  // ── Staff state ────────────────────────────────────────────────────────────
+  const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
+  const [staffInvitations, setStaffInvitations] = useState<StaffInvitation[]>([]);
+  const [staffLoading, setStaffLoading] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState<'manager' | 'worker'>('worker');
+  const [inviteLocationId, setInviteLocationId] = useState('');
+  const [inviteSending, setInviteSending] = useState(false);
+  const [showInviteForm, setShowInviteForm] = useState(false);
+  const [expandedStaffId, setExpandedStaffId] = useState<string | null>(null);
+  const [staffHoursMap, setStaffHoursMap] = useState<Record<string, DayHours[]>>({});
+  const [staffServicesMap, setStaffServicesMap] = useState<Record<string, string[]>>({});
+  const [staffHoursSaving, setStaffHoursSaving] = useState<string | null>(null);
+  const [staffServicesSaving, setStaffServicesSaving] = useState<string | null>(null);
+  const [cancellingInviteId, setCancellingInviteId] = useState<string | null>(null);
+  const [revokingStaffId, setRevokingStaffId] = useState<string | null>(null);
+  // Service-location assignment state
+  const [serviceLocMap, setServiceLocMap] = useState<Record<string, string[]>>({});
+  const [serviceLocSaving, setServiceLocSaving] = useState<string | null>(null);
 
   // ── Load profile on mount ──────────────────────────────────────────────────
   useEffect(() => {
@@ -412,11 +456,37 @@ export default function BusinessSetupPage() {
     setPostsLoading(false);
   }, [user]);
 
+  // ── Load staff ─────────────────────────────────────────────────────────────
+  const loadStaff = useCallback(async () => {
+    if (!user) return;
+    setStaffLoading(true);
+    const [staffRes, invRes] = await Promise.all([
+      (supabase as any).rpc('get_my_staff', { p_business_id: user.id }),
+      (supabase as any).rpc('get_my_staff_invitations', { p_business_id: user.id }),
+    ]);
+    setStaffMembers((staffRes.data as StaffMember[]) ?? []);
+    setStaffInvitations((invRes.data as StaffInvitation[]) ?? []);
+    setStaffLoading(false);
+  }, [user]);
+
+  const loadServiceLocationAssignments = useCallback(async () => {
+    if (!user) return;
+    const { data } = await (supabase as any).rpc('get_service_location_assignments', { p_business_id: user.id });
+    if (data && typeof data === 'object') {
+      const map: Record<string, string[]> = {};
+      for (const [svcId, locIds] of Object.entries(data as Record<string, unknown[]>)) {
+        map[svcId] = (locIds as string[]);
+      }
+      setServiceLocMap(map);
+    }
+  }, [user]);
+
   // ── Tab switch loaders ─────────────────────────────────────────────────────
   useEffect(() => {
     if (!user) return; // wait for auth before loading any tab data
-    if (activeTab === 'services') { loadServices(); loadPostListings(); }
+    if (activeTab === 'services') { loadServices(); loadPostListings(); loadLocations(); loadServiceLocationAssignments(); }
     if (activeTab === 'locations') loadLocations();
+    if (activeTab === 'staff') { loadStaff(); loadLocations(); loadServices(); }
     if (activeTab === 'rules') loadRules();
     if (activeTab === 'hours') {
       setHoursLoading(true); // show spinner immediately while finding primary location
@@ -570,6 +640,25 @@ export default function BusinessSetupPage() {
   }
 
   async function handleTogglePost(post: PostListing) {
+    if (!post.booking_enabled) {
+      // Validate readiness before activating
+      setTogglingPost(post.id);
+      const { data: checkData } = await (supabase as any).rpc('validate_booking_readiness', {
+        p_post_id: post.id,
+      });
+      const check = checkData as { ready: boolean; missing: string[] } | null;
+      setTogglingPost(null);
+      if (check && !check.ready) {
+        const missingLabels = (check.missing ?? []).map((key: string) => {
+          const tKey = `setup.posts.validate.${key}` as Parameters<typeof t>[0];
+          return t(tKey);
+        });
+        toast.error(
+          `${t('setup.posts.validate.title')}: ${t('setup.posts.validate.missing')} ${missingLabels.join(', ')}`
+        );
+        return;
+      }
+    }
     setTogglingPost(post.id);
     const { data } = await (supabase as any).rpc('set_post_booking_enabled', {
       p_post_id: post.id,
@@ -831,6 +920,11 @@ export default function BusinessSetupPage() {
   }
 
   async function handleDeactivateLoc(locId: string) {
+    setDeactivatingLocId(locId);
+  }
+
+  async function confirmDeactivateLoc(locId: string) {
+    setDeactivatingLocId(null);
     const { data } = await (supabase as any).rpc('deactivate_location', {
       p_location_id: locId,
     });
@@ -839,12 +933,163 @@ export default function BusinessSetupPage() {
     loadLocations();
   }
 
+  // ── Staff handlers ─────────────────────────────────────────────────────────
+  async function handleSendInvite() {
+    if (!user || !inviteEmail.trim()) return;
+    setInviteSending(true);
+    const { data } = await (supabase as any).rpc('send_staff_invitation', {
+      p_business_id: user.id,
+      p_email: inviteEmail.trim(),
+      p_role: inviteRole,
+      p_location_id: inviteLocationId || null,
+    });
+    setInviteSending(false);
+    const result = data as { ok: boolean; error?: string } | null;
+    if (!result?.ok) { toast.error(t('setup.error.saveFailed')); return; }
+    toast.success(t('setup.staff.invite.sent'));
+    setInviteEmail(''); setInviteRole('worker'); setInviteLocationId('');
+    setShowInviteForm(false);
+    loadStaff();
+  }
+
+  async function handleCancelInvite(invId: string) {
+    setCancellingInviteId(invId);
+    const { data } = await (supabase as any).rpc('cancel_staff_invitation', { p_invitation_id: invId });
+    setCancellingInviteId(null);
+    const result = data as { ok: boolean } | null;
+    if (!result?.ok) { toast.error(t('setup.error.saveFailed')); return; }
+    toast.success(t('setup.staff.inviteCancelled'));
+    loadStaff();
+  }
+
+  async function handleRevokeStaff(staffId: string) {
+    if (!confirm(t('setup.staff.revokeConfirm'))) return;
+    setRevokingStaffId(staffId);
+    const { data } = await (supabase as any).rpc('revoke_staff_member', { p_staff_member_id: staffId });
+    setRevokingStaffId(null);
+    const result = data as { ok: boolean } | null;
+    if (!result?.ok) { toast.error(t('setup.error.saveFailed')); return; }
+    toast.success(t('setup.staff.revoked'));
+    loadStaff();
+  }
+
+  async function loadStaffDetails(staffId: string) {
+    if (staffHoursMap[staffId] !== undefined) return;
+    if (!primaryLocId) return;
+    const [hoursRes, svcRes] = await Promise.all([
+      (supabase as any).rpc('get_staff_opening_hours', { p_staff_member_id: staffId, p_location_id: primaryLocId }),
+      (supabase as any).rpc('get_staff_services', { p_staff_member_id: staffId }),
+    ]);
+    type DBRow = { day_of_week: number; start_time: string; end_time: string; is_closed: boolean; sort_order: number };
+    const storedHours = hoursRes.data as DBRow[] | null;
+    if (storedHours && storedHours.length > 0) {
+      const dayMap = new Map<number, { is_closed: boolean; periods: HourPeriod[] }>();
+      for (const row of storedHours) {
+        if (!dayMap.has(row.day_of_week)) dayMap.set(row.day_of_week, { is_closed: row.is_closed, periods: [] });
+        const day = dayMap.get(row.day_of_week)!;
+        if (!row.is_closed) day.periods.push({ sort_order: row.sort_order, start_time: row.start_time, end_time: row.end_time });
+      }
+      for (const [, day] of dayMap) day.periods.sort((a, b) => a.sort_order - b.sort_order);
+      const loaded: DayHours[] = Array.from({ length: 7 }, (_, i) => {
+        const saved = dayMap.get(i);
+        if (saved) return { day_of_week: i, is_closed: saved.is_closed, periods: saved.periods.length > 0 ? saved.periods : [{ sort_order: 0, start_time: '09:00', end_time: '17:00' }] };
+        return { ...DEFAULT_HOURS[i] };
+      });
+      setStaffHoursMap((prev) => ({ ...prev, [staffId]: loaded }));
+    } else {
+      setStaffHoursMap((prev) => ({ ...prev, [staffId]: DEFAULT_HOURS.map((d) => ({ ...d, periods: [...d.periods] })) }));
+    }
+    setStaffServicesMap((prev) => ({ ...prev, [staffId]: (svcRes.data as string[]) ?? [] }));
+  }
+
+  async function handleSaveStaffHours(staffId: string) {
+    if (!primaryLocId) return;
+    const staffHours = staffHoursMap[staffId];
+    if (!staffHours) return;
+    setStaffHoursSaving(staffId);
+    for (const h of staffHours) {
+      if (h.is_closed) {
+        await (supabase as any).rpc('upsert_staff_opening_hours', {
+          p_staff_member_id: staffId, p_location_id: primaryLocId,
+          p_day_of_week: h.day_of_week, p_open_time: '09:00', p_close_time: '17:00', p_is_closed: true, p_sort_order: 0,
+        });
+      } else {
+        for (const period of h.periods) {
+          await (supabase as any).rpc('upsert_staff_opening_hours', {
+            p_staff_member_id: staffId, p_location_id: primaryLocId,
+            p_day_of_week: h.day_of_week, p_open_time: period.start_time, p_close_time: period.end_time, p_is_closed: false, p_sort_order: period.sort_order,
+          });
+        }
+      }
+    }
+    setStaffHoursSaving(null);
+    toast.success(t('setup.staff.hours.saved'));
+  }
+
+  async function handleSaveStaffServices(staffId: string) {
+    setStaffServicesSaving(staffId);
+    const { data } = await (supabase as any).rpc('set_staff_services', {
+      p_staff_member_id: staffId,
+      p_service_ids: staffServicesMap[staffId] ?? [],
+    });
+    setStaffServicesSaving(null);
+    const result = data as { ok: boolean } | null;
+    if (!result?.ok) { toast.error(t('setup.error.saveFailed')); return; }
+    toast.success(t('setup.staff.services.saved'));
+  }
+
+  function toggleStaffService(staffId: string, svcId: string) {
+    setStaffServicesMap((prev) => {
+      const current = prev[staffId] ?? [];
+      return { ...prev, [staffId]: current.includes(svcId) ? current.filter((s) => s !== svcId) : [...current, svcId] };
+    });
+  }
+
+  function updateStaffPeriod(staffId: string, day: number, sort_order: number, field: 'start_time' | 'end_time', value: string) {
+    setStaffHoursMap((prev) => ({
+      ...prev,
+      [staffId]: (prev[staffId] ?? DEFAULT_HOURS).map((h) => {
+        if (h.day_of_week !== day) return h;
+        return { ...h, periods: h.periods.map((p) => p.sort_order === sort_order ? { ...p, [field]: value } : p) };
+      }),
+    }));
+  }
+
+  function toggleStaffDay(staffId: string, day: number) {
+    setStaffHoursMap((prev) => ({
+      ...prev,
+      [staffId]: (prev[staffId] ?? DEFAULT_HOURS).map((h) =>
+        h.day_of_week === day ? { ...h, is_closed: !h.is_closed } : h
+      ),
+    }));
+  }
+
+  async function handleSaveServiceLocations(svcId: string) {
+    setServiceLocSaving(svcId);
+    const { data } = await (supabase as any).rpc('set_service_locations', {
+      p_service_id: svcId,
+      p_location_ids: serviceLocMap[svcId] ?? [],
+    });
+    setServiceLocSaving(null);
+    const result = data as { ok: boolean } | null;
+    if (!result?.ok) { toast.error(t('setup.error.saveFailed')); return; }
+    toast.success(t('setup.services.locations.saved'));
+  }
+
+  function toggleServiceLocation(svcId: string, locId: string) {
+    setServiceLocMap((prev) => {
+      const current = prev[svcId] ?? [];
+      return { ...prev, [svcId]: current.includes(locId) ? current.filter((l) => l !== locId) : [...current, locId] };
+    });
+  }
+
   // ── Tabs ───────────────────────────────────────────────────────────────────
   const TABS: { key: Tab; label: string }[] = [
     { key: 'profile',   label: t('setup.tab.profile') },
     { key: 'services',  label: t('setup.tab.services') },
     { key: 'hours',     label: t('setup.tab.hours') },
     { key: 'locations', label: t('setup.tab.locations') },
+    { key: 'staff',     label: t('setup.tab.staff') },
     { key: 'rules',     label: t('setup.tab.rules') },
   ];
 
@@ -1120,42 +1365,79 @@ export default function BusinessSetupPage() {
               ) : (
                 <div className="flex flex-col gap-2">
                   {services.map((svc) => (
-                    <div key={svc.id} className={`border border-border rounded-xl p-4 flex items-start gap-3 ${!svc.is_active ? 'opacity-50' : ''}`}>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-medium text-sm">{svc.name}</span>
-                          {!svc.is_active && (
-                            <span className="text-xs bg-accent text-muted-foreground px-2 py-0.5 rounded-full">
-                              {t('setup.services.inactive')}
-                            </span>
+                    <div key={svc.id} className={`border border-border rounded-xl p-4 flex flex-col gap-2 ${!svc.is_active ? 'opacity-50' : ''}`}>
+                      <div className="flex items-start gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-medium text-sm">{svc.name}</span>
+                            {!svc.is_active && (
+                              <span className="text-xs bg-accent text-muted-foreground px-2 py-0.5 rounded-full">
+                                {t('setup.services.inactive')}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {svc.duration_minutes} min
+                            {svc.price !== null && ` · ${svc.price} ${svc.currency}`}
+                            {svc.price_type === 'free' && ` · ${t('setup.services.ptype.free')}`}
+                            {svc.price_type === 'negotiable' && ` · ${t('setup.services.ptype.negotiable')}`}
+                          </p>
+                          {svc.description && (
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{svc.description}</p>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {svc.duration_minutes} min
-                          {svc.price !== null && ` · ${svc.price} ${svc.currency}`}
-                          {svc.price_type === 'free' && ` · ${t('setup.services.ptype.free')}`}
-                          {svc.price_type === 'negotiable' && ` · ${t('setup.services.ptype.negotiable')}`}
-                        </p>
-                        {svc.description && (
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{svc.description}</p>
-                        )}
+                        <div className="flex gap-1 shrink-0">
+                          <button
+                            onClick={() => openEditSvc(svc)}
+                            className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-accent transition-colors"
+                            title={t('setup.services.edit')}
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleToggleSvc(svc)}
+                            className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-accent transition-colors text-xs font-medium"
+                            title={svc.is_active ? t('setup.services.deactivate') : t('setup.services.activate')}
+                          >
+                            {svc.is_active ? t('setup.services.deactivate') : t('setup.services.activate')}
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex gap-1 shrink-0">
-                        <button
-                          onClick={() => openEditSvc(svc)}
-                          className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-accent transition-colors"
-                          title={t('setup.services.edit')}
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleToggleSvc(svc)}
-                          className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-accent transition-colors text-xs font-medium"
-                          title={svc.is_active ? t('setup.services.deactivate') : t('setup.services.activate')}
-                        >
-                          {svc.is_active ? t('setup.services.deactivate') : t('setup.services.activate')}
-                        </button>
-                      </div>
+                      {/* Location assignments — only show when multiple locations exist */}
+                      {locations.length > 1 && svc.is_active && (
+                        <div className="pt-2 border-t border-border/50">
+                          <p className="text-[11px] font-medium text-muted-foreground mb-1.5">
+                            {t('setup.services.locations.title')}
+                            <span className="ml-1 font-normal">— {t('setup.services.locations.hint')}</span>
+                          </p>
+                          <div className="flex flex-wrap gap-1.5 mb-2">
+                            {locations.filter((l) => l.is_active).map((loc) => {
+                              const assigned = (serviceLocMap[svc.id] ?? []).includes(loc.id);
+                              return (
+                                <button
+                                  key={loc.id}
+                                  type="button"
+                                  onClick={() => toggleServiceLocation(svc.id, loc.id)}
+                                  className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors ${
+                                    assigned
+                                      ? 'bg-primary/10 text-primary border-primary/30'
+                                      : 'bg-background text-muted-foreground border-border hover:border-primary/40'
+                                  }`}
+                                >
+                                  {loc.name}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <button
+                            onClick={() => handleSaveServiceLocations(svc.id)}
+                            disabled={serviceLocSaving === svc.id}
+                            className="text-[11px] text-primary hover:text-primary/80 font-medium transition-colors disabled:opacity-50"
+                          >
+                            {serviceLocSaving === svc.id ? '...' : t('setup.services.locations.save')}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1585,13 +1867,32 @@ export default function BusinessSetupPage() {
                             {t('setup.locations.setPrimary')}
                           </button>
                         )}
-                        {loc.is_active && (
+                        {loc.is_active && deactivatingLocId !== loc.id && (
                           <button
                             onClick={() => handleDeactivateLoc(loc.id)}
                             className="text-xs text-muted-foreground hover:text-destructive px-2 py-1 rounded-lg hover:bg-destructive/10 transition-colors"
                           >
                             {t('setup.locations.deactivate')}
                           </button>
+                        )}
+                        {deactivatingLocId === loc.id && (
+                          <div className="flex flex-col items-end gap-1 mt-1">
+                            <p className="text-[11px] text-destructive font-medium">Sigurno?</p>
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() => confirmDeactivateLoc(loc.id)}
+                                className="text-[11px] px-2 py-0.5 rounded bg-destructive text-white font-medium"
+                              >
+                                Da
+                              </button>
+                              <button
+                                onClick={() => setDeactivatingLocId(null)}
+                                className="text-[11px] px-2 py-0.5 rounded bg-accent text-foreground"
+                              >
+                                Ne
+                              </button>
+                            </div>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -1688,6 +1989,280 @@ export default function BusinessSetupPage() {
                   >
                     {rulesSaving ? t('setup.rules.saving') : t('setup.rules.save')}
                   </Button>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* ── Tab: Staff ──────────────────────────────────────────────── */}
+          {activeTab === 'staff' && (
+            <div className="flex flex-col gap-4">
+              <div>
+                <h2 className="font-semibold">{t('setup.staff.heading')}</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">{t('setup.staff.desc')}</p>
+              </div>
+
+              {!isBusinessActive ? (
+                <p className="text-sm text-muted-foreground border border-border rounded-lg p-4 bg-accent/40">
+                  {t('setup.profile.inactive')}
+                </p>
+              ) : !primaryLocId ? (
+                <p className="text-sm text-muted-foreground border border-border rounded-lg p-4 bg-accent/40">
+                  {t('setup.staff.noLocation')}
+                </p>
+              ) : staffLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : (
+                <>
+                  {/* Invite form */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-muted-foreground">{t('setup.staff.invite')}</span>
+                    <Button size="sm" variant="outline" onClick={() => setShowInviteForm((v) => !v)}>
+                      <Plus className="w-3.5 h-3.5 mr-1" />
+                      {t('setup.staff.invite')}
+                    </Button>
+                  </div>
+
+                  {showInviteForm && (
+                    <div className="border border-border rounded-xl p-4 flex flex-col gap-3 bg-card">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm font-medium">{t('setup.staff.invite')}</span>
+                        <button onClick={() => setShowInviteForm(false)} className="text-muted-foreground hover:text-foreground">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {labelInput(t('setup.staff.inviteEmail'),
+                        <input
+                          type="email"
+                          value={inviteEmail}
+                          onChange={(e) => setInviteEmail(e.target.value)}
+                          placeholder="radnik@email.com"
+                          className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                      )}
+
+                      <div className="grid grid-cols-2 gap-3">
+                        {labelInput(t('setup.staff.inviteRole'),
+                          <select
+                            value={inviteRole}
+                            onChange={(e) => setInviteRole(e.target.value as 'manager' | 'worker')}
+                            className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                          >
+                            <option value="worker">{t('setup.staff.role.worker')}</option>
+                            <option value="manager">{t('setup.staff.role.manager')}</option>
+                          </select>
+                        )}
+                        {labelInput(t('setup.staff.inviteLocation'),
+                          <select
+                            value={inviteLocationId}
+                            onChange={(e) => setInviteLocationId(e.target.value)}
+                            className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                          >
+                            <option value=""></option>
+                            {locations.filter((l) => l.is_active).map((loc) => (
+                              <option key={loc.id} value={loc.id}>{loc.name}</option>
+                            ))}
+                          </select>
+                        )}
+                      </div>
+
+                      <div className="flex gap-2 pt-1">
+                        <Button size="sm" onClick={handleSendInvite} disabled={inviteSending || !inviteEmail.trim()}>
+                          {inviteSending ? t('setup.staff.invite.sending') : t('setup.staff.invite.send')}
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => setShowInviteForm(false)}>
+                          {t('setup.services.cancel')}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Pending invitations */}
+                  {staffInvitations.length > 0 && (
+                    <div className="flex flex-col gap-2">
+                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        {t('setup.staff.pending')}
+                      </span>
+                      {staffInvitations.map((inv) => (
+                        <div key={inv.id} className="border border-dashed border-border rounded-xl px-4 py-3 flex items-center justify-between">
+                          <div>
+                            <span className="text-sm font-medium">{inv.email}</span>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              {t(`setup.staff.role.${inv.role}` as Parameters<typeof t>[0])}
+                              {inv.location_name && ` · ${inv.location_name}`}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => handleCancelInvite(inv.id)}
+                            disabled={cancellingInviteId === inv.id}
+                            className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                          >
+                            {cancellingInviteId === inv.id ? '...' : t('setup.staff.cancelInvite')}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Staff member list */}
+                  {staffMembers.length === 0 && staffInvitations.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-8">{t('setup.staff.empty')}</p>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {staffMembers.map((sm) => (
+                        <div key={sm.id} className={`border border-border rounded-xl overflow-hidden ${!sm.is_active ? 'opacity-50' : ''}`}>
+                          {/* Staff card header */}
+                          <div className="px-4 py-3 flex items-center justify-between">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-sm">{sm.name}</span>
+                                <span className="text-[11px] bg-accent text-muted-foreground px-2 py-0.5 rounded-full">
+                                  {t(`setup.staff.role.${sm.role}` as Parameters<typeof t>[0])}
+                                </span>
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-0.5">{sm.email}</p>
+                              {sm.primary_location_name && (
+                                <p className="text-xs text-muted-foreground">{sm.primary_location_name}</p>
+                              )}
+                            </div>
+                            <div className="flex flex-col items-end gap-1">
+                              {sm.role !== 'owner' && sm.is_active && (
+                                <button
+                                  onClick={() => handleRevokeStaff(sm.id)}
+                                  disabled={revokingStaffId === sm.id}
+                                  className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                                >
+                                  {revokingStaffId === sm.id ? '...' : t('setup.staff.revoke')}
+                                </button>
+                              )}
+                              {sm.is_active && (
+                                <button
+                                  onClick={() => {
+                                    if (expandedStaffId === sm.id) {
+                                      setExpandedStaffId(null);
+                                    } else {
+                                      setExpandedStaffId(sm.id);
+                                      loadStaffDetails(sm.id);
+                                    }
+                                  }}
+                                  className="text-xs text-primary hover:text-primary/80 transition-colors"
+                                >
+                                  {expandedStaffId === sm.id ? '▲' : '▼'} {expandedStaffId === sm.id ? 'Sakrij' : 'Detalji'}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Expanded: staff hours + services */}
+                          {expandedStaffId === sm.id && (
+                            <div className="border-t border-border bg-card/50 px-4 py-4 flex flex-col gap-4">
+                              {/* Staff hours */}
+                              <div>
+                                <p className="text-xs font-semibold mb-1">{t('setup.staff.hours.title')}</p>
+                                <p className="text-[11px] text-muted-foreground mb-2">{t('setup.staff.hours.hint')}</p>
+                                {staffHoursMap[sm.id] ? (
+                                  <div className="flex flex-col divide-y divide-border border border-border rounded-xl overflow-hidden mb-2">
+                                    {(staffHoursMap[sm.id] ?? []).map((h) => (
+                                      <div key={h.day_of_week} className="px-3 py-2 flex flex-col gap-1.5">
+                                        <div className="flex items-center gap-2">
+                                          <span className="w-20 text-xs font-medium shrink-0">
+                                            {t(`setup.hours.day.${h.day_of_week}` as Parameters<typeof t>[0])}
+                                          </span>
+                                          <button
+                                            onClick={() => toggleStaffDay(sm.id, h.day_of_week)}
+                                            className={`text-[11px] px-2 py-0.5 rounded-full font-medium transition-colors ${
+                                              h.is_closed
+                                                ? 'bg-accent text-muted-foreground'
+                                                : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                            }`}
+                                          >
+                                            {h.is_closed ? t('setup.hours.closed') : t('setup.hours.open')}
+                                          </button>
+                                        </div>
+                                        {!h.is_closed && (
+                                          <div className="flex flex-col gap-1 pl-22">
+                                            {h.periods.map((period) => (
+                                              <div key={period.sort_order} className="flex items-center gap-2 ml-20">
+                                                <input
+                                                  type="time"
+                                                  value={period.start_time}
+                                                  onChange={(e) => updateStaffPeriod(sm.id, h.day_of_week, period.sort_order, 'start_time', e.target.value)}
+                                                  className="border border-border rounded px-2 py-0.5 text-xs bg-background focus:outline-none w-24"
+                                                />
+                                                <span className="text-muted-foreground text-xs">–</span>
+                                                <input
+                                                  type="time"
+                                                  value={period.end_time}
+                                                  onChange={(e) => updateStaffPeriod(sm.id, h.day_of_week, period.sort_order, 'end_time', e.target.value)}
+                                                  className="border border-border rounded px-2 py-0.5 text-xs bg-background focus:outline-none w-24"
+                                                />
+                                              </div>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div className="flex justify-center py-2">
+                                    <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                                  </div>
+                                )}
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleSaveStaffHours(sm.id)}
+                                  disabled={staffHoursSaving === sm.id || !staffHoursMap[sm.id]}
+                                  className="text-xs"
+                                >
+                                  {staffHoursSaving === sm.id ? '...' : t('setup.staff.hours.save')}
+                                </Button>
+                              </div>
+
+                              {/* Staff services */}
+                              {services.filter((s) => s.is_active).length > 0 && (
+                                <div>
+                                  <p className="text-xs font-semibold mb-1">{t('setup.staff.services.title')}</p>
+                                  <p className="text-[11px] text-muted-foreground mb-2">{t('setup.staff.services.hint')}</p>
+                                  <div className="flex flex-wrap gap-1.5 mb-2">
+                                    {services.filter((s) => s.is_active).map((svc) => {
+                                      const assigned = (staffServicesMap[sm.id] ?? []).includes(svc.id);
+                                      return (
+                                        <button
+                                          key={svc.id}
+                                          type="button"
+                                          onClick={() => toggleStaffService(sm.id, svc.id)}
+                                          className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors ${
+                                            assigned
+                                              ? 'bg-primary/10 text-primary border-primary/30'
+                                              : 'bg-background text-muted-foreground border-border hover:border-primary/40'
+                                          }`}
+                                        >
+                                          {svc.name}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleSaveStaffServices(sm.id)}
+                                    disabled={staffServicesSaving === sm.id}
+                                    className="text-xs"
+                                  >
+                                    {staffServicesSaving === sm.id ? '...' : t('setup.staff.services.save')}
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </>
               )}
             </div>
