@@ -2033,6 +2033,7 @@ export default {
   'setup.hours.day.4': 'Četvrtak',
   'setup.hours.day.5': 'Petak',
   'setup.hours.day.6': 'Subota',
+  'setup.hours.addPeriod': '+ Dodaj period',
   'setup.locations.heading': 'Lokacije',
   'setup.locations.empty': 'Nema konfiguriranih lokacija.',
   'setup.locations.add': 'Dodaj lokaciju',

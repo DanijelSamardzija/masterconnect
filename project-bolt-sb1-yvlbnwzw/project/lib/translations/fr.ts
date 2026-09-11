@@ -1963,6 +1963,7 @@ export default {
   'setup.hours.day.4': 'Jeudi',
   'setup.hours.day.5': 'Vendredi',
   'setup.hours.day.6': 'Samedi',
+  'setup.hours.addPeriod': '+ Ajouter une période',
   'setup.locations.heading': 'Adresses',
   'setup.locations.empty': 'Aucune adresse configurée.',
   'setup.locations.add': 'Ajouter une adresse',

@@ -1956,6 +1956,7 @@ export default {
   'setup.hours.day.4': 'Jueves',
   'setup.hours.day.5': 'Viernes',
   'setup.hours.day.6': 'Sábado',
+  'setup.hours.addPeriod': '+ Añadir período',
   'setup.locations.heading': 'Ubicaciones',
   'setup.locations.empty': 'No hay ubicaciones configuradas.',
   'setup.locations.add': 'Agregar ubicación',

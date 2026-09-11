@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ProtectedRoute } from '@/components/protected-route';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
@@ -27,11 +27,16 @@ type ServiceRow = {
   is_active: boolean;
 };
 
-type HourRow = {
-  day_of_week: number;
+type HourPeriod = {
+  sort_order: number;
   start_time: string;
   end_time: string;
+};
+
+type DayHours = {
+  day_of_week: number;
   is_closed: boolean;
+  periods: HourPeriod[];
 };
 
 type LocationRow = {
@@ -77,11 +82,10 @@ const CURRENCIES = [
   'CAD', 'AUD', 'NOK', 'SEK', 'DKK',
 ] as const;
 
-const DEFAULT_HOURS: HourRow[] = Array.from({ length: 7 }, (_, i) => ({
+const DEFAULT_HOURS: DayHours[] = Array.from({ length: 7 }, (_, i) => ({
   day_of_week: i,
-  start_time: '09:00',
-  end_time: '17:00',
   is_closed: i === 0 || i === 6, // Sunday + Saturday closed by default
+  periods: [{ sort_order: 0, start_time: '09:00', end_time: '17:00' }],
 }));
 
 const TIMEZONE_OPTIONS: { value: string; label: string }[] = [
@@ -185,9 +189,14 @@ export default function BusinessSetupPage() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { hasAccess, loading: authLoading } = useBookingAccess();
 
-  const [activeTab, setActiveTab] = useState<Tab>('profile');
+  const VALID_TABS: Tab[] = ['profile', 'services', 'hours', 'locations', 'rules'];
+  const tabFromUrl = searchParams.get('tab') as Tab | null;
+  const [activeTab, setActiveTab] = useState<Tab>(
+    tabFromUrl && VALID_TABS.includes(tabFromUrl) ? tabFromUrl : 'profile'
+  );
 
   // ── Profile state ──────────────────────────────────────────────────────────
   const [bizName, setBizName] = useState('');
@@ -229,7 +238,8 @@ export default function BusinessSetupPage() {
 
   // ── Hours state ────────────────────────────────────────────────────────────
   const [primaryLocId, setPrimaryLocId] = useState<string | null>(null);
-  const [hours, setHours] = useState<HourRow[]>(DEFAULT_HOURS);
+  const [hours, setHours] = useState<DayHours[]>(DEFAULT_HOURS);
+  const [deletedPeriods, setDeletedPeriods] = useState<Array<{ day_of_week: number; sort_order: number }>>([]);
   const [hoursLoading, setHoursLoading] = useState(false);
   const [hoursSaving, setHoursSaving] = useState(false);
 
@@ -300,8 +310,40 @@ export default function BusinessSetupPage() {
     const { data, error } = await (supabase as any).rpc('get_opening_hours', {
       p_location_id: locId,
     });
-    if (!error && Array.isArray(data)) {
-      setHours(data as HourRow[]);
+    if (!error && Array.isArray(data) && data.length > 0) {
+      type DBRow = { day_of_week: number; start_time: string; end_time: string; is_closed: boolean; sort_order: number };
+      const rows = data as DBRow[];
+      // Group rows by day_of_week
+      const dayMap = new Map<number, { is_closed: boolean; periods: HourPeriod[] }>();
+      for (const row of rows) {
+        if (!dayMap.has(row.day_of_week)) {
+          dayMap.set(row.day_of_week, { is_closed: row.is_closed, periods: [] });
+        }
+        const day = dayMap.get(row.day_of_week)!;
+        if (!row.is_closed) {
+          day.periods.push({ sort_order: row.sort_order, start_time: row.start_time, end_time: row.end_time });
+        }
+      }
+      // Sort periods within each day
+      for (const [, day] of dayMap) {
+        day.periods.sort((a, b) => a.sort_order - b.sort_order);
+      }
+      // Build full 7-day array, using DEFAULT_HOURS for missing days
+      const loaded: DayHours[] = Array.from({ length: 7 }, (_, i) => {
+        const saved = dayMap.get(i);
+        if (saved) {
+          return {
+            day_of_week: i,
+            is_closed: saved.is_closed,
+            periods: saved.periods.length > 0
+              ? saved.periods
+              : [{ sort_order: 0, start_time: '09:00', end_time: '17:00' }],
+          };
+        }
+        return { ...DEFAULT_HOURS[i] };
+      });
+      setHours(loaded);
+      setDeletedPeriods([]);
     }
     setHoursLoading(false);
   }, []);
@@ -502,22 +544,65 @@ export default function BusinessSetupPage() {
   }
 
   // ── Hours helpers ──────────────────────────────────────────────────────────
-  function updateHour(day: number, field: keyof HourRow, value: string | boolean) {
-    setHours((prev) =>
-      prev.map((h) => (h.day_of_week === day ? { ...h, [field]: value } : h))
-    );
+  function toggleDay(day: number) {
+    const dayHours = hours.find((h) => h.day_of_week === day);
+    const willBeClosed = dayHours ? !dayHours.is_closed : true;
+    // Schedule deletion of extra periods when closing a day
+    if (willBeClosed && dayHours) {
+      const extra = dayHours.periods.filter((p) => p.sort_order > 0);
+      if (extra.length > 0) {
+        setDeletedPeriods((prev) => [
+          ...prev,
+          ...extra.map((p) => ({ day_of_week: day, sort_order: p.sort_order })),
+        ]);
+      }
+    }
+    setHours((prev) => prev.map((h) =>
+      h.day_of_week === day ? { ...h, is_closed: !h.is_closed } : h
+    ));
+  }
+
+  function updatePeriod(day: number, sort_order: number, field: 'start_time' | 'end_time', value: string) {
+    setHours((prev) => prev.map((h) => {
+      if (h.day_of_week !== day) return h;
+      return {
+        ...h,
+        periods: h.periods.map((p) =>
+          p.sort_order === sort_order ? { ...p, [field]: value } : p
+        ),
+      };
+    }));
+  }
+
+  function addPeriod(day: number) {
+    setHours((prev) => prev.map((h) => {
+      if (h.day_of_week !== day) return h;
+      const maxOrder = Math.max(...h.periods.map((p) => p.sort_order));
+      return {
+        ...h,
+        periods: [...h.periods, { sort_order: maxOrder + 1, start_time: '09:00', end_time: '17:00' }],
+      };
+    }));
+  }
+
+  function removePeriod(day: number, sort_order: number) {
+    setDeletedPeriods((prev) => [...prev, { day_of_week: day, sort_order }]);
+    setHours((prev) => prev.map((h) => {
+      if (h.day_of_week !== day) return h;
+      return { ...h, periods: h.periods.filter((p) => p.sort_order !== sort_order) };
+    }));
   }
 
   async function handleSaveHours() {
     if (!primaryLocId) { toast.error(t('setup.error.saveFailed')); return; }
     setHoursSaving(true);
-    for (const h of hours) {
-      const { data } = await (supabase as any).rpc('upsert_opening_hours', {
+
+    // Delete removed extra periods first
+    for (const dp of deletedPeriods) {
+      const { data } = await (supabase as any).rpc('delete_opening_hour_period', {
         p_location_id: primaryLocId,
-        p_day_of_week: h.day_of_week,
-        p_open_time: h.start_time,
-        p_close_time: h.end_time,
-        p_is_closed: h.is_closed,
+        p_day_of_week: dp.day_of_week,
+        p_sort_order: dp.sort_order,
       });
       const result = data as { ok: boolean } | null;
       if (!result?.ok) {
@@ -526,6 +611,45 @@ export default function BusinessSetupPage() {
         return;
       }
     }
+
+    // Upsert all current periods
+    for (const h of hours) {
+      if (h.is_closed) {
+        const { data } = await (supabase as any).rpc('upsert_opening_hours', {
+          p_location_id: primaryLocId,
+          p_day_of_week: h.day_of_week,
+          p_open_time: '09:00',
+          p_close_time: '17:00',
+          p_is_closed: true,
+          p_sort_order: 0,
+        });
+        const result = data as { ok: boolean } | null;
+        if (!result?.ok) {
+          toast.error(t('setup.error.saveFailed'));
+          setHoursSaving(false);
+          return;
+        }
+      } else {
+        for (const period of h.periods) {
+          const { data } = await (supabase as any).rpc('upsert_opening_hours', {
+            p_location_id: primaryLocId,
+            p_day_of_week: h.day_of_week,
+            p_open_time: period.start_time,
+            p_close_time: period.end_time,
+            p_is_closed: false,
+            p_sort_order: period.sort_order,
+          });
+          const result = data as { ok: boolean } | null;
+          if (!result?.ok) {
+            toast.error(t('setup.error.saveFailed'));
+            setHoursSaving(false);
+            return;
+          }
+        }
+      }
+    }
+
+    setDeletedPeriods([]);
     setHoursSaving(false);
     toast.success(t('setup.hours.saved'));
   }
@@ -654,7 +778,10 @@ export default function BusinessSetupPage() {
             {TABS.map(({ key, label }) => (
               <button
                 key={key}
-                onClick={() => setActiveTab(key)}
+                onClick={() => {
+                  setActiveTab(key);
+                  router.replace(`/dashboard/business/setup?tab=${key}`, { scroll: false });
+                }}
                 className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
                   activeTab === key
                     ? 'border-primary text-primary'
@@ -997,35 +1124,57 @@ export default function BusinessSetupPage() {
                 <>
                   <div className="flex flex-col divide-y divide-border border border-border rounded-xl overflow-hidden">
                     {hours.map((h) => (
-                      <div key={h.day_of_week} className="flex items-center gap-3 px-4 py-3">
-                        <span className="w-24 text-sm font-medium shrink-0">
-                          {t(`setup.hours.day.${h.day_of_week}`)}
-                        </span>
-                        <button
-                          onClick={() => updateHour(h.day_of_week, 'is_closed', !h.is_closed)}
-                          className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors shrink-0 ${
-                            h.is_closed
-                              ? 'bg-accent text-muted-foreground'
-                              : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                          }`}
-                        >
-                          {h.is_closed ? t('setup.hours.closed') : t('setup.hours.open')}
-                        </button>
+                      <div key={h.day_of_week} className="px-4 py-3 flex flex-col gap-2">
+                        <div className="flex items-center gap-3">
+                          <span className="w-24 text-sm font-medium shrink-0">
+                            {t(`setup.hours.day.${h.day_of_week}` as Parameters<typeof t>[0])}
+                          </span>
+                          <button
+                            onClick={() => toggleDay(h.day_of_week)}
+                            className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors shrink-0 ${
+                              h.is_closed
+                                ? 'bg-accent text-muted-foreground'
+                                : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                            }`}
+                          >
+                            {h.is_closed ? t('setup.hours.closed') : t('setup.hours.open')}
+                          </button>
+                        </div>
                         {!h.is_closed && (
-                          <div className="flex items-center gap-2 flex-1">
-                            <input
-                              type="time"
-                              value={h.start_time}
-                              onChange={(e) => updateHour(h.day_of_week, 'start_time', e.target.value)}
-                              className="border border-border rounded-lg px-2 py-1 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary w-28"
-                            />
-                            <span className="text-muted-foreground text-xs">–</span>
-                            <input
-                              type="time"
-                              value={h.end_time}
-                              onChange={(e) => updateHour(h.day_of_week, 'end_time', e.target.value)}
-                              className="border border-border rounded-lg px-2 py-1 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary w-28"
-                            />
+                          <div className="flex flex-col gap-1.5 pl-28">
+                            {h.periods.map((period) => (
+                              <div key={period.sort_order} className="flex items-center gap-2">
+                                <input
+                                  type="time"
+                                  value={period.start_time}
+                                  onChange={(e) => updatePeriod(h.day_of_week, period.sort_order, 'start_time', e.target.value)}
+                                  className="border border-border rounded-lg px-2 py-1 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary w-28"
+                                />
+                                <span className="text-muted-foreground text-xs">–</span>
+                                <input
+                                  type="time"
+                                  value={period.end_time}
+                                  onChange={(e) => updatePeriod(h.day_of_week, period.sort_order, 'end_time', e.target.value)}
+                                  className="border border-border rounded-lg px-2 py-1 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary w-28"
+                                />
+                                {period.sort_order > 0 && (
+                                  <button
+                                    onClick={() => removePeriod(h.day_of_week, period.sort_order)}
+                                    className="text-muted-foreground hover:text-destructive transition-colors ml-1"
+                                    aria-label="Remove period"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                            <button
+                              onClick={() => addPeriod(h.day_of_week)}
+                              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors mt-0.5 self-start"
+                            >
+                              <Plus className="w-3 h-3" />
+                              {t('setup.hours.addPeriod')}
+                            </button>
                           </div>
                         )}
                       </div>

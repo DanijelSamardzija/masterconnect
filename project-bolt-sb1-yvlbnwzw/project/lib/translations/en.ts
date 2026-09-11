@@ -2033,6 +2033,7 @@ export default {
   'setup.hours.day.4': 'Thursday',
   'setup.hours.day.5': 'Friday',
   'setup.hours.day.6': 'Saturday',
+  'setup.hours.addPeriod': '+ Add period',
   'setup.locations.heading': 'Locations',
   'setup.locations.empty': 'No locations configured.',
   'setup.locations.add': 'Add Location',

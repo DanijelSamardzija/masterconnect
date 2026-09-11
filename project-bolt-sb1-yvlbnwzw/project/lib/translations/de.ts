@@ -2023,6 +2023,7 @@ export default {
   'setup.hours.day.4': 'Donnerstag',
   'setup.hours.day.5': 'Freitag',
   'setup.hours.day.6': 'Samstag',
+  'setup.hours.addPeriod': '+ Zeitraum hinzufügen',
   'setup.locations.heading': 'Standorte',
   'setup.locations.empty': 'Keine Standorte konfiguriert.',
   'setup.locations.add': 'Standort hinzufügen',
