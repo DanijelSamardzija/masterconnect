@@ -71,8 +71,17 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
   const [bookingEnabled, setBookingEnabled] = useState<boolean>(initialData?.booking_enabled ?? false);
   const [isOwnerPremium, setIsOwnerPremium] = useState<boolean | null>(null);
   const [isBusinessProfile, setIsBusinessProfile] = useState<boolean | null>(null);
-  const [bookingToggling, setBookingToggling] = useState(false);
-  const [bookingChecklist, setBookingChecklist] = useState<{ hasServices: boolean | null; hasHours: boolean | null }>({ hasServices: null, hasHours: null });
+  const [bookingChecklist, setBookingChecklist] = useState<{ hasHours: boolean | null }>({ hasHours: null });
+  const [linkedSvcId, setLinkedSvcId] = useState<string | null>(null);
+  const [showActivateForm, setShowActivateForm] = useState(false);
+  const [activating, setActivating] = useState(false);
+  const [deactivating, setDeactivating] = useState(false);
+  const [actBookingType, setActBookingType] = useState<'appointment_service' | 'tradespeople'>('appointment_service');
+  const [actDuration, setActDuration] = useState('60');
+  const [actCapacity, setActCapacity] = useState('1');
+  const [actPrice, setActPrice] = useState('0');
+  const [actCurrency, setActCurrency] = useState('BAM');
+  const [actPriceType, setActPriceType] = useState('fixed');
   const [showEditModal, setShowEditModal] = useState(false);
   const [similarServices, setSimilarServices] = useState<ServiceDetail[]>([]);
   const [providerServices, setProviderServices] = useState<ServiceDetail[]>([]);
@@ -94,7 +103,9 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
     if (initialData) {
       setService(initialData);
       setBookingEnabled(initialData.booking_enabled ?? false);
-      setBookingChecklist({ hasServices: null, hasHours: null });
+      setBookingChecklist({ hasHours: null });
+      setLinkedSvcId(null);
+      setShowActivateForm(false);
     }
   }, [initialData]);
 
@@ -114,19 +125,35 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
   useEffect(() => {
     if (!isBusinessProfile || !user || !initialData || user.id !== initialData.user_id) return;
     (async () => {
-      const [svcRes, locRes] = await Promise.all([
-        supabase.from('service_catalog').select('id', { count: 'exact', head: true }).eq('business_id', user.id).eq('is_active', true),
-        supabase.from('business_locations').select('id').eq('business_id', user.id).eq('is_primary', true).eq('is_active', true).maybeSingle(),
-      ]);
-      const hasServices = (svcRes.count ?? 0) > 0;
+      const locRes = await supabase
+        .from('business_locations')
+        .select('id')
+        .eq('business_id', user.id)
+        .eq('is_primary', true)
+        .eq('is_active', true)
+        .maybeSingle();
       let hasHours = false;
       if (locRes.data?.id) {
         const { count } = await supabase.from('opening_hours').select('id', { count: 'exact', head: true }).eq('location_id', locRes.data.id);
         hasHours = (count ?? 0) > 0;
       }
-      setBookingChecklist({ hasServices, hasHours });
+      setBookingChecklist({ hasHours });
     })();
   }, [isBusinessProfile, user?.id]);
+
+  // Fetch linked service_catalog ID for this post (for owner + client Book Now link)
+  useEffect(() => {
+    if (!service?.id) return;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from('service_catalog')
+        .select('id')
+        .eq('post_id', service.id)
+        .eq('is_active', true)
+        .maybeSingle();
+      setLinkedSvcId((data as { id: string } | null)?.id ?? null);
+    })();
+  }, [service?.id]);
 
   useEffect(() => {
     if (!initialData) return;
@@ -220,20 +247,45 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
     }
   };
 
-  const handleToggleBooking = async () => {
+  const handleActivateBooking = async () => {
     if (!service) return;
-    setBookingToggling(true);
-    const { data } = await (supabase as any).rpc('set_post_booking_enabled', {
+    const dur = parseInt(actDuration);
+    if (!dur || dur <= 0) { toast.error('Unesite trajanje u minutama'); return; }
+    setActivating(true);
+    const { data } = await (supabase as any).rpc('activate_post_booking', {
       p_post_id: service.id,
-      p_enabled: !bookingEnabled,
+      p_booking_type: actBookingType,
+      p_duration_minutes: dur,
+      p_capacity: parseInt(actCapacity) || 1,
+      p_price: parseFloat(actPrice) || 0,
+      p_price_type: actPriceType,
+      p_currency: actCurrency,
     });
-    setBookingToggling(false);
+    setActivating(false);
+    const result = data as { ok: boolean; service_id?: string; error?: string } | null;
+    if (!result?.ok) {
+      toast.error(t('setup.error.saveFailed'));
+      return;
+    }
+    setLinkedSvcId(result.service_id ?? null);
+    setBookingEnabled(true);
+    setShowActivateForm(false);
+  };
+
+  const handleDeactivateBooking = async () => {
+    if (!service || !confirm(t('booking.activate.deactivateConfirm'))) return;
+    setDeactivating(true);
+    const { data } = await (supabase as any).rpc('deactivate_post_booking', {
+      p_post_id: service.id,
+    });
+    setDeactivating(false);
     const result = data as { ok: boolean; error?: string } | null;
     if (!result?.ok) {
       toast.error(t('setup.error.saveFailed'));
       return;
     }
-    setBookingEnabled((prev) => !prev);
+    setLinkedSvcId(null);
+    setBookingEnabled(false);
   };
 
   const loadRecentReviews = async (proId: string) => {
@@ -580,7 +632,9 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-11 text-base gap-2"
                           asChild
                         >
-                          <Link href={`/book/${service.business_id}`}>
+                          <Link href={linkedSvcId
+                            ? `/booking/${service.business_id}/${linkedSvcId}`
+                            : `/booking/${service.business_id}`}>
                             <Calendar className="h-4 w-4" />
                             {t('booking.bookNow')}
                           </Link>
@@ -733,16 +787,16 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                     </Button>
                   </div>
 
-                  {/* ── Booking toggle ────────────────────────────────────── */}
+                  {/* ── Booking activation ────────────────────────────────── */}
                   <div className="border-t border-orange-200 dark:border-orange-800 pt-3">
                     <div className="flex items-center gap-1.5 mb-2">
                       <Calendar className="h-3.5 w-3.5 text-orange-600 dark:text-orange-400" />
                       <span className="text-xs font-semibold text-orange-700 dark:text-orange-300">
                         {t('serviceDetail.booking.heading')}
                       </span>
-                      {bookingEnabled && (
+                      {bookingEnabled && !showActivateForm && (
                         <span className="ml-1 text-xs font-medium text-green-600 dark:text-green-400">
-                          · {t('serviceDetail.booking.enabled')}
+                          · {t('booking.activate.active')}
                         </span>
                       )}
                     </div>
@@ -788,85 +842,147 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                           {t('booking.beta.inlineNote')}
                         </p>
                       </div>
-                    ) : (
-                      <div className="flex flex-col gap-2">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-xs text-orange-600 dark:text-orange-400 flex-1">
-                            {t('serviceDetail.booking.desc')}
-                          </p>
-                          <button
-                            onClick={handleToggleBooking}
-                            disabled={bookingToggling}
-                            className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 ${
-                              bookingEnabled
-                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30 dark:hover:text-red-400'
-                                : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50'
-                            }`}
-                          >
-                            {bookingToggling
-                              ? t('serviceDetail.booking.toggling')
-                              : bookingEnabled
-                                ? t('serviceDetail.booking.disable')
-                                : t('serviceDetail.booking.enable')}
-                          </button>
+                    ) : showActivateForm ? (
+                      /* ── Inline activation form ── */
+                      <div className="flex flex-col gap-3">
+                        {/* Booking type chips */}
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs font-medium text-orange-700 dark:text-orange-300">{t('booking.activate.typeLabel')}</label>
+                          <div className="flex gap-1.5">
+                            {(['appointment_service', 'tradespeople'] as const).map((bt) => (
+                              <button
+                                key={bt}
+                                type="button"
+                                onClick={() => setActBookingType(bt)}
+                                className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                                  actBookingType === bt
+                                    ? 'bg-orange-500 text-white border-orange-500'
+                                    : 'bg-background text-orange-700 border-orange-300 dark:text-orange-300 dark:border-orange-700 hover:border-orange-500'
+                                }`}
+                              >
+                                {bt === 'appointment_service' ? t('booking.activate.typeAppointment') : t('booking.activate.typeTradespeople')}
+                              </button>
+                            ))}
+                          </div>
                         </div>
 
-                        {/* Booking setup checklist */}
-                        {bookingEnabled && (
-                          <div className="mt-1 space-y-1">
-                            {/* ✅ Business profile — always done at this point */}
-                            <div className="flex items-center gap-1.5 text-xs">
-                              <span className="text-green-500">✓</span>
-                              <span className="text-orange-700 dark:text-orange-300">{t('serviceDetail.booking.checklist.profile')}</span>
-                            </div>
+                        {/* Duration */}
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs font-medium text-orange-700 dark:text-orange-300">{t('booking.activate.duration')}</label>
+                          <input
+                            type="number"
+                            min="5"
+                            step="5"
+                            value={actDuration}
+                            onChange={(e) => setActDuration(e.target.value)}
+                            className="border border-orange-200 dark:border-orange-800 rounded-lg px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-orange-400 w-28"
+                          />
+                        </div>
 
-                            {/* Services */}
-                            <div className="flex items-center gap-1.5 text-xs">
-                              {bookingChecklist.hasServices === null ? (
-                                <Loader2 className="h-3 w-3 animate-spin text-orange-400" />
-                              ) : bookingChecklist.hasServices ? (
-                                <span className="text-green-500">✓</span>
-                              ) : (
-                                <span className="text-orange-400">○</span>
-                              )}
-                              <span className="text-orange-700 dark:text-orange-300">{t('serviceDetail.booking.checklist.services')}</span>
-                              {bookingChecklist.hasServices === false && (
-                                <button
-                                  onClick={() => router.push('/dashboard/business/setup')}
-                                  className="ml-auto text-orange-600 dark:text-orange-400 font-semibold underline underline-offset-2 hover:no-underline"
-                                >
-                                  {t('serviceDetail.booking.checklist.setupServices')} →
-                                </button>
-                              )}
-                            </div>
+                        {/* Capacity */}
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs font-medium text-orange-700 dark:text-orange-300">{t('booking.activate.capacity')}</label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={actCapacity}
+                            onChange={(e) => setActCapacity(e.target.value)}
+                            className="border border-orange-200 dark:border-orange-800 rounded-lg px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-orange-400 w-20"
+                          />
+                        </div>
 
-                            {/* Hours */}
-                            <div className="flex items-center gap-1.5 text-xs">
-                              {bookingChecklist.hasHours === null ? (
-                                <Loader2 className="h-3 w-3 animate-spin text-orange-400" />
-                              ) : bookingChecklist.hasHours ? (
-                                <span className="text-green-500">✓</span>
-                              ) : (
-                                <span className="text-orange-400">○</span>
-                              )}
-                              <span className="text-orange-700 dark:text-orange-300">{t('serviceDetail.booking.checklist.hours')}</span>
-                              {bookingChecklist.hasHours === false && (
-                                <button
-                                  onClick={() => router.push('/dashboard/business/setup')}
-                                  className="ml-auto text-orange-600 dark:text-orange-400 font-semibold underline underline-offset-2 hover:no-underline"
-                                >
-                                  {t('serviceDetail.booking.checklist.setupHours')} →
-                                </button>
-                              )}
-                            </div>
-
-                            {bookingChecklist.hasServices && bookingChecklist.hasHours && (
-                              <p className="text-xs text-green-600 dark:text-green-400 font-semibold mt-0.5">
-                                ✓ {t('serviceDetail.booking.checklist.ready')}
-                              </p>
-                            )}
+                        {/* Price + currency */}
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs font-medium text-orange-700 dark:text-orange-300">{t('booking.activate.price')}</label>
+                          <div className="flex rounded-lg overflow-hidden border border-orange-200 dark:border-orange-800 focus-within:ring-1 focus-within:ring-orange-400 w-fit">
+                            <select
+                              value={actCurrency}
+                              onChange={(e) => setActCurrency(e.target.value)}
+                              className="px-2 py-1.5 text-xs bg-muted border-r border-orange-200 dark:border-orange-800 focus:outline-none shrink-0 w-[60px]"
+                            >
+                              {['BAM', 'EUR', 'RSD', 'USD', 'CHF', 'GBP'].map((c) => (
+                                <option key={c} value={c}>{c}</option>
+                              ))}
+                            </select>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.5"
+                              value={actPrice}
+                              onChange={(e) => setActPrice(e.target.value)}
+                              className="px-2 py-1.5 text-sm bg-background focus:outline-none w-24"
+                            />
                           </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleActivateBooking}
+                            disabled={activating}
+                            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white transition-colors disabled:opacity-50"
+                          >
+                            {activating ? t('booking.activate.saving') : (bookingEnabled ? t('booking.activate.save') : t('booking.activate.submit'))}
+                          </button>
+                          <button
+                            onClick={() => setShowActivateForm(false)}
+                            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-muted text-muted-foreground hover:bg-accent transition-colors"
+                          >
+                            {t('booking.activate.cancel')}
+                          </button>
+                        </div>
+                      </div>
+                    ) : bookingEnabled ? (
+                      /* ── Active state ── */
+                      <div className="flex flex-col gap-2">
+                        <p className="text-xs text-green-600 dark:text-green-400">{t('booking.activate.activeDesc')}</p>
+                        {bookingChecklist.hasHours === false && (
+                          <p className="text-xs text-orange-600 dark:text-orange-400">
+                            {t('booking.activate.hoursWarning')}{' '}
+                            <button
+                              onClick={() => router.push('/dashboard/business/setup')}
+                              className="font-semibold underline underline-offset-2 hover:no-underline"
+                            >
+                              {t('booking.activate.setupHours')} →
+                            </button>
+                          </p>
                         )}
+                        <div className="flex flex-wrap gap-1.5">
+                          {linkedSvcId && service.business_id && (
+                            <Link
+                              href={`/booking/${service.business_id}/${linkedSvcId}`}
+                              className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                            >
+                              {t('booking.activate.viewPage')}
+                            </Link>
+                          )}
+                          <button
+                            onClick={() => setShowActivateForm(true)}
+                            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
+                          >
+                            {t('booking.activate.edit')}
+                          </button>
+                          <button
+                            onClick={handleDeactivateBooking}
+                            disabled={deactivating}
+                            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors disabled:opacity-50"
+                          >
+                            {deactivating ? t('booking.activate.deactivating') : t('booking.activate.deactivate')}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      /* ── Inactive — prompt to activate ── */
+                      <div className="flex flex-col gap-1.5">
+                        <p className="text-xs text-orange-600 dark:text-orange-400">
+                          {t('serviceDetail.booking.desc')}
+                        </p>
+                        <button
+                          onClick={() => setShowActivateForm(true)}
+                          className="self-start text-xs font-semibold px-3 py-1.5 rounded-lg bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
+                        >
+                          {t('booking.activate.heading')} →
+                        </button>
                       </div>
                     )}
                   </div>
