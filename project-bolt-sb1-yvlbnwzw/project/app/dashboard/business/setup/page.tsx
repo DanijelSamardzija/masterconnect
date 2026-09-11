@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { ChevronRight, Plus, Pencil, X, CheckCircle2, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-type Tab = 'profile' | 'services' | 'hours' | 'locations';
+type Tab = 'profile' | 'services' | 'hours' | 'locations' | 'rules';
 
 type ServiceRow = {
   id: string;
@@ -41,6 +41,20 @@ type LocationRow = {
   phone: string | null;
   is_primary: boolean;
   is_active: boolean;
+};
+
+type BookingRules = {
+  confirmation_mode: 'instant' | 'requires_approval';
+  min_notice_minutes: number;
+  max_advance_days: number;
+  cancellation_hours: number;
+  slot_interval_min: number;
+};
+
+type PostListing = {
+  id: string;
+  job_title: string | null;
+  booking_enabled: boolean;
 };
 
 const BOOKING_TYPES = [
@@ -97,6 +111,22 @@ export default function BusinessSetupPage() {
   const [svcCapacity, setSvcCapacity] = useState('1');
   const [svcBookingType, setSvcBookingType] = useState<string>('appointment_service');
   const [svcSaving, setSvcSaving] = useState(false);
+
+  // ── Booking Rules state ────────────────────────────────────────────────────
+  const [rules, setRules] = useState<BookingRules>({
+    confirmation_mode: 'instant',
+    min_notice_minutes: 60,
+    max_advance_days: 60,
+    cancellation_hours: 24,
+    slot_interval_min: 15,
+  });
+  const [rulesLoading, setRulesLoading] = useState(false);
+  const [rulesSaving, setRulesSaving] = useState(false);
+
+  // ── Post listings state (F11B) ─────────────────────────────────────────────
+  const [postListings, setPostListings] = useState<PostListing[]>([]);
+  const [postsLoading, setPostsLoading] = useState(false);
+  const [togglingPost, setTogglingPost] = useState<string | null>(null);
 
   // ── Hours state ────────────────────────────────────────────────────────────
   const [primaryLocId, setPrimaryLocId] = useState<string | null>(null);
@@ -176,10 +206,33 @@ export default function BusinessSetupPage() {
     setHoursLoading(false);
   }, []);
 
+  const loadRules = useCallback(async () => {
+    if (!user) return;
+    setRulesLoading(true);
+    const { data } = await (supabase as any).rpc('get_booking_rules', { p_business_id: user.id });
+    if (data) setRules(data as BookingRules);
+    setRulesLoading(false);
+  }, [user]);
+
+  const loadPostListings = useCallback(async () => {
+    if (!user) return;
+    setPostsLoading(true);
+    const { data } = await supabase
+      .from('posts')
+      .select('id, job_title, booking_enabled')
+      .eq('user_id', user.id)
+      .eq('post_type', 'service_listing')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+    setPostListings((data as PostListing[]) ?? []);
+    setPostsLoading(false);
+  }, [user]);
+
   // ── Tab switch loaders ─────────────────────────────────────────────────────
   useEffect(() => {
-    if (activeTab === 'services') loadServices();
+    if (activeTab === 'services') { loadServices(); loadPostListings(); }
     if (activeTab === 'locations') loadLocations();
+    if (activeTab === 'rules') loadRules();
     if (activeTab === 'hours') {
       loadLocations().then(async () => {
         // After locations loaded, primary will be set; we use a short poll workaround
@@ -308,6 +361,43 @@ export default function BusinessSetupPage() {
     loadServices();
   }
 
+  // ── Booking Rules helpers ──────────────────────────────────────────────────
+  async function handleSaveRules() {
+    if (!user) return;
+    setRulesSaving(true);
+    const { data, error } = await (supabase as any).rpc('upsert_booking_rules', {
+      p_confirmation_mode:  rules.confirmation_mode,
+      p_min_notice_minutes: rules.min_notice_minutes,
+      p_max_advance_days:   rules.max_advance_days,
+      p_cancellation_hours: rules.cancellation_hours,
+      p_slot_interval_min:  rules.slot_interval_min,
+    });
+    setRulesSaving(false);
+    const result = data as { ok: boolean; error?: string } | null;
+    if (error || !result?.ok) {
+      toast.error(t('setup.error.saveFailed'));
+      return;
+    }
+    toast.success(t('setup.rules.saved'));
+  }
+
+  async function handleTogglePost(post: PostListing) {
+    setTogglingPost(post.id);
+    const { data } = await (supabase as any).rpc('set_post_booking_enabled', {
+      p_post_id: post.id,
+      p_enabled: !post.booking_enabled,
+    });
+    const result = data as { ok: boolean; error?: string } | null;
+    setTogglingPost(null);
+    if (!result?.ok) {
+      toast.error(t('setup.error.saveFailed'));
+      return;
+    }
+    setPostListings((prev) =>
+      prev.map((p) => p.id === post.id ? { ...p, booking_enabled: !post.booking_enabled } : p)
+    );
+  }
+
   // ── Hours helpers ──────────────────────────────────────────────────────────
   function updateHour(day: number, field: keyof HourRow, value: string | boolean) {
     setHours((prev) =>
@@ -422,6 +512,7 @@ export default function BusinessSetupPage() {
     { key: 'services',  label: t('setup.tab.services') },
     { key: 'hours',     label: t('setup.tab.hours') },
     { key: 'locations', label: t('setup.tab.locations') },
+    { key: 'rules',     label: t('setup.tab.rules') },
   ];
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -448,7 +539,7 @@ export default function BusinessSetupPage() {
           </div>
 
           {/* Tab bar */}
-          <div className="flex border-b border-border mb-6 gap-0">
+          <div className="flex border-b border-border mb-6 gap-0 overflow-x-auto">
             {TABS.map(({ key, label }) => (
               <button
                 key={key}
@@ -675,6 +766,51 @@ export default function BusinessSetupPage() {
                   ))}
                 </div>
               )}
+
+              {/* ── F11B: Enable booking on service listings ─────────────── */}
+              {isBusinessActive && (
+                <div className="mt-4 pt-4 border-t border-border flex flex-col gap-3">
+                  <div>
+                    <h3 className="text-sm font-semibold">{t('setup.posts.heading')}</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">{t('setup.posts.desc')}</p>
+                  </div>
+                  {postsLoading ? (
+                    <div className="flex justify-center py-4">
+                      <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  ) : postListings.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">{t('setup.posts.empty')}</p>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {postListings.map((post) => (
+                        <div key={post.id} className="flex items-center justify-between border border-border rounded-xl px-4 py-3">
+                          <div className="flex-1 min-w-0 mr-3">
+                            <span className="text-sm font-medium truncate block">{post.job_title || '—'}</span>
+                            {post.booking_enabled && (
+                              <span className="text-xs text-green-600 dark:text-green-400">{t('setup.posts.enabled')}</span>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => handleTogglePost(post)}
+                            disabled={togglingPost === post.id}
+                            className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors shrink-0 disabled:opacity-50 ${
+                              post.booking_enabled
+                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30 dark:hover:text-red-400'
+                                : 'bg-accent text-muted-foreground hover:bg-primary/10 hover:text-primary'
+                            }`}
+                          >
+                            {togglingPost === post.id
+                              ? t('setup.posts.saving')
+                              : post.booking_enabled
+                                ? t('setup.posts.disable')
+                                : t('setup.posts.enable')}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -876,6 +1012,98 @@ export default function BusinessSetupPage() {
                     </div>
                   ))}
                 </div>
+              )}
+            </div>
+          )}
+
+          {/* ── Tab: Rules ───────────────────────────────────────────────── */}
+          {activeTab === 'rules' && (
+            <div className="flex flex-col gap-4">
+              {!isBusinessActive && (
+                <p className="text-sm text-muted-foreground border border-border rounded-lg p-4 bg-accent/40">
+                  {t('setup.profile.inactive')}
+                </p>
+              )}
+              <div>
+                <h2 className="font-semibold">{t('setup.rules.heading')}</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">{t('setup.rules.desc')}</p>
+              </div>
+
+              {rulesLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : (
+                <>
+                  {labelInput(t('setup.rules.confirmation'),
+                    <select
+                      value={rules.confirmation_mode}
+                      onChange={(e) => setRules((r) => ({ ...r, confirmation_mode: e.target.value as 'instant' | 'requires_approval' }))}
+                      className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="instant">{t('setup.rules.confirmation.instant')}</option>
+                      <option value="requires_approval">{t('setup.rules.confirmation.approval')}</option>
+                    </select>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-3">
+                    {labelInput(t('setup.rules.slotInterval'),
+                      <select
+                        value={rules.slot_interval_min}
+                        onChange={(e) => setRules((r) => ({ ...r, slot_interval_min: Number(e.target.value) }))}
+                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                      >
+                        {[10, 15, 20, 30, 45, 60, 90, 120].map((v) => (
+                          <option key={v} value={v}>{v}</option>
+                        ))}
+                      </select>
+                    )}
+                    {labelInput(t('setup.rules.maxAdvance'),
+                      <select
+                        value={rules.max_advance_days}
+                        onChange={(e) => setRules((r) => ({ ...r, max_advance_days: Number(e.target.value) }))}
+                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                      >
+                        {[7, 14, 21, 30, 45, 60].map((v) => (
+                          <option key={v} value={v}>{v}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    {labelInput(t('setup.rules.minNotice'),
+                      <select
+                        value={rules.min_notice_minutes}
+                        onChange={(e) => setRules((r) => ({ ...r, min_notice_minutes: Number(e.target.value) }))}
+                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                      >
+                        {[0, 30, 60, 120, 180, 240, 480, 720, 1440].map((v) => (
+                          <option key={v} value={v}>{v}</option>
+                        ))}
+                      </select>
+                    )}
+                    {labelInput(t('setup.rules.cancellation'),
+                      <select
+                        value={rules.cancellation_hours}
+                        onChange={(e) => setRules((r) => ({ ...r, cancellation_hours: Number(e.target.value) }))}
+                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                      >
+                        {[0, 1, 2, 4, 8, 12, 24, 48, 72].map((v) => (
+                          <option key={v} value={v}>{v}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+
+                  <Button
+                    onClick={handleSaveRules}
+                    disabled={rulesSaving || !isBusinessActive}
+                    className="self-start"
+                  >
+                    {rulesSaving ? t('setup.rules.saving') : t('setup.rules.save')}
+                  </Button>
+                </>
               )}
             </div>
           )}
