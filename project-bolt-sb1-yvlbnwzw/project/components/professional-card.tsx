@@ -216,28 +216,46 @@ export function ProfessionalCard({ listing }: ProfessionalCardProps) {
           </div>
         )}
 
-        <div className="mt-auto">
+        <div className="mt-auto flex flex-col gap-1.5">
         {(() => {
           const catalogEntry = listing.service_catalog?.[0] ?? null;
           const bookingActive = !!listing.booking_enabled && !!catalogEntry && !!listing.business_id;
           const isOrder = bookingActive && catalogEntry!.booking_type === 'order';
-          const ctaHref = bookingActive
-            ? `/booking/${listing.business_id}/${catalogEntry!.id}`
-            : `/${language}/services/${listing.id}`;
-          const ctaLabel = bookingActive
-            ? (isOrder ? t('services.ctaOrder') : t('services.ctaBook'))
-            : t('services.viewService');
+          if (!bookingActive) {
+            return (
+              <Button
+                size="sm"
+                className="w-full bg-orange-600 hover:bg-orange-700 text-white group/btn h-8 md:h-9 text-xs md:text-sm"
+                asChild
+              >
+                <Link href={`/${language}/services/${listing.id}`} prefetch={false} onClick={(e) => e.stopPropagation()}>
+                  {t('services.viewService')}
+                  <ArrowRight className="ml-1.5 md:ml-2 h-3.5 w-3.5 md:h-4 md:w-4 group-hover/btn:translate-x-1 transition-transform" />
+                </Link>
+              </Button>
+            );
+          }
           return (
-            <Button
-              size="sm"
-              className="w-full bg-orange-600 hover:bg-orange-700 text-white group/btn h-8 md:h-9 text-xs md:text-sm"
-              asChild
-            >
-              <Link href={ctaHref} prefetch={false} onClick={(e) => e.stopPropagation()}>
-                {ctaLabel}
-                <ArrowRight className="ml-1.5 md:ml-2 h-3.5 w-3.5 md:h-4 md:w-4 group-hover/btn:translate-x-1 transition-transform" />
+            <>
+              <Button
+                size="sm"
+                className="w-full bg-orange-600 hover:bg-orange-700 text-white group/btn h-8 md:h-9 text-xs md:text-sm"
+                asChild
+              >
+                <Link href={`/booking/${listing.business_id}/${catalogEntry!.id}`} prefetch={false} onClick={(e) => e.stopPropagation()}>
+                  {isOrder ? t('services.ctaOrder') : t('services.ctaBook')}
+                  <ArrowRight className="ml-1.5 md:ml-2 h-3.5 w-3.5 md:h-4 md:w-4 group-hover/btn:translate-x-1 transition-transform" />
+                </Link>
+              </Button>
+              <Link
+                href={`/${language}/services/${listing.id}`}
+                prefetch={false}
+                onClick={(e) => e.stopPropagation()}
+                className="text-center text-xs text-muted-foreground hover:text-foreground transition-colors py-0.5"
+              >
+                {t('services.viewService')}
               </Link>
-            </Button>
+            </>
           );
         })()}
         </div>
