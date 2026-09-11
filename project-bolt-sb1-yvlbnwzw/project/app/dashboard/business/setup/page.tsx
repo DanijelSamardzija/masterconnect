@@ -709,8 +709,13 @@ export default function BusinessSetupPage() {
                 </p>
               )}
 
+              <div>
+                <h2 className="font-semibold">{t('setup.services.tabIntro')}</h2>
+                <p className="text-xs text-muted-foreground mt-1">{t('setup.services.tabIntroDesc')}</p>
+              </div>
+
               <div className="flex items-center justify-between">
-                <h2 className="font-semibold">{t('setup.services.heading')}</h2>
+                <span className="text-sm font-medium text-muted-foreground">{t('setup.services.heading')}</span>
                 {isBusinessActive && (
                   <Button size="sm" variant="outline" onClick={openAddSvc}>
                     <Plus className="w-3.5 h-3.5 mr-1" />
@@ -732,78 +737,100 @@ export default function BusinessSetupPage() {
                   </div>
 
                   {labelInput(t('setup.services.name'),
-                    <input
-                      type="text"
-                      value={svcName}
-                      onChange={(e) => setSvcName(e.target.value)}
-                      className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
+                    <>
+                      <input
+                        type="text"
+                        value={svcName}
+                        onChange={(e) => setSvcName(e.target.value)}
+                        placeholder={t('setup.services.namePlaceholder')}
+                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                      <p className="text-xs text-muted-foreground mt-0.5">{t('setup.services.nameHelp')}</p>
+                    </>
                   )}
 
                   {labelInput(t('setup.services.desc'),
-                    <textarea
-                      value={svcDesc}
-                      onChange={(e) => setSvcDesc(e.target.value)}
-                      rows={2}
-                      className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-                    />
+                    <>
+                      <textarea
+                        value={svcDesc}
+                        onChange={(e) => setSvcDesc(e.target.value)}
+                        rows={2}
+                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                      />
+                      <p className="text-xs text-muted-foreground mt-0.5">{t('setup.services.descHelp')}</p>
+                    </>
                   )}
 
                   <div className="grid grid-cols-2 gap-3">
                     {labelInput(t('setup.services.duration'),
-                      <input
-                        type="number"
-                        min="1"
-                        value={svcDuration}
-                        onChange={(e) => setSvcDuration(e.target.value)}
-                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
+                      <>
+                        <input
+                          type="number"
+                          min="1"
+                          value={svcDuration}
+                          onChange={(e) => setSvcDuration(e.target.value)}
+                          className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                        <p className="text-xs text-muted-foreground mt-0.5">{t('setup.services.durationHelp')}</p>
+                      </>
                     )}
                     {labelInput(t('setup.services.capacity'),
-                      <input
-                        type="number"
-                        min="1"
-                        value={svcCapacity}
-                        onChange={(e) => setSvcCapacity(e.target.value)}
-                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
+                      <>
+                        <input
+                          type="number"
+                          min="1"
+                          value={svcCapacity}
+                          onChange={(e) => setSvcCapacity(e.target.value)}
+                          className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                        <p className="text-xs text-muted-foreground mt-0.5">{t('setup.services.capacityHelp')}</p>
+                      </>
                     )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     {labelInput(t('setup.services.priceType'),
-                      <select
-                        value={svcPriceType}
-                        onChange={(e) => setSvcPriceType(e.target.value)}
-                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                      >
-                        {PRICE_TYPES.map((pt) => (
-                          <option key={pt} value={pt}>{t(`setup.services.ptype.${pt}`)}</option>
-                        ))}
-                      </select>
+                      <>
+                        <select
+                          value={svcPriceType}
+                          onChange={(e) => setSvcPriceType(e.target.value)}
+                          className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                        >
+                          {PRICE_TYPES.map((pt) => (
+                            <option key={pt} value={pt}>{t(`setup.services.ptype.${pt}`)}</option>
+                          ))}
+                        </select>
+                        <p className="text-xs text-muted-foreground mt-0.5">{t('setup.services.priceTypeHelp')}</p>
+                      </>
                     )}
                     {(svcPriceType === 'fixed' || svcPriceType === 'from') && labelInput(t('setup.services.price'),
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={svcPrice}
-                        onChange={(e) => setSvcPrice(e.target.value)}
-                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
+                      <>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={svcPrice}
+                          onChange={(e) => setSvcPrice(e.target.value)}
+                          className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                        <p className="text-xs text-muted-foreground mt-0.5">{t('setup.services.priceHelp')}</p>
+                      </>
                     )}
                   </div>
 
                   {!editingSvc && labelInput(t('setup.btype.label'),
-                    <select
-                      value={svcBookingType}
-                      onChange={(e) => setSvcBookingType(e.target.value)}
-                      className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                    >
-                      {BOOKING_TYPES.map((bt) => (
-                        <option key={bt} value={bt}>{t(`setup.btype.${bt}`)}</option>
-                      ))}
-                    </select>
+                    <>
+                      <select
+                        value={svcBookingType}
+                        onChange={(e) => setSvcBookingType(e.target.value)}
+                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                      >
+                        {BOOKING_TYPES.map((bt) => (
+                          <option key={bt} value={bt}>{t(`setup.btype.${bt}`)}</option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-muted-foreground mt-0.5">{t('setup.btype.help')}</p>
+                    </>
                   )}
 
                   <div className="flex gap-2 pt-1">
