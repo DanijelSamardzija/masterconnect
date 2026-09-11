@@ -448,7 +448,11 @@ export default function BookingSetupWizardPage() {
                         >
                           <option>BAM</option>
                           <option>EUR</option>
+                          <option>RSD</option>
                           <option>USD</option>
+                          <option>CHF</option>
+                          <option>GBP</option>
+                          <option>HRK</option>
                         </select>
                       </div>
                     </div>
