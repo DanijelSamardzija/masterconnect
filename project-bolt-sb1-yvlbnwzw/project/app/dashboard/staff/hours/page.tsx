@@ -17,6 +17,25 @@ type DaySchedule = {
 
 const DEFAULT_DAY: DaySchedule = { is_closed: false, start_time: '09:00', end_time: '17:00' };
 
+const HOURS   = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+const MINUTES = ['00', '15', '30', '45'];
+
+function TimeSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [h, m] = value.split(':');
+  const selCls = "border border-border rounded-lg px-2 py-1.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer";
+  return (
+    <div className="flex items-center gap-1">
+      <select value={h} onChange={e => onChange(`${e.target.value}:${m}`)} className={selCls}>
+        {HOURS.map(hr => <option key={hr} value={hr}>{hr}</option>)}
+      </select>
+      <span className="text-muted-foreground text-xs font-bold">:</span>
+      <select value={m} onChange={e => onChange(`${h}:${e.target.value}`)} className={selCls}>
+        {MINUTES.map(mn => <option key={mn} value={mn}>{mn}</option>)}
+      </select>
+    </div>
+  );
+}
+
 const DOW_KEYS = [
   'setup.hours.day.1',
   'setup.hours.day.2',
@@ -170,18 +189,14 @@ export default function StaffHoursPage() {
                       </div>
                       {!day.is_closed && (
                         <div className="flex items-center gap-2 pl-0">
-                          <input
-                            type="time"
+                          <TimeSelect
                             value={day.start_time}
-                            onChange={(e) => updateDay(dow, { start_time: e.target.value })}
-                            className="border border-border rounded-lg px-2 py-1.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary w-28"
+                            onChange={(v) => updateDay(dow, { start_time: v })}
                           />
                           <span className="text-muted-foreground text-xs">–</span>
-                          <input
-                            type="time"
+                          <TimeSelect
                             value={day.end_time}
-                            onChange={(e) => updateDay(dow, { end_time: e.target.value })}
-                            className="border border-border rounded-lg px-2 py-1.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary w-28"
+                            onChange={(v) => updateDay(dow, { end_time: v })}
                           />
                         </div>
                       )}
