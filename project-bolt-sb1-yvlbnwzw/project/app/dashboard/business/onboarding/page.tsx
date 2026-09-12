@@ -1223,15 +1223,13 @@ export default function BookingSetupWizardPage() {
 
                     <div className="flex flex-col gap-2 pt-2">
                       {bookingUrl && (
-                        <a
-                          href={bookingUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          onClick={() => router.push(new URL(bookingUrl).pathname)}
                           className="w-full flex items-center justify-center gap-2 text-sm font-medium bg-primary text-primary-foreground rounded-xl py-3 hover:opacity-90 transition-opacity"
                         >
                           <ExternalLink className="w-4 h-4" />
                           {t('booking.activate.viewPage')}
-                        </a>
+                        </button>
                       )}
                       <button
                         onClick={() => router.push('/dashboard')}
