@@ -790,7 +790,7 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                           {t('serviceDetail.booking.desc')}
                         </p>
                         <Link
-                          href="/dashboard/business/onboarding"
+                          href={`/dashboard/business/onboarding?postId=${service.id}`}
                           className="self-start text-xs font-semibold px-3 py-1.5 rounded-lg bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
                         >
                           {t('booking.activate.heading')} →

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ProtectedRoute } from '@/components/protected-route';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
@@ -76,6 +76,8 @@ export default function BookingSetupWizardPage() {
   const { t } = useLanguage();
   const { user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const postId = searchParams.get('postId');
 
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -93,6 +95,8 @@ export default function BookingSetupWizardPage() {
   const [svcPrice, setSvcPrice] = useState('');
   const [svcPriceType, setSvcPriceType] = useState('fixed');
   const [svcCurrency, setSvcCurrency] = useState('BAM');
+  const [postTitle, setPostTitle] = useState('');
+  const [bookingActivated, setBookingActivated] = useState(false);
 
   // Step 2 — Location
   const [locId, setLocId] = useState<string | null>(null);
@@ -157,22 +161,51 @@ export default function BookingSetupWizardPage() {
       .single();
     if (profile?.name) setBizName(profile.name);
 
-    const { data: svcs } = await (supabase as any)
-      .from('service_catalog')
-      .select('id, name, description, duration_minutes, price, price_type, currency')
-      .eq('business_id', user.id)
-      .eq('is_active', true)
-      .order('created_at', { ascending: true })
-      .limit(1);
-    const svc = svcs?.[0];
-    if (svc) {
-      setSvcId(svc.id);
-      setSvcName(svc.name);
-      setSvcDesc(svc.description ?? '');
-      setSvcDuration(svc.duration_minutes);
-      setSvcPrice(svc.price != null ? String(svc.price) : '');
-      setSvcPriceType(svc.price_type);
-      setSvcCurrency(svc.currency || 'BAM');
+    if (postId) {
+      // Load the post title and check current activation status
+      const { data: postData } = await (supabase as any)
+        .from('posts')
+        .select('job_title, booking_enabled')
+        .eq('id', postId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (postData) {
+        setPostTitle(postData.job_title ?? '');
+        if (postData.booking_enabled) setBookingActivated(true);
+      }
+      // Load service_catalog entry linked to this post (if any)
+      const { data: linkedSvc } = await (supabase as any)
+        .from('service_catalog')
+        .select('id, duration_minutes, price, price_type, currency')
+        .eq('post_id', postId)
+        .eq('business_id', user.id)
+        .maybeSingle();
+      if (linkedSvc) {
+        setSvcId(linkedSvc.id);
+        setSvcDuration(linkedSvc.duration_minutes);
+        setSvcPrice(linkedSvc.price != null ? String(linkedSvc.price) : '');
+        setSvcPriceType(linkedSvc.price_type);
+        setSvcCurrency(linkedSvc.currency || 'BAM');
+      }
+    } else {
+      // Standalone setup: load first service_catalog entry
+      const { data: svcs } = await (supabase as any)
+        .from('service_catalog')
+        .select('id, name, description, duration_minutes, price, price_type, currency')
+        .eq('business_id', user.id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: true })
+        .limit(1);
+      const svc = svcs?.[0];
+      if (svc) {
+        setSvcId(svc.id);
+        setSvcName(svc.name);
+        setSvcDesc(svc.description ?? '');
+        setSvcDuration(svc.duration_minutes);
+        setSvcPrice(svc.price != null ? String(svc.price) : '');
+        setSvcPriceType(svc.price_type);
+        setSvcCurrency(svc.currency || 'BAM');
+      }
     }
 
     const { data: locs } = await (supabase as any)
@@ -229,7 +262,7 @@ export default function BookingSetupWizardPage() {
     if (rulesData) setRules(rulesData as Rules);
 
     setLoading(false);
-  }, [user]);
+  }, [user, postId]);
 
   useEffect(() => { loadExisting(); }, [loadExisting]);
 
@@ -251,31 +284,54 @@ export default function BookingSetupWizardPage() {
   }
 
   async function saveService() {
-    if (!user || !svcName.trim()) { toast.error(t('setup.error.nameRequired')); return; }
-    if (svcDuration <= 0) { toast.error(t('setup.error.saveFailed')); return; }
+    if (!user) return;
     setSaving(true);
     const price = svcPrice !== '' ? parseFloat(svcPrice) : null;
-    if (svcId) {
-      const { data } = await (supabase as any).rpc('update_service', {
-        p_service_id: svcId, p_name: svcName.trim(),
-        p_description: svcDesc.trim() || null, p_duration_minutes: svcDuration,
-        p_price: price, p_price_type: svcPriceType, p_capacity: 1, p_currency: svcCurrency,
+
+    if (postId) {
+      // Linked flow: activate_post_booking links service_catalog to the post
+      // and sets posts.booking_enabled = true atomically. No duplication possible
+      // (ON CONFLICT(post_id) DO UPDATE).
+      if (svcDuration <= 0) { toast.error(t('setup.error.saveFailed')); setSaving(false); return; }
+      const { data } = await (supabase as any).rpc('activate_post_booking', {
+        p_post_id:          postId,
+        p_booking_type:     'appointment_service',
+        p_duration_minutes: svcDuration,
+        p_capacity:         1,
+        p_price:            price ?? 0,
+        p_price_type:       svcPriceType,
+        p_currency:         svcCurrency,
       });
-      if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); setSaving(false); return; }
+      setSaving(false);
+      if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); return; }
+      if ((data as any)?.service_id) setSvcId((data as any).service_id);
+      setBookingActivated(true);
     } else {
-      const { data } = await (supabase as any).rpc('create_service', {
-        p_business_id: user.id, p_name: svcName.trim(),
-        p_description: svcDesc.trim() || null, p_duration_minutes: svcDuration,
-        p_price: price, p_price_type: svcPriceType,
-        p_capacity: 1, p_booking_type: 'appointment_service', p_currency: svcCurrency,
-      });
-      if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); setSaving(false); return; }
-      const { data: row } = await (supabase as any)
-        .from('service_catalog').select('id')
-        .eq('business_id', user.id).order('created_at', { ascending: false }).limit(1).single();
-      if (row?.id) setSvcId(row.id);
+      // Standalone flow: no post link
+      if (!svcName.trim()) { toast.error(t('setup.error.nameRequired')); setSaving(false); return; }
+      if (svcDuration <= 0) { toast.error(t('setup.error.saveFailed')); setSaving(false); return; }
+      if (svcId) {
+        const { data } = await (supabase as any).rpc('update_service', {
+          p_service_id: svcId, p_name: svcName.trim(),
+          p_description: svcDesc.trim() || null, p_duration_minutes: svcDuration,
+          p_price: price, p_price_type: svcPriceType, p_capacity: 1, p_currency: svcCurrency,
+        });
+        if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); setSaving(false); return; }
+      } else {
+        const { data } = await (supabase as any).rpc('create_service', {
+          p_business_id: user.id, p_name: svcName.trim(),
+          p_description: svcDesc.trim() || null, p_duration_minutes: svcDuration,
+          p_price: price, p_price_type: svcPriceType,
+          p_capacity: 1, p_booking_type: 'appointment_service', p_currency: svcCurrency,
+        });
+        if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); setSaving(false); return; }
+        const { data: row } = await (supabase as any)
+          .from('service_catalog').select('id')
+          .eq('business_id', user.id).order('created_at', { ascending: false }).limit(1).single();
+        if (row?.id) setSvcId(row.id);
+      }
+      setSaving(false);
     }
-    setSaving(false);
     advance();
   }
 
@@ -534,15 +590,26 @@ export default function BookingSetupWizardPage() {
                 </div>
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium">{t('setup.services.name')} *</label>
-                    <input
-                      type="text"
-                      value={svcName}
-                      onChange={(e) => setSvcName(e.target.value)}
-                      placeholder={t('setup.services.namePlaceholder.appointment_service')}
-                      className={inputCls}
-                    />
+                    {postId ? (
+                      /* Linked to post — name comes from the post, show it read-only */
+                      <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-border bg-muted/40 text-sm text-foreground">
+                        <span className="font-medium truncate">{postTitle || '—'}</span>
+                        <span className="text-xs text-muted-foreground shrink-0">{t('bookingSetup.service.fromPost')}</span>
+                      </div>
+                    ) : (
+                      <>
+                        <label className="text-sm font-medium">{t('setup.services.name')} *</label>
+                        <input
+                          type="text"
+                          value={svcName}
+                          onChange={(e) => setSvcName(e.target.value)}
+                          placeholder={t('setup.services.namePlaceholder.appointment_service')}
+                          className={inputCls}
+                        />
+                      </>
+                    )}
                   </div>
+                  {!postId && (
                   <div className="flex flex-col gap-1.5">
                     <label className="text-sm font-medium">{t('setup.services.desc')}</label>
                     <textarea
@@ -552,6 +619,7 @@ export default function BookingSetupWizardPage() {
                       className="w-full border border-border rounded-xl px-4 py-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
                     />
                   </div>
+                  )}
                   <div className="flex gap-3">
                     <div className="flex flex-col gap-1.5 flex-1">
                       <label className="text-sm font-medium">{t('setup.services.duration')} *</label>
@@ -1121,64 +1189,126 @@ export default function BookingSetupWizardPage() {
             {/* Step 6: Done */}
             {currentKey === 'done' && (
               <div className="flex flex-col gap-5">
-                <div className="text-center">
-                  <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
-                    <Check className="w-8 h-8 text-green-600 dark:text-green-400" />
-                  </div>
-                  <h2 className="text-xl font-bold">{t('bookingSetup.activate.heading')}</h2>
-                  <p className="text-sm text-muted-foreground mt-1">{t('bookingSetup.activate.desc')}</p>
-                </div>
 
-                <div className="flex flex-col gap-2">
-                  {[
-                    { label: t('setup.tab.profile'),   done: !!bizName },
-                    { label: t('setup.tab.services'),  done: !!svcId },
-                    { label: t('setup.tab.locations'), done: !!locId },
-                    { label: t('setup.tab.hours'),     done: dayHours.some((d) => d.open) },
-                    { label: t('setup.tab.rules'),     done: true },
-                  ].map((item) => (
-                    <div key={item.label} className="flex items-center gap-3 text-sm">
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
-                        item.done ? 'bg-green-500' : 'bg-muted'
-                      }`}>
-                        <Check className={`w-3 h-3 ${item.done ? 'text-white' : 'text-muted-foreground'}`} />
+                {/* ── Active state (booking already on) ── */}
+                {bookingActivated ? (
+                  <>
+                    <div className="text-center">
+                      <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
+                        <Check className="w-8 h-8 text-green-600 dark:text-green-400" />
                       </div>
-                      <span className={item.done ? 'text-foreground' : 'text-muted-foreground'}>{item.label}</span>
+                      <h2 className="text-xl font-bold text-green-700 dark:text-green-400">
+                        {t('bookingSetup.done.active.heading')}
+                      </h2>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {t('bookingSetup.done.active.desc')}
+                      </p>
                     </div>
-                  ))}
-                </div>
 
-                {isReady && bookingUrl && (
-                  <div className="bg-muted/50 border border-border rounded-xl p-4 flex flex-col gap-2">
-                    <p className="text-xs font-medium text-muted-foreground">{t('bookingSetup.activate.link')}</p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono text-foreground flex-1 break-all">{bookingUrl}</span>
+                    {bookingUrl && (
+                      <div className="bg-muted/50 border border-border rounded-xl p-4 flex flex-col gap-2">
+                        <p className="text-xs font-medium text-muted-foreground">{t('bookingSetup.activate.link')}</p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-mono text-foreground flex-1 break-all">{bookingUrl}</span>
+                          <button
+                            onClick={copyLink}
+                            className="shrink-0 flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80 transition-colors"
+                          >
+                            {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                            {copied ? t('bookingSetup.activate.copied') : t('bookingSetup.activate.copy')}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex flex-col gap-2 pt-2">
+                      {bookingUrl && (
+                        <a
+                          href={bookingUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full flex items-center justify-center gap-2 text-sm font-medium bg-primary text-primary-foreground rounded-xl py-3 hover:opacity-90 transition-opacity"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          {t('booking.activate.viewPage')}
+                        </a>
+                      )}
                       <button
-                        onClick={copyLink}
-                        className="shrink-0 flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80 transition-colors"
+                        onClick={() => router.push('/dashboard')}
+                        className="w-full text-sm text-muted-foreground hover:text-foreground border border-border rounded-xl py-3 transition-colors"
                       >
-                        {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                        {copied ? t('bookingSetup.activate.copied') : t('bookingSetup.activate.copy')}
+                        {t('bookingSetup.activate.dashboard')}
                       </button>
                     </div>
-                  </div>
-                )}
+                  </>
+                ) : (
+                  /* ── Not yet activated ── */
+                  <>
+                    <div className="text-center">
+                      <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
+                        <Check className="w-8 h-8 text-green-600 dark:text-green-400" />
+                      </div>
+                      <h2 className="text-xl font-bold">{t('bookingSetup.activate.heading')}</h2>
+                      <p className="text-sm text-muted-foreground mt-1">{t('bookingSetup.activate.desc')}</p>
+                    </div>
 
-                <div className="flex flex-col gap-2 pt-2">
-                  <button
-                    onClick={() => router.push('/dashboard/business/setup')}
-                    className="w-full flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-xl py-3 transition-colors"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    {t('bookingSetup.activate.goToSetup')}
-                  </button>
-                  <button
-                    onClick={() => router.push('/dashboard')}
-                    className="w-full text-sm font-medium bg-primary text-primary-foreground rounded-xl py-3 hover:opacity-90 transition-opacity"
-                  >
-                    {t('bookingSetup.activate.dashboard')}
-                  </button>
-                </div>
+                    <div className="flex flex-col gap-2">
+                      {[
+                        { label: t('setup.tab.profile'),   done: !!bizName },
+                        { label: t('setup.tab.services'),  done: !!svcId },
+                        { label: t('setup.tab.locations'), done: !!locId },
+                        { label: t('setup.tab.hours'),     done: dayHours.some((d) => d.open) },
+                        { label: t('setup.tab.rules'),     done: true },
+                      ].map((item) => (
+                        <div key={item.label} className="flex items-center gap-3 text-sm">
+                          <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
+                            item.done ? 'bg-green-500' : 'bg-muted'
+                          }`}>
+                            <Check className={`w-3 h-3 ${item.done ? 'text-white' : 'text-muted-foreground'}`} />
+                          </div>
+                          <span className={item.done ? 'text-foreground' : 'text-muted-foreground'}>{item.label}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex flex-col gap-2 pt-2">
+                      {postId && (
+                        <button
+                          onClick={async () => {
+                            setSaving(true);
+                            const { data } = await (supabase as any).rpc('set_post_booking_enabled', {
+                              p_post_id: postId,
+                              p_enabled: true,
+                            });
+                            setSaving(false);
+                            if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); return; }
+                            setBookingActivated(true);
+                          }}
+                          disabled={saving}
+                          className="w-full flex items-center justify-center gap-2 text-sm font-medium bg-primary text-primary-foreground rounded-xl py-3 hover:opacity-90 transition-opacity disabled:opacity-50"
+                        >
+                          {saving
+                            ? <Loader2 className="w-4 h-4 animate-spin" />
+                            : <Check className="w-4 h-4" />}
+                          {t('bookingSetup.done.activateButton')}
+                        </button>
+                      )}
+                      <button
+                        onClick={() => router.push('/dashboard/business/setup')}
+                        className="w-full flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-xl py-3 transition-colors"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        {t('bookingSetup.activate.goToSetup')}
+                      </button>
+                      <button
+                        onClick={() => router.push('/dashboard')}
+                        className="w-full text-sm text-muted-foreground hover:text-foreground border border-border rounded-xl py-3 transition-colors"
+                      >
+                        {t('bookingSetup.activate.dashboard')}
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>
