@@ -2100,7 +2100,7 @@ export default {
   'bookingSetup.staff.free': 'Primer empleado es gratuito',
   'bookingSetup.staff.skipHint': 'Puede agregar personal más tarde en Configuración',
   'bookingSetup.rules.desc': '¿Cómo gestiona las reservas?',
-  'bookingSetup.service.fromPost': 'anuncio',
+  'bookingSetup.service.fromPost': 'Su anuncio',
   'bookingSetup.done.active.heading': '¡Las reservas están activas!',
   'bookingSetup.done.active.desc': 'Los clientes ya pueden reservar sus servicios.',
   'bookingSetup.done.activateButton': 'Activar reservas',

@@ -2107,7 +2107,7 @@ export default {
   'bookingSetup.staff.free': 'Première personne gratuite',
   'bookingSetup.staff.skipHint': 'Vous pouvez ajouter du personnel plus tard dans Paramètres',
   'bookingSetup.rules.desc': 'Comment gérez-vous les réservations?',
-  'bookingSetup.service.fromPost': 'annonce',
+  'bookingSetup.service.fromPost': 'Votre annonce',
   'bookingSetup.done.active.heading': 'Les réservations sont actives!',
   'bookingSetup.done.active.desc': 'Les clients peuvent maintenant réserver vos services.',
   'bookingSetup.done.activateButton': 'Activer les réservations',

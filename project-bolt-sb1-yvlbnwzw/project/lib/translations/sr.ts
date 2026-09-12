@@ -2177,7 +2177,7 @@ export default {
   'bookingSetup.staff.free': 'Prva zaposlena osoba je besplatna',
   'bookingSetup.staff.skipHint': 'Možeš dodati osoblje naknadno u Podešavanjima',
   'bookingSetup.rules.desc': 'Kako upravljaš rezervacijama?',
-  'bookingSetup.service.fromPost': 'oglas',
+  'bookingSetup.service.fromPost': 'Vaš oglas',
   'bookingSetup.done.active.heading': 'Rezervacije su aktivne!',
   'bookingSetup.done.active.desc': 'Korisnici mogu da rezervišu tvoje usluge.',
   'bookingSetup.done.activateButton': 'Aktiviraj rezervacije',

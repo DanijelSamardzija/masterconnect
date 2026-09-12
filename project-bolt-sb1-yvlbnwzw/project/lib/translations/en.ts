@@ -2177,7 +2177,7 @@ export default {
   'bookingSetup.staff.free': 'First staff member is free',
   'bookingSetup.staff.skipHint': 'You can add staff later in Settings',
   'bookingSetup.rules.desc': 'How do you manage bookings?',
-  'bookingSetup.service.fromPost': 'listing',
+  'bookingSetup.service.fromPost': 'Your listing',
   'bookingSetup.done.active.heading': 'Bookings are active!',
   'bookingSetup.done.active.desc': 'Clients can now book your services.',
   'bookingSetup.done.activateButton': 'Activate bookings',
