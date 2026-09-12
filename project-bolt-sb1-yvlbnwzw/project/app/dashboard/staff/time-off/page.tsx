@@ -50,6 +50,8 @@ export default function StaffTimeOffPage() {
   const [startDate, setStartDate] = useState(todayStr());
   const [endDate, setEndDate]     = useState(tomorrowStr());
   const [reason, setReason]       = useState<typeof REASONS[number]>('vacation');
+  const [startTime, setStartTime] = useState('08:00');
+  const [endTime, setEndTime]     = useState('10:00');
   const [note, setNote]           = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -79,12 +81,24 @@ export default function StaffTimeOffPage() {
   }
 
   async function handleAdd() {
-    if (!startDate || !endDate) return;
-    const starts = new Date(startDate + 'T00:00:00').toISOString();
-    const ends   = new Date(endDate   + 'T23:59:59').toISOString();
-    if (ends <= starts) {
-      toast.error(t('staffTimeOff.errorRange'));
-      return;
+    if (!startDate) return;
+    let starts: string;
+    let ends: string;
+    if (reason === 'blocked') {
+      if (!startTime || !endTime || endTime <= startTime) {
+        toast.error(t('staffTimeOff.errorTime'));
+        return;
+      }
+      starts = new Date(startDate + 'T' + startTime + ':00').toISOString();
+      ends   = new Date(startDate + 'T' + endTime   + ':00').toISOString();
+    } else {
+      if (!endDate) return;
+      starts = new Date(startDate + 'T00:00:00').toISOString();
+      ends   = new Date(endDate   + 'T23:59:59').toISOString();
+      if (ends <= starts) {
+        toast.error(t('staffTimeOff.errorRange'));
+        return;
+      }
     }
     setSubmitting(true);
     const { data } = await (supabase as any).rpc('add_my_time_block', {
@@ -143,26 +157,62 @@ export default function StaffTimeOffPage() {
             <>
               {/* Add form */}
               <div className="border border-border rounded-xl p-4 mb-6 flex flex-col gap-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs text-muted-foreground mb-1">{t('staffTimeOff.from')}</label>
-                    <input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
+                {reason === 'blocked' ? (
+                  /* Partial-day block: single date + time range */
+                  <div className="flex flex-col gap-2">
+                    <div>
+                      <label className="block text-xs text-muted-foreground mb-1">{t('staffTimeOff.from')}</label>
+                      <input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs text-muted-foreground mb-1">{t('staffTimeOff.fromTime')}</label>
+                        <input
+                          type="time"
+                          value={startTime}
+                          onChange={(e) => setStartTime(e.target.value)}
+                          className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-muted-foreground mb-1">{t('staffTimeOff.toTime')}</label>
+                        <input
+                          type="time"
+                          value={endTime}
+                          onChange={(e) => setEndTime(e.target.value)}
+                          className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-xs text-muted-foreground mb-1">{t('staffTimeOff.to')}</label>
-                    <input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
+                ) : (
+                  /* Full-day vacation: date range */
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-muted-foreground mb-1">{t('staffTimeOff.from')}</label>
+                      <input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-muted-foreground mb-1">{t('staffTimeOff.to')}</label>
+                      <input
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div>
                   <label className="block text-xs text-muted-foreground mb-1">{t('staffTimeOff.reason')}</label>
@@ -220,7 +270,10 @@ export default function StaffTimeOffPage() {
                           {t(`staffTimeOff.reason.${b.reason}` as Parameters<typeof t>[0])}
                         </p>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          {toLocalDateStr(b.starts_at)} → {toLocalDateStr(b.ends_at)}
+                          {toLocalDateStr(b.starts_at)}
+                          {b.reason === 'blocked'
+                            ? ` · ${new Date(b.starts_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })} – ${new Date(b.ends_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`
+                            : ` → ${toLocalDateStr(b.ends_at)}`}
                         </p>
                         {b.note && (
                           <p className="text-xs text-muted-foreground mt-1 italic">{b.note}</p>
