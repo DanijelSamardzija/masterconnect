@@ -21,6 +21,7 @@ type Booking = {
   status: string;
   staff_member_id: string | null;
   notes: string | null;
+  client_name: string | null;
 };
 
 type StaffMember = { id: string; name: string };
@@ -83,7 +84,7 @@ function OwnerBookingsContent() {
     setLoading(true);
     let query = (supabase as any)
       .from('bookings')
-      .select('id, starts_at, ends_at, service_name_snapshot, status, staff_member_id, notes')
+      .select('id, starts_at, ends_at, service_name_snapshot, status, staff_member_id, notes, profiles!bookings_client_id_fkey(name)')
       .eq('business_id', profile.id);
 
     if (filter === 'upcoming') {
@@ -97,7 +98,7 @@ function OwnerBookingsContent() {
     }
 
     const { data } = await query.order('starts_at', { ascending: filter !== 'all' }).limit(50);
-    setBookings(data || []);
+    setBookings((data || []).map((b: any) => ({ ...b, client_name: b.profiles?.name ?? null })));
     setLoading(false);
   };
 
@@ -254,6 +255,14 @@ function OwnerBookingsContent() {
                     <span className="font-medium text-foreground truncate">{b.service_name_snapshot}</span>
                     {staffName && <span className="shrink-0">· {staffName}</span>}
                   </div>
+
+                  {/* Client */}
+                  {b.client_name && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Users className="h-3 w-3 shrink-0" />
+                      <span>{b.client_name}</span>
+                    </div>
+                  )}
 
                   {b.notes?.trim() && (
                     <p className="text-xs text-muted-foreground/70 italic">{b.notes}</p>
