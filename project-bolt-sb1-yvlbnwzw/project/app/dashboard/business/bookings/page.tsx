@@ -40,10 +40,14 @@ function OwnerBookingsContent() {
   const [staffFilter, setStaffFilter] = useState<string>('all');
   const [isOwner, setIsOwner]   = useState<boolean | null>(null);
 
-  const [reassignOpen, setReassignOpen]     = useState(false);
+  const [reassignOpen, setReassignOpen]         = useState(false);
   const [reassignBookingId, setReassignBookingId] = useState<string | null>(null);
   const [reassignStaffId, setReassignStaffId]     = useState('');
-  const [actionLoading, setActionLoading]   = useState<string | null>(null);
+  const [actionLoading, setActionLoading]         = useState<string | null>(null);
+
+  const [cancelOpen, setCancelOpen]         = useState(false);
+  const [cancelBookingId, setCancelBookingId] = useState<string | null>(null);
+  const [cancelReason, setCancelReason]       = useState('');
 
   useEffect(() => {
     if (!profile) return;
@@ -111,13 +115,26 @@ function OwnerBookingsContent() {
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'confirmed' } : b));
   };
 
-  const handleCancel = async (bookingId: string) => {
-    setActionLoading(bookingId + '-cancel');
-    const { data, error } = await (supabase as any).rpc('owner_cancel_booking', { p_booking_id: bookingId });
+  const openCancelModal = (bookingId: string) => {
+    setCancelBookingId(bookingId);
+    setCancelReason('');
+    setCancelOpen(true);
+  };
+
+  const handleCancel = async () => {
+    if (!cancelBookingId) return;
+    setActionLoading(cancelBookingId + '-cancel');
+    const { data, error } = await (supabase as any).rpc('owner_cancel_booking', {
+      p_booking_id: cancelBookingId,
+      p_reason: cancelReason.trim() || null,
+    });
     setActionLoading(null);
     if (error || data?.ok === false) { toast.error(data?.error || 'Greška'); return; }
     toast.success(t('ownerBookings.cancelled'));
-    setBookings(prev => prev.filter(b => b.id !== bookingId));
+    setBookings(prev => prev.filter(b => b.id !== cancelBookingId));
+    setCancelOpen(false);
+    setCancelBookingId(null);
+    setCancelReason('');
   };
 
   const handleReassign = async () => {
@@ -268,7 +285,7 @@ function OwnerBookingsContent() {
                     <p className="text-xs text-muted-foreground/70 italic">{b.notes}</p>
                   )}
 
-                  {/* Action buttons — only for active non-past or pending */}
+                  {/* Action buttons */}
                   {isActive && (
                     <div className="flex items-center gap-2 pt-1 border-t border-border">
                       {b.status === 'pending' && (
@@ -291,12 +308,12 @@ function OwnerBookingsContent() {
                       </button>
                       {!isPast && (
                         <button
-                          onClick={() => handleCancel(b.id)}
+                          onClick={() => openCancelModal(b.id)}
                           disabled={!!actionLoading}
                           className="flex items-center justify-center gap-1.5 bg-red-100 hover:bg-red-200 dark:bg-red-950 dark:hover:bg-red-900 disabled:opacity-50 text-red-600 dark:text-red-400 rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
                         >
                           <XCircle className="h-3.5 w-3.5" />
-                          {actionLoading === b.id + '-cancel' ? '...' : t('ownerBookings.cancel')}
+                          {t('ownerBookings.cancel')}
                         </button>
                       )}
                     </div>
@@ -307,6 +324,43 @@ function OwnerBookingsContent() {
           </div>
         )}
       </div>
+
+      {/* Cancel modal */}
+      <Dialog open={cancelOpen} onOpenChange={(o) => { if (!o) { setCancelOpen(false); setCancelBookingId(null); setCancelReason(''); } }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
+              <XCircle className="h-4 w-4" />
+              {t('ownerBookings.cancelModal.title')}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-1">
+            <p className="text-sm text-muted-foreground">{t('ownerBookings.cancelModal.body')}</p>
+            <textarea
+              value={cancelReason}
+              onChange={e => setCancelReason(e.target.value)}
+              placeholder={t('ownerBookings.cancelModal.reasonPlaceholder')}
+              rows={3}
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setCancelOpen(false); setCancelBookingId(null); setCancelReason(''); }}
+                className="flex-1 border border-border rounded-xl py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors"
+              >
+                {t('ownerBookings.cancelModal.back')}
+              </button>
+              <button
+                onClick={handleCancel}
+                disabled={!!actionLoading}
+                className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl py-2.5 text-sm font-semibold transition-colors"
+              >
+                {actionLoading?.endsWith('-cancel') ? '...' : t('ownerBookings.cancelModal.confirm')}
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Reassign modal */}
       <Dialog open={reassignOpen} onOpenChange={(o) => { if (!o) { setReassignOpen(false); setReassignBookingId(null); } }}>

@@ -2323,4 +2323,9 @@ export default {
   'ownerBookings.status.no_show': 'Nicht erschienen',
   'ownerBookings.status.cancelled': 'Storniert',
   'ownerBookings.noPermission': 'Zugriff nur für Inhaber und Manager.',
+  'ownerBookings.cancelModal.title': 'Termin absagen',
+  'ownerBookings.cancelModal.body': 'Der Kunde wird über die Absage benachrichtigt. Sie können optional einen Grund angeben.',
+  'ownerBookings.cancelModal.reasonPlaceholder': 'Grund für die Absage (optional)...',
+  'ownerBookings.cancelModal.back': 'Zurück',
+  'ownerBookings.cancelModal.confirm': 'Absage bestätigen',
 } as const;

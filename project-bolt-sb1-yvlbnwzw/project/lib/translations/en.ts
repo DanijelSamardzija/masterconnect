@@ -2333,4 +2333,9 @@ export default {
   'ownerBookings.status.no_show': 'No show',
   'ownerBookings.status.cancelled': 'Cancelled',
   'ownerBookings.noPermission': 'Access restricted to owners and managers.',
+  'ownerBookings.cancelModal.title': 'Cancel appointment',
+  'ownerBookings.cancelModal.body': 'The client will be notified of the cancellation. You may provide a reason (optional).',
+  'ownerBookings.cancelModal.reasonPlaceholder': 'Reason for cancellation (optional)...',
+  'ownerBookings.cancelModal.back': 'Go back',
+  'ownerBookings.cancelModal.confirm': 'Confirm cancellation',
 } as const;

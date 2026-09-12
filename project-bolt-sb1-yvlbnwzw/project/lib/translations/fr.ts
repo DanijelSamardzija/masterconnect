@@ -2263,4 +2263,9 @@ export default {
   'ownerBookings.status.no_show': 'Absent',
   'ownerBookings.status.cancelled': 'Annulé',
   'ownerBookings.noPermission': 'Accès réservé aux propriétaires et managers.',
+  'ownerBookings.cancelModal.title': 'Annuler le rendez-vous',
+  'ownerBookings.cancelModal.body': 'Le client sera notifié de l\'annulation. Vous pouvez indiquer une raison (facultatif).',
+  'ownerBookings.cancelModal.reasonPlaceholder': 'Raison de l\'annulation (facultatif)...',
+  'ownerBookings.cancelModal.back': 'Retour',
+  'ownerBookings.cancelModal.confirm': 'Confirmer l\'annulation',
 } as const;
