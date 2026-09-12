@@ -26,7 +26,7 @@ import {
   Briefcase, MessageSquare, Star, Plus,
   CheckCircle2, Clock, Bell, Trash2, Rss, UserCircle,
   ChevronRight, AlertCircle, Eye, TrendingUp, Calendar, Coins, ShieldCheck,
-  Search, Wrench, Settings
+  Search, Wrench, Settings, Copy, ExternalLink, Users
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { NotificationsModal, Notification } from '@/components/notifications-modal';
@@ -40,6 +40,25 @@ import { translateNotification } from '@/lib/notification-translations';
 import { isBookingBetaUser } from '@/lib/booking-whitelist';
 
 export const revalidate = 0;
+
+type ServiceStat = {
+  id: string;
+  name: string;
+  duration_minutes: number;
+  price: number | null;
+  price_type: string | null;
+  upcoming_count: number;
+  pending_count: number;
+  total_count: number;
+};
+
+type UpcomingBooking = {
+  id: string;
+  starts_at: string;
+  service_name_snapshot: string;
+  staff_member_id: string | null;
+  staff_name: string | null;
+};
 
 type Job = {
   id: string;
@@ -97,6 +116,13 @@ function DashboardContent() {
   const [showTypePicker, setShowTypePicker] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedPostType, setSelectedPostType] = useState<'service_listing' | 'service_request' | 'job_seeker_post' | 'hiring_post' | null>(null);
+  const [businessServices, setBusinessServices] = useState<ServiceStat[]>([]);
+  const [businessServicesLoaded, setBusinessServicesLoaded] = useState(false);
+  const [businessStaff, setBusinessStaff] = useState<{ id: string; name: string }[]>([]);
+  const [upcomingBookings, setUpcomingBookings] = useState<UpcomingBooking[]>([]);
+  const [reassignBookingId, setReassignBookingId] = useState<string | null>(null);
+  const [reassignStaffId, setReassignStaffId] = useState('');
+  const [reassignLoading, setReassignLoading] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -108,6 +134,11 @@ function DashboardContent() {
     fetchIsBusinessProfile();
     fetchStaffMembership();
     if ((profile as any)?.is_premium) { fetchCreditBalance(); fetchRecentViewers(); fetchDonations(); }
+    if (isBookingBetaUser(profile?.id) && (profile as any)?.is_premium) {
+      fetchBusinessServices();
+      fetchBusinessStaff();
+      fetchUpcomingBookings();
+    }
 
     const handleUnreadCountChanged = () => {
       fetchUnreadCount();
@@ -281,6 +312,60 @@ function DashboardContent() {
       sender_avatar: d.anonymous ? null : (d.profiles?.avatar_url ?? null),
       created_at: d.created_at,
     })));
+  };
+
+  const fetchBusinessServices = async () => {
+    const { data, error } = await (supabase as any).rpc('get_business_service_stats');
+    if (!error && Array.isArray(data)) setBusinessServices(data);
+    setBusinessServicesLoaded(true);
+  };
+
+  const fetchBusinessStaff = async () => {
+    if (!profile) return;
+    const { data } = await (supabase as any)
+      .from('staff_members')
+      .select('id, user_id, profiles!staff_members_user_id_fkey(name)')
+      .eq('business_id', profile.id)
+      .eq('is_active', true);
+    if (data) setBusinessStaff(data.map((s: any) => ({ id: s.id, name: s.profiles?.name || '—' })));
+  };
+
+  const fetchUpcomingBookings = async () => {
+    if (!profile) return;
+    const { data } = await (supabase as any)
+      .from('bookings')
+      .select('id, starts_at, service_name_snapshot, staff_member_id')
+      .eq('business_id', profile.id)
+      .gte('starts_at', new Date().toISOString())
+      .in('status', ['pending', 'confirmed'])
+      .order('starts_at', { ascending: true })
+      .limit(5);
+    if (data) setUpcomingBookings(data.map((b: any) => ({
+      id: b.id,
+      starts_at: b.starts_at,
+      service_name_snapshot: b.service_name_snapshot,
+      staff_member_id: b.staff_member_id ?? null,
+      staff_name: null,
+    })));
+  };
+
+  const handleReassign = async () => {
+    if (!reassignBookingId || !reassignStaffId) return;
+    setReassignLoading(true);
+    const { data, error } = await (supabase as any).rpc('owner_reassign_booking', {
+      p_booking_id: reassignBookingId,
+      p_staff_member_id: reassignStaffId,
+    });
+    setReassignLoading(false);
+    if (error || data?.ok === false) {
+      toast.error(data?.error || 'Greška');
+      return;
+    }
+    toast.success(t('dashboard.services.reassignSuccess'));
+    setUpcomingBookings(prev =>
+      prev.map(b => b.id === reassignBookingId ? { ...b, staff_member_id: reassignStaffId } : b)
+    );
+    setReassignBookingId(null);
   };
 
   const fetchNotifications = async () => {
@@ -486,6 +571,116 @@ function DashboardContent() {
               </button>
             </div>
           )
+        )}
+
+        {/* Business services section — booking beta + premium + active business */}
+        {isBookingBetaUser(profile.id) && isPremium && isBusinessProfile && businessServicesLoaded && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between px-1">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                {t('dashboard.services.title')}
+              </p>
+              <button
+                onClick={() => router.push(`/booking/${profile.id}`)}
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ExternalLink className="h-3 w-3" />
+                {t('dashboard.services.bookingPage')}
+              </button>
+            </div>
+
+            {businessServices.length === 0 ? (
+              <div className="bg-card border border-border rounded-2xl px-5 py-8 text-center">
+                <Calendar className="h-8 w-8 mx-auto mb-2 text-muted-foreground opacity-40" />
+                <p className="text-sm text-muted-foreground">{t('dashboard.services.empty')}</p>
+                <button
+                  onClick={() => router.push('/dashboard/business/setup?tab=services')}
+                  className="mt-2 text-xs font-semibold text-orange-500 hover:text-orange-400"
+                >
+                  {t('dashboard.services.settings')} →
+                </button>
+              </div>
+            ) : (
+              businessServices.map(svc => (
+                <div key={svc.id} className="bg-card border border-border rounded-2xl p-4">
+                  <div className="flex items-start justify-between gap-2 mb-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">{svc.name}</p>
+                      <p className="text-xs text-muted-foreground">{svc.duration_minutes} {t('dashboard.services.min')}</p>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(`https://gigzone.app/booking/${profile.id}/${svc.id}`);
+                          toast.success(t('dashboard.services.linkCopied'));
+                        }}
+                        className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                        title={t('dashboard.services.copyLink')}
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => router.push('/dashboard/business/setup?tab=services')}
+                        className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                        title={t('dashboard.services.settings')}
+                      >
+                        <Settings className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-blue-50 dark:bg-blue-950/30 rounded-xl p-2.5 text-center">
+                      <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{svc.upcoming_count}</p>
+                      <p className="text-[10px] text-muted-foreground">{t('dashboard.services.upcoming')}</p>
+                    </div>
+                    <div className="bg-yellow-50 dark:bg-yellow-950/30 rounded-xl p-2.5 text-center">
+                      <p className="text-lg font-bold text-yellow-600 dark:text-yellow-400">{svc.pending_count}</p>
+                      <p className="text-[10px] text-muted-foreground">{t('dashboard.services.pending')}</p>
+                    </div>
+                    <div className="bg-muted/50 rounded-xl p-2.5 text-center">
+                      <p className="text-lg font-bold text-foreground">{svc.total_count}</p>
+                      <p className="text-[10px] text-muted-foreground">{t('dashboard.services.total')}</p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+
+            {/* Upcoming bookings with reassign */}
+            {upcomingBookings.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">
+                  {t('dashboard.services.upcomingTitle')}
+                </p>
+                {upcomingBookings.map(b => {
+                  const staffName = businessStaff.find(s => s.id === b.staff_member_id)?.name ?? b.staff_name;
+                  return (
+                    <div key={b.id} className="bg-card border border-border rounded-2xl px-4 py-3 flex items-center gap-3">
+                      <div className="p-2 bg-blue-100 dark:bg-blue-950 rounded-xl shrink-0">
+                        <Calendar className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">{b.service_name_snapshot}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(b.starts_at).toLocaleDateString('sr-RS', { day: 'numeric', month: 'short' })}
+                          {' · '}
+                          {new Date(b.starts_at).toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' })}
+                          {staffName ? ` · ${staffName}` : ''}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => { setReassignBookingId(b.id); setReassignStaffId(b.staff_member_id || ''); }}
+                        className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                        title={t('dashboard.services.reassign')}
+                      >
+                        <Users className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         )}
 
         {error && (
@@ -1078,6 +1273,37 @@ function DashboardContent() {
         </div>
 
       </div>
+
+      {/* Reassign staff modal */}
+      <Dialog open={!!reassignBookingId} onOpenChange={(o) => { if (!o) setReassignBookingId(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-muted-foreground" />
+              {t('dashboard.services.reassignTitle')}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-1">
+            <select
+              value={reassignStaffId}
+              onChange={e => setReassignStaffId(e.target.value)}
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+            >
+              <option value="">{t('dashboard.services.select')}</option>
+              {businessStaff.map(s => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+            <button
+              onClick={handleReassign}
+              disabled={!reassignStaffId || reassignLoading}
+              className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white rounded-xl py-2.5 text-sm font-semibold transition-colors"
+            >
+              {reassignLoading ? '...' : t('dashboard.services.reassignSave')}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <NotificationsModal
         open={notificationsOpen}
