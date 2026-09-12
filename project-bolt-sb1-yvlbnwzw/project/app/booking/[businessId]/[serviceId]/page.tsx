@@ -135,6 +135,7 @@ export default function BookingSlotPickerPage() {
 
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [phone, setPhone] = useState('');
   const [notes, setNotes] = useState('');
   const [partySize, setPartySize] = useState(1);
   const [booking, setBooking] = useState(false);
@@ -245,6 +246,9 @@ export default function BookingSlotPickerPage() {
     if (!result?.ok) {
       toast.error(t(bookingErrorKey(result?.error ?? '') as Parameters<typeof t>[0]));
       return;
+    }
+    if (phone.trim()) {
+      await (supabase as any).from('profiles').update({ phone: phone.trim() }).eq('id', user.id);
     }
     setBooked(true);
     setDialogOpen(false);
@@ -426,6 +430,7 @@ export default function BookingSlotPickerPage() {
                           if (!user) { router.push('/login'); return; }
                           if (!hasAccess) return;
                           setSelectedSlot(s);
+                          setPhone('');
                           setNotes('');
                           setPartySize(1);
                           setDialogOpen(true);
@@ -479,6 +484,17 @@ export default function BookingSlotPickerPage() {
                   </div>
                 </div>
               )}
+
+              <div>
+                <label className="block text-sm font-medium mb-1.5">{t('booking.phone')}</label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder={t('booking.phonePlaceholder')}
+                  className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
 
               <div>
                 <label className="block text-sm font-medium mb-1.5">{t('booking.notes')}</label>
