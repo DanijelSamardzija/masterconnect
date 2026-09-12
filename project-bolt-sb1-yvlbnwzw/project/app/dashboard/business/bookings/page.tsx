@@ -50,7 +50,8 @@ function toDateKey(d: Date): string {
 function OwnerBookingsContent() {
   const { profile } = useAuth();
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const locale = { sr: locale, en: 'en-US', de: 'de-DE', es: 'es-ES', fr: 'fr-FR' }[language] ?? 'en-US';
 
   const [bookings, setBookings]   = useState<Booking[]>([]);
   const [staff, setStaff]         = useState<StaffMember[]>([]);
@@ -289,7 +290,10 @@ function OwnerBookingsContent() {
     { key: 'all',      label: t('ownerBookings.filter.all')      },
   ];
 
-  const DAY_NAMES = ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned'];
+  // Generate short day names Mon–Sun from the current locale
+  const DAY_NAMES = weekDays.map(d =>
+    d.toLocaleDateString(locale, { weekday: 'short' }).replace(/\.$/, '')
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -365,12 +369,12 @@ function OwnerBookingsContent() {
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <p className="text-sm font-semibold text-foreground">
-                        {new Date(b.starts_at).toLocaleDateString('sr-RS', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
+                        {new Date(b.starts_at).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {new Date(b.starts_at).toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(b.starts_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
                         {' – '}
-                        {new Date(b.ends_at).toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(b.ends_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                     <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full shrink-0 ${sc.cls}`}>
@@ -457,9 +461,9 @@ function OwnerBookingsContent() {
                 <ChevronLeft className="h-4 w-4" />
               </button>
               <span className="text-xs font-semibold text-foreground">
-                {addWeek.toLocaleDateString('sr-RS', { day: 'numeric', month: 'long' })}
+                {addWeek.toLocaleDateString(locale, { day: 'numeric', month: 'long' })}
                 {' – '}
-                {addDays(addWeek, 6).toLocaleDateString('sr-RS', { day: 'numeric', month: 'long' })}
+                {addDays(addWeek, 6).toLocaleDateString(locale, { day: 'numeric', month: 'long' })}
               </span>
               <button onClick={() => { setAddWeek(w => addDays(w, 7)); setAddSlotStart(''); }}
                 className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
@@ -511,7 +515,7 @@ function OwnerBookingsContent() {
             ) : addSelectedDay && slotsByDay[addSelectedDay] ? (
               <div className="grid grid-cols-4 gap-1.5">
                 {slotsByDay[addSelectedDay].map(sl => {
-                  const timeStr = new Date(sl.slot_start).toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' });
+                  const timeStr = new Date(sl.slot_start).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
                   const isChosen = addSlotStart === sl.slot_start;
                   return (
                     <button key={sl.slot_start}
