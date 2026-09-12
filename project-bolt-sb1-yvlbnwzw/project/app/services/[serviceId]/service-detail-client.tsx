@@ -777,7 +777,7 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                           </Link>
                         )}
                         <Link
-                          href="/dashboard/business/onboarding"
+                          href="/dashboard/business/setup"
                           className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
                         >
                           {t('serviceDetail.booking.settingsButton')} →
