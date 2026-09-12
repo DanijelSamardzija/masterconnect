@@ -2225,4 +2225,12 @@ export default {
   'dashboard.services.reassignSave': 'Guardar',
   'dashboard.services.reassignSuccess': 'Empleado reasignado',
   'dashboard.services.select': 'Seleccionar empleado...',
+  'dashboard.services.info.upcoming': 'Citas futuras que están confirmadas o esperando aprobación (desde hoy en adelante).',
+  'dashboard.services.info.pending': 'Solicitudes de reserva que esperan tu aprobación antes de ser confirmadas.',
+  'dashboard.services.info.total': 'Todas las citas que alguna vez fueron confirmadas, completadas o marcadas como no presentadas.',
+  'dashboard.services.analytics.empty': 'No hay citas en esta categoría.',
+  'dashboard.services.analytics.status.pending': 'Esperando aprobación',
+  'dashboard.services.analytics.status.confirmed': 'Confirmada',
+  'dashboard.services.analytics.status.completed': 'Completada',
+  'dashboard.services.analytics.status.no_show': 'No se presentó',
 } as const;

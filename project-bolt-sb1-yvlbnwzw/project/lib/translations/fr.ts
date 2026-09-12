@@ -2232,4 +2232,12 @@ export default {
   'dashboard.services.reassignSave': 'Enregistrer',
   'dashboard.services.reassignSuccess': 'Personnel réassigné',
   'dashboard.services.select': 'Sélectionner un membre...',
+  'dashboard.services.info.upcoming': 'Rendez-vous futurs confirmés ou en attente d\'approbation (à partir d\'aujourd\'hui).',
+  'dashboard.services.info.pending': 'Demandes de réservation en attente de votre approbation avant confirmation.',
+  'dashboard.services.info.total': 'Tous les rendez-vous qui ont été confirmés, terminés ou marqués comme absence.',
+  'dashboard.services.analytics.empty': 'Aucun rendez-vous dans cette catégorie.',
+  'dashboard.services.analytics.status.pending': 'En attente',
+  'dashboard.services.analytics.status.confirmed': 'Confirmé',
+  'dashboard.services.analytics.status.completed': 'Terminé',
+  'dashboard.services.analytics.status.no_show': 'Absent',
 } as const;

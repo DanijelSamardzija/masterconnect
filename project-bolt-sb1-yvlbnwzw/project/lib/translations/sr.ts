@@ -2302,4 +2302,12 @@ export default {
   'dashboard.services.reassignSave': 'Sačuvaj',
   'dashboard.services.reassignSuccess': 'Radnik promijenjen',
   'dashboard.services.select': 'Izaberi radnika...',
+  'dashboard.services.info.upcoming': 'Termini koji su u budućnosti i potvrđeni ili čekaju odobrenje (od danas nadalje).',
+  'dashboard.services.info.pending': 'Zahtjevi za termin koji čekaju tvoje odobrenje prije nego se potvrde.',
+  'dashboard.services.info.total': 'Ukupan broj termina koji su ikad bili potvrđeni, završeni ili označeni kao "nije se pojavio".',
+  'dashboard.services.analytics.empty': 'Nema termina u ovoj kategoriji.',
+  'dashboard.services.analytics.status.pending': 'Čeka odobrenje',
+  'dashboard.services.analytics.status.confirmed': 'Potvrđen',
+  'dashboard.services.analytics.status.completed': 'Završen',
+  'dashboard.services.analytics.status.no_show': 'Nije se pojavio',
 } as const;

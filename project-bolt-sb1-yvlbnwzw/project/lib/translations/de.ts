@@ -2292,4 +2292,12 @@ export default {
   'dashboard.services.reassignSave': 'Speichern',
   'dashboard.services.reassignSuccess': 'Mitarbeiter neu zugewiesen',
   'dashboard.services.select': 'Mitarbeiter auswählen...',
+  'dashboard.services.info.upcoming': 'Zukünftige Termine, die bestätigt sind oder auf Genehmigung warten (ab heute).',
+  'dashboard.services.info.pending': 'Buchungsanfragen, die auf Ihre Genehmigung warten, bevor sie bestätigt werden.',
+  'dashboard.services.info.total': 'Alle Termine, die je bestätigt, abgeschlossen oder als Nichterscheinen markiert wurden.',
+  'dashboard.services.analytics.empty': 'Keine Termine in dieser Kategorie.',
+  'dashboard.services.analytics.status.pending': 'Wartet auf Genehmigung',
+  'dashboard.services.analytics.status.confirmed': 'Bestätigt',
+  'dashboard.services.analytics.status.completed': 'Abgeschlossen',
+  'dashboard.services.analytics.status.no_show': 'Nicht erschienen',
 } as const;

@@ -2302,4 +2302,12 @@ export default {
   'dashboard.services.reassignSave': 'Save',
   'dashboard.services.reassignSuccess': 'Staff reassigned',
   'dashboard.services.select': 'Select staff member...',
+  'dashboard.services.info.upcoming': 'Future appointments that are confirmed or awaiting approval (from today onward).',
+  'dashboard.services.info.pending': 'Booking requests waiting for your approval before being confirmed.',
+  'dashboard.services.info.total': 'All appointments that were ever confirmed, completed, or marked as no-show.',
+  'dashboard.services.analytics.empty': 'No appointments in this category.',
+  'dashboard.services.analytics.status.pending': 'Awaiting approval',
+  'dashboard.services.analytics.status.confirmed': 'Confirmed',
+  'dashboard.services.analytics.status.completed': 'Completed',
+  'dashboard.services.analytics.status.no_show': 'No show',
 } as const;

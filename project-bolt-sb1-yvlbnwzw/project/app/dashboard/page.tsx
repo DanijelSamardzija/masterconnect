@@ -26,7 +26,7 @@ import {
   Briefcase, MessageSquare, Star, Plus,
   CheckCircle2, Clock, Bell, Trash2, Rss, UserCircle,
   ChevronRight, AlertCircle, Eye, TrendingUp, Calendar, Coins, ShieldCheck,
-  Search, Wrench, Settings, Copy, ExternalLink, Users
+  Search, Wrench, Settings, Copy, ExternalLink, Users, Info
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { NotificationsModal, Notification } from '@/components/notifications-modal';
@@ -123,6 +123,12 @@ function DashboardContent() {
   const [reassignBookingId, setReassignBookingId] = useState<string | null>(null);
   const [reassignStaffId, setReassignStaffId] = useState('');
   const [reassignLoading, setReassignLoading] = useState(false);
+  const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
+  const [analyticsContext, setAnalyticsContext] = useState<{
+    serviceId: string; serviceName: string; filter: 'upcoming' | 'pending' | 'total';
+  } | null>(null);
+  const [analyticsBookings, setAnalyticsBookings] = useState<any[]>([]);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -347,6 +353,28 @@ function DashboardContent() {
       staff_member_id: b.staff_member_id ?? null,
       staff_name: null,
     })));
+  };
+
+  const openAnalytics = async (serviceId: string, serviceName: string, filter: 'upcoming' | 'pending' | 'total') => {
+    setAnalyticsContext({ serviceId, serviceName, filter });
+    setAnalyticsBookings([]);
+    setAnalyticsLoading(true);
+    if (!profile) return;
+    let query = (supabase as any)
+      .from('bookings')
+      .select('id, starts_at, ends_at, service_name_snapshot, status, staff_member_id, notes')
+      .eq('business_id', profile.id)
+      .eq('service_id', serviceId);
+    if (filter === 'upcoming') {
+      query = query.gte('starts_at', new Date().toISOString()).in('status', ['pending', 'confirmed']).order('starts_at', { ascending: true });
+    } else if (filter === 'pending') {
+      query = query.eq('status', 'pending').order('starts_at', { ascending: true });
+    } else {
+      query = query.in('status', ['confirmed', 'completed', 'no_show']).order('starts_at', { ascending: false });
+    }
+    const { data } = await query.limit(30);
+    setAnalyticsBookings(data || []);
+    setAnalyticsLoading(false);
   };
 
   const handleReassign = async () => {
@@ -629,18 +657,37 @@ function DashboardContent() {
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
-                    <div className="bg-blue-50 dark:bg-blue-950/30 rounded-xl p-2.5 text-center">
-                      <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{svc.upcoming_count}</p>
-                      <p className="text-[10px] text-muted-foreground">{t('dashboard.services.upcoming')}</p>
-                    </div>
-                    <div className="bg-yellow-50 dark:bg-yellow-950/30 rounded-xl p-2.5 text-center">
-                      <p className="text-lg font-bold text-yellow-600 dark:text-yellow-400">{svc.pending_count}</p>
-                      <p className="text-[10px] text-muted-foreground">{t('dashboard.services.pending')}</p>
-                    </div>
-                    <div className="bg-muted/50 rounded-xl p-2.5 text-center">
-                      <p className="text-lg font-bold text-foreground">{svc.total_count}</p>
-                      <p className="text-[10px] text-muted-foreground">{t('dashboard.services.total')}</p>
-                    </div>
+                    {([
+                      { key: 'upcoming', count: svc.upcoming_count, num: svc.upcoming_count, colorNum: 'text-blue-600 dark:text-blue-400', colorBg: 'bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-950/50' },
+                      { key: 'pending',  count: svc.pending_count,  num: svc.pending_count,  colorNum: 'text-yellow-600 dark:text-yellow-400', colorBg: 'bg-yellow-50 dark:bg-yellow-950/30 hover:bg-yellow-100 dark:hover:bg-yellow-950/50' },
+                      { key: 'total',    count: svc.total_count,    num: svc.total_count,    colorNum: 'text-foreground', colorBg: 'bg-muted/50 hover:bg-muted' },
+                    ] as const).map(tile => {
+                      const tooltipKey = `${svc.id}-${tile.key}`;
+                      return (
+                        <div key={tile.key} className="relative">
+                          <button
+                            onClick={() => { setActiveTooltip(null); openAnalytics(svc.id, svc.name, tile.key); }}
+                            className={`w-full ${tile.colorBg} rounded-xl p-2.5 text-center transition-colors active:scale-95`}
+                          >
+                            <p className={`text-lg font-bold ${tile.colorNum}`}>{tile.num}</p>
+                            <p className="text-[10px] text-muted-foreground mt-0.5">{t(`dashboard.services.${tile.key}` as any)}</p>
+                          </button>
+                          <div className="absolute top-1 right-1 z-10">
+                            <button
+                              onClick={() => setActiveTooltip(activeTooltip === tooltipKey ? null : tooltipKey)}
+                              className="p-0.5 text-muted-foreground/30 hover:text-muted-foreground/70 transition-colors"
+                            >
+                              <Info className="h-2.5 w-2.5" />
+                            </button>
+                            {activeTooltip === tooltipKey && (
+                              <div className="absolute bottom-full right-0 mb-1.5 w-44 bg-popover border border-border rounded-lg px-2.5 py-2 text-[11px] text-muted-foreground shadow-lg z-30 text-left leading-relaxed">
+                                {t(`dashboard.services.info.${tile.key}` as any)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               ))
@@ -1273,6 +1320,65 @@ function DashboardContent() {
         </div>
 
       </div>
+
+      {/* Booking analytics modal */}
+      <Dialog open={!!analyticsContext} onOpenChange={(o) => { if (!o) { setAnalyticsContext(null); setAnalyticsBookings([]); } }}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <Calendar className="h-4 w-4 text-orange-500 shrink-0" />
+              <span className="truncate">{analyticsContext?.serviceName}</span>
+              <span className="text-muted-foreground font-normal shrink-0">
+                — {analyticsContext && t(`dashboard.services.${analyticsContext.filter}` as any)}
+              </span>
+            </DialogTitle>
+          </DialogHeader>
+          {analyticsContext && (
+            <div className="mt-1 mb-1 text-[11px] text-muted-foreground bg-muted/40 rounded-lg px-3 py-2 leading-relaxed">
+              {t(`dashboard.services.info.${analyticsContext.filter}` as any)}
+            </div>
+          )}
+          <div className="space-y-2 pt-1">
+            {analyticsLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="h-6 w-6 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
+              </div>
+            ) : analyticsBookings.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">{t('dashboard.services.analytics.empty')}</p>
+            ) : (
+              analyticsBookings.map((b: any) => {
+                const staffName = businessStaff.find(s => s.id === b.staff_member_id)?.name;
+                const statusMap: Record<string, { label: string; cls: string }> = {
+                  pending:   { label: t('dashboard.services.analytics.status.pending'),   cls: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400' },
+                  confirmed: { label: t('dashboard.services.analytics.status.confirmed'), cls: 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400' },
+                  completed: { label: t('dashboard.services.analytics.status.completed'), cls: 'bg-muted text-muted-foreground' },
+                  no_show:   { label: t('dashboard.services.analytics.status.no_show'),   cls: 'bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-400' },
+                };
+                const status = statusMap[b.status] ?? { label: b.status, cls: 'bg-muted text-muted-foreground' };
+                return (
+                  <div key={b.id} className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-muted/40">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                        <span className="text-sm font-semibold text-foreground">
+                          {new Date(b.starts_at).toLocaleDateString('sr-RS', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(b.starts_at).toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${status.cls}`}>
+                          {status.label}
+                        </span>
+                      </div>
+                      {staffName && <p className="text-xs text-muted-foreground">{staffName}</p>}
+                      {b.notes?.trim() && <p className="text-xs text-muted-foreground/70 italic truncate">{b.notes}</p>}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Reassign staff modal */}
       <Dialog open={!!reassignBookingId} onOpenChange={(o) => { if (!o) setReassignBookingId(null); }}>
