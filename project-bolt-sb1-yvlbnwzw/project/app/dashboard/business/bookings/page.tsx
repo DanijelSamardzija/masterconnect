@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/protected-route';
 import { useAuth } from '@/lib/contexts/auth-context';
@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
-  ChevronLeft, Calendar, Users, CheckCircle2, XCircle,
+  ChevronLeft, ChevronRight, Calendar, Users, CheckCircle2, XCircle,
   Clock, AlertCircle, Plus
 } from 'lucide-react';
 
@@ -27,20 +27,39 @@ type Booking = {
 
 type StaffMember = { id: string; name: string };
 type Service     = { id: string; name: string; duration_minutes: number };
+type Slot        = { slot_start: string; slot_end: string; available: boolean };
 type Filter = 'upcoming' | 'pending' | 'all';
+
+// Monday of the week containing `date`
+function weekMonday(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getDay() || 7;
+  d.setDate(d.getDate() - (day - 1));
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+function addDays(d: Date, n: number): Date {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+}
+function toDateKey(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
 
 function OwnerBookingsContent() {
   const { profile } = useAuth();
   const router = useRouter();
   const { t } = useLanguage();
 
-  const [bookings, setBookings]     = useState<Booking[]>([]);
-  const [staff, setStaff]           = useState<StaffMember[]>([]);
-  const [services, setServices]     = useState<Service[]>([]);
-  const [loading, setLoading]       = useState(true);
-  const [filter, setFilter]         = useState<Filter>('upcoming');
+  const [bookings, setBookings]   = useState<Booking[]>([]);
+  const [staff, setStaff]         = useState<StaffMember[]>([]);
+  const [services, setServices]   = useState<Service[]>([]);
+  const [locationId, setLocationId] = useState<string>('');
+  const [loading, setLoading]     = useState(true);
+  const [filter, setFilter]       = useState<Filter>('upcoming');
   const [staffFilter, setStaffFilter] = useState<string>('all');
-  const [isOwner, setIsOwner]       = useState<boolean | null>(null);
+  const [isOwner, setIsOwner]     = useState<boolean | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   // Reassign modal
@@ -54,38 +73,43 @@ function OwnerBookingsContent() {
   const [cancelReason, setCancelReason]       = useState('');
 
   // Manual booking modal
-  const [addOpen, setAddOpen]           = useState(false);
-  const [addServiceId, setAddServiceId] = useState('');
-  const [addStaffId, setAddStaffId]     = useState('');
-  const [addDate, setAddDate]           = useState('');
-  const [addTime, setAddTime]           = useState('');
-  const [addName, setAddName]           = useState('');
-  const [addPhone, setAddPhone]         = useState('');
-  const [addNotes, setAddNotes]         = useState('');
-  const [addLoading, setAddLoading]     = useState(false);
+  const [addOpen, setAddOpen]             = useState(false);
+  const [addServiceId, setAddServiceId]   = useState('');
+  const [addStaffId, setAddStaffId]       = useState('');
+  const [addWeek, setAddWeek]             = useState<Date>(weekMonday(new Date()));
+  const [addSelectedDay, setAddSelectedDay] = useState<string>('');   // YYYY-MM-DD
+  const [addSlotStart, setAddSlotStart]   = useState<string>('');     // ISO
+  const [addSlots, setAddSlots]           = useState<Slot[]>([]);
+  const [addSlotsLoading, setAddSlotsLoading] = useState(false);
+  const [addName, setAddName]             = useState('');
+  const [addPhone, setAddPhone]           = useState('');
+  const [addNotes, setAddNotes]           = useState('');
+  const [addLoading, setAddLoading]       = useState(false);
 
   useEffect(() => {
     if (!profile) return;
     checkOwnerRole();
     fetchStaff();
     fetchServices();
+    fetchLocation();
   }, [profile]);
 
   useEffect(() => {
     if (isOwner) fetchBookings();
   }, [isOwner, filter, staffFilter]);
 
+  // Fetch slots whenever week, service, or staff changes (and modal is open)
+  useEffect(() => {
+    if (addOpen && addServiceId && locationId) fetchSlots();
+  }, [addOpen, addServiceId, addWeek, locationId]);
+
   const checkOwnerRole = async () => {
     if (!profile) return;
     const { data } = await (supabase as any)
-      .from('staff_members')
-      .select('role')
-      .eq('business_id', profile.id)
-      .eq('user_id', profile.id)
-      .eq('is_active', true)
-      .in('role', ['owner', 'manager'])
-      .limit(1)
-      .maybeSingle();
+      .from('staff_members').select('role')
+      .eq('business_id', profile.id).eq('user_id', profile.id)
+      .eq('is_active', true).in('role', ['owner', 'manager'])
+      .limit(1).maybeSingle();
     setIsOwner(!!data);
   };
 
@@ -94,19 +118,25 @@ function OwnerBookingsContent() {
     const { data } = await (supabase as any)
       .from('staff_members')
       .select('id, profiles!staff_members_user_id_fkey(name)')
-      .eq('business_id', profile.id)
-      .eq('is_active', true);
+      .eq('business_id', profile.id).eq('is_active', true);
     if (data) setStaff(data.map((s: any) => ({ id: s.id, name: s.profiles?.name || '—' })));
   };
 
   const fetchServices = async () => {
     if (!profile) return;
     const { data } = await (supabase as any)
-      .from('service_catalog')
-      .select('id, name, duration_minutes')
-      .eq('business_id', profile.id)
-      .eq('is_active', true);
+      .from('service_catalog').select('id, name, duration_minutes')
+      .eq('business_id', profile.id).eq('is_active', true);
     if (data) setServices(data);
+  };
+
+  const fetchLocation = async () => {
+    if (!profile) return;
+    const { data } = await (supabase as any)
+      .from('business_locations').select('id')
+      .eq('business_id', profile.id).eq('is_active', true)
+      .order('is_primary', { ascending: false }).limit(1).maybeSingle();
+    if (data) setLocationId(data.id);
   };
 
   const fetchBookings = async () => {
@@ -116,24 +146,30 @@ function OwnerBookingsContent() {
       .from('bookings')
       .select('id, starts_at, ends_at, service_name_snapshot, status, staff_member_id, notes, guest_name, profiles!bookings_client_id_fkey(name)')
       .eq('business_id', profile.id);
-
-    if (filter === 'upcoming') {
+    if (filter === 'upcoming')
       query = query.gte('starts_at', new Date().toISOString()).in('status', ['pending', 'confirmed']);
-    } else if (filter === 'pending') {
+    else if (filter === 'pending')
       query = query.eq('status', 'pending');
-    }
-
-    if (staffFilter !== 'all') {
-      query = query.eq('staff_member_id', staffFilter);
-    }
-
+    if (staffFilter !== 'all') query = query.eq('staff_member_id', staffFilter);
     const { data } = await query.order('starts_at', { ascending: filter !== 'all' }).limit(50);
-    setBookings((data || []).map((b: any) => ({
-      ...b,
-      client_name: b.profiles?.name ?? null,
-    })));
+    setBookings((data || []).map((b: any) => ({ ...b, client_name: b.profiles?.name ?? null })));
     setLoading(false);
   };
+
+  const fetchSlots = useCallback(async () => {
+    if (!profile || !addServiceId || !locationId) return;
+    setAddSlotsLoading(true);
+    setAddSlots([]);
+    setAddSlotStart('');
+    const { data } = await (supabase as any).rpc('get_available_slots', {
+      p_business_id: profile.id,
+      p_location_id: locationId,
+      p_service_id:  addServiceId,
+      p_week_start:  toDateKey(addWeek),
+    });
+    setAddSlots(data || []);
+    setAddSlotsLoading(false);
+  }, [profile, addServiceId, locationId, addWeek]);
 
   const handleConfirm = async (bookingId: string) => {
     setActionLoading(bookingId + '-confirm');
@@ -188,14 +224,11 @@ function OwnerBookingsContent() {
   };
 
   const openAddModal = () => {
-    const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm   = String(now.getMonth() + 1).padStart(2, '0');
-    const dd   = String(now.getDate()).padStart(2, '0');
-    const hh   = String(now.getHours()).padStart(2, '0');
-    const min  = String(Math.ceil(now.getMinutes() / 15) * 15 % 60).padStart(2, '0');
-    setAddDate(`${yyyy}-${mm}-${dd}`);
-    setAddTime(`${hh}:${min}`);
+    const monday = weekMonday(new Date());
+    setAddWeek(monday);
+    setAddSelectedDay(toDateKey(new Date()));
+    setAddSlotStart('');
+    setAddSlots([]);
     setAddServiceId(services[0]?.id || '');
     setAddStaffId(staff[0]?.id || '');
     setAddName('');
@@ -205,13 +238,12 @@ function OwnerBookingsContent() {
   };
 
   const handleAddBooking = async () => {
-    if (!addServiceId || !addStaffId || !addDate || !addTime || !addName.trim()) return;
+    if (!addServiceId || !addStaffId || !addSlotStart || !addName.trim()) return;
     setAddLoading(true);
-    const startsAt = new Date(`${addDate}T${addTime}:00`).toISOString();
     const { data, error } = await (supabase as any).rpc('owner_create_booking', {
       p_service_id:      addServiceId,
       p_staff_member_id: addStaffId,
-      p_starts_at:       startsAt,
+      p_starts_at:       addSlotStart,
       p_guest_name:      addName.trim(),
       p_guest_phone:     addPhone.trim() || null,
       p_notes:           addNotes.trim() || null,
@@ -222,6 +254,16 @@ function OwnerBookingsContent() {
     setAddOpen(false);
     fetchBookings();
   };
+
+  // Slots grouped by day key
+  const slotsByDay: Record<string, Slot[]> = {};
+  for (const s of addSlots) {
+    const key = s.slot_start.slice(0, 10);
+    if (!slotsByDay[key]) slotsByDay[key] = [];
+    if (s.available) slotsByDay[key].push(s);
+  }
+
+  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(addWeek, i));
 
   const clientLabel = (b: Booking) => b.client_name || b.guest_name;
 
@@ -246,6 +288,8 @@ function OwnerBookingsContent() {
     { key: 'pending',  label: t('ownerBookings.filter.pending')  },
     { key: 'all',      label: t('ownerBookings.filter.all')      },
   ];
+
+  const DAY_NAMES = ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned'];
 
   return (
     <div className="min-h-screen bg-background">
@@ -275,13 +319,9 @@ function OwnerBookingsContent() {
         {/* Filter tabs */}
         <div className="flex gap-1.5 bg-muted/50 rounded-xl p-1">
           {FILTERS.map(f => (
-            <button
-              key={f.key}
-              onClick={() => setFilter(f.key)}
+            <button key={f.key} onClick={() => setFilter(f.key)}
               className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-                filter === f.key
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
+                filter === f.key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               {f.label}
@@ -293,9 +333,7 @@ function OwnerBookingsContent() {
         {staff.length > 1 && (
           <div className="flex items-center gap-2">
             <Users className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-            <select
-              value={staffFilter}
-              onChange={e => setStaffFilter(e.target.value)}
+            <select value={staffFilter} onChange={e => setStaffFilter(e.target.value)}
               className="flex-1 border border-border rounded-xl px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
               <option value="all">{t('ownerBookings.filterStaff.all')}</option>
@@ -319,10 +357,9 @@ function OwnerBookingsContent() {
             {bookings.map(b => {
               const staffName = staff.find(s => s.id === b.staff_member_id)?.name;
               const sc = statusConfig[b.status] ?? { label: b.status, cls: 'bg-muted text-muted-foreground', icon: null };
-              const isPast = new Date(b.starts_at) < new Date();
+              const isPast   = new Date(b.starts_at) < new Date();
               const isActive = ['pending', 'confirmed'].includes(b.status);
-              const client = clientLabel(b);
-
+              const client   = clientLabel(b);
               return (
                 <div key={b.id} className="bg-card border border-border rounded-2xl p-4 space-y-3">
                   <div className="flex items-start justify-between gap-2">
@@ -340,12 +377,10 @@ function OwnerBookingsContent() {
                       {sc.icon} {sc.label}
                     </span>
                   </div>
-
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
                     <span className="font-medium text-foreground truncate">{b.service_name_snapshot}</span>
                     {staffName && <span className="shrink-0">· {staffName}</span>}
                   </div>
-
                   {client && (
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Users className="h-3 w-3 shrink-0" />
@@ -353,35 +388,25 @@ function OwnerBookingsContent() {
                       {b.guest_name && <span className="text-[10px] px-1.5 py-0.5 bg-muted rounded-full">{t('ownerBookings.guestLabel')}</span>}
                     </div>
                   )}
-
-                  {b.notes?.trim() && (
-                    <p className="text-xs text-muted-foreground/70 italic">{b.notes}</p>
-                  )}
-
+                  {b.notes?.trim() && <p className="text-xs text-muted-foreground/70 italic">{b.notes}</p>}
                   {isActive && (
                     <div className="flex items-center gap-2 pt-1 border-t border-border">
                       {b.status === 'pending' && (
-                        <button
-                          onClick={() => handleConfirm(b.id)}
-                          disabled={!!actionLoading}
+                        <button onClick={() => handleConfirm(b.id)} disabled={!!actionLoading}
                           className="flex-1 flex items-center justify-center gap-1.5 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-xl py-2 text-xs font-semibold transition-colors"
                         >
                           <CheckCircle2 className="h-3.5 w-3.5" />
                           {actionLoading === b.id + '-confirm' ? '...' : t('ownerBookings.confirm')}
                         </button>
                       )}
-                      <button
-                        onClick={() => openReassign(b)}
-                        disabled={!!actionLoading}
+                      <button onClick={() => openReassign(b)} disabled={!!actionLoading}
                         className="flex items-center justify-center gap-1.5 bg-muted hover:bg-muted/80 disabled:opacity-50 text-foreground rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
                       >
                         <Users className="h-3.5 w-3.5" />
                         {t('ownerBookings.reassign')}
                       </button>
                       {!isPast && (
-                        <button
-                          onClick={() => openCancelModal(b.id)}
-                          disabled={!!actionLoading}
+                        <button onClick={() => openCancelModal(b.id)} disabled={!!actionLoading}
                           className="flex items-center justify-center gap-1.5 bg-red-100 hover:bg-red-200 dark:bg-red-950 dark:hover:bg-red-900 disabled:opacity-50 text-red-600 dark:text-red-400 rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
                         >
                           <XCircle className="h-3.5 w-3.5" />
@@ -397,20 +422,19 @@ function OwnerBookingsContent() {
         )}
       </div>
 
-      {/* Manual booking modal */}
-      <Dialog open={addOpen} onOpenChange={(o) => { if (!o) setAddOpen(false); }}>
-        <DialogContent className="max-w-sm">
+      {/* ── Manual booking modal ───────────────────────────────────────── */}
+      <Dialog open={addOpen} onOpenChange={o => { if (!o) setAddOpen(false); }}>
+        <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Plus className="h-4 w-4 text-orange-500" />
               {t('ownerBookings.add.title')}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-3 pt-1">
+          <div className="space-y-4 pt-1">
+
             {/* Service */}
-            <select
-              value={addServiceId}
-              onChange={e => setAddServiceId(e.target.value)}
+            <select value={addServiceId} onChange={e => { setAddServiceId(e.target.value); setAddSlotStart(''); }}
               className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
               {services.map(s => <option key={s.id} value={s.id}>{s.name} ({s.duration_minutes} min)</option>)}
@@ -418,63 +442,114 @@ function OwnerBookingsContent() {
 
             {/* Staff */}
             {staff.length > 1 && (
-              <select
-                value={addStaffId}
-                onChange={e => setAddStaffId(e.target.value)}
+              <select value={addStaffId} onChange={e => setAddStaffId(e.target.value)}
                 className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
               >
                 {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             )}
 
-            {/* Date + Time */}
-            <div className="flex gap-2">
-              <input
-                type="date"
-                value={addDate}
-                onChange={e => setAddDate(e.target.value)}
-                className="flex-1 border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
-              />
-              <input
-                type="time"
-                value={addTime}
-                onChange={e => setAddTime(e.target.value)}
-                step="900"
-                className="w-28 border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
-              />
+            {/* Week navigation */}
+            <div className="flex items-center justify-between">
+              <button onClick={() => { setAddWeek(w => addDays(w, -7)); setAddSlotStart(''); }}
+                className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <span className="text-xs font-semibold text-foreground">
+                {addWeek.toLocaleDateString('sr-RS', { day: 'numeric', month: 'long' })}
+                {' – '}
+                {addDays(addWeek, 6).toLocaleDateString('sr-RS', { day: 'numeric', month: 'long' })}
+              </span>
+              <button onClick={() => { setAddWeek(w => addDays(w, 7)); setAddSlotStart(''); }}
+                className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
             </div>
 
-            {/* Client name */}
-            <input
-              type="text"
-              value={addName}
-              onChange={e => setAddName(e.target.value)}
-              placeholder={t('ownerBookings.add.namePlaceholder')}
-              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
+            {/* Day tabs */}
+            <div className="grid grid-cols-7 gap-1">
+              {weekDays.map((day, i) => {
+                const key = toDateKey(day);
+                const hasSlots = (slotsByDay[key]?.length || 0) > 0;
+                const isSelected = addSelectedDay === key;
+                const isToday = toDateKey(new Date()) === key;
+                return (
+                  <button key={key}
+                    onClick={() => { setAddSelectedDay(key); setAddSlotStart(''); }}
+                    className={`flex flex-col items-center py-1.5 rounded-lg text-[10px] font-semibold transition-colors ${
+                      isSelected
+                        ? 'bg-orange-500 text-white'
+                        : hasSlots
+                        ? 'bg-muted text-foreground hover:bg-orange-100 dark:hover:bg-orange-950'
+                        : 'bg-muted/40 text-muted-foreground cursor-default'
+                    }`}
+                    disabled={!hasSlots && !isSelected}
+                  >
+                    <span>{DAY_NAMES[i]}</span>
+                    <span className={`text-xs font-bold ${isToday && !isSelected ? 'text-orange-500' : ''}`}>
+                      {day.getDate()}
+                    </span>
+                    {hasSlots && !isSelected && (
+                      <span className="w-1 h-1 rounded-full bg-orange-500 mt-0.5" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
 
-            {/* Phone */}
-            <input
-              type="tel"
-              value={addPhone}
-              onChange={e => setAddPhone(e.target.value)}
-              placeholder={t('ownerBookings.add.phonePlaceholder')}
-              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
+            {/* Slot grid */}
+            {addSlotsLoading ? (
+              <div className="flex justify-center py-4">
+                <div className="h-5 w-5 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
+              </div>
+            ) : addSelectedDay && (slotsByDay[addSelectedDay]?.length || 0) === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-2">
+                {t('ownerBookings.add.noSlots')}
+              </p>
+            ) : addSelectedDay && slotsByDay[addSelectedDay] ? (
+              <div className="grid grid-cols-4 gap-1.5">
+                {slotsByDay[addSelectedDay].map(sl => {
+                  const timeStr = new Date(sl.slot_start).toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' });
+                  const isChosen = addSlotStart === sl.slot_start;
+                  return (
+                    <button key={sl.slot_start}
+                      onClick={() => setAddSlotStart(sl.slot_start)}
+                      className={`py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                        isChosen
+                          ? 'bg-orange-500 text-white'
+                          : 'bg-muted text-foreground hover:bg-orange-100 dark:hover:bg-orange-950'
+                      }`}
+                    >
+                      {timeStr}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
 
-            {/* Notes */}
-            <textarea
-              value={addNotes}
-              onChange={e => setAddNotes(e.target.value)}
-              placeholder={t('ownerBookings.add.notesPlaceholder')}
-              rows={2}
-              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
-            />
+            {/* Client details — shown only after slot is chosen */}
+            {addSlotStart && (
+              <div className="space-y-2 border-t border-border pt-3">
+                <input type="text" value={addName} onChange={e => setAddName(e.target.value)}
+                  placeholder={t('ownerBookings.add.namePlaceholder')}
+                  className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+                />
+                <input type="tel" value={addPhone} onChange={e => setAddPhone(e.target.value)}
+                  placeholder={t('ownerBookings.add.phonePlaceholder')}
+                  className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+                />
+                <textarea value={addNotes} onChange={e => setAddNotes(e.target.value)}
+                  placeholder={t('ownerBookings.add.notesPlaceholder')} rows={2}
+                  className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
+                />
+              </div>
+            )}
 
-            <button
-              onClick={handleAddBooking}
-              disabled={addLoading || !addServiceId || !addStaffId || !addDate || !addTime || !addName.trim()}
-              className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white rounded-xl py-2.5 text-sm font-semibold transition-colors"
+            <button onClick={handleAddBooking}
+              disabled={addLoading || !addServiceId || !addStaffId || !addSlotStart || !addName.trim()}
+              className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-40 text-white rounded-xl py-2.5 text-sm font-semibold transition-colors"
             >
               {addLoading ? '...' : t('ownerBookings.add.save')}
             </button>
@@ -482,8 +557,8 @@ function OwnerBookingsContent() {
         </DialogContent>
       </Dialog>
 
-      {/* Cancel modal */}
-      <Dialog open={cancelOpen} onOpenChange={(o) => { if (!o) { setCancelOpen(false); setCancelBookingId(null); setCancelReason(''); } }}>
+      {/* ── Cancel modal ──────────────────────────────────────────────── */}
+      <Dialog open={cancelOpen} onOpenChange={o => { if (!o) { setCancelOpen(false); setCancelBookingId(null); setCancelReason(''); } }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
@@ -493,23 +568,17 @@ function OwnerBookingsContent() {
           </DialogHeader>
           <div className="space-y-4 pt-1">
             <p className="text-sm text-muted-foreground">{t('ownerBookings.cancelModal.body')}</p>
-            <textarea
-              value={cancelReason}
-              onChange={e => setCancelReason(e.target.value)}
-              placeholder={t('ownerBookings.cancelModal.reasonPlaceholder')}
-              rows={3}
+            <textarea value={cancelReason} onChange={e => setCancelReason(e.target.value)}
+              placeholder={t('ownerBookings.cancelModal.reasonPlaceholder')} rows={3}
               className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
             />
             <div className="flex gap-2">
-              <button
-                onClick={() => { setCancelOpen(false); setCancelBookingId(null); setCancelReason(''); }}
+              <button onClick={() => { setCancelOpen(false); setCancelBookingId(null); setCancelReason(''); }}
                 className="flex-1 border border-border rounded-xl py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors"
               >
                 {t('ownerBookings.cancelModal.back')}
               </button>
-              <button
-                onClick={handleCancel}
-                disabled={!!actionLoading}
+              <button onClick={handleCancel} disabled={!!actionLoading}
                 className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl py-2.5 text-sm font-semibold transition-colors"
               >
                 {actionLoading?.endsWith('-cancel') ? '...' : t('ownerBookings.cancelModal.confirm')}
@@ -519,8 +588,8 @@ function OwnerBookingsContent() {
         </DialogContent>
       </Dialog>
 
-      {/* Reassign modal */}
-      <Dialog open={reassignOpen} onOpenChange={(o) => { if (!o) { setReassignOpen(false); setReassignBookingId(null); } }}>
+      {/* ── Reassign modal ────────────────────────────────────────────── */}
+      <Dialog open={reassignOpen} onOpenChange={o => { if (!o) { setReassignOpen(false); setReassignBookingId(null); } }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -529,17 +598,13 @@ function OwnerBookingsContent() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-1">
-            <select
-              value={reassignStaffId}
-              onChange={e => setReassignStaffId(e.target.value)}
+            <select value={reassignStaffId} onChange={e => setReassignStaffId(e.target.value)}
               className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
               <option value="">{t('ownerBookings.filterStaff.all')}</option>
               {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
-            <button
-              onClick={handleReassign}
-              disabled={!reassignStaffId || !!actionLoading}
+            <button onClick={handleReassign} disabled={!reassignStaffId || !!actionLoading}
               className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white rounded-xl py-2.5 text-sm font-semibold transition-colors"
             >
               {actionLoading?.endsWith('-reassign') ? '...' : t('ownerBookings.confirmed')}

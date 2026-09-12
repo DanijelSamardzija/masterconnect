@@ -2335,5 +2335,6 @@ export default {
   'ownerBookings.add.phonePlaceholder': 'Telefon (optional)',
   'ownerBookings.add.notesPlaceholder': 'Notiz (optional)',
   'ownerBookings.add.save': 'Termin speichern',
+  'ownerBookings.add.noSlots': 'Keine verfügbaren Termine für diesen Tag.',
   'ownerBookings.add.success': 'Termin hinzugefügt',
 } as const;

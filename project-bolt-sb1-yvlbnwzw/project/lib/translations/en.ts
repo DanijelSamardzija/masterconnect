@@ -2345,5 +2345,6 @@ export default {
   'ownerBookings.add.phonePlaceholder': 'Phone (optional)',
   'ownerBookings.add.notesPlaceholder': 'Note (optional)',
   'ownerBookings.add.save': 'Save booking',
+  'ownerBookings.add.noSlots': 'No available slots for this day.',
   'ownerBookings.add.success': 'Booking added',
 } as const;

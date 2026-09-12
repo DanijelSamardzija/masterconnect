@@ -2268,5 +2268,6 @@ export default {
   'ownerBookings.add.phonePlaceholder': 'Teléfono (opcional)',
   'ownerBookings.add.notesPlaceholder': 'Nota (opcional)',
   'ownerBookings.add.save': 'Guardar cita',
+  'ownerBookings.add.noSlots': 'No hay horarios disponibles para este día.',
   'ownerBookings.add.success': 'Cita añadida',
 } as const;

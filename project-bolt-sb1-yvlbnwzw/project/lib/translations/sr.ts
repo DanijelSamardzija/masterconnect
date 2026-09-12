@@ -2345,5 +2345,6 @@ export default {
   'ownerBookings.add.phonePlaceholder': 'Telefon (opciono)',
   'ownerBookings.add.notesPlaceholder': 'Napomena (opciono)',
   'ownerBookings.add.save': 'Sačuvaj termin',
+  'ownerBookings.add.noSlots': 'Nema slobodnih termina za ovaj dan.',
   'ownerBookings.add.success': 'Termin dodan',
 } as const;

@@ -2275,5 +2275,6 @@ export default {
   'ownerBookings.add.phonePlaceholder': 'Téléphone (facultatif)',
   'ownerBookings.add.notesPlaceholder': 'Note (facultatif)',
   'ownerBookings.add.save': 'Enregistrer le RDV',
+  'ownerBookings.add.noSlots': 'Aucun créneau disponible pour ce jour.',
   'ownerBookings.add.success': 'Rendez-vous ajouté',
 } as const;
