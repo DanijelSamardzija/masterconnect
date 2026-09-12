@@ -55,6 +55,10 @@ export default function StaffBookingsPage() {
   const [permissions, setPermissions] = useState<Permissions>(DEFAULT_PERMS);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     if (!profile) return;
     (async () => {
       const { data } = await (supabase as any)

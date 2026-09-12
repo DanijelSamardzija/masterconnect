@@ -55,6 +55,8 @@ function OwnerBookingsContent() {
   const { t, language } = useLanguage();
   const locale = { sr: 'sr-RS', en: 'en-US', de: 'de-DE', es: 'es-ES', fr: 'fr-FR' }[language] ?? 'en-US';
 
+  useEffect(() => { window.scrollTo(0, 0); }, []);
+
   const [bookings, setBookings]   = useState<Booking[]>([]);
   const [staff, setStaff]         = useState<StaffMember[]>([]);
   const [services, setServices]   = useState<Service[]>([]);

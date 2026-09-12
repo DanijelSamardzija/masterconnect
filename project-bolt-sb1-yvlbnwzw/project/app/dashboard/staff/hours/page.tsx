@@ -44,6 +44,8 @@ export default function StaffHoursPage() {
   const { profile } = useAuth();
   const router = useRouter();
 
+  useEffect(() => { window.scrollTo(0, 0); }, []);
+
   const [staffMemberId, setStaffMemberId] = useState<string | null>(null);
   const [locationId, setLocationId] = useState<string | null>(null);
   const [schedule, setSchedule] = useState<Record<number, DaySchedule>>(
