@@ -265,7 +265,7 @@ export default function BookingSlotPickerPage() {
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-6">
         <p className="text-muted-foreground">{t('booking.notFound')}</p>
         <button onClick={() => router.back()} className="text-primary underline text-sm">
-          {t('booking.backToServices')}
+          {t('booking.backToSetup')}
         </button>
       </div>
     );
@@ -298,7 +298,7 @@ export default function BookingSlotPickerPage() {
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-sm mb-4 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          {t('booking.backToServices')}
+          {t('booking.backToSetup')}
         </button>
 
         <div className="mb-6">

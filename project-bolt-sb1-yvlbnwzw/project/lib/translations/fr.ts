@@ -1775,6 +1775,7 @@ export default {
   'booking.successConfirmed': 'Réservation confirmée !',
   'booking.successPending': 'Réservation reçue — en attente de confirmation',
   'booking.backToServices': 'Retour aux services',
+  'booking.backToSetup': 'Retour aux paramètres',
   'booking.duration': '{min} min',
   'booking.price': 'Prix',
   'booking.priceNegotiable': 'Négociable',
