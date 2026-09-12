@@ -2097,6 +2097,10 @@ export default {
   'setup.rules.save': 'Sačuvaj pravila',
   'setup.rules.saving': 'Čuvanje...',
   'setup.rules.saved': 'Pravila sačuvana',
+  'setup.rules.month1': '1 mj.',
+  'setup.rules.months3': '3 mj.',
+  'setup.rules.months6': '6 mj.',
+  'setup.rules.year1': '1 god.',
   // F11B — Enable booking on posts
   'setup.posts.heading': 'Aktiviraj rezervaciju na oglasima',
   'setup.posts.desc': 'Uključite dugme "Rezerviši sada" na vašim oglasima usluga',

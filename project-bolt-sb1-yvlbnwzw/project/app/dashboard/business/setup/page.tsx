@@ -2100,8 +2100,10 @@ export default function BusinessSetupPage() {
                         onChange={(e) => setRules((r) => ({ ...r, max_advance_days: Number(e.target.value) }))}
                         className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                       >
-                        {[7, 14, 21, 30, 45, 60].map((v) => (
-                          <option key={v} value={v}>{v} dana</option>
+                        {[7, 14, 21, 30, 45, 60, 90, 180, 365].map((v) => (
+                          <option key={v} value={v}>
+                            {v === 180 ? t('setup.rules.months6') : v === 365 ? t('setup.rules.year1') : `${v} dana`}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -2149,8 +2151,10 @@ export default function BusinessSetupPage() {
                         onChange={(e) => setRules((r) => ({ ...r, cancellation_hours: Number(e.target.value) }))}
                         className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                       >
-                        {[0, 1, 2, 4, 8, 12, 24, 48, 72].map((v) => (
-                          <option key={v} value={v}>{v === 0 ? '0' : `${v}h`}</option>
+                        {[0, 1, 2, 4, 8, 12, 24, 48, 72, 720, 2160].map((v) => (
+                          <option key={v} value={v}>
+                            {v === 0 ? '0' : v === 720 ? t('setup.rules.month1') : v === 2160 ? t('setup.rules.months3') : `${v}h`}
+                          </option>
                         ))}
                       </select>
                     </div>

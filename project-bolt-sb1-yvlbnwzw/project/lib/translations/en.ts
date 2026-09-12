@@ -2097,6 +2097,10 @@ export default {
   'setup.rules.save': 'Save Rules',
   'setup.rules.saving': 'Saving...',
   'setup.rules.saved': 'Rules saved',
+  'setup.rules.month1': '1 mo.',
+  'setup.rules.months3': '3 mo.',
+  'setup.rules.months6': '6 mo.',
+  'setup.rules.year1': '1 yr.',
   // F11B — Enable booking on posts
   'setup.posts.heading': 'Enable Booking on Listings',
   'setup.posts.desc': 'Activate the Book Now button on your service listings',

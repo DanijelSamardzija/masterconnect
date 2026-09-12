@@ -2027,6 +2027,10 @@ export default {
   'setup.rules.save': 'Enregistrer les règles',
   'setup.rules.saving': 'Enregistrement...',
   'setup.rules.saved': 'Règles enregistrées',
+  'setup.rules.month1': '1 mois',
+  'setup.rules.months3': '3 mois',
+  'setup.rules.months6': '6 mois',
+  'setup.rules.year1': '1 an',
   // F11B — Enable booking on posts
   'setup.posts.heading': 'Activer la réservation sur les annonces',
   'setup.posts.desc': 'Activez le bouton « Réserver maintenant » sur vos annonces de services',

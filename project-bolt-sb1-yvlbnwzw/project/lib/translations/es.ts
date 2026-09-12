@@ -2020,6 +2020,10 @@ export default {
   'setup.rules.save': 'Guardar reglas',
   'setup.rules.saving': 'Guardando...',
   'setup.rules.saved': 'Reglas guardadas',
+  'setup.rules.month1': '1 mes',
+  'setup.rules.months3': '3 meses',
+  'setup.rules.months6': '6 meses',
+  'setup.rules.year1': '1 año',
   // F11B — Enable booking on posts
   'setup.posts.heading': 'Activar reserva en anuncios',
   'setup.posts.desc': 'Activa el botón «Reservar ahora» en tus anuncios de servicios',

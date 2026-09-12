@@ -1185,7 +1185,11 @@ export default function BookingSetupWizardPage() {
                         onChange={(e) => setRules((r) => ({ ...r, cancellation_hours: Number(e.target.value) }))}
                         className={selectCls}
                       >
-                        {[1, 2, 4, 6, 12, 24, 48].map((v) => <option key={v} value={v}>{v}h</option>)}
+                        {[1, 2, 4, 6, 12, 24, 48, 720, 2160].map((v) => (
+                          <option key={v} value={v}>
+                            {v === 720 ? t('setup.rules.month1') : v === 2160 ? t('setup.rules.months3') : `${v}h`}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <div className="flex flex-col gap-1.5 flex-1">
@@ -1232,7 +1236,11 @@ export default function BookingSetupWizardPage() {
                       onChange={(e) => setRules((r) => ({ ...r, max_advance_days: Number(e.target.value) }))}
                       className={selectCls}
                     >
-                      {[7, 14, 30, 60, 90].map((v) => <option key={v} value={v}>{v} dana</option>)}
+                      {[7, 14, 30, 60, 90, 180, 365].map((v) => (
+                        <option key={v} value={v}>
+                          {v === 180 ? t('setup.rules.months6') : v === 365 ? t('setup.rules.year1') : `${v} dana`}
+                        </option>
+                      ))}
                     </select>
                   </div>
 

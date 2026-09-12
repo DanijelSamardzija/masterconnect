@@ -2087,6 +2087,10 @@ export default {
   'setup.rules.save': 'Regeln speichern',
   'setup.rules.saving': 'Speichern...',
   'setup.rules.saved': 'Regeln gespeichert',
+  'setup.rules.month1': '1 Mon.',
+  'setup.rules.months3': '3 Mon.',
+  'setup.rules.months6': '6 Mon.',
+  'setup.rules.year1': '1 Jahr',
   // F11B — Enable booking on posts
   'setup.posts.heading': 'Buchung für Anzeigen aktivieren',
   'setup.posts.desc': 'Aktivieren Sie den Button „Jetzt buchen" in Ihren Serviceanzeigen',
