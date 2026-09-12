@@ -2136,6 +2136,8 @@ export default {
   'setup.staff.services.save': 'Sačuvaj usluge',
   'setup.staff.services.saved': 'Usluge sačuvane',
   'setup.staff.noLocation': 'Morate dodati lokaciju prije dodavanja osoblja.',
+  'setup.staff.add': 'Dodaj radnika',
+  'setup.staff.added': 'Radnik dodat',
   'setup.staff.location': 'Lokacija',
   // F12 — Service-location assignments
   'setup.services.locations.title': 'Dostupno na lokacijama',

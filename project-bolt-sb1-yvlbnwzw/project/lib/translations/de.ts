@@ -2126,6 +2126,8 @@ export default {
   'setup.staff.services.save': 'Dienste speichern',
   'setup.staff.services.saved': 'Dienste gespeichert',
   'setup.staff.noLocation': 'Sie müssen einen Standort hinzufügen, bevor Sie Personal hinzufügen.',
+  'setup.staff.add': 'Mitarbeiter hinzufügen',
+  'setup.staff.added': 'Mitarbeiter hinzugefügt',
   'setup.staff.location': 'Standort',
   // F12 — Service-location assignments
   'setup.services.locations.title': 'Verfügbar an Standorten',

@@ -2136,6 +2136,8 @@ export default {
   'setup.staff.services.save': 'Save services',
   'setup.staff.services.saved': 'Services saved',
   'setup.staff.noLocation': 'You must add a location before adding staff.',
+  'setup.staff.add': 'Add staff member',
+  'setup.staff.added': 'Staff member added',
   'setup.staff.location': 'Location',
   // F12 — Service-location assignments
   'setup.services.locations.title': 'Available at locations',

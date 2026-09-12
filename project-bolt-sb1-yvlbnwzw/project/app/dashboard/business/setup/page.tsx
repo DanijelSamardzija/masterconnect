@@ -100,6 +100,13 @@ type StaffInvitation = {
   created_at: string;
 };
 
+type StaffResult = {
+  id: string;
+  name: string;
+  avatar_url: string | null;
+  city: string | null;
+};
+
 const BOOKING_TYPES = [
   'appointment_service',
   'tradespeople',
@@ -323,6 +330,12 @@ export default function BusinessSetupPage() {
   const [inviteLocationId, setInviteLocationId] = useState('');
   const [inviteSending, setInviteSending] = useState(false);
   const [showInviteForm, setShowInviteForm] = useState(false);
+  const [staffAddSearch, setStaffAddSearch] = useState('');
+  const [staffAddResults, setStaffAddResults] = useState<StaffResult[]>([]);
+  const [staffAddSearching, setStaffAddSearching] = useState(false);
+  const [selectedStaffToAdd, setSelectedStaffToAdd] = useState<StaffResult | null>(null);
+  const [addingStaffRole, setAddingStaffRole] = useState<'manager' | 'worker'>('worker');
+  const [addingStaff, setAddingStaff] = useState(false);
   const [expandedStaffId, setExpandedStaffId] = useState<string | null>(null);
   const [staffHoursMap, setStaffHoursMap] = useState<Record<string, DayHours[]>>({});
   const [staffServicesMap, setStaffServicesMap] = useState<Record<string, string[]>>({});
@@ -964,7 +977,42 @@ export default function BusinessSetupPage() {
     loadLocations();
   }
 
+  // ── Staff search debounce ──────────────────────────────────────────────────
+  useEffect(() => {
+    if (staffAddSearch.length < 2) { setStaffAddResults([]); return; }
+    const timer = setTimeout(async () => {
+      setStaffAddSearching(true);
+      const { data } = await (supabase as any).rpc('search_profiles', {
+        p_search: staffAddSearch,
+        p_limit: 6,
+      });
+      setStaffAddSearching(false);
+      if (Array.isArray(data)) {
+        const existingIds = new Set(staffMembers.map((sm) => sm.user_id));
+        setStaffAddResults((data as StaffResult[]).filter((u) => u.id !== user?.id && !existingIds.has(u.id)));
+      }
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [staffAddSearch, user?.id, staffMembers]);
+
   // ── Staff handlers ─────────────────────────────────────────────────────────
+  async function handleAddStaffDirect() {
+    if (!selectedStaffToAdd || !primaryLocId) return;
+    setAddingStaff(true);
+    const { data } = await (supabase as any).rpc('add_staff_direct', {
+      p_user_id: selectedStaffToAdd.id,
+      p_role: addingStaffRole,
+      p_location_id: primaryLocId,
+    });
+    setAddingStaff(false);
+    if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); return; }
+    toast.success(t('setup.staff.added'));
+    setSelectedStaffToAdd(null);
+    setStaffAddSearch('');
+    setAddingStaffRole('worker');
+    loadStaff();
+  }
+
   async function handleSendInvite() {
     if (!user || !inviteEmail.trim()) return;
     setInviteSending(true);
@@ -2081,69 +2129,102 @@ export default function BusinessSetupPage() {
                 </div>
               ) : (
                 <>
-                  {/* Invite form */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-muted-foreground">{t('setup.staff.invite')}</span>
-                    <Button size="sm" variant="outline" onClick={() => setShowInviteForm((v) => !v)}>
-                      <Plus className="w-3.5 h-3.5 mr-1" />
-                      {t('setup.staff.invite')}
-                    </Button>
-                  </div>
-
-                  {showInviteForm && (
-                    <div className="border border-border rounded-xl p-4 flex flex-col gap-3 bg-card">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium">{t('setup.staff.invite')}</span>
-                        <button onClick={() => setShowInviteForm(false)} className="text-muted-foreground hover:text-foreground">
+                  {/* Add staff — search by name */}
+                  <div className="flex flex-col gap-2">
+                    {selectedStaffToAdd ? (
+                      /* Selected user card */
+                      <div className="flex items-center gap-3 p-3 rounded-xl border-2 border-primary/30 bg-primary/5">
+                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0 overflow-hidden text-sm font-bold text-primary">
+                          {selectedStaffToAdd.avatar_url ? (
+                            <img src={selectedStaffToAdd.avatar_url} alt={selectedStaffToAdd.name} className="w-full h-full object-cover" />
+                          ) : (
+                            selectedStaffToAdd.name.charAt(0).toUpperCase()
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{selectedStaffToAdd.name}</p>
+                          {selectedStaffToAdd.city && (
+                            <p className="text-xs text-muted-foreground">{selectedStaffToAdd.city}</p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => setSelectedStaffToAdd(null)}
+                          className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                        >
                           <X className="w-4 h-4" />
                         </button>
                       </div>
-
-                      {labelInput(t('setup.staff.inviteEmail'),
+                    ) : (
+                      /* Search input */
+                      <div className="relative">
                         <input
-                          type="email"
-                          value={inviteEmail}
-                          onChange={(e) => setInviteEmail(e.target.value)}
-                          placeholder="radnik@email.com"
-                          className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                          type="text"
+                          value={staffAddSearch}
+                          onChange={(e) => setStaffAddSearch(e.target.value)}
+                          placeholder={t('bookingSetup.staff.search.placeholder')}
+                          className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary w-full"
                         />
-                      )}
+                        {staffAddSearching && (
+                          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
+                        )}
+                      </div>
+                    )}
 
-                      <div className="grid grid-cols-2 gap-3">
-                        {labelInput(t('setup.staff.inviteRole'),
+                    {/* Search results */}
+                    {staffAddResults.length > 0 && !selectedStaffToAdd && (
+                      <div className="border border-border rounded-xl overflow-hidden">
+                        {staffAddResults.map((u, i) => (
+                          <button
+                            key={u.id}
+                            onClick={() => { setSelectedStaffToAdd(u); setStaffAddResults([]); setStaffAddSearch(''); }}
+                            className={`flex items-center gap-3 p-3 hover:bg-muted/60 w-full text-left transition-colors ${i < staffAddResults.length - 1 ? 'border-b border-border/50' : ''}`}
+                          >
+                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden text-xs font-bold">
+                              {u.avatar_url ? (
+                                <img src={u.avatar_url} alt={u.name} className="w-full h-full object-cover" />
+                              ) : (
+                                u.name.charAt(0).toUpperCase()
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-medium text-sm truncate">{u.name}</p>
+                              {u.city && <p className="text-xs text-muted-foreground">{u.city}</p>}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {staffAddSearch.length >= 2 && staffAddResults.length === 0 && !staffAddSearching && !selectedStaffToAdd && (
+                      <p className="text-xs text-muted-foreground">{t('bookingSetup.staff.search.noResults')}</p>
+                    )}
+
+                    {!selectedStaffToAdd && (
+                      <p className="text-xs text-muted-foreground/70">
+                        {t('bookingSetup.staff.search.mustHaveAccount')}
+                      </p>
+                    )}
+
+                    {/* Role selector + Add button */}
+                    {selectedStaffToAdd && (
+                      <div className="flex items-end gap-2">
+                        <div className="flex flex-col gap-1 flex-1">
+                          <label className="text-xs font-medium text-muted-foreground">{t('setup.staff.inviteRole')}</label>
                           <select
-                            value={inviteRole}
-                            onChange={(e) => setInviteRole(e.target.value as 'manager' | 'worker')}
+                            value={addingStaffRole}
+                            onChange={(e) => setAddingStaffRole(e.target.value as 'manager' | 'worker')}
                             className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                           >
                             <option value="worker">{t('setup.staff.role.worker')}</option>
                             <option value="manager">{t('setup.staff.role.manager')}</option>
                           </select>
-                        )}
-                        {labelInput(t('setup.staff.inviteLocation'),
-                          <select
-                            value={inviteLocationId}
-                            onChange={(e) => setInviteLocationId(e.target.value)}
-                            className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                          >
-                            <option value=""></option>
-                            {locations.filter((l) => l.is_active).map((loc) => (
-                              <option key={loc.id} value={loc.id}>{loc.name}</option>
-                            ))}
-                          </select>
-                        )}
-                      </div>
-
-                      <div className="flex gap-2 pt-1">
-                        <Button size="sm" onClick={handleSendInvite} disabled={inviteSending || !inviteEmail.trim()}>
-                          {inviteSending ? t('setup.staff.invite.sending') : t('setup.staff.invite.send')}
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => setShowInviteForm(false)}>
-                          {t('setup.services.cancel')}
+                        </div>
+                        <Button onClick={handleAddStaffDirect} disabled={addingStaff}>
+                          {addingStaff ? <Loader2 className="w-4 h-4 animate-spin" /> : t('setup.staff.add')}
                         </Button>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
                   {/* Pending invitations */}
                   {staffInvitations.length > 0 && (

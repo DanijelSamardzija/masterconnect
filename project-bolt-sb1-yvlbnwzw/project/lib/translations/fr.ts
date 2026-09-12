@@ -2066,6 +2066,8 @@ export default {
   'setup.staff.services.save': 'Enregistrer les services',
   'setup.staff.services.saved': 'Services enregistrés',
   'setup.staff.noLocation': 'Vous devez ajouter un lieu avant d\'ajouter du personnel.',
+  'setup.staff.add': 'Ajouter un employé',
+  'setup.staff.added': 'Employé ajouté',
   'setup.staff.location': 'Lieu',
   // F12 — Service-location assignments
   'setup.services.locations.title': 'Disponible aux lieux',
