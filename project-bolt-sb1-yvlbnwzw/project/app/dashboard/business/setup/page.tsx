@@ -1228,7 +1228,7 @@ export default function BusinessSetupPage() {
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">
             <button
-              onClick={() => router.push('/dashboard/business/bookings')}
+              onClick={() => router.push('/dashboard')}
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               <ChevronRight className="w-5 h-5 rotate-180" />
