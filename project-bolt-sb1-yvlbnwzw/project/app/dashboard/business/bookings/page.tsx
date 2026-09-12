@@ -3,423 +3,338 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/protected-route';
-import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
-import { useLanguage } from '@/lib/contexts/language-context';
-import { useBookingAccess } from '@/lib/hooks/use-booking-access';
-import { BookingBetaBanner } from '@/components/booking-beta-banner';
+import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
-import { Calendar, Check, X, ChevronRight, Users, CheckCircle, UserX, Settings } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { LiveStatusToggle } from '@/components/live-status-toggle';
+import { useLanguage } from '@/lib/contexts/language-context';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+  ChevronLeft, Calendar, Users, CheckCircle2, XCircle,
+  Clock, AlertCircle
+} from 'lucide-react';
 
-type BookingRow = {
+type Booking = {
   id: string;
-  service_name_snapshot: string | null;
   starts_at: string;
   ends_at: string;
+  service_name_snapshot: string;
   status: string;
-  party_size: number;
+  staff_member_id: string | null;
   notes: string | null;
-  client: { name: string; avatar_url: string | null } | null;
-  location: { name: string } | null;
-  business_id: string;
 };
 
-type FilterValue = 'all' | 'pending' | 'confirmed' | 'cancelled' | 'completed';
+type StaffMember = { id: string; name: string };
 
-const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-  confirmed: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-  cancelled: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-  completed: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-  no_show: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
-};
+type Filter = 'upcoming' | 'pending' | 'all';
 
-function formatDt(isoStr: string): string {
-  return new Intl.DateTimeFormat(undefined, {
-    year: 'numeric', month: 'short', day: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  }).format(new Date(isoStr));
-}
-
-export default function BusinessBookingsPage() {
-  const { user } = useAuth();
-  const { t } = useLanguage();
+function OwnerBookingsContent() {
+  const { profile } = useAuth();
   const router = useRouter();
-  const { hasAccess, loading: authLoading } = useBookingAccess();
+  const { t } = useLanguage();
 
-  const [bookings, setBookings] = useState<BookingRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<FilterValue>('all');
-  const [primaryBizId, setPrimaryBizId] = useState<string | null>(null);
-  const [primaryLiveStatus, setPrimaryLiveStatus] = useState<'available_now' | 'available_today' | 'by_schedule' | 'unavailable'>('by_schedule');
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [staff, setStaff]       = useState<StaffMember[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [filter, setFilter]     = useState<Filter>('upcoming');
+  const [staffFilter, setStaffFilter] = useState<string>('all');
+  const [isOwner, setIsOwner]   = useState<boolean | null>(null);
 
-  // Action state
-  const [confirmTarget, setConfirmTarget] = useState<string | null>(null);
-  const [cancelTarget, setCancelTarget] = useState<string | null>(null);
-  const [cancelReason, setCancelReason] = useState('');
-  const [completeTarget, setCompleteTarget] = useState<{ id: string; status: 'completed' | 'no_show' } | null>(null);
-  const [actionLoading, setActionLoading] = useState(false);
+  const [reassignOpen, setReassignOpen]     = useState(false);
+  const [reassignBookingId, setReassignBookingId] = useState<string | null>(null);
+  const [reassignStaffId, setReassignStaffId]     = useState('');
+  const [actionLoading, setActionLoading]   = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) return;
-    async function load() {
-      setLoading(true);
-      // Find businesses where user is active staff
-      const { data: staffRows } = await supabase
-        .from('staff_members')
-        .select('business_id')
-        .eq('user_id', user!.id)
-        .eq('is_active', true);
+    if (!profile) return;
+    checkOwnerRole();
+    fetchStaff();
+  }, [profile]);
 
-      const businessIds = (staffRows ?? []).map((r) => r.business_id);
-      if (businessIds.length === 0) {
-        setBookings([]);
-        setLoading(false);
-        return;
-      }
+  useEffect(() => {
+    if (isOwner) fetchBookings();
+  }, [isOwner, filter, staffFilter]);
 
-      // Fetch live_status for primary (first) business
-      const firstBizId = businessIds[0];
-      setPrimaryBizId(firstBizId);
-      const { data: profileRow } = await supabase
-        .from('profiles')
-        .select('live_status')
-        .eq('id', firstBizId)
-        .single();
-      if (profileRow?.live_status) {
-        setPrimaryLiveStatus(profileRow.live_status as typeof primaryLiveStatus);
-      }
+  const checkOwnerRole = async () => {
+    if (!profile) return;
+    const { data } = await (supabase as any)
+      .from('staff_members')
+      .select('role')
+      .eq('business_id', profile.id)
+      .eq('user_id', profile.id)
+      .eq('is_active', true)
+      .in('role', ['owner', 'manager'])
+      .limit(1)
+      .maybeSingle();
+    setIsOwner(!!data);
+  };
 
-      const { data } = await supabase
-        .from('bookings')
-        .select(`
-          id, service_name_snapshot, starts_at, ends_at,
-          status, party_size, notes, business_id,
-          client:client_id(name, avatar_url),
-          location:location_id(name)
-        `)
-        .in('business_id', businessIds)
-        .order('starts_at', { ascending: false })
-        .limit(100);
+  const fetchStaff = async () => {
+    if (!profile) return;
+    const { data } = await (supabase as any)
+      .from('staff_members')
+      .select('id, profiles!staff_members_user_id_fkey(name)')
+      .eq('business_id', profile.id)
+      .eq('is_active', true);
+    if (data) setStaff(data.map((s: any) => ({ id: s.id, name: s.profiles?.name || '—' })));
+  };
 
-      setBookings((data as unknown as BookingRow[]) ?? []);
-      setLoading(false);
+  const fetchBookings = async () => {
+    if (!profile) return;
+    setLoading(true);
+    let query = (supabase as any)
+      .from('bookings')
+      .select('id, starts_at, ends_at, service_name_snapshot, status, staff_member_id, notes')
+      .eq('business_id', profile.id);
+
+    if (filter === 'upcoming') {
+      query = query.gte('starts_at', new Date().toISOString()).in('status', ['pending', 'confirmed']);
+    } else if (filter === 'pending') {
+      query = query.eq('status', 'pending');
     }
-    load();
-  }, [user]);
 
-  async function handleConfirm() {
-    if (!confirmTarget) return;
-    setActionLoading(true);
-    const { data } = await (supabase as any).rpc('confirm_booking', {
-      p_booking_id: confirmTarget,
+    if (staffFilter !== 'all') {
+      query = query.eq('staff_member_id', staffFilter);
+    }
+
+    const { data } = await query.order('starts_at', { ascending: filter !== 'all' }).limit(50);
+    setBookings(data || []);
+    setLoading(false);
+  };
+
+  const handleConfirm = async (bookingId: string) => {
+    setActionLoading(bookingId + '-confirm');
+    const { data, error } = await (supabase as any).rpc('owner_confirm_booking', { p_booking_id: bookingId });
+    setActionLoading(null);
+    if (error || data?.ok === false) { toast.error(data?.error || 'Greška'); return; }
+    toast.success(t('ownerBookings.confirmed'));
+    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'confirmed' } : b));
+  };
+
+  const handleCancel = async (bookingId: string) => {
+    setActionLoading(bookingId + '-cancel');
+    const { data, error } = await (supabase as any).rpc('owner_cancel_booking', { p_booking_id: bookingId });
+    setActionLoading(null);
+    if (error || data?.ok === false) { toast.error(data?.error || 'Greška'); return; }
+    toast.success(t('ownerBookings.cancelled'));
+    setBookings(prev => prev.filter(b => b.id !== bookingId));
+  };
+
+  const handleReassign = async () => {
+    if (!reassignBookingId || !reassignStaffId) return;
+    setActionLoading(reassignBookingId + '-reassign');
+    const { data, error } = await (supabase as any).rpc('owner_reassign_booking', {
+      p_booking_id: reassignBookingId,
+      p_staff_member_id: reassignStaffId,
     });
-    setActionLoading(false);
-    const result = data as { ok: boolean; error?: string } | null;
-    if (!result?.ok) {
-      toast.error(result?.error === 'not_pending' ? t('booking.error.notPending') : t('booking.error.generic'));
-      setConfirmTarget(null);
-      return;
-    }
-    toast.success(t('booking.confirmSuccess'));
-    setBookings((prev) =>
-      prev.map((b) => b.id === confirmTarget ? { ...b, status: 'confirmed' } : b)
-    );
-    setConfirmTarget(null);
-  }
+    setActionLoading(null);
+    if (error || data?.ok === false) { toast.error(data?.error || 'Greška'); return; }
+    toast.success(t('ownerBookings.reassigned'));
+    setBookings(prev => prev.map(b => b.id === reassignBookingId ? { ...b, staff_member_id: reassignStaffId } : b));
+    setReassignOpen(false);
+    setReassignBookingId(null);
+  };
 
-  async function handleCancel() {
-    if (!cancelTarget) return;
-    setActionLoading(true);
-    const { data } = await (supabase as any).rpc('cancel_booking', {
-      p_booking_id: cancelTarget,
-      p_reason: cancelReason.trim() || null,
-    });
-    setActionLoading(false);
-    const result = data as { ok: boolean } | null;
-    if (!result?.ok) {
-      toast.error(t('booking.error.generic'));
-      setCancelTarget(null);
-      return;
-    }
-    toast.success(t('booking.cancelSuccess'));
-    setBookings((prev) =>
-      prev.map((b) => b.id === cancelTarget ? { ...b, status: 'cancelled' } : b)
-    );
-    setCancelTarget(null);
-    setCancelReason('');
-  }
+  const openReassign = (b: Booking) => {
+    setReassignBookingId(b.id);
+    setReassignStaffId(b.staff_member_id || '');
+    setReassignOpen(true);
+  };
 
-  async function handleComplete() {
-    if (!completeTarget) return;
-    setActionLoading(true);
-    const { data } = await (supabase as any).rpc('complete_booking', {
-      p_booking_id: completeTarget.id,
-      p_status: completeTarget.status,
-    });
-    setActionLoading(false);
-    const result = data as { ok: boolean; error?: string } | null;
-    if (!result?.ok) {
-      const errKey = result?.error === 'not_confirmed'
-        ? 'booking.error.notConfirmed'
-        : result?.error === 'booking_not_started'
-        ? 'booking.error.notStarted'
-        : 'booking.error.generic';
-      toast.error(t(errKey));
-      setCompleteTarget(null);
-      return;
-    }
-    toast.success(completeTarget.status === 'no_show' ? t('booking.noShowSuccess') : t('booking.completeSuccess'));
-    setBookings((prev) =>
-      prev.map((b) => b.id === completeTarget.id ? { ...b, status: completeTarget.status } : b)
-    );
-    setCompleteTarget(null);
-  }
+  const statusConfig: Record<string, { label: string; cls: string; icon: React.ReactNode }> = {
+    pending:   { label: t('ownerBookings.status.pending'),   cls: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400', icon: <Clock className="h-3 w-3" /> },
+    confirmed: { label: t('ownerBookings.status.confirmed'), cls: 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400',   icon: <CheckCircle2 className="h-3 w-3" /> },
+    completed: { label: t('ownerBookings.status.completed'), cls: 'bg-muted text-muted-foreground', icon: <CheckCircle2 className="h-3 w-3" /> },
+    no_show:   { label: t('ownerBookings.status.no_show'),   cls: 'bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-400',           icon: <AlertCircle className="h-3 w-3" /> },
+    cancelled: { label: t('ownerBookings.status.cancelled'), cls: 'bg-muted text-muted-foreground', icon: <XCircle className="h-3 w-3" /> },
+  };
 
-  const FILTERS: FilterValue[] = ['all', 'pending', 'confirmed', 'completed', 'cancelled'];
-  const filtered = bookings.filter((b) => {
-    if (filter === 'all') return true;
-    return b.status === filter;
-  });
-
-  if (!authLoading && !hasAccess) {
+  if (isOwner === false) {
     return (
-      <ProtectedRoute>
-        <BookingBetaBanner />
-      </ProtectedRoute>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-sm text-muted-foreground">{t('ownerBookings.noPermission')}</p>
+      </div>
     );
   }
+
+  const FILTERS: { key: Filter; label: string }[] = [
+    { key: 'upcoming', label: t('ownerBookings.filter.upcoming') },
+    { key: 'pending',  label: t('ownerBookings.filter.pending')  },
+    { key: 'all',      label: t('ownerBookings.filter.all')      },
+  ];
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-background">
-        <div className="max-w-2xl mx-auto px-4 py-6">
-          <div className="flex items-center gap-3 mb-6">
-            <button onClick={() => router.push('/dashboard')} className="text-muted-foreground hover:text-foreground transition-colors">
-              <ChevronRight className="w-5 h-5 rotate-180" />
-            </button>
-            <h1 className="text-xl font-semibold flex-1">{t('booking.businessBookings')}</h1>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-2xl mx-auto px-4 py-8 space-y-5">
+
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.back()}
+            className="p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <div>
+            <h1 className="text-xl font-bold text-foreground">{t('ownerBookings.title')}</h1>
+            <p className="text-xs text-muted-foreground">{t('ownerBookings.subtitle')}</p>
+          </div>
+        </div>
+
+        {/* Filter tabs */}
+        <div className="flex gap-1.5 bg-muted/50 rounded-xl p-1">
+          {FILTERS.map(f => (
             <button
-              onClick={() => router.push('/dashboard/business/setup')}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground border border-border rounded-lg px-3 py-1.5 transition-colors"
+              key={f.key}
+              onClick={() => setFilter(f.key)}
+              className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                filter === f.key
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
             >
-              <Settings className="w-3.5 h-3.5" />
-              {t('setup.nav.setup')}
+              {f.label}
             </button>
+          ))}
+        </div>
+
+        {/* Staff filter */}
+        {staff.length > 1 && (
+          <div className="flex items-center gap-2">
+            <Users className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <select
+              value={staffFilter}
+              onChange={e => setStaffFilter(e.target.value)}
+              className="flex-1 border border-border rounded-xl px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+            >
+              <option value="all">{t('ownerBookings.filterStaff.all')}</option>
+              {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
           </div>
+        )}
 
-          {/* Live availability toggle */}
-          {primaryBizId && (
-            <div className="mb-5 p-4 border border-border rounded-xl bg-card">
-              <LiveStatusToggle
-                businessId={primaryBizId}
-                initialStatus={primaryLiveStatus}
-              />
-            </div>
-          )}
-
-          {/* Filter chips */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            {FILTERS.map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                  filter === f
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-accent text-accent-foreground hover:bg-accent/80'
-                }`}
-              >
-                {t(`booking.filter.${f}`)}
-              </button>
-            ))}
+        {/* Bookings list */}
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <div className="h-7 w-7 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
           </div>
+        ) : bookings.length === 0 ? (
+          <div className="bg-card border border-border rounded-2xl px-5 py-12 text-center">
+            <Calendar className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-40" />
+            <p className="text-sm text-muted-foreground">{t('ownerBookings.empty')}</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {bookings.map(b => {
+              const staffName = staff.find(s => s.id === b.staff_member_id)?.name;
+              const sc = statusConfig[b.status] ?? { label: b.status, cls: 'bg-muted text-muted-foreground', icon: null };
+              const isPast = new Date(b.starts_at) < new Date();
+              const isActive = ['pending', 'confirmed'].includes(b.status);
 
-          {loading ? (
-            <div className="flex justify-center py-12">
-              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground text-sm">
-              <Calendar className="w-10 h-10 mx-auto mb-3 opacity-30" />
-              {t('booking.noBookings')}
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {filtered.map((b) => (
-                <div key={b.id} className="border border-border rounded-xl p-4 flex flex-col gap-2">
+              return (
+                <div key={b.id} className="bg-card border border-border rounded-2xl p-4 space-y-3">
+                  {/* Date + status row */}
                   <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">
-                        {b.service_name_snapshot ?? t('booking.service')}
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">
+                        {new Date(b.starts_at).toLocaleDateString('sr-RS', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
                       </p>
-                      {b.client && (
-                        <p className="text-xs text-muted-foreground">
-                          {t('booking.client')}: {(b.client as any).name}
-                        </p>
-                      )}
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(b.starts_at).toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' })}
+                        {' – '}
+                        {new Date(b.ends_at).toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' })}
+                      </p>
                     </div>
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_COLORS[b.status] ?? STATUS_COLORS.pending}`}>
-                      {t(`booking.status.${b.status}`) ?? b.status}
+                    <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full shrink-0 ${sc.cls}`}>
+                      {sc.icon} {sc.label}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      {formatDt(b.starts_at)}
-                    </span>
-                    {b.party_size > 1 && (
-                      <span className="flex items-center gap-1">
-                        <Users className="w-3 h-3" />
-                        {b.party_size}
-                      </span>
-                    )}
+                  {/* Service + staff */}
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <span className="font-medium text-foreground truncate">{b.service_name_snapshot}</span>
+                    {staffName && <span className="shrink-0">· {staffName}</span>}
                   </div>
 
-                  {b.location && (
-                    <p className="text-xs text-muted-foreground">{(b.location as any).name}</p>
+                  {b.notes?.trim() && (
+                    <p className="text-xs text-muted-foreground/70 italic">{b.notes}</p>
                   )}
 
-                  {b.notes && (
-                    <p className="text-xs text-muted-foreground italic">&ldquo;{b.notes}&rdquo;</p>
-                  )}
-
-                  {(b.status === 'pending' || b.status === 'confirmed') && (
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      {b.status === 'pending' && new Date(b.starts_at) > new Date() && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 text-green-700 border-green-200 hover:bg-green-50 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/20"
-                          onClick={() => setConfirmTarget(b.id)}
+                  {/* Action buttons — only for active non-past or pending */}
+                  {isActive && (
+                    <div className="flex items-center gap-2 pt-1 border-t border-border">
+                      {b.status === 'pending' && (
+                        <button
+                          onClick={() => handleConfirm(b.id)}
+                          disabled={!!actionLoading}
+                          className="flex-1 flex items-center justify-center gap-1.5 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-xl py-2 text-xs font-semibold transition-colors"
                         >
-                          <Check className="w-3.5 h-3.5 mr-1" />
-                          {t('booking.confirmBooking')}
-                        </Button>
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          {actionLoading === b.id + '-confirm' ? '...' : t('ownerBookings.confirm')}
+                        </button>
                       )}
-                      {b.status === 'confirmed' && (
-                        <>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-blue-700 border-blue-200 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-800 dark:hover:bg-blue-900/20"
-                            onClick={() => setCompleteTarget({ id: b.id, status: 'completed' })}
-                          >
-                            <CheckCircle className="w-3.5 h-3.5 mr-1" />
-                            {t('booking.markComplete')}
-                          </Button>
-                          {new Date(b.starts_at) <= new Date() && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-7 text-gray-600 border-gray-200 hover:bg-gray-50 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-gray-800/50"
-                              onClick={() => setCompleteTarget({ id: b.id, status: 'no_show' })}
-                            >
-                              <UserX className="w-3.5 h-3.5 mr-1" />
-                              {t('booking.markNoShow')}
-                            </Button>
-                          )}
-                        </>
-                      )}
-                      {new Date(b.starts_at) > new Date() && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 text-destructive hover:text-destructive hover:bg-destructive/10 px-2"
-                          onClick={() => { setCancelTarget(b.id); setCancelReason(''); }}
+                      <button
+                        onClick={() => openReassign(b)}
+                        disabled={!!actionLoading}
+                        className="flex items-center justify-center gap-1.5 bg-muted hover:bg-muted/80 disabled:opacity-50 text-foreground rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
+                      >
+                        <Users className="h-3.5 w-3.5" />
+                        {t('ownerBookings.reassign')}
+                      </button>
+                      {!isPast && (
+                        <button
+                          onClick={() => handleCancel(b.id)}
+                          disabled={!!actionLoading}
+                          className="flex items-center justify-center gap-1.5 bg-red-100 hover:bg-red-200 dark:bg-red-950 dark:hover:bg-red-900 disabled:opacity-50 text-red-600 dark:text-red-400 rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
                         >
-                          <X className="w-3.5 h-3.5 mr-1" />
-                          {t('booking.cancelBooking')}
-                        </Button>
+                          <XCircle className="h-3.5 w-3.5" />
+                          {actionLoading === b.id + '-cancel' ? '...' : t('ownerBookings.cancel')}
+                        </button>
                       )}
                     </div>
                   )}
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Confirm dialog */}
-        <AlertDialog open={!!confirmTarget} onOpenChange={(open) => !open && setConfirmTarget(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{t('booking.confirmBooking')}</AlertDialogTitle>
-              <AlertDialogDescription>
-                {t('booking.status.pending')} → {t('booking.status.confirmed')}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={actionLoading}>{t('block.cancel')}</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirm} disabled={actionLoading}>
-                {actionLoading ? t('booking.confirming') : t('booking.confirmBooking')}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        {/* Cancel dialog */}
-        <AlertDialog open={!!cancelTarget} onOpenChange={(open) => !open && setCancelTarget(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{t('booking.cancelBooking')}</AlertDialogTitle>
-              <AlertDialogDescription>{t('booking.cancelConfirm')}</AlertDialogDescription>
-            </AlertDialogHeader>
-            <div className="px-0 pb-2">
-              <input
-                type="text"
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                placeholder={t('booking.cancelReason')}
-                className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={actionLoading}>{t('block.cancel')}</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleCancel}
-                disabled={actionLoading}
-                className="bg-destructive hover:bg-destructive/90"
-              >
-                {actionLoading ? t('booking.cancelling') : t('booking.cancelBooking')}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        {/* Complete / No-show dialog */}
-        <AlertDialog open={!!completeTarget} onOpenChange={(open) => !open && setCompleteTarget(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>
-                {completeTarget?.status === 'no_show' ? t('booking.markNoShow') : t('booking.markComplete')}
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                {completeTarget?.status === 'no_show' ? t('booking.markNoShowConfirm') : t('booking.markCompleteConfirm')}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={actionLoading}>{t('block.cancel')}</AlertDialogCancel>
-              <AlertDialogAction onClick={handleComplete} disabled={actionLoading}>
-                {actionLoading ? t('booking.completing') : (completeTarget?.status === 'no_show' ? t('booking.markNoShow') : t('booking.markComplete'))}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+              );
+            })}
+          </div>
+        )}
       </div>
+
+      {/* Reassign modal */}
+      <Dialog open={reassignOpen} onOpenChange={(o) => { if (!o) { setReassignOpen(false); setReassignBookingId(null); } }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-muted-foreground" />
+              {t('ownerBookings.reassign')}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-1">
+            <select
+              value={reassignStaffId}
+              onChange={e => setReassignStaffId(e.target.value)}
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+            >
+              <option value="">{t('ownerBookings.filterStaff.all')}</option>
+              {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+            <button
+              onClick={handleReassign}
+              disabled={!reassignStaffId || !!actionLoading}
+              className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white rounded-xl py-2.5 text-sm font-semibold transition-colors"
+            >
+              {actionLoading?.endsWith('-reassign') ? '...' : t('ownerBookings.confirmed')}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+export default function OwnerBookingsPage() {
+  return (
+    <ProtectedRoute>
+      <OwnerBookingsContent />
     </ProtectedRoute>
   );
 }

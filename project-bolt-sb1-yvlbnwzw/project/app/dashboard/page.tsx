@@ -573,13 +573,23 @@ function DashboardContent() {
                 <p className="text-sm font-semibold text-foreground">{t('dashboard.business.activeTitle')}</p>
                 <span className="text-xs font-medium text-green-600 dark:text-green-400">{t('dashboard.business.activeStatus')}</span>
               </div>
-              <button
-                onClick={() => router.push('/dashboard/business/setup')}
-                className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground shrink-0 transition-colors"
-              >
-                <Settings className="h-3.5 w-3.5" />
-                {t('dashboard.business.activeButton')}
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => router.push('/dashboard/business/bookings')}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-orange-500 hover:text-orange-400 transition-colors"
+                >
+                  <Calendar className="h-3.5 w-3.5" />
+                  Rezervacije
+                </button>
+                <span className="text-border">|</span>
+                <button
+                  onClick={() => router.push('/dashboard/business/setup')}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Settings className="h-3.5 w-3.5" />
+                  {t('dashboard.business.activeButton')}
+                </button>
+              </div>
             </div>
           ) : (
             // Whitelisted + Premium + no business profile yet
