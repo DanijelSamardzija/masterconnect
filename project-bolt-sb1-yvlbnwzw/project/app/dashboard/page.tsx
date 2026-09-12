@@ -90,6 +90,7 @@ function DashboardContent() {
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
   const [isBusinessProfile, setIsBusinessProfile] = useState<boolean | null>(null);
   const [hasServiceListing, setHasServiceListing] = useState<boolean | null>(null);
+  const [staffBusinessName, setStaffBusinessName] = useState<string | null>(null);
   const [donations, setDonations] = useState<{ id: string; amount: number; anonymous: boolean; sender_name: string | null; sender_avatar: string | null; created_at: string }[]>([]);
   const [donationsOpen, setDonationsOpen] = useState(false);
   const [allReviewsOpen, setAllReviewsOpen] = useState(false);
@@ -105,6 +106,7 @@ function DashboardContent() {
     if (profile?.account_type === 'professional' || (profile as any)?.is_premium) fetchProfileViews();
     fetchHasServiceListing();
     fetchIsBusinessProfile();
+    fetchStaffMembership();
     if ((profile as any)?.is_premium) { fetchCreditBalance(); fetchRecentViewers(); fetchDonations(); }
 
     const handleUnreadCountChanged = () => {
@@ -190,6 +192,25 @@ function DashboardContent() {
       .eq('post_type', 'service_listing')
       .eq('is_active', true);
     setHasServiceListing((count ?? 0) > 0);
+  };
+
+  const fetchStaffMembership = async () => {
+    if (!profile) return;
+    const { data: membership } = await (supabase as any)
+      .from('staff_members')
+      .select('business_id, role')
+      .eq('user_id', profile.id)
+      .eq('is_active', true)
+      .in('role', ['worker', 'manager'])
+      .limit(1)
+      .maybeSingle();
+    if (!membership) return;
+    const { data: biz } = await supabase
+      .from('profiles')
+      .select('name')
+      .eq('id', membership.business_id)
+      .single();
+    setStaffBusinessName(biz?.name ?? null);
   };
 
   const fetchProfileViews = async () => {
@@ -376,6 +397,23 @@ function DashboardContent() {
             {isPremium && <ProfessionalBadge size="sm" variant="premium" />}
           </div>
         </div>
+
+        {/* Staff card — shown when user is a worker/manager in someone else's business */}
+        {staffBusinessName && (
+          <button
+            onClick={() => router.push('/dashboard/staff/bookings')}
+            className="w-full bg-card border border-border rounded-2xl p-4 flex items-center gap-3 hover:border-orange-400/50 hover:bg-accent transition-colors text-left"
+          >
+            <div className="p-2.5 bg-orange-100 dark:bg-orange-950 rounded-xl shrink-0">
+              <Calendar className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">{staffBusinessName}</p>
+              <p className="text-xs text-muted-foreground">{t('dashboard.staff.memberDesc')}</p>
+            </div>
+            <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+          </button>
+        )}
 
         {/* Business & Booking CTA — for users with a service listing */}
         {hasServiceListing && isBusinessProfile !== null && (

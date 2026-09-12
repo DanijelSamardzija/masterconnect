@@ -90,6 +90,8 @@ export function translateNotification(
         return { title: `${actorName} accepted your inquiry`, body: n.body || '' };
       case 'inquiry_declined':
         return { title: `${actorName} declined your inquiry`, body: n.body || '' };
+      case 'staff_added':
+        return { title: `${actorName} added you to their team`, body: n.body || 'View your schedule in the Dashboard' };
       case 'booking_created':
         return { title: `${actorName} booked an appointment`, body: n.body || '' };
       case 'booking_confirmed':
@@ -152,6 +154,8 @@ export function translateNotification(
         return { title: `${actorName} hat Ihre Anfrage angenommen`, body: n.body || '' };
       case 'inquiry_declined':
         return { title: `${actorName} hat Ihre Anfrage abgelehnt`, body: n.body || '' };
+      case 'staff_added':
+        return { title: `${actorName} hat dich zum Team hinzugefügt`, body: n.body || 'Sieh deinen Zeitplan im Dashboard' };
       case 'booking_created':
         return { title: `${actorName} hat einen Termin gebucht`, body: n.body || '' };
       case 'booking_confirmed':
@@ -214,6 +218,8 @@ export function translateNotification(
         return { title: `${actorName} aceptó tu consulta`, body: n.body || '' };
       case 'inquiry_declined':
         return { title: `${actorName} rechazó tu consulta`, body: n.body || '' };
+      case 'staff_added':
+        return { title: `${actorName} te añadió a su equipo`, body: n.body || 'Ver tu horario en el Panel de Control' };
       case 'booking_created':
         return { title: `${actorName} ha reservado una cita`, body: n.body || '' };
       case 'booking_confirmed':
@@ -276,6 +282,8 @@ export function translateNotification(
         return { title: `${actorName} a accepté votre demande`, body: n.body || '' };
       case 'inquiry_declined':
         return { title: `${actorName} a refusé votre demande`, body: n.body || '' };
+      case 'staff_added':
+        return { title: `${actorName} vous a ajouté à son équipe`, body: n.body || 'Voir votre planning dans le Tableau de Bord' };
       case 'booking_created':
         return { title: `${actorName} a réservé un rendez-vous`, body: n.body || '' };
       case 'booking_confirmed':

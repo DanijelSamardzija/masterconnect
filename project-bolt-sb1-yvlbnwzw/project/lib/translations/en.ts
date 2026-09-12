@@ -1423,6 +1423,7 @@ export default {
   'dashboard.noReviewsYet': 'no reviews yet',
 
   // Business & Booking CTA on dashboard
+  'dashboard.staff.memberDesc': 'Team member · View schedule',
   'dashboard.business.ctaTitle': 'Activate Business & Booking',
   'dashboard.business.ctaDesc': 'Let clients book your services online.',
   'dashboard.business.ctaButton': 'Set up Business',

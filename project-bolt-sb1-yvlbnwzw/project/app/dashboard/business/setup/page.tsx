@@ -1010,6 +1010,16 @@ export default function BusinessSetupPage() {
     if (error) { console.error('add_staff_direct error:', error); toast.error(t('setup.error.saveFailed')); return; }
     if (!(data as any)?.ok) { console.error('add_staff_direct returned:', data); toast.error(t('setup.error.saveFailed')); return; }
     toast.success(t('setup.staff.added'));
+    // Fire-and-forget email notification
+    fetch('/api/staff/added-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        staffUserId: selectedStaffToAdd.id,
+        ownerName: (data as any)?.owner_name ?? '',
+        role: addingStaffRole,
+      }),
+    }).catch(() => {});
     setSelectedStaffToAdd(null);
     setStaffAddSearch('');
     setAddingStaffRole('worker');

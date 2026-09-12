@@ -1367,6 +1367,7 @@ export default {
   'dashboard.noReviewsYet': 'pas encore d\'avis',
 
   // Business & Booking CTA sur le tableau de bord
+  'dashboard.staff.memberDesc': 'Membre de l\'équipe · Voir le planning',
   'dashboard.business.ctaTitle': 'Activer Business & Réservations',
   'dashboard.business.ctaDesc': 'Permettez aux clients de réserver vos services en ligne.',
   'dashboard.business.ctaButton': 'Configurer le business',
