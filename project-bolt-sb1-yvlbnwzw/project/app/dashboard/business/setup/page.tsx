@@ -1410,15 +1410,13 @@ export default function BusinessSetupPage() {
                         </div>
                         <div className="flex gap-1 shrink-0 items-center">
                           {svc.is_active && user?.id && (
-                            <a
-                              href={`/booking/${user.id}/${svc.id}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                            <button
+                              onClick={() => router.push(`/booking/${user!.id}/${svc.id}`)}
                               className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-accent transition-colors"
                               title={t('setup.services.viewPage')}
                             >
                               <ExternalLink className="w-3.5 h-3.5" />
-                            </a>
+                            </button>
                           )}
                           <button
                             onClick={() => openEditSvc(svc)}
