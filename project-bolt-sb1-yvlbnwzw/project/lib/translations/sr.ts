@@ -2310,4 +2310,6 @@ export default {
   'dashboard.services.analytics.status.confirmed': 'Potvrđen',
   'dashboard.services.analytics.status.completed': 'Završen',
   'dashboard.services.analytics.status.no_show': 'Nije se pojavio',
+  'dashboard.services.analytics.group.served': 'Primio',
+  'dashboard.services.analytics.group.no_show': 'Nije se pojavio',
 } as const;

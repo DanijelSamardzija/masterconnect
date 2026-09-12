@@ -2240,4 +2240,6 @@ export default {
   'dashboard.services.analytics.status.confirmed': 'Confirmé',
   'dashboard.services.analytics.status.completed': 'Terminé',
   'dashboard.services.analytics.status.no_show': 'Absent',
+  'dashboard.services.analytics.group.served': 'Servi',
+  'dashboard.services.analytics.group.no_show': 'Absent',
 } as const;

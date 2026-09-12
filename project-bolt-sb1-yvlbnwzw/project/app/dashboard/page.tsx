@@ -1345,16 +1345,67 @@ function DashboardContent() {
               </div>
             ) : analyticsBookings.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">{t('dashboard.services.analytics.empty')}</p>
+            ) : analyticsContext?.filter === 'total' ? (
+              // Grouped view for "Ukupno" — primio vs nije se pojavio
+              (() => {
+                const served   = analyticsBookings.filter((b: any) => b.status !== 'no_show');
+                const no_shows = analyticsBookings.filter((b: any) => b.status === 'no_show');
+                const renderRow = (b: any) => {
+                  const staffName = businessStaff.find(s => s.id === b.staff_member_id)?.name;
+                  return (
+                    <div key={b.id} className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-muted/40">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                          <span className="text-sm font-semibold text-foreground">
+                            {new Date(b.starts_at).toLocaleDateString('sr-RS', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(b.starts_at).toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        {staffName && <p className="text-xs text-muted-foreground">{staffName}</p>}
+                        {b.notes?.trim() && <p className="text-xs text-muted-foreground/70 italic truncate">{b.notes}</p>}
+                      </div>
+                    </div>
+                  );
+                };
+                return (
+                  <div className="space-y-4">
+                    {served.length > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-green-600 dark:text-green-400">
+                            {t('dashboard.services.analytics.group.served')} ({served.length})
+                          </span>
+                          <div className="flex-1 h-px bg-green-200 dark:bg-green-900" />
+                        </div>
+                        {served.map(renderRow)}
+                      </div>
+                    )}
+                    {no_shows.length > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-red-500 dark:text-red-400">
+                            {t('dashboard.services.analytics.group.no_show')} ({no_shows.length})
+                          </span>
+                          <div className="flex-1 h-px bg-red-200 dark:bg-red-900" />
+                        </div>
+                        {no_shows.map(renderRow)}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()
             ) : (
+              // Flat list for upcoming / pending
               analyticsBookings.map((b: any) => {
                 const staffName = businessStaff.find(s => s.id === b.staff_member_id)?.name;
-                const statusMap: Record<string, { label: string; cls: string }> = {
-                  pending:   { label: t('dashboard.services.analytics.status.pending'),   cls: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400' },
-                  confirmed: { label: t('dashboard.services.analytics.status.confirmed'), cls: 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400' },
-                  completed: { label: t('dashboard.services.analytics.status.completed'), cls: 'bg-muted text-muted-foreground' },
-                  no_show:   { label: t('dashboard.services.analytics.status.no_show'),   cls: 'bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-400' },
-                };
-                const status = statusMap[b.status] ?? { label: b.status, cls: 'bg-muted text-muted-foreground' };
+                const statusCls = b.status === 'pending'
+                  ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400'
+                  : 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400';
+                const statusLabel = b.status === 'pending'
+                  ? t('dashboard.services.analytics.status.pending')
+                  : t('dashboard.services.analytics.status.confirmed');
                 return (
                   <div key={b.id} className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-muted/40">
                     <div className="flex-1 min-w-0">
@@ -1365,8 +1416,8 @@ function DashboardContent() {
                         <span className="text-xs text-muted-foreground">
                           {new Date(b.starts_at).toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' })}
                         </span>
-                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${status.cls}`}>
-                          {status.label}
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${statusCls}`}>
+                          {statusLabel}
                         </span>
                       </div>
                       {staffName && <p className="text-xs text-muted-foreground">{staffName}</p>}

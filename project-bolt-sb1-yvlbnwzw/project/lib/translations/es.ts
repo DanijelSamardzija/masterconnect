@@ -2233,4 +2233,6 @@ export default {
   'dashboard.services.analytics.status.confirmed': 'Confirmada',
   'dashboard.services.analytics.status.completed': 'Completada',
   'dashboard.services.analytics.status.no_show': 'No se presentó',
+  'dashboard.services.analytics.group.served': 'Atendidos',
+  'dashboard.services.analytics.group.no_show': 'No se presentó',
 } as const;

@@ -2300,4 +2300,6 @@ export default {
   'dashboard.services.analytics.status.confirmed': 'Bestätigt',
   'dashboard.services.analytics.status.completed': 'Abgeschlossen',
   'dashboard.services.analytics.status.no_show': 'Nicht erschienen',
+  'dashboard.services.analytics.group.served': 'Bedient',
+  'dashboard.services.analytics.group.no_show': 'Nicht erschienen',
 } as const;
