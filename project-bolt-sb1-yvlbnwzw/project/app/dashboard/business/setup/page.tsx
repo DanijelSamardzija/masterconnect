@@ -27,6 +27,7 @@ type ServiceRow = {
   booking_type: string;
   currency: string;
   is_active: boolean;
+  post_id: string | null;
 };
 
 type HourPeriod = {
@@ -360,7 +361,7 @@ export default function BusinessSetupPage() {
     setServicesLoading(true);
     const { data } = await supabase
       .from('service_catalog')
-      .select('id, name, description, duration_minutes, price, price_type, capacity, booking_type, currency, is_active')
+      .select('id, name, description, duration_minutes, price, price_type, capacity, booking_type, currency, is_active, post_id')
       .eq('business_id', user.id)
       .order('created_at', { ascending: true });
     setServices((data as unknown as ServiceRow[]) ?? []);
@@ -1392,6 +1393,11 @@ export default function BusinessSetupPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-medium text-sm">{svc.name}</span>
+                            {svc.post_id && (
+                              <span className="text-xs bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full">
+                                {t('bookingSetup.service.fromPost')}
+                              </span>
+                            )}
                             {!svc.is_active && (
                               <span className="text-xs bg-accent text-muted-foreground px-2 py-0.5 rounded-full">
                                 {t('setup.services.inactive')}
