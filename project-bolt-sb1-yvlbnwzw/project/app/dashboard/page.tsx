@@ -634,25 +634,16 @@ function DashboardContent() {
                       <p className="text-sm font-semibold text-foreground truncate">{svc.name}</p>
                       <p className="text-xs text-muted-foreground">{svc.duration_minutes} {t('dashboard.services.min')}</p>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(`https://gigzone.app/booking/${profile.id}/${svc.id}`);
-                          toast.success(t('dashboard.services.linkCopied'));
-                        }}
-                        className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                        title={t('dashboard.services.copyLink')}
-                      >
-                        <Copy className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        onClick={() => router.push('/dashboard/business/setup?tab=services')}
-                        className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                        title={t('dashboard.services.settings')}
-                      >
-                        <Settings className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(`https://gigzone.app/booking/${profile.id}/${svc.id}`);
+                        toast.success(t('dashboard.services.linkCopied'));
+                      }}
+                      className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                      title={t('dashboard.services.copyLink')}
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     {([
