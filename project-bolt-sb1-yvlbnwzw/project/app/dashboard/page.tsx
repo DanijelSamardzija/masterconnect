@@ -536,21 +536,36 @@ function DashboardContent() {
           <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
         </button>
 
-        {/* Staff card — shown when user is a worker/manager in someone else's business */}
+        {/* Staff cards — shown when user is a worker/manager in someone else's business */}
         {staffBusinessName && (
-          <button
-            onClick={() => router.push('/dashboard/staff/bookings')}
-            className="w-full bg-card border border-border rounded-2xl p-4 flex items-center gap-3 hover:border-orange-400/50 hover:bg-accent transition-colors text-left"
-          >
-            <div className="p-2.5 bg-orange-100 dark:bg-orange-950 rounded-xl shrink-0">
-              <Calendar className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground">{staffBusinessName}</p>
-              <p className="text-xs text-muted-foreground">{t('dashboard.staff.memberDesc')}</p>
-            </div>
-            <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-          </button>
+          <div className="space-y-2">
+            <button
+              onClick={() => router.push('/dashboard/staff/bookings')}
+              className="w-full bg-card border border-border rounded-2xl p-4 flex items-center gap-3 hover:border-orange-400/50 hover:bg-accent transition-colors text-left"
+            >
+              <div className="p-2.5 bg-orange-100 dark:bg-orange-950 rounded-xl shrink-0">
+                <Calendar className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground">{staffBusinessName}</p>
+                <p className="text-xs text-muted-foreground">{t('dashboard.staff.memberDesc')}</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+            </button>
+            <button
+              onClick={() => router.push('/dashboard/staff/schedule')}
+              className="w-full bg-card border border-border rounded-2xl p-4 flex items-center gap-3 hover:border-orange-400/50 hover:bg-accent transition-colors text-left"
+            >
+              <div className="p-2.5 bg-blue-100 dark:bg-blue-950 rounded-xl shrink-0">
+                <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground">{t('schedule.staffView.title')}</p>
+                <p className="text-xs text-muted-foreground">{t('schedule.staffView.subtitle')}</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+            </button>
+          </div>
         )}
 
         {/* Business & Booking CTA — for users with a service listing */}
@@ -622,6 +637,13 @@ function DashboardContent() {
                 >
                   <Calendar className="h-3 w-3" />
                   Rezervacije
+                </button>
+                <button
+                  onClick={() => router.push('/dashboard/business/schedule')}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Calendar className="h-3 w-3" />
+                  {t('schedule.title')}
                 </button>
                 <button
                   onClick={() => router.push('/dashboard/business/staff-hours')}
