@@ -39,6 +39,65 @@ const DOW_KEYS = [
 
 const DOW_ORDER = [1, 2, 3, 4, 5, 6, 0];
 
+const MONTH_KEYS = [
+  'staffHours.month.0',
+  'staffHours.month.1',
+  'staffHours.month.2',
+  'staffHours.month.3',
+  'staffHours.month.4',
+  'staffHours.month.5',
+  'staffHours.month.6',
+  'staffHours.month.7',
+  'staffHours.month.8',
+  'staffHours.month.9',
+  'staffHours.month.10',
+  'staffHours.month.11',
+  'staffHours.month.12',
+] as const;
+
+function emptySchedule(): Record<number, DaySchedule> {
+  return Object.fromEntries(DOW_ORDER.map((d) => [d, { ...DEFAULT_DAY }]));
+}
+
+function parseHours(hours: any[]): Record<number, DaySchedule> {
+  const byDay: Record<number, Record<number, { start_time: string; end_time: string; is_closed: boolean }>> = {};
+  for (const row of hours) {
+    const dow = row.day_of_week;
+    if (!byDay[dow]) byDay[dow] = {};
+    byDay[dow][row.sort_order] = {
+      is_closed:  row.is_closed,
+      start_time: row.start_time?.slice(0, 5) ?? '09:00',
+      end_time:   row.end_time?.slice(0, 5)   ?? '17:00',
+    };
+  }
+  const loaded: Record<number, DaySchedule> = emptySchedule();
+  for (const dow of DOW_ORDER) {
+    const p0 = byDay[dow]?.[0];
+    const p1 = byDay[dow]?.[1];
+    if (!p0) continue;
+    if (p1) {
+      loaded[dow] = {
+        is_closed:   p0.is_closed,
+        start_time:  p0.start_time,
+        break_start: p0.end_time,
+        break_end:   p1.start_time,
+        end_time:    p1.end_time,
+        has_break:   true,
+      };
+    } else {
+      loaded[dow] = {
+        is_closed:   p0.is_closed,
+        start_time:  p0.start_time,
+        end_time:    p0.end_time,
+        has_break:   false,
+        break_start: '12:00',
+        break_end:   '13:00',
+      };
+    }
+  }
+  return loaded;
+}
+
 export default function StaffHoursPage() {
   const { t } = useLanguage();
   const { profile } = useAuth();
@@ -48,9 +107,8 @@ export default function StaffHoursPage() {
 
   const [staffMemberId, setStaffMemberId] = useState<string | null>(null);
   const [locationId, setLocationId] = useState<string | null>(null);
-  const [schedule, setSchedule] = useState<Record<number, DaySchedule>>(
-    Object.fromEntries(DOW_ORDER.map((d) => [d, { ...DEFAULT_DAY }]))
-  );
+  const [selectedMonth, setSelectedMonth] = useState<number>(0);
+  const [schedule, setSchedule] = useState<Record<number, DaySchedule>>(emptySchedule());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [hasPermission, setHasPermission] = useState(false);
@@ -79,54 +137,30 @@ export default function StaffHoursPage() {
 
       if (!perm) { setLoading(false); return; }
 
-      const { data: hours } = await (supabase as any).rpc('get_staff_opening_hours', {
-        p_staff_member_id: sm.id,
-        p_location_id: locId,
-      });
-
-      if (Array.isArray(hours) && hours.length > 0) {
-        // Group rows by day_of_week, keyed by sort_order
-        const byDay: Record<number, Record<number, { start_time: string; end_time: string; is_closed: boolean }>> = {};
-        for (const row of hours) {
-          const dow = row.day_of_week;
-          if (!byDay[dow]) byDay[dow] = {};
-          byDay[dow][row.sort_order] = {
-            is_closed:  row.is_closed,
-            start_time: row.start_time?.slice(0, 5) ?? '09:00',
-            end_time:   row.end_time?.slice(0, 5)   ?? '17:00',
-          };
-        }
-        const loaded: Record<number, DaySchedule> = { ...Object.fromEntries(DOW_ORDER.map((d) => [d, { ...DEFAULT_DAY }])) };
-        for (const dow of DOW_ORDER) {
-          const p0 = byDay[dow]?.[0];
-          const p1 = byDay[dow]?.[1];
-          if (!p0) continue;
-          if (p1) {
-            // has break: period0 = work start → break start, period1 = break end → work end
-            loaded[dow] = {
-              is_closed:   p0.is_closed,
-              start_time:  p0.start_time,
-              break_start: p0.end_time,
-              break_end:   p1.start_time,
-              end_time:    p1.end_time,
-              has_break:   true,
-            };
-          } else {
-            loaded[dow] = {
-              is_closed:   p0.is_closed,
-              start_time:  p0.start_time,
-              end_time:    p0.end_time,
-              has_break:   false,
-              break_start: '12:00',
-              break_end:   '13:00',
-            };
-          }
-        }
-        setSchedule(loaded);
-      }
+      await loadHours(sm.id, locId, 0);
       setLoading(false);
     })();
   }, [profile]);
+
+  async function loadHours(smId: string, locId: string, month: number) {
+    const { data: hours } = await (supabase as any).rpc('get_staff_opening_hours', {
+      p_staff_member_id: smId,
+      p_location_id: locId,
+      p_month: month,
+    });
+    if (Array.isArray(hours) && hours.length > 0) {
+      setSchedule(parseHours(hours));
+    } else {
+      setSchedule(emptySchedule());
+    }
+  }
+
+  async function handleMonthChange(month: number) {
+    setSelectedMonth(month);
+    if (staffMemberId && locationId) {
+      await loadHours(staffMemberId, locationId, month);
+    }
+  }
 
   async function handleSave() {
     if (!locationId) return;
@@ -137,7 +171,6 @@ export default function StaffHoursPage() {
       const day = schedule[dow];
 
       if (day.has_break && !day.is_closed) {
-        // Period 0: start → break_start
         const r0 = await (supabase as any).rpc('set_my_staff_hours', {
           p_location_id: locationId,
           p_day_of_week: dow,
@@ -145,9 +178,9 @@ export default function StaffHoursPage() {
           p_close_time:  day.break_start,
           p_is_closed:   false,
           p_sort_order:  0,
+          p_month:       selectedMonth,
         });
         if (!r0.data?.ok) anyError = true;
-        // Period 1: break_end → end_time
         const r1 = await (supabase as any).rpc('set_my_staff_hours', {
           p_location_id: locationId,
           p_day_of_week: dow,
@@ -155,10 +188,10 @@ export default function StaffHoursPage() {
           p_close_time:  day.end_time,
           p_is_closed:   false,
           p_sort_order:  1,
+          p_month:       selectedMonth,
         });
         if (!r1.data?.ok) anyError = true;
       } else {
-        // Period 0 only
         const r0 = await (supabase as any).rpc('set_my_staff_hours', {
           p_location_id: locationId,
           p_day_of_week: dow,
@@ -166,13 +199,14 @@ export default function StaffHoursPage() {
           p_close_time:  day.end_time,
           p_is_closed:   day.is_closed,
           p_sort_order:  0,
+          p_month:       selectedMonth,
         });
         if (!r0.data?.ok) anyError = true;
-        // Delete period 1 if it existed before (no error if absent)
         await (supabase as any).rpc('delete_my_staff_hour_period', {
           p_location_id: locationId,
           p_day_of_week: dow,
           p_sort_order:  1,
+          p_month:       selectedMonth,
         });
       }
     }
@@ -193,19 +227,9 @@ export default function StaffHoursPage() {
     setSchedule((prev) => {
       const day = prev[dow];
       if (day.has_break) {
-        // Remove break: collapse end time to period1's end
-        return { ...prev, [dow]: { ...day, has_break: false, end_time: day.end_time } };
+        return { ...prev, [dow]: { ...day, has_break: false } };
       } else {
-        // Add break: default 12:00-13:00, shift end to after break
-        return {
-          ...prev,
-          [dow]: {
-            ...day,
-            has_break:   true,
-            break_start: '12:00',
-            break_end:   '13:00',
-          },
-        };
+        return { ...prev, [dow]: { ...day, has_break: true, break_start: '12:00', break_end: '13:00' } };
       }
     });
   }
@@ -243,6 +267,32 @@ export default function StaffHoursPage() {
             </div>
           ) : (
             <>
+              {/* Month selector */}
+              <div className="mb-4">
+                <p className="text-xs text-muted-foreground mb-2">{t('staffHours.selectMonth')}</p>
+                <div className="flex gap-1.5 flex-wrap">
+                  {MONTH_KEYS.map((key, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleMonthChange(idx)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
+                        selectedMonth === idx
+                          ? 'bg-primary text-white'
+                          : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
+                      }`}
+                    >
+                      {t(key)}
+                    </button>
+                  ))}
+                </div>
+                {selectedMonth > 0 && (
+                  <p className="text-[11px] text-primary mt-1.5">
+                    {t('staffHours.monthOverrideNote')}
+                  </p>
+                )}
+              </div>
+
               <div className="border border-border rounded-xl overflow-hidden mb-5">
                 {DOW_ORDER.map((dow, idx) => {
                   const day = schedule[dow];
@@ -253,7 +303,6 @@ export default function StaffHoursPage() {
                       key={dow}
                       className={`flex flex-col gap-2 p-4 ${idx > 0 ? 'border-t border-border' : ''}`}
                     >
-                      {/* Day name + open/closed badge */}
                       <div className="flex items-center gap-3">
                         <span className="text-sm font-medium w-28">{t(labelKey)}</span>
                         <button
@@ -269,10 +318,8 @@ export default function StaffHoursPage() {
                         </button>
                       </div>
 
-                      {/* Time inputs — only when open */}
                       {!day.is_closed && (
                         <div className="flex flex-col gap-1.5 pl-28">
-                          {/* Main period: start → (break_start if break, else end_time) */}
                           <div className="flex items-center gap-2 flex-wrap">
                             <input
                               type="time"
@@ -283,7 +330,7 @@ export default function StaffHoursPage() {
                             <span className="text-muted-foreground text-xs">–</span>
                             <input
                               type="time"
-                              value={day.has_break ? day.end_time : day.end_time}
+                              value={day.end_time}
                               onChange={(e) => updateDay(dow, { end_time: e.target.value })}
                               className={timeCls}
                             />
@@ -298,7 +345,6 @@ export default function StaffHoursPage() {
                             )}
                           </div>
 
-                          {/* Break row */}
                           {day.has_break && (
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-[11px] text-muted-foreground w-12 shrink-0">
