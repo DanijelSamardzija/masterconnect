@@ -7,7 +7,8 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
-import { Check, Copy, ExternalLink, ChevronLeft, Loader2, X } from 'lucide-react';
+import { Check, Copy, ExternalLink, ChevronLeft, Loader2, X, AlertTriangle } from 'lucide-react';
+import { CityAutocomplete } from '@/components/city-autocomplete';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -34,6 +35,15 @@ type StaffResult = {
   name: string;
   avatar_url: string | null;
   city: string | null;
+};
+
+type Closure = {
+  id: string;
+  reason: string;
+  note: string | null;
+  date_from: string;
+  date_to: string;
+  is_past: boolean;
 };
 
 const STEP_COUNT = 7;
@@ -102,6 +112,17 @@ export default function BookingSetupWizardPage() {
   const [staffRole, setStaffRole] = useState<'manager' | 'worker'>('worker');
   const [staffAdded, setStaffAdded] = useState(false);
 
+  // Step 3 — Closures (within Hours step)
+  const [closures, setClosures] = useState<Closure[]>([]);
+  const [newClosureFrom, setNewClosureFrom] = useState('');
+  const [newClosureTo, setNewClosureTo] = useState('');
+  const [newClosureReason, setNewClosureReason] = useState('vacation');
+  const [newClosureNote, setNewClosureNote] = useState('');
+  const [closureSaving, setClosureSaving] = useState(false);
+  const [closureForceData, setClosureForceData] = useState<{
+    from: string; to: string; reason: string; note: string; count: number;
+  } | null>(null);
+
   // Step 5 — Rules
   const [rules, setRules] = useState<Rules>(DEFAULT_RULES);
 
@@ -168,6 +189,11 @@ export default function BookingSetupWizardPage() {
       setLocAddress(loc.address ?? '');
       setLocCity(loc.city ?? '');
       setLocCountry(loc.country ?? '');
+
+      const { data: closuresData } = await (supabase as any).rpc('get_business_closures', {
+        p_location_id: loc.id,
+      });
+      if (Array.isArray(closuresData)) setClosures(closuresData as Closure[]);
 
       const { data: hoursData } = await (supabase as any).rpc('get_opening_hours', {
         p_location_id: loc.id,
@@ -338,6 +364,51 @@ export default function BookingSetupWizardPage() {
     advance();
   }
 
+  async function addClosure(force = false) {
+    if (!locId || !newClosureFrom || !newClosureTo) {
+      toast.error(t('setup.error.saveFailed'));
+      return;
+    }
+    setClosureSaving(true);
+    const { data } = await (supabase as any).rpc('create_business_closure', {
+      p_location_id: locId,
+      p_date_from: newClosureFrom,
+      p_date_to: newClosureTo,
+      p_reason: newClosureReason,
+      p_note: newClosureNote.trim() || null,
+      p_force: force,
+    });
+    setClosureSaving(false);
+    const res = data as { ok?: boolean; closure_id?: string; booking_count?: number; warning?: string } | null;
+    if (!res?.ok) {
+      if (res?.warning === 'has_bookings' && res.booking_count) {
+        setClosureForceData({
+          from: newClosureFrom,
+          to: newClosureTo,
+          reason: newClosureReason,
+          note: newClosureNote.trim(),
+          count: res.booking_count,
+        });
+        return;
+      }
+      toast.error(t('setup.error.saveFailed'));
+      return;
+    }
+    setClosureForceData(null);
+    setNewClosureFrom('');
+    setNewClosureTo('');
+    setNewClosureReason('vacation');
+    setNewClosureNote('');
+    const { data: updated } = await (supabase as any).rpc('get_business_closures', { p_location_id: locId });
+    if (Array.isArray(updated)) setClosures(updated as Closure[]);
+  }
+
+  async function deleteClosure(id: string) {
+    const { data } = await (supabase as any).rpc('delete_business_closure', { p_closure_id: id });
+    if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); return; }
+    setClosures((prev) => prev.filter((c) => c.id !== id));
+  }
+
   function toggleDay(day: number) {
     setDayHours((prev) => prev.map((dh) =>
       dh.day === day ? { ...dh, open: !dh.open, open2: !dh.open ? dh.open2 : false } : dh
@@ -374,9 +445,14 @@ export default function BookingSetupWizardPage() {
     if (currentKey === 'rules')    saveRules();
   }
 
-  const bookingUrl = svcId && user && typeof window !== 'undefined'
-    ? `${window.location.origin}/booking/${user.id}/${svcId}`
-    : '';
+  const [bookingUrl, setBookingUrl] = useState('');
+  useEffect(() => {
+    if (svcId && user) {
+      setBookingUrl(`${window.location.origin}/booking/${user.id}/${svcId}`);
+    } else {
+      setBookingUrl('');
+    }
+  }, [svcId, user]);
 
   const isReady = !!bizName && !!svcId && !!locId;
   const currentKey: StepKey = STEP_KEYS[step];
@@ -567,18 +643,33 @@ export default function BookingSetupWizardPage() {
                       className={inputCls}
                     />
                   </div>
-                  <div className="flex gap-3">
-                    <div className="flex flex-col gap-1.5 flex-1">
-                      <label className="text-sm font-medium">{t('setup.locations.city')} *</label>
-                      <input
-                        type="text"
-                        value={locCity}
-                        onChange={(e) => setLocCity(e.target.value)}
-                        placeholder="npr. Sarajevo"
-                        className={inputCls}
-                      />
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium">{t('setup.locations.city')} *</label>
+                    <CityAutocomplete
+                      value={locCity}
+                      onChange={(city, placeData) => {
+                        setLocCity(city);
+                        if (placeData?.country) setLocCountry(placeData.country);
+                      }}
+                      placeholder="npr. Sarajevo"
+                      required
+                    />
+                  </div>
+                  {locCountry && (
+                    <div className="flex items-center gap-1.5 -mt-1">
+                      <span className="text-xs text-muted-foreground">{t('setup.locations.country')}:</span>
+                      <span className="text-xs font-medium">{locCountry}</span>
+                      <button
+                        type="button"
+                        onClick={() => setLocCountry('')}
+                        className="text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
                     </div>
-                    <div className="flex flex-col gap-1.5 flex-1">
+                  )}
+                  {!locCountry && locCity && (
+                    <div className="flex flex-col gap-1.5">
                       <label className="text-sm font-medium">{t('setup.locations.country')} *</label>
                       <input
                         type="text"
@@ -588,7 +679,7 @@ export default function BookingSetupWizardPage() {
                         className={inputCls}
                       />
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             )}
@@ -678,6 +769,135 @@ export default function BookingSetupWizardPage() {
                     </div>
                   ))}
                 </div>
+
+                {/* Closures section */}
+                {locId && (
+                  <div className="flex flex-col gap-3 pt-4 border-t border-border/50">
+                    <div>
+                      <h3 className="text-sm font-semibold">{t('bookingSetup.hours.closures.heading')}</h3>
+                      <p className="text-xs text-muted-foreground mt-0.5">{t('bookingSetup.hours.closures.desc')}</p>
+                    </div>
+
+                    {/* Existing closures */}
+                    {closures.length > 0 ? (
+                      <div className="flex flex-col gap-1.5">
+                        {closures.map((c) => (
+                          <div
+                            key={c.id}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs ${
+                              c.is_past ? 'border-border/30 bg-muted/30 text-muted-foreground' : 'border-orange-200 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-800'
+                            }`}
+                          >
+                            <span className="flex-1 min-w-0">
+                              <span className="font-medium">
+                                {t(`bookingSetup.hours.closures.reason.${c.reason}` as Parameters<typeof t>[0]) || c.reason}
+                              </span>
+                              <span className="text-muted-foreground ml-1.5">
+                                {c.date_from} – {c.date_to}
+                              </span>
+                              {c.note && <span className="block text-muted-foreground/70 truncate">{c.note}</span>}
+                            </span>
+                            {!c.is_past && (
+                              <button
+                                type="button"
+                                onClick={() => deleteClosure(c.id)}
+                                className="shrink-0 text-muted-foreground hover:text-destructive transition-colors"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground/60">{t('bookingSetup.hours.closures.empty')}</p>
+                    )}
+
+                    {/* Force-confirm warning */}
+                    {closureForceData && (
+                      <div className="flex flex-col gap-2 p-3 rounded-xl border border-orange-300 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-700">
+                        <div className="flex items-start gap-2">
+                          <AlertTriangle className="w-4 h-4 text-orange-600 dark:text-orange-400 shrink-0 mt-0.5" />
+                          <p className="text-xs text-orange-800 dark:text-orange-300 leading-relaxed">
+                            {t('bookingSetup.hours.closures.confirmWarning').replace('{n}', String(closureForceData.count))}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setClosureForceData(null)}
+                            className="flex-1 text-xs py-1.5 px-3 rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            {t('bookingSetup.back')}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => addClosure(true)}
+                            disabled={closureSaving}
+                            className="flex-1 text-xs py-1.5 px-3 rounded-lg bg-orange-600 text-white hover:bg-orange-700 transition-colors disabled:opacity-50"
+                          >
+                            {closureSaving ? <Loader2 className="w-3 h-3 animate-spin mx-auto" /> : t('bookingSetup.hours.closures.confirmForce')}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Add new closure form */}
+                    {!closureForceData && (
+                      <div className="flex flex-col gap-2 p-3 rounded-xl border border-border/60 bg-muted/20">
+                        <div className="flex gap-2">
+                          <div className="flex flex-col gap-1 flex-1">
+                            <label className="text-[11px] font-medium text-muted-foreground">{t('bookingSetup.hours.closures.dateFrom')}</label>
+                            <input
+                              type="date"
+                              value={newClosureFrom}
+                              onChange={(e) => setNewClosureFrom(e.target.value)}
+                              className="border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1 flex-1">
+                            <label className="text-[11px] font-medium text-muted-foreground">{t('bookingSetup.hours.closures.dateTo')}</label>
+                            <input
+                              type="date"
+                              value={newClosureTo}
+                              onChange={(e) => setNewClosureTo(e.target.value)}
+                              min={newClosureFrom}
+                              className="border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <select
+                            value={newClosureReason}
+                            onChange={(e) => setNewClosureReason(e.target.value)}
+                            className="flex-1 border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                          >
+                            <option value="vacation">{t('bookingSetup.hours.closures.reason.vacation')}</option>
+                            <option value="holiday">{t('bookingSetup.hours.closures.reason.holiday')}</option>
+                            <option value="temporary">{t('bookingSetup.hours.closures.reason.temporary')}</option>
+                            <option value="other">{t('bookingSetup.hours.closures.reason.other')}</option>
+                          </select>
+                          <input
+                            type="text"
+                            value={newClosureNote}
+                            onChange={(e) => setNewClosureNote(e.target.value)}
+                            placeholder={t('bookingSetup.hours.closures.note')}
+                            className="flex-1 border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => addClosure(false)}
+                          disabled={closureSaving || !newClosureFrom || !newClosureTo}
+                          className="self-start flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {closureSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                          {t('bookingSetup.hours.closures.add')}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
