@@ -345,6 +345,8 @@ export default function BusinessSetupPage() {
   const [cancellingInviteId, setCancellingInviteId] = useState<string | null>(null);
   const [revokingStaffId, setRevokingStaffId] = useState<string | null>(null);
   const [confirmingRevokeId, setConfirmingRevokeId] = useState<string | null>(null);
+  const [staffPermissionsMap, setStaffPermissionsMap] = useState<Record<string, Record<string, boolean>>>({});
+  const [permSaving, setPermSaving] = useState<string | null>(null);
   // Service-location assignment state
   const [serviceLocMap, setServiceLocMap] = useState<Record<string, string[]>>({});
   const [serviceLocSaving, setServiceLocSaving] = useState<string | null>(null);
@@ -1068,9 +1070,10 @@ export default function BusinessSetupPage() {
   async function loadStaffDetails(staffId: string) {
     if (staffHoursMap[staffId] !== undefined) return;
     if (!primaryLocId) return;
-    const [hoursRes, svcRes] = await Promise.all([
+    const [hoursRes, svcRes, permRes] = await Promise.all([
       (supabase as any).rpc('get_staff_opening_hours', { p_staff_member_id: staffId, p_location_id: primaryLocId }),
       (supabase as any).rpc('get_staff_services', { p_staff_member_id: staffId }),
+      supabase.from('staff_members').select('permissions').eq('id', staffId).single(),
     ]);
     type DBRow = { day_of_week: number; start_time: string; end_time: string; is_closed: boolean; sort_order: number };
     const storedHours = hoursRes.data as DBRow[] | null;
@@ -1092,6 +1095,29 @@ export default function BusinessSetupPage() {
       setStaffHoursMap((prev) => ({ ...prev, [staffId]: DEFAULT_HOURS.map((d) => ({ ...d, periods: [...d.periods] })) }));
     }
     setStaffServicesMap((prev) => ({ ...prev, [staffId]: (svcRes.data as string[]) ?? [] }));
+    const rawPerms = (permRes.data as any)?.permissions ?? {};
+    setStaffPermissionsMap((prev) => ({
+      ...prev,
+      [staffId]: {
+        can_set_hours:       !!rawPerms.can_set_hours,
+        can_create_bookings: !!rawPerms.can_create_bookings,
+        can_cancel_bookings: !!rawPerms.can_cancel_bookings,
+        can_block_time:      !!rawPerms.can_block_time,
+      },
+    }));
+  }
+
+  async function handleSaveStaffPermissions(staffId: string) {
+    const perms = staffPermissionsMap[staffId];
+    if (!perms) return;
+    setPermSaving(staffId);
+    const { data } = await (supabase as any).rpc('update_staff_permissions', {
+      p_staff_member_id: staffId,
+      p_permissions: perms,
+    });
+    setPermSaving(null);
+    if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); return; }
+    toast.success(t('setup.staff.permissions.saved'));
   }
 
   async function handleSaveStaffHours(staffId: string) {
@@ -2495,6 +2521,54 @@ export default function BusinessSetupPage() {
                                     className="text-xs"
                                   >
                                     {staffServicesSaving === sm.id ? '...' : t('setup.staff.services.save')}
+                                  </Button>
+                                </div>
+                              )}
+
+                              {/* Staff permissions */}
+                              {staffPermissionsMap[sm.id] !== undefined && (
+                                <div>
+                                  <p className="text-xs font-semibold mb-1">{t('setup.staff.permissions.title')}</p>
+                                  <p className="text-[11px] text-muted-foreground mb-3">{t('setup.staff.permissions.hint')}</p>
+                                  <div className="flex flex-col gap-2 mb-3">
+                                    {([
+                                      { key: 'can_set_hours',       label: t('setup.staff.permissions.setHours') },
+                                      { key: 'can_create_bookings', label: t('setup.staff.permissions.createBookings') },
+                                      { key: 'can_cancel_bookings', label: t('setup.staff.permissions.cancelBookings') },
+                                      { key: 'can_block_time',      label: t('setup.staff.permissions.blockTime') },
+                                    ] as const).map(({ key, label }) => {
+                                      const enabled = staffPermissionsMap[sm.id]?.[key] ?? false;
+                                      return (
+                                        <label key={key} className="flex items-center gap-3 cursor-pointer group">
+                                          <button
+                                            type="button"
+                                            role="switch"
+                                            aria-checked={enabled}
+                                            onClick={() => setStaffPermissionsMap((prev) => ({
+                                              ...prev,
+                                              [sm.id]: { ...prev[sm.id], [key]: !enabled },
+                                            }))}
+                                            className={`relative w-9 h-5 rounded-full transition-colors flex-shrink-0 ${
+                                              enabled ? 'bg-primary' : 'bg-muted-foreground/30'
+                                            }`}
+                                          >
+                                            <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                                              enabled ? 'translate-x-4' : 'translate-x-0'
+                                            }`} />
+                                          </button>
+                                          <span className="text-xs text-foreground group-hover:text-primary transition-colors">{label}</span>
+                                        </label>
+                                      );
+                                    })}
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleSaveStaffPermissions(sm.id)}
+                                    disabled={permSaving === sm.id}
+                                    className="text-xs"
+                                  >
+                                    {permSaving === sm.id ? '...' : t('setup.staff.permissions.save')}
                                   </Button>
                                 </div>
                               )}
