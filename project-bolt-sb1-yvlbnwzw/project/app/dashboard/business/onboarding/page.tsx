@@ -9,6 +9,7 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
 import { Check, Copy, ExternalLink, ChevronLeft, Loader2, X, AlertTriangle } from 'lucide-react';
 import { CityAutocomplete } from '@/components/city-autocomplete';
+import { countries } from '@/lib/countries';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -70,10 +71,23 @@ const DEFAULT_RULES: Rules = {
 
 const DURATIONS = [15, 20, 30, 45, 60, 75, 90, 120, 150, 180];
 
+function matchCountryValue(nominatimCountry: string): string {
+  if (!nominatimCountry) return '';
+  const lower = nominatimCountry.toLowerCase().trim();
+  const match = countries.find(
+    (c) =>
+      c.value.toLowerCase() === lower ||
+      c.sr.toLowerCase() === lower ||
+      c.en.toLowerCase() === lower ||
+      c.de.toLowerCase() === lower
+  );
+  return match?.value ?? '';
+}
+
 // ── Component ─────────────────────────────────────────────────────────────
 
 export default function BookingSetupWizardPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -718,43 +732,38 @@ export default function BookingSetupWizardPage() {
                       className={inputCls}
                     />
                   </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium">{t('setup.locations.city')} *</label>
-                    <CityAutocomplete
-                      value={locCity}
-                      onChange={(city, placeData) => {
-                        setLocCity(city);
-                        if (placeData?.country) setLocCountry(placeData.country);
-                      }}
-                      placeholder="npr. Sarajevo"
-                      required
-                    />
-                  </div>
-                  {locCountry && (
-                    <div className="flex items-center gap-1.5 -mt-1">
-                      <span className="text-xs text-muted-foreground">{t('setup.locations.country')}:</span>
-                      <span className="text-xs font-medium">{locCountry}</span>
-                      <button
-                        type="button"
-                        onClick={() => setLocCountry('')}
-                        className="text-muted-foreground/50 hover:text-muted-foreground transition-colors"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  )}
-                  {!locCountry && locCity && (
+                  <div className="grid grid-cols-2 gap-3">
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-medium">{t('setup.locations.country')} *</label>
-                      <input
-                        type="text"
-                        value={locCountry}
-                        onChange={(e) => setLocCountry(e.target.value)}
-                        placeholder="npr. Bosna i Hercegovina"
-                        className={inputCls}
+                      <label className="text-sm font-medium">{t('setup.locations.city')} *</label>
+                      <CityAutocomplete
+                        value={locCity}
+                        onChange={(city, placeData) => {
+                          setLocCity(city);
+                          if (placeData?.country) {
+                            const matched = matchCountryValue(placeData.country);
+                            if (matched) setLocCountry(matched);
+                          }
+                        }}
+                        placeholder="npr. Sarajevo"
+                        required
                       />
                     </div>
-                  )}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-sm font-medium">{t('setup.locations.country')}</label>
+                      <select
+                        value={locCountry}
+                        onChange={(e) => setLocCountry(e.target.value)}
+                        className={inputCls}
+                      >
+                        <option value=""></option>
+                        {countries.map((c) => (
+                          <option key={c.value} value={c.value}>
+                            {language === 'sr' ? c.sr : language === 'de' ? c.de : c.en}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
