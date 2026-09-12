@@ -472,9 +472,16 @@ export default function BookingSetupWizardPage() {
   }
 
   function toggleSecondPeriod(day: number) {
-    setDayHours((prev) => prev.map((dh) =>
-      dh.day === day ? { ...dh, open2: !dh.open2 } : dh
-    ));
+    setDayHours((prev) => prev.map((dh) => {
+      if (dh.day !== day) return dh;
+      if (dh.open2) {
+        // Removing break: restore main end from to2
+        return { ...dh, open2: false, to: dh.to2 };
+      } else {
+        // Adding break: default 12:00-13:00, move current end to to2
+        return { ...dh, open2: true, to2: dh.to, to: '12:00', from2: '13:00' };
+      }
+    }));
   }
 
   function updateDayTime(day: number, field: 'from' | 'to', value: string) {
@@ -779,7 +786,7 @@ export default function BookingSetupWizardPage() {
                       </span>
                       {dh.open ? (
                         <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                          {/* Primary period */}
+                          {/* Main hours: from → to (no break) or from → to2 (with break) */}
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <input
                               type="time"
@@ -790,8 +797,11 @@ export default function BookingSetupWizardPage() {
                             <span className="text-xs text-muted-foreground">–</span>
                             <input
                               type="time"
-                              value={dh.to}
-                              onChange={(e) => updateDayTime(dh.day, 'to', e.target.value)}
+                              value={dh.open2 ? dh.to2 : dh.to}
+                              onChange={(e) => dh.open2
+                                ? updateDayTime2(dh.day, 'to2', e.target.value)
+                                : updateDayTime(dh.day, 'to', e.target.value)
+                              }
                               className={timeCls}
                             />
                             {!dh.open2 && (
@@ -804,20 +814,21 @@ export default function BookingSetupWizardPage() {
                               </button>
                             )}
                           </div>
-                          {/* Secondary period */}
+                          {/* Break: to (break start) → from2 (break end) */}
                           {dh.open2 && (
                             <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[11px] text-muted-foreground w-12 shrink-0">{t('bookingSetup.hours.break')}</span>
                               <input
                                 type="time"
-                                value={dh.from2}
-                                onChange={(e) => updateDayTime2(dh.day, 'from2', e.target.value)}
+                                value={dh.to}
+                                onChange={(e) => updateDayTime(dh.day, 'to', e.target.value)}
                                 className={timeCls}
                               />
                               <span className="text-xs text-muted-foreground">–</span>
                               <input
                                 type="time"
-                                value={dh.to2}
-                                onChange={(e) => updateDayTime2(dh.day, 'to2', e.target.value)}
+                                value={dh.from2}
+                                onChange={(e) => updateDayTime2(dh.day, 'from2', e.target.value)}
                                 className={timeCls}
                               />
                               <button

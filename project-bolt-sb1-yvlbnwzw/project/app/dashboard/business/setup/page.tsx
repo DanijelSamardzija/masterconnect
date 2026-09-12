@@ -729,14 +729,29 @@ export default function BusinessSetupPage() {
     }));
   }
 
-  function addPeriod(day: number) {
+  function addBreak(day: number) {
     setHours((prev) => prev.map((h) => {
       if (h.day_of_week !== day) return h;
-      const maxOrder = Math.max(...h.periods.map((p) => p.sort_order));
+      const p0 = h.periods.find((p) => p.sort_order === 0);
+      if (!p0) return h;
       return {
         ...h,
-        periods: [...h.periods, { sort_order: maxOrder + 1, start_time: '09:00', end_time: '17:00' }],
+        periods: [
+          { ...p0, end_time: '12:00' },
+          { sort_order: 1, start_time: '13:00', end_time: p0.end_time },
+        ],
       };
+    }));
+  }
+
+  function removeBreak(day: number) {
+    setDeletedPeriods((prev) => [...prev, { day_of_week: day, sort_order: 1 }]);
+    setHours((prev) => prev.map((h) => {
+      if (h.day_of_week !== day) return h;
+      const p0 = h.periods.find((p) => p.sort_order === 0);
+      const p1 = h.periods.find((p) => p.sort_order === 1);
+      if (!p0 || !p1) return h;
+      return { ...h, periods: [{ ...p0, end_time: p1.end_time }] };
     }));
   }
 
@@ -1568,43 +1583,70 @@ export default function BusinessSetupPage() {
                             {h.is_closed ? t('setup.hours.closed') : t('setup.hours.open')}
                           </button>
                         </div>
-                        {!h.is_closed && (
-                          <div className="flex flex-col gap-1.5 pl-28">
-                            {h.periods.map((period) => (
-                              <div key={period.sort_order} className="flex items-center gap-2">
+                        {!h.is_closed && (() => {
+                          const p0 = h.periods.find((p) => p.sort_order === 0);
+                          const p1 = h.periods.find((p) => p.sort_order === 1);
+                          const timeCls = "border border-border rounded-lg px-2 py-1 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary w-28";
+                          return (
+                            <div className="flex flex-col gap-1.5 pl-28">
+                              {/* Main hours */}
+                              <div className="flex items-center gap-2">
                                 <input
                                   type="time"
-                                  value={period.start_time}
-                                  onChange={(e) => updatePeriod(h.day_of_week, period.sort_order, 'start_time', e.target.value)}
-                                  className="border border-border rounded-lg px-2 py-1 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary w-28"
+                                  value={p0?.start_time ?? '09:00'}
+                                  onChange={(e) => updatePeriod(h.day_of_week, 0, 'start_time', e.target.value)}
+                                  className={timeCls}
                                 />
                                 <span className="text-muted-foreground text-xs">–</span>
                                 <input
                                   type="time"
-                                  value={period.end_time}
-                                  onChange={(e) => updatePeriod(h.day_of_week, period.sort_order, 'end_time', e.target.value)}
-                                  className="border border-border rounded-lg px-2 py-1 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary w-28"
+                                  value={p1 ? p1.end_time : (p0?.end_time ?? '17:00')}
+                                  onChange={(e) => p1
+                                    ? updatePeriod(h.day_of_week, 1, 'end_time', e.target.value)
+                                    : updatePeriod(h.day_of_week, 0, 'end_time', e.target.value)
+                                  }
+                                  className={timeCls}
                                 />
-                                {period.sort_order > 0 && (
-                                  <button
-                                    onClick={() => removePeriod(h.day_of_week, period.sort_order)}
-                                    className="text-muted-foreground hover:text-destructive transition-colors ml-1"
-                                    aria-label="Remove period"
-                                  >
-                                    <X className="w-3.5 h-3.5" />
-                                  </button>
-                                )}
                               </div>
-                            ))}
-                            <button
-                              onClick={() => addPeriod(h.day_of_week)}
-                              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors mt-0.5 self-start"
-                            >
-                              <Plus className="w-3 h-3" />
-                              {t('setup.hours.addPeriod')}
-                            </button>
-                          </div>
-                        )}
+                              {/* Break */}
+                              {p1 && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-muted-foreground w-12 shrink-0">{t('setup.hours.break')}</span>
+                                  <input
+                                    type="time"
+                                    value={p0?.end_time ?? '12:00'}
+                                    onChange={(e) => updatePeriod(h.day_of_week, 0, 'end_time', e.target.value)}
+                                    className={timeCls}
+                                  />
+                                  <span className="text-muted-foreground text-xs">–</span>
+                                  <input
+                                    type="time"
+                                    value={p1.start_time}
+                                    onChange={(e) => updatePeriod(h.day_of_week, 1, 'start_time', e.target.value)}
+                                    className={timeCls}
+                                  />
+                                  <button
+                                    onClick={() => removeBreak(h.day_of_week)}
+                                    className="text-muted-foreground hover:text-destructive transition-colors flex items-center gap-0.5 text-xs ml-1"
+                                  >
+                                    <X className="w-3 h-3" />
+                                    {t('setup.hours.removeBreak')}
+                                  </button>
+                                </div>
+                              )}
+                              {/* Add break */}
+                              {!p1 && (
+                                <button
+                                  onClick={() => addBreak(h.day_of_week)}
+                                  className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors mt-0.5 self-start"
+                                >
+                                  <Plus className="w-3 h-3" />
+                                  {t('setup.hours.addBreak')}
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     ))}
                   </div>
