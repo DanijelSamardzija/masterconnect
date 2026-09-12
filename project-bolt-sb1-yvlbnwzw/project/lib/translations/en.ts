@@ -721,6 +721,7 @@ export default {
   'common.filter': 'Filter',
   'common.all': 'All',
   'common.cancel': 'Cancel',
+  'common.confirm': 'Yes, remove',
   'services.viewService': 'View service',
   'services.ctaBook': 'Book',
   'services.ctaOrder': 'Order',

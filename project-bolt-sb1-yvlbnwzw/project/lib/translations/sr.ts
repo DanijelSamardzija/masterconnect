@@ -721,6 +721,7 @@ export default {
   'common.filter': 'Filter',
   'common.all': 'Sve',
   'common.cancel': 'Otkaži',
+  'common.confirm': 'Da, ukloni',
   'services.viewService': 'Pogledaj uslugu',
   'services.ctaBook': 'Rezerviši',
   'services.ctaOrder': 'Poruči',

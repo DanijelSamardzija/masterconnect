@@ -344,6 +344,7 @@ export default function BusinessSetupPage() {
   const [staffServicesSaving, setStaffServicesSaving] = useState<string | null>(null);
   const [cancellingInviteId, setCancellingInviteId] = useState<string | null>(null);
   const [revokingStaffId, setRevokingStaffId] = useState<string | null>(null);
+  const [confirmingRevokeId, setConfirmingRevokeId] = useState<string | null>(null);
   // Service-location assignment state
   const [serviceLocMap, setServiceLocMap] = useState<Record<string, string[]>>({});
   const [serviceLocSaving, setServiceLocSaving] = useState<string | null>(null);
@@ -1044,7 +1045,7 @@ export default function BusinessSetupPage() {
   }
 
   async function handleRevokeStaff(staffId: string) {
-    if (!confirm(t('setup.staff.revokeConfirm'))) return;
+    setConfirmingRevokeId(null);
     setRevokingStaffId(staffId);
     const { data } = await (supabase as any).rpc('revoke_staff_member', { p_staff_member_id: staffId });
     setRevokingStaffId(null);
@@ -2324,8 +2325,8 @@ export default function BusinessSetupPage() {
                     <p className="text-sm text-muted-foreground text-center py-8">{t('setup.staff.empty')}</p>
                   ) : (
                     <div className="flex flex-col gap-2">
-                      {staffMembers.map((sm) => (
-                        <div key={sm.id} className={`border border-border rounded-xl overflow-hidden ${!sm.is_active ? 'opacity-50' : ''}`}>
+                      {staffMembers.filter((sm) => sm.is_active).map((sm) => (
+                        <div key={sm.id} className="border border-border rounded-xl overflow-hidden">
                           {/* Staff card header */}
                           <div className="px-4 py-3 flex items-center justify-between">
                             <div>
@@ -2342,13 +2343,31 @@ export default function BusinessSetupPage() {
                             </div>
                             <div className="flex flex-col items-end gap-1">
                               {sm.role !== 'owner' && sm.is_active && (
-                                <button
-                                  onClick={() => handleRevokeStaff(sm.id)}
-                                  disabled={revokingStaffId === sm.id}
-                                  className="text-xs text-muted-foreground hover:text-destructive transition-colors"
-                                >
-                                  {revokingStaffId === sm.id ? '...' : t('setup.staff.revoke')}
-                                </button>
+                                confirmingRevokeId === sm.id ? (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs text-muted-foreground">{t('setup.staff.revokeConfirm')}</span>
+                                    <button
+                                      onClick={() => setConfirmingRevokeId(null)}
+                                      className="text-xs px-2 py-0.5 rounded border border-border hover:bg-muted transition-colors"
+                                    >
+                                      {t('common.cancel')}
+                                    </button>
+                                    <button
+                                      onClick={() => handleRevokeStaff(sm.id)}
+                                      disabled={revokingStaffId === sm.id}
+                                      className="text-xs px-2 py-0.5 rounded bg-destructive text-white hover:bg-destructive/80 transition-colors disabled:opacity-50"
+                                    >
+                                      {revokingStaffId === sm.id ? '...' : t('common.confirm')}
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={() => setConfirmingRevokeId(sm.id)}
+                                    className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                                  >
+                                    {t('setup.staff.revoke')}
+                                  </button>
+                                )
                               )}
                               {sm.is_active && (
                                 <button

@@ -690,6 +690,7 @@ export default {
   'common.filter': 'Filtrer',
   'common.all': 'Tout',
   'common.cancel': 'Annuler',
+  'common.confirm': 'Oui, retirer',
   'services.viewService': 'Voir le service',
   'services.ctaBook': 'Réserver',
   'services.ctaOrder': 'Commander',
