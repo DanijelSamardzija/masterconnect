@@ -17,7 +17,7 @@ type TimeBlock = {
   note: string | null;
 };
 
-const REASONS = ['vacation', 'blocked', 'break'] as const;
+const REASONS = ['vacation', 'blocked'] as const;
 
 function toLocalDateStr(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, {
