@@ -60,7 +60,13 @@ function OwnerBookingsContent() {
   const [services, setServices]   = useState<Service[]>([]);
   const [locationId, setLocationId] = useState<string>('');
   const [loading, setLoading]     = useState(true);
-  const [filter, setFilter]       = useState<Filter>('upcoming');
+  const [filter, setFilter]       = useState<Filter>(() => {
+    try {
+      const saved = typeof window !== 'undefined' ? localStorage.getItem('ownerBookingsFilter') : null;
+      if (saved === 'upcoming' || saved === 'pending' || saved === 'all') return saved;
+    } catch {}
+    return 'upcoming';
+  });
   const [staffFilter, setStaffFilter] = useState<string>('all');
   const [isOwner, setIsOwner]     = useState<boolean | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -212,16 +218,13 @@ function OwnerBookingsContent() {
   };
 
   const handleDelete = async () => {
-    if (!deleteBookingId || !profile) return;
+    if (!deleteBookingId) return;
     setActionLoading(deleteBookingId + '-delete');
-    const { error } = await (supabase as any)
-      .from('bookings')
-      .delete()
-      .eq('id', deleteBookingId)
-      .eq('business_id', profile.id)
-      .in('status', ['completed', 'cancelled']);
+    const { data, error } = await (supabase as any).rpc('owner_delete_booking', {
+      p_booking_id: deleteBookingId,
+    });
     setActionLoading(null);
-    if (error) { toast.error('Greška pri brisanju'); return; }
+    if (error || data?.ok === false) { toast.error('Greška pri brisanju'); return; }
     toast.success(t('ownerBookings.deleted'));
     setBookings(prev => prev.filter(b => b.id !== deleteBookingId));
     setDeleteOpen(false);
@@ -348,7 +351,7 @@ function OwnerBookingsContent() {
         {/* Filter tabs */}
         <div className="flex gap-1.5 bg-muted/50 rounded-xl p-1">
           {FILTERS.map(f => (
-            <button key={f.key} onClick={() => setFilter(f.key)}
+            <button key={f.key} onClick={() => { setFilter(f.key); try { localStorage.setItem('ownerBookingsFilter', f.key); } catch {} }}
               className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
                 filter === f.key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
               }`}
