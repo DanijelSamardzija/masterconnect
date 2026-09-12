@@ -1423,6 +1423,8 @@ export default {
   'dashboard.noReviewsYet': 'nema recenzija još',
 
   // Business & Booking CTA na dashboardu
+  'dashboard.myBookings.title': 'Moje rezervacije',
+  'dashboard.myBookings.desc': 'Pregledaj predstojeće i prošle termine',
   'dashboard.staff.memberDesc': 'Član si tima · Pogledaj raspored',
   'dashboard.business.ctaTitle': 'Aktiviraj Business & Booking',
   'dashboard.business.ctaDesc': 'Omogući klijentima da rezervišu tvoje usluge online.',

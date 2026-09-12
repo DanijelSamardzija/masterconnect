@@ -1419,6 +1419,8 @@ export default {
   'dashboard.noReviewsYet': 'noch keine Bewertungen',
 
   // Business & Booking CTA im Dashboard
+  'dashboard.myBookings.title': 'Meine Buchungen',
+  'dashboard.myBookings.desc': 'Bevorstehende und vergangene Termine ansehen',
   'dashboard.staff.memberDesc': 'Teammitglied · Zeitplan ansehen',
   'dashboard.business.ctaTitle': 'Business & Booking aktivieren',
   'dashboard.business.ctaDesc': 'Lass Kunden deine Dienste online buchen.',

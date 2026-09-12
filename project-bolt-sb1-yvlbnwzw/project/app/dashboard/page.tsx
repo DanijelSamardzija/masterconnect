@@ -511,6 +511,21 @@ function DashboardContent() {
           </div>
         </div>
 
+        {/* My bookings card — shown to all users */}
+        <button
+          onClick={() => router.push('/dashboard/bookings')}
+          className="w-full bg-card border border-border rounded-2xl p-4 flex items-center gap-3 hover:border-orange-400/50 hover:bg-accent transition-colors text-left"
+        >
+          <div className="p-2.5 bg-orange-100 dark:bg-orange-950 rounded-xl shrink-0">
+            <Calendar className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground">{t('dashboard.myBookings.title')}</p>
+            <p className="text-xs text-muted-foreground">{t('dashboard.myBookings.desc')}</p>
+          </div>
+          <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+        </button>
+
         {/* Staff card — shown when user is a worker/manager in someone else's business */}
         {staffBusinessName && (
           <button

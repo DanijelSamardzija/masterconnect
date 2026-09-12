@@ -1360,6 +1360,8 @@ export default {
   'dashboard.noReviewsYet': 'sin reseñas aún',
 
   // Business & Booking CTA en el panel
+  'dashboard.myBookings.title': 'Mis reservas',
+  'dashboard.myBookings.desc': 'Ver citas próximas y pasadas',
   'dashboard.staff.memberDesc': 'Miembro del equipo · Ver horario',
   'dashboard.business.ctaTitle': 'Activar Business & Reservas',
   'dashboard.business.ctaDesc': 'Permite que los clientes reserven tus servicios online.',
