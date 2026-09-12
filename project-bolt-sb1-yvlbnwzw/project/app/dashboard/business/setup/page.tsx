@@ -1000,13 +1000,14 @@ export default function BusinessSetupPage() {
   async function handleAddStaffDirect() {
     if (!selectedStaffToAdd || !primaryLocId) return;
     setAddingStaff(true);
-    const { data } = await (supabase as any).rpc('add_staff_direct', {
+    const { data, error } = await (supabase as any).rpc('add_staff_direct', {
       p_user_id: selectedStaffToAdd.id,
       p_role: addingStaffRole,
       p_location_id: primaryLocId,
     });
     setAddingStaff(false);
-    if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); return; }
+    if (error) { console.error('add_staff_direct error:', error); toast.error(t('setup.error.saveFailed')); return; }
+    if (!(data as any)?.ok) { console.error('add_staff_direct returned:', data); toast.error(t('setup.error.saveFailed')); return; }
     toast.success(t('setup.staff.added'));
     setSelectedStaffToAdd(null);
     setStaffAddSearch('');
