@@ -90,7 +90,12 @@ function formatDate(d: Date): string {
 }
 
 function weekStart(d: Date): string {
-  return d.toISOString().slice(0, 10);
+  // Use local date components to avoid UTC/local timezone mismatch for UTC+ users.
+  // toISOString() returns UTC date which can be one day behind the local date.
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 function bookingErrorKey(errorCode: string): string {
@@ -139,21 +144,24 @@ export default function BookingSlotPickerPage() {
     if (!businessId || !serviceId) return;
     async function loadMeta() {
       setLoadingMeta(true);
-      const [bizRes, svcRes, locRes] = await Promise.all([
-        supabase.from('profiles').select('id, name').eq('id', businessId).eq('is_business', true).maybeSingle(),
-        (supabase as any).from('service_catalog').select('id, name, description, duration_minutes, capacity, price, price_type, currency').eq('id', serviceId).eq('business_id', businessId).eq('is_active', true).maybeSingle(),
-        supabase.from('business_locations').select('id, name, timezone, is_primary').eq('business_id', businessId).eq('is_active', true).order('is_primary', { ascending: false }),
-      ]);
-      setBusiness(bizRes.data ?? null);
-      setService((svcRes.data as Service) ?? null);
-      const locs = locRes.data ?? [];
-      setLocations(locs);
-      if (locs.length > 0) {
-        const primary = locs.find((l: Location) => l.is_primary) ?? locs[0];
-        setSelectedLocationId(primary.id);
-        setSelectedTimezone(primary.timezone);
+      try {
+        const [bizRes, svcRes, locRes] = await Promise.all([
+          supabase.from('profiles').select('id, name').eq('id', businessId).eq('is_business', true).maybeSingle(),
+          (supabase as any).from('service_catalog').select('id, name, description, duration_minutes, capacity, price, price_type, currency').eq('id', serviceId).eq('business_id', businessId).eq('is_active', true).maybeSingle(),
+          supabase.from('business_locations').select('id, name, timezone, is_primary').eq('business_id', businessId).eq('is_active', true).order('is_primary', { ascending: false }),
+        ]);
+        setBusiness(bizRes.data ?? null);
+        setService((svcRes.data as Service) ?? null);
+        const locs = locRes.data ?? [];
+        setLocations(locs);
+        if (locs.length > 0) {
+          const primary = locs.find((l: Location) => l.is_primary) ?? locs[0];
+          setSelectedLocationId(primary.id);
+          setSelectedTimezone(primary.timezone);
+        }
+      } finally {
+        setLoadingMeta(false);
       }
-      setLoadingMeta(false);
     }
     loadMeta();
   }, [businessId, serviceId]);
@@ -161,30 +169,36 @@ export default function BookingSlotPickerPage() {
   const loadStaff = useCallback(async (locId: string) => {
     if (!serviceId) return;
     setLoadingStaff(true);
-    const { data } = await (supabase as any).rpc('get_staff_for_service', {
-      p_service_id: serviceId,
-      p_location_id: locId,
-    });
-    const members = (data as StaffOption[]) ?? [];
-    setStaffOptions(members);
-    setSelectedStaffId(null); // reset to "any" when location changes
-    setLoadingStaff(false);
+    try {
+      const { data } = await (supabase as any).rpc('get_staff_for_service', {
+        p_service_id: serviceId,
+        p_location_id: locId,
+      });
+      const members = (data as StaffOption[]) ?? [];
+      setStaffOptions(members);
+      setSelectedStaffId(null);
+    } finally {
+      setLoadingStaff(false);
+    }
   }, [serviceId]);
 
   const loadSlots = useCallback(async () => {
     if (!selectedLocationId || !businessId || !serviceId) return;
     setLoadingSlots(true);
     setSlots([]);
-    const ws = weekStart(weekDate);
-    const { data } = await (supabase as any).rpc('get_available_slots', {
-      p_business_id: businessId,
-      p_location_id: selectedLocationId,
-      p_service_id: serviceId,
-      p_week_start: ws,
-      ...(selectedStaffId ? { p_staff_member_id: selectedStaffId } : {}),
-    });
-    setSlots((data as Slot[]) ?? []);
-    setLoadingSlots(false);
+    try {
+      const ws = weekStart(weekDate);
+      const { data } = await (supabase as any).rpc('get_available_slots', {
+        p_business_id: businessId,
+        p_location_id: selectedLocationId,
+        p_service_id: serviceId,
+        p_week_start: ws,
+        ...(selectedStaffId ? { p_staff_member_id: selectedStaffId } : {}),
+      });
+      setSlots((data as Slot[]) ?? []);
+    } finally {
+      setLoadingSlots(false);
+    }
   }, [businessId, serviceId, selectedLocationId, selectedStaffId, weekDate]);
 
   useEffect(() => {
