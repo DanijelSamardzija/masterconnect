@@ -23,6 +23,7 @@ type Booking = {
   notes: string | null;
   client_name: string | null;
   guest_name: string | null;
+  guest_phone: string | null;
 };
 
 type StaffMember = { id: string; name: string };
@@ -145,7 +146,7 @@ function OwnerBookingsContent() {
     setLoading(true);
     let query = (supabase as any)
       .from('bookings')
-      .select('id, starts_at, ends_at, service_name_snapshot, status, staff_member_id, notes, guest_name, profiles!bookings_client_id_fkey(name)')
+      .select('id, starts_at, ends_at, service_name_snapshot, status, staff_member_id, notes, guest_name, guest_phone, profiles!bookings_client_id_fkey(name)')
       .eq('business_id', profile.id);
     if (filter === 'upcoming')
       query = query.gte('starts_at', new Date().toISOString()).in('status', ['pending', 'confirmed']);
@@ -389,6 +390,7 @@ function OwnerBookingsContent() {
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Users className="h-3 w-3 shrink-0" />
                       <span>{client}</span>
+                      {b.guest_phone && <span className="text-muted-foreground">· {b.guest_phone}</span>}
                       {b.guest_name && <span className="text-[10px] px-1.5 py-0.5 bg-muted rounded-full">{t('ownerBookings.guestLabel')}</span>}
                     </div>
                   )}
