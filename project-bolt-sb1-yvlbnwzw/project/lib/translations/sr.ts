@@ -2347,6 +2347,11 @@ export default {
   'ownerBookings.add.phonePlaceholder': 'Telefon (opciono)',
   'ownerBookings.add.notesPlaceholder': 'Napomena (opciono)',
   'ownerBookings.add.save': 'Sačuvaj termin',
+  'ownerBookings.delete': 'Obriši',
+  'ownerBookings.deleted': 'Termin obrisan',
+  'ownerBookings.deleteModal.title': 'Obriši termin',
+  'ownerBookings.deleteModal.body': 'Ovo će trajno obrisati termin iz liste. Radnja se ne može poništiti.',
+  'ownerBookings.deleteModal.confirm': 'Da, obriši',
   'ownerBookings.add.noSlots': 'Nema slobodnih termina za ovaj dan.',
   'ownerBookings.add.success': 'Termin dodan',
 } as const;

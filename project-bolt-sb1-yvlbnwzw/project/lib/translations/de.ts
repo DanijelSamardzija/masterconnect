@@ -2337,6 +2337,11 @@ export default {
   'ownerBookings.add.phonePlaceholder': 'Telefon (optional)',
   'ownerBookings.add.notesPlaceholder': 'Notiz (optional)',
   'ownerBookings.add.save': 'Termin speichern',
+  'ownerBookings.delete': 'Löschen',
+  'ownerBookings.deleted': 'Termin gelöscht',
+  'ownerBookings.deleteModal.title': 'Termin löschen',
+  'ownerBookings.deleteModal.body': 'Dieser Termin wird dauerhaft aus der Liste entfernt. Diese Aktion kann nicht rückgängig gemacht werden.',
+  'ownerBookings.deleteModal.confirm': 'Ja, löschen',
   'ownerBookings.add.noSlots': 'Keine verfügbaren Termine für diesen Tag.',
   'ownerBookings.add.success': 'Termin hinzugefügt',
 } as const;

@@ -10,7 +10,7 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   ChevronLeft, ChevronRight, Calendar, Users, CheckCircle2, XCircle,
-  Clock, AlertCircle, Plus
+  Clock, AlertCircle, Plus, Trash2
 } from 'lucide-react';
 
 type Booking = {
@@ -72,6 +72,8 @@ function OwnerBookingsContent() {
 
   // Cancel modal
   const [cancelOpen, setCancelOpen]           = useState(false);
+  const [deleteOpen, setDeleteOpen]           = useState(false);
+  const [deleteBookingId, setDeleteBookingId] = useState<string | null>(null);
   const [cancelBookingId, setCancelBookingId] = useState<string | null>(null);
   const [cancelReason, setCancelReason]       = useState('');
 
@@ -207,6 +209,23 @@ function OwnerBookingsContent() {
     setCancelOpen(false);
     setCancelBookingId(null);
     setCancelReason('');
+  };
+
+  const handleDelete = async () => {
+    if (!deleteBookingId || !profile) return;
+    setActionLoading(deleteBookingId + '-delete');
+    const { error } = await (supabase as any)
+      .from('bookings')
+      .delete()
+      .eq('id', deleteBookingId)
+      .eq('business_id', profile.id)
+      .in('status', ['completed', 'cancelled']);
+    setActionLoading(null);
+    if (error) { toast.error('Greška pri brisanju'); return; }
+    toast.success(t('ownerBookings.deleted'));
+    setBookings(prev => prev.filter(b => b.id !== deleteBookingId));
+    setDeleteOpen(false);
+    setDeleteBookingId(null);
   };
 
   const handleReassign = async () => {
@@ -367,8 +386,9 @@ function OwnerBookingsContent() {
             {bookings.map(b => {
               const staffName = staff.find(s => s.id === b.staff_member_id)?.name;
               const sc = statusConfig[b.status] ?? { label: b.status, cls: 'bg-muted text-muted-foreground', icon: null };
-              const isPast   = new Date(b.starts_at) < new Date();
-              const isActive = ['pending', 'confirmed'].includes(b.status);
+              const isPast      = new Date(b.starts_at) < new Date();
+              const isActive    = ['pending', 'confirmed'].includes(b.status);
+              const isDeletable = ['completed', 'cancelled'].includes(b.status);
               const client   = clientLabel(b);
               return (
                 <div key={b.id} className="bg-card border border-border rounded-2xl p-4 space-y-3">
@@ -426,6 +446,18 @@ function OwnerBookingsContent() {
                           {t('ownerBookings.cancel')}
                         </button>
                       )}
+                    </div>
+                  )}
+                  {isDeletable && (
+                    <div className="flex items-center gap-2 pt-1 border-t border-border">
+                      <button
+                        onClick={() => { setDeleteBookingId(b.id); setDeleteOpen(true); }}
+                        disabled={!!actionLoading}
+                        className="flex items-center justify-center gap-1.5 bg-muted hover:bg-red-100 dark:hover:bg-red-950 disabled:opacity-50 text-muted-foreground hover:text-red-600 dark:hover:text-red-400 rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        {actionLoading === b.id + '-delete' ? '...' : t('ownerBookings.delete')}
+                      </button>
                     </div>
                   )}
                 </div>
@@ -595,6 +627,33 @@ function OwnerBookingsContent() {
                 className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl py-2.5 text-sm font-semibold transition-colors"
               >
                 {actionLoading?.endsWith('-cancel') ? '...' : t('ownerBookings.cancelModal.confirm')}
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Delete modal ─────────────────────────────────────────────── */}
+      <Dialog open={deleteOpen} onOpenChange={o => { if (!o) { setDeleteOpen(false); setDeleteBookingId(null); } }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
+              <Trash2 className="h-4 w-4" />
+              {t('ownerBookings.deleteModal.title')}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-1">
+            <p className="text-sm text-muted-foreground">{t('ownerBookings.deleteModal.body')}</p>
+            <div className="flex gap-2">
+              <button onClick={() => { setDeleteOpen(false); setDeleteBookingId(null); }}
+                className="flex-1 border border-border rounded-xl py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors"
+              >
+                {t('ownerBookings.cancelModal.back')}
+              </button>
+              <button onClick={handleDelete} disabled={!!actionLoading}
+                className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl py-2.5 text-sm font-semibold transition-colors"
+              >
+                {actionLoading?.endsWith('-delete') ? '...' : t('ownerBookings.deleteModal.confirm')}
               </button>
             </div>
           </div>

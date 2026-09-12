@@ -2277,6 +2277,11 @@ export default {
   'ownerBookings.add.phonePlaceholder': 'Téléphone (facultatif)',
   'ownerBookings.add.notesPlaceholder': 'Note (facultatif)',
   'ownerBookings.add.save': 'Enregistrer le RDV',
+  'ownerBookings.delete': 'Supprimer',
+  'ownerBookings.deleted': 'Rendez-vous supprimé',
+  'ownerBookings.deleteModal.title': 'Supprimer le rendez-vous',
+  'ownerBookings.deleteModal.body': 'Cela supprimera définitivement le rendez-vous de la liste. Cette action est irréversible.',
+  'ownerBookings.deleteModal.confirm': 'Oui, supprimer',
   'ownerBookings.add.noSlots': 'Aucun créneau disponible pour ce jour.',
   'ownerBookings.add.success': 'Rendez-vous ajouté',
 } as const;

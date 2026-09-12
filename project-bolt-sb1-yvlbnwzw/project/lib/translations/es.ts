@@ -2270,6 +2270,11 @@ export default {
   'ownerBookings.add.phonePlaceholder': 'Teléfono (opcional)',
   'ownerBookings.add.notesPlaceholder': 'Nota (opcional)',
   'ownerBookings.add.save': 'Guardar cita',
+  'ownerBookings.delete': 'Eliminar',
+  'ownerBookings.deleted': 'Cita eliminada',
+  'ownerBookings.deleteModal.title': 'Eliminar cita',
+  'ownerBookings.deleteModal.body': 'Esto eliminará permanentemente la cita de la lista. Esta acción no se puede deshacer.',
+  'ownerBookings.deleteModal.confirm': 'Sí, eliminar',
   'ownerBookings.add.noSlots': 'No hay horarios disponibles para este día.',
   'ownerBookings.add.success': 'Cita añadida',
 } as const;

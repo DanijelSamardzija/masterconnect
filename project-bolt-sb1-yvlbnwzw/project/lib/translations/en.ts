@@ -2347,6 +2347,11 @@ export default {
   'ownerBookings.add.phonePlaceholder': 'Phone (optional)',
   'ownerBookings.add.notesPlaceholder': 'Note (optional)',
   'ownerBookings.add.save': 'Save booking',
+  'ownerBookings.delete': 'Delete',
+  'ownerBookings.deleted': 'Booking deleted',
+  'ownerBookings.deleteModal.title': 'Delete booking',
+  'ownerBookings.deleteModal.body': 'This will permanently remove the booking from the list. This action cannot be undone.',
+  'ownerBookings.deleteModal.confirm': 'Yes, delete',
   'ownerBookings.add.noSlots': 'No available slots for this day.',
   'ownerBookings.add.success': 'Booking added',
 } as const;
