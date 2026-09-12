@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
-import { Check, Copy, ExternalLink, ChevronLeft, Loader2, X, AlertTriangle } from 'lucide-react';
+import { Check, Copy, ExternalLink, ChevronLeft, Loader2, X, AlertTriangle, Info } from 'lucide-react';
 import { CityAutocomplete } from '@/components/city-autocomplete';
 import { countries } from '@/lib/countries';
 
@@ -143,6 +143,7 @@ export default function BookingSetupWizardPage() {
 
   // Step 5 — Rules
   const [rules, setRules] = useState<Rules>(DEFAULT_RULES);
+  const [activeRuleInfo, setActiveRuleInfo] = useState<string | null>(null);
 
   // ── Staff search debounce ───────────────────────────────────────────────
 
@@ -1112,7 +1113,17 @@ export default function BookingSetupWizardPage() {
 
                   {/* Confirmation mode */}
                   <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium">{t('setup.rules.confirmation')}</label>
+                    <div className="flex items-center gap-1.5">
+                      <label className="text-sm font-medium">{t('setup.rules.confirmation')}</label>
+                      <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'confirmation' ? null : 'confirmation')} className="text-muted-foreground/60 hover:text-primary transition-colors">
+                        <Info className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    {activeRuleInfo === 'confirmation' && (
+                      <p className="text-xs text-muted-foreground leading-relaxed bg-muted/40 px-3 py-2 rounded-lg border border-border/50">
+                        {rules.confirmation_mode === 'instant' ? t('setup.rules.confirmation.instant.desc') : t('setup.rules.confirmation.approval.desc')}
+                      </p>
+                    )}
                     <div className="flex gap-2">
                       {(['instant', 'requires_approval'] as const).map((mode) => (
                         <button
@@ -1131,16 +1142,21 @@ export default function BookingSetupWizardPage() {
                         </button>
                       ))}
                     </div>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      {rules.confirmation_mode === 'instant'
-                        ? t('setup.rules.confirmation.instant.desc')
-                        : t('setup.rules.confirmation.approval.desc')}
-                    </p>
                   </div>
 
                   {/* Slot interval */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium">{t('setup.rules.slotInterval')}</label>
+                    <div className="flex items-center gap-1.5">
+                      <label className="text-sm font-medium">{t('setup.rules.slotInterval')}</label>
+                      <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'slot' ? null : 'slot')} className="text-muted-foreground/60 hover:text-primary transition-colors">
+                        <Info className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    {activeRuleInfo === 'slot' && (
+                      <p className="text-xs text-muted-foreground leading-relaxed bg-muted/40 px-3 py-2 rounded-lg border border-border/50">
+                        {t('setup.rules.slotInterval.desc')}
+                      </p>
+                    )}
                     <select
                       value={rules.slot_interval_min}
                       onChange={(e) => setRules((r) => ({ ...r, slot_interval_min: Number(e.target.value) }))}
@@ -1148,15 +1164,22 @@ export default function BookingSetupWizardPage() {
                     >
                       {[15, 30, 45, 60].map((v) => <option key={v} value={v}>{v} min</option>)}
                     </select>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      {t('setup.rules.slotInterval.desc')}
-                    </p>
                   </div>
 
                   {/* Cancellation + Min notice */}
                   <div className="flex gap-3">
                     <div className="flex flex-col gap-1.5 flex-1">
-                      <label className="text-xs font-medium text-muted-foreground">{t('setup.rules.cancellation')}</label>
+                      <div className="flex items-center gap-1.5">
+                        <label className="text-xs font-medium text-muted-foreground">{t('setup.rules.cancellation')}</label>
+                        <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'cancel' ? null : 'cancel')} className="text-muted-foreground/60 hover:text-primary transition-colors">
+                          <Info className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      {activeRuleInfo === 'cancel' && (
+                        <p className="text-[11px] text-muted-foreground leading-relaxed bg-muted/40 px-3 py-2 rounded-lg border border-border/50">
+                          {t('setup.rules.cancellation.desc')}
+                        </p>
+                      )}
                       <select
                         value={rules.cancellation_hours}
                         onChange={(e) => setRules((r) => ({ ...r, cancellation_hours: Number(e.target.value) }))}
@@ -1164,12 +1187,19 @@ export default function BookingSetupWizardPage() {
                       >
                         {[1, 2, 4, 6, 12, 24, 48].map((v) => <option key={v} value={v}>{v}h</option>)}
                       </select>
-                      <p className="text-[11px] text-muted-foreground leading-relaxed">
-                        {t('setup.rules.cancellation.desc')}
-                      </p>
                     </div>
                     <div className="flex flex-col gap-1.5 flex-1">
-                      <label className="text-xs font-medium text-muted-foreground">{t('setup.rules.minNotice')}</label>
+                      <div className="flex items-center gap-1.5">
+                        <label className="text-xs font-medium text-muted-foreground">{t('setup.rules.minNotice')}</label>
+                        <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'notice' ? null : 'notice')} className="text-muted-foreground/60 hover:text-primary transition-colors">
+                          <Info className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      {activeRuleInfo === 'notice' && (
+                        <p className="text-[11px] text-muted-foreground leading-relaxed bg-muted/40 px-3 py-2 rounded-lg border border-border/50">
+                          {t('setup.rules.minNotice.desc')}
+                        </p>
+                      )}
                       <select
                         value={rules.min_notice_minutes}
                         onChange={(e) => setRules((r) => ({ ...r, min_notice_minutes: Number(e.target.value) }))}
@@ -1181,15 +1211,22 @@ export default function BookingSetupWizardPage() {
                           </option>
                         ))}
                       </select>
-                      <p className="text-[11px] text-muted-foreground leading-relaxed">
-                        {t('setup.rules.minNotice.desc')}
-                      </p>
                     </div>
                   </div>
 
                   {/* Max advance */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium">{t('setup.rules.maxAdvance')}</label>
+                    <div className="flex items-center gap-1.5">
+                      <label className="text-sm font-medium">{t('setup.rules.maxAdvance')}</label>
+                      <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'advance' ? null : 'advance')} className="text-muted-foreground/60 hover:text-primary transition-colors">
+                        <Info className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    {activeRuleInfo === 'advance' && (
+                      <p className="text-xs text-muted-foreground leading-relaxed bg-muted/40 px-3 py-2 rounded-lg border border-border/50">
+                        {t('setup.rules.maxAdvance.desc')}
+                      </p>
+                    )}
                     <select
                       value={rules.max_advance_days}
                       onChange={(e) => setRules((r) => ({ ...r, max_advance_days: Number(e.target.value) }))}
@@ -1197,9 +1234,6 @@ export default function BookingSetupWizardPage() {
                     >
                       {[7, 14, 30, 60, 90].map((v) => <option key={v} value={v}>{v} dana</option>)}
                     </select>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      {t('setup.rules.maxAdvance.desc')}
-                    </p>
                   </div>
 
                 </div>

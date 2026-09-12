@@ -9,7 +9,7 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { useBookingAccess } from '@/lib/hooks/use-booking-access';
 import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
-import { ChevronRight, Plus, Pencil, X, CheckCircle2, MapPin, ExternalLink, AlertTriangle, Check, Loader2 } from 'lucide-react';
+import { ChevronRight, Plus, Pencil, X, CheckCircle2, MapPin, ExternalLink, AlertTriangle, Check, Loader2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CityAutocomplete } from '@/components/city-autocomplete';
 import { countries } from '@/lib/countries';
@@ -284,6 +284,7 @@ export default function BusinessSetupPage() {
   });
   const [rulesLoading, setRulesLoading] = useState(initialTab === 'rules');
   const [rulesSaving, setRulesSaving] = useState(false);
+  const [activeRuleInfo, setActiveRuleInfo] = useState<string | null>(null);
 
   // ── Post listings state (F11B) ─────────────────────────────────────────────
   const [postListings, setPostListings] = useState<PostListing[]>([]);
@@ -2034,7 +2035,19 @@ export default function BusinessSetupPage() {
                 </div>
               ) : (
                 <>
-                  {labelInput(t('setup.rules.confirmation'),
+                  {/* Confirmation mode */}
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <label className="text-sm font-medium">{t('setup.rules.confirmation')}</label>
+                      <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'confirmation' ? null : 'confirmation')} className="text-muted-foreground/60 hover:text-primary transition-colors">
+                        <Info className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    {activeRuleInfo === 'confirmation' && (
+                      <p className="text-xs text-muted-foreground leading-relaxed bg-muted/40 px-3 py-2 rounded-lg border border-border/50">
+                        {rules.confirmation_mode === 'instant' ? t('setup.rules.confirmation.instant.desc') : t('setup.rules.confirmation.approval.desc')}
+                      </p>
+                    )}
                     <select
                       value={rules.confirmation_mode}
                       onChange={(e) => setRules((r) => ({ ...r, confirmation_mode: e.target.value as 'instant' | 'requires_approval' }))}
@@ -2043,56 +2056,104 @@ export default function BusinessSetupPage() {
                       <option value="instant">{t('setup.rules.confirmation.instant')}</option>
                       <option value="requires_approval">{t('setup.rules.confirmation.approval')}</option>
                     </select>
-                  )}
+                  </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    {labelInput(t('setup.rules.slotInterval'),
+                    {/* Slot interval */}
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <label className="text-sm font-medium">{t('setup.rules.slotInterval')}</label>
+                        <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'slot' ? null : 'slot')} className="text-muted-foreground/60 hover:text-primary transition-colors">
+                          <Info className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      {activeRuleInfo === 'slot' && (
+                        <p className="text-xs text-muted-foreground leading-relaxed bg-muted/40 px-3 py-2 rounded-lg border border-border/50">
+                          {t('setup.rules.slotInterval.desc')}
+                        </p>
+                      )}
                       <select
                         value={rules.slot_interval_min}
                         onChange={(e) => setRules((r) => ({ ...r, slot_interval_min: Number(e.target.value) }))}
                         className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                       >
                         {[10, 15, 20, 30, 45, 60, 90, 120].map((v) => (
-                          <option key={v} value={v}>{v}</option>
+                          <option key={v} value={v}>{v} min</option>
                         ))}
                       </select>
-                    )}
-                    {labelInput(t('setup.rules.maxAdvance'),
+                    </div>
+                    {/* Max advance */}
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <label className="text-sm font-medium">{t('setup.rules.maxAdvance')}</label>
+                        <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'advance' ? null : 'advance')} className="text-muted-foreground/60 hover:text-primary transition-colors">
+                          <Info className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      {activeRuleInfo === 'advance' && (
+                        <p className="text-xs text-muted-foreground leading-relaxed bg-muted/40 px-3 py-2 rounded-lg border border-border/50">
+                          {t('setup.rules.maxAdvance.desc')}
+                        </p>
+                      )}
                       <select
                         value={rules.max_advance_days}
                         onChange={(e) => setRules((r) => ({ ...r, max_advance_days: Number(e.target.value) }))}
                         className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                       >
                         {[7, 14, 21, 30, 45, 60].map((v) => (
-                          <option key={v} value={v}>{v}</option>
+                          <option key={v} value={v}>{v} dana</option>
                         ))}
                       </select>
-                    )}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    {labelInput(t('setup.rules.minNotice'),
+                    {/* Min notice */}
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <label className="text-sm font-medium">{t('setup.rules.minNotice')}</label>
+                        <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'notice' ? null : 'notice')} className="text-muted-foreground/60 hover:text-primary transition-colors">
+                          <Info className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      {activeRuleInfo === 'notice' && (
+                        <p className="text-xs text-muted-foreground leading-relaxed bg-muted/40 px-3 py-2 rounded-lg border border-border/50">
+                          {t('setup.rules.minNotice.desc')}
+                        </p>
+                      )}
                       <select
                         value={rules.min_notice_minutes}
                         onChange={(e) => setRules((r) => ({ ...r, min_notice_minutes: Number(e.target.value) }))}
                         className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                       >
                         {[0, 30, 60, 120, 180, 240, 480, 720, 1440].map((v) => (
-                          <option key={v} value={v}>{v}</option>
+                          <option key={v} value={v}>{v === 0 ? '0' : v < 60 ? `${v} min` : v < 1440 ? `${v / 60}h` : '24h'}</option>
                         ))}
                       </select>
-                    )}
-                    {labelInput(t('setup.rules.cancellation'),
+                    </div>
+                    {/* Cancellation */}
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <label className="text-sm font-medium">{t('setup.rules.cancellation')}</label>
+                        <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'cancel' ? null : 'cancel')} className="text-muted-foreground/60 hover:text-primary transition-colors">
+                          <Info className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      {activeRuleInfo === 'cancel' && (
+                        <p className="text-xs text-muted-foreground leading-relaxed bg-muted/40 px-3 py-2 rounded-lg border border-border/50">
+                          {t('setup.rules.cancellation.desc')}
+                        </p>
+                      )}
                       <select
                         value={rules.cancellation_hours}
                         onChange={(e) => setRules((r) => ({ ...r, cancellation_hours: Number(e.target.value) }))}
                         className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                       >
                         {[0, 1, 2, 4, 8, 12, 24, 48, 72].map((v) => (
-                          <option key={v} value={v}>{v}</option>
+                          <option key={v} value={v}>{v === 0 ? '0' : `${v}h`}</option>
                         ))}
                       </select>
-                    )}
+                    </div>
                   </div>
 
                   <Button
