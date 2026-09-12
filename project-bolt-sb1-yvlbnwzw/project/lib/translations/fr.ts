@@ -2084,6 +2084,7 @@ export default {
   'staffDashboard.empty': 'Aucune réservation à venir.',
   'staffDashboard.pastEmpty': 'Aucune réservation passée.',
   'setup.services.delete': 'Supprimer',
+  'setup.services.viewPage': 'Voir la page de réservation',
   'setup.services.deleteConfirm': 'Êtes-vous sûr de vouloir supprimer ce service?',
   'setup.services.deleted': 'Service supprimé',
   'setup.services.delete.activeBookings': 'Ce service a des réservations actives et ne peut pas être supprimé',

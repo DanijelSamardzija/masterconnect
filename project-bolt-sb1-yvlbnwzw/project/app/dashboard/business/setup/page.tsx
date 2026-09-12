@@ -9,7 +9,7 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { useBookingAccess } from '@/lib/hooks/use-booking-access';
 import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
-import { ChevronRight, Plus, Pencil, X, CheckCircle2, MapPin } from 'lucide-react';
+import { ChevronRight, Plus, Pencil, X, CheckCircle2, MapPin, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CityAutocomplete } from '@/components/city-autocomplete';
 import { countries } from '@/lib/countries';
@@ -1409,6 +1409,17 @@ export default function BusinessSetupPage() {
                           )}
                         </div>
                         <div className="flex gap-1 shrink-0 items-center">
+                          {svc.is_active && user?.id && (
+                            <a
+                              href={`/booking/${user.id}/${svc.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-accent transition-colors"
+                              title={t('setup.services.viewPage')}
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+                          )}
                           <button
                             onClick={() => openEditSvc(svc)}
                             className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-accent transition-colors"

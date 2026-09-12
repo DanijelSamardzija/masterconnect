@@ -2144,6 +2144,7 @@ export default {
   'staffDashboard.empty': 'Keine bevorstehenden Buchungen.',
   'staffDashboard.pastEmpty': 'Keine vergangenen Buchungen.',
   'setup.services.delete': 'Löschen',
+  'setup.services.viewPage': 'Buchungsseite anzeigen',
   'setup.services.deleteConfirm': 'Sind Sie sicher, dass Sie diesen Dienst löschen möchten?',
   'setup.services.deleted': 'Dienst gelöscht',
   'setup.services.delete.activeBookings': 'Dieser Dienst hat aktive Buchungen und kann nicht gelöscht werden',
