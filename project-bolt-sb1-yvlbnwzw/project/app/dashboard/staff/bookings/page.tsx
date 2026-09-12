@@ -34,6 +34,8 @@ type Permissions = {
   can_block_time: boolean;
 };
 
+type ActiveFilter = 'upcoming' | 'pending' | 'all' | 'past';
+
 const DEFAULT_PERMS: Permissions = {
   can_set_hours: false,
   can_create_bookings: false,
@@ -47,7 +49,7 @@ export default function StaffBookingsPage() {
   const router = useRouter();
   const locale = { sr: 'sr-RS', en: 'en-US', de: 'de-DE', es: 'es-ES', fr: 'fr-FR' }[language] ?? 'en-US';
 
-  const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming');
+  const [activeFilter, setActiveFilter] = useState<ActiveFilter>('upcoming');
   const [allBookings, setAllBookings] = useState<StaffBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [permissions, setPermissions] = useState<Permissions>(DEFAULT_PERMS);
@@ -86,14 +88,20 @@ export default function StaffBookingsPage() {
   }, []);
 
   const now = new Date();
-  const upcomingAll = allBookings.filter(
-    b => new Date(b.starts_at) >= now && ['pending', 'confirmed'].includes(b.status)
-  );
-  const pendingCount = upcomingAll.filter(b => b.status === 'pending').length;
 
-  const displayed = tab === 'upcoming'
-    ? upcomingAll
-    : [...allBookings.filter(b => new Date(b.starts_at) < now || !['pending', 'confirmed'].includes(b.status))].reverse();
+  const upcomingAll  = allBookings.filter(b => new Date(b.starts_at) >= now && ['pending', 'confirmed'].includes(b.status));
+  const pendingAll   = allBookings.filter(b => b.status === 'pending');
+  const pastAll      = [...allBookings.filter(b => new Date(b.starts_at) < now || !['pending', 'confirmed'].includes(b.status))].reverse();
+
+  const upcomingCount = upcomingAll.length;
+  const pendingCount  = pendingAll.length;
+  const totalCount    = allBookings.length;
+
+  const displayed: StaffBooking[] =
+    activeFilter === 'upcoming' ? upcomingAll :
+    activeFilter === 'pending'  ? pendingAll :
+    activeFilter === 'past'     ? pastAll :
+    /* all */                     allBookings;
 
   const statusConfig: Record<string, { cls: string; icon: React.ReactNode }> = {
     pending:   { cls: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400', icon: <Clock className="h-3 w-3" /> },
@@ -104,6 +112,12 @@ export default function StaffBookingsPage() {
   };
 
   const hasAnyAction = permissions.can_create_bookings || permissions.can_block_time || permissions.can_set_hours;
+
+  const emptyMsg =
+    activeFilter === 'upcoming' ? t('staffDashboard.empty') :
+    activeFilter === 'pending'  ? t('staffDashboard.empty') :
+    activeFilter === 'past'     ? t('staffDashboard.pastEmpty') :
+    t('staffDashboard.empty');
 
   return (
     <ProtectedRoute>
@@ -154,40 +168,50 @@ export default function StaffBookingsPage() {
             </div>
           )}
 
-          {/* Stats tiles */}
+          {/* Clickable stats tiles */}
           {!loading && (
             <div className="grid grid-cols-3 gap-3">
-              {[
-                { label: t('staffDashboard.upcoming'), value: upcomingAll.length, highlight: upcomingAll.length > 0 },
-                { label: t('staffDashboard.pending'),  value: pendingCount,        highlight: pendingCount > 0 },
-                { label: t('staffDashboard.total'),    value: allBookings.length,  highlight: false },
-              ].map(({ label, value, highlight }) => (
-                <div key={label} className="bg-card border border-border rounded-2xl p-4 text-center">
-                  <p className={`text-2xl font-bold ${highlight ? 'text-primary' : 'text-foreground'}`}>
-                    {value}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
-                </div>
-              ))}
+              {([
+                { key: 'upcoming' as ActiveFilter, label: t('staffDashboard.upcoming'), value: upcomingCount, highlight: upcomingCount > 0 },
+                { key: 'pending'  as ActiveFilter, label: t('staffDashboard.pending'),  value: pendingCount,  highlight: pendingCount > 0 },
+                { key: 'all'      as ActiveFilter, label: t('staffDashboard.total'),    value: totalCount,    highlight: false },
+              ]).map(({ key, label, value, highlight }) => {
+                const isActive = activeFilter === key;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setActiveFilter(key)}
+                    className={`rounded-2xl p-4 text-center transition-all border ${
+                      isActive
+                        ? 'bg-primary text-white border-primary shadow-sm'
+                        : 'bg-card border-border hover:border-primary/40 hover:bg-accent'
+                    }`}
+                  >
+                    <p className={`text-2xl font-bold ${isActive ? 'text-white' : highlight ? 'text-primary' : 'text-foreground'}`}>
+                      {value}
+                    </p>
+                    <p className={`text-xs mt-0.5 ${isActive ? 'text-white/80' : 'text-muted-foreground'}`}>
+                      {label}
+                    </p>
+                  </button>
+                );
+              })}
             </div>
           )}
 
-          {/* Tabs */}
-          <div className="flex gap-1.5 bg-muted/50 rounded-xl p-1">
-            {(['upcoming', 'past'] as const).map((tabKey) => (
-              <button
-                key={tabKey}
-                onClick={() => setTab(tabKey)}
-                className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-                  tab === tabKey
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {tabKey === 'upcoming' ? t('booking.upcomingBookings') : t('booking.pastBookings')}
-              </button>
-            ))}
-          </div>
+          {/* Past tab — secondary, below tiles */}
+          {!loading && (
+            <button
+              onClick={() => setActiveFilter(activeFilter === 'past' ? 'upcoming' : 'past')}
+              className={`w-full py-2 rounded-xl text-xs font-semibold border transition-colors ${
+                activeFilter === 'past'
+                  ? 'bg-muted text-foreground border-border'
+                  : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent'
+              }`}
+            >
+              {t('booking.pastBookings')}
+            </button>
+          )}
 
           {/* List */}
           {loading ? (
@@ -197,9 +221,7 @@ export default function StaffBookingsPage() {
           ) : displayed.length === 0 ? (
             <div className="bg-card border border-border rounded-2xl px-5 py-12 text-center">
               <Calendar className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-muted-foreground text-sm">
-                {tab === 'upcoming' ? t('staffDashboard.empty') : t('staffDashboard.pastEmpty')}
-              </p>
+              <p className="text-muted-foreground text-sm">{emptyMsg}</p>
             </div>
           ) : (
             <div className="space-y-3">
