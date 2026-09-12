@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
@@ -72,7 +72,12 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
   const [isOwnerPremium, setIsOwnerPremium] = useState<boolean | null>(null);
   const [isBusinessProfile, setIsBusinessProfile] = useState<boolean | null>(null);
   const [linkedSvcId, setLinkedSvcId] = useState<string | null>(null);
+  const searchParams = useSearchParams();
   const [showEditModal, setShowEditModal] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get('edit') === '1') setShowEditModal(true);
+  }, [searchParams]);
   const [similarServices, setSimilarServices] = useState<ServiceDetail[]>([]);
   const [providerServices, setProviderServices] = useState<ServiceDetail[]>([]);
   const [showOfferModal, setShowOfferModal] = useState(false);
