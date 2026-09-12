@@ -51,7 +51,7 @@ function OwnerBookingsContent() {
   const { profile } = useAuth();
   const router = useRouter();
   const { t, language } = useLanguage();
-  const locale = { sr: locale, en: 'en-US', de: 'de-DE', es: 'es-ES', fr: 'fr-FR' }[language] ?? 'en-US';
+  const locale = { sr: 'sr-RS', en: 'en-US', de: 'de-DE', es: 'es-ES', fr: 'fr-FR' }[language] ?? 'en-US';
 
   const [bookings, setBookings]   = useState<Booking[]>([]);
   const [staff, setStaff]         = useState<StaffMember[]>([]);
