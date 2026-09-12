@@ -990,7 +990,7 @@ export default function BusinessSetupPage() {
       });
       setStaffAddSearching(false);
       if (Array.isArray(data)) {
-        const existingIds = new Set(staffMembers.map((sm) => sm.user_id));
+        const existingIds = new Set(staffMembers.filter((sm) => sm.is_active).map((sm) => sm.user_id));
         setStaffAddResults((data as StaffResult[]).filter((u) => u.id !== user?.id && !existingIds.has(u.id)));
       }
     }, 350);
