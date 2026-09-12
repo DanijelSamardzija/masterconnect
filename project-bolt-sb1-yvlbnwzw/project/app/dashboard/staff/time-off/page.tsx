@@ -40,6 +40,8 @@ export default function StaffTimeOffPage() {
   const { profile } = useAuth();
   const router = useRouter();
 
+  useEffect(() => { window.scrollTo(0, 0); }, []);
+
   const [hasPermission, setHasPermission] = useState(false);
   const [loading, setLoading] = useState(true);
   const [blocks, setBlocks] = useState<TimeBlock[]>([]);

@@ -64,6 +64,8 @@ export default function MyBookingsPage() {
   const router = useRouter();
   const { hasAccess, loading: authLoading } = useBookingAccess();
 
+  useEffect(() => { window.scrollTo(0, 0); }, []);
+
   const [upcoming, setUpcoming] = useState<Booking[]>([]);
   const [past, setPast] = useState<Booking[]>([]);
   const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming');

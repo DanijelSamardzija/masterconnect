@@ -41,6 +41,8 @@ export default function StaffNewBookingPage() {
   const router = useRouter();
   const locale = { sr: 'sr-RS', en: 'en-US', de: 'de-DE', es: 'es-ES', fr: 'fr-FR' }[language] ?? 'en-US';
 
+  useEffect(() => { window.scrollTo(0, 0); }, []);
+
   const [hasPermission, setHasPermission] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
