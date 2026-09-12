@@ -58,6 +58,7 @@ type UpcomingBooking = {
   service_name_snapshot: string;
   staff_member_id: string | null;
   staff_name: string | null;
+  notes: string | null;
   client_name: string | null;
   client_phone: string | null;
   guest_name: string | null;
@@ -344,18 +345,19 @@ function DashboardContent() {
     if (!profile) return;
     const { data } = await (supabase as any)
       .from('bookings')
-      .select('id, starts_at, service_name_snapshot, staff_member_id, guest_name, guest_phone, profiles!bookings_client_id_fkey(name, phone)')
+      .select('id, starts_at, service_name_snapshot, staff_member_id, notes, guest_name, guest_phone, profiles!bookings_client_id_fkey(name, phone)')
       .eq('business_id', profile.id)
       .gte('starts_at', new Date().toISOString())
       .in('status', ['pending', 'confirmed'])
       .order('starts_at', { ascending: true })
-      .limit(5);
+      .limit(4);
     if (data) setUpcomingBookings(data.map((b: any) => ({
       id: b.id,
       starts_at: b.starts_at,
       service_name_snapshot: b.service_name_snapshot,
       staff_member_id: b.staff_member_id ?? null,
       staff_name: null,
+      notes:        b.notes            ?? null,
       client_name:  b.profiles?.name  ?? null,
       client_phone: b.profiles?.phone ?? null,
       guest_name:   b.guest_name      ?? null,
@@ -731,6 +733,9 @@ function DashboardContent() {
                             {b.client_name || b.guest_name}
                             {(b.client_phone || b.guest_phone) && ` · ${b.client_phone || b.guest_phone}`}
                           </p>
+                        )}
+                        {b.notes?.trim() && (
+                          <p className="text-xs text-muted-foreground/70 italic truncate">{b.notes}</p>
                         )}
                       </div>
                       <button
