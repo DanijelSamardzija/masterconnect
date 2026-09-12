@@ -7,16 +7,25 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
-import { ChevronRight, Clock } from 'lucide-react';
+import { ChevronRight, Clock, X } from 'lucide-react';
 
 type DaySchedule = {
-  is_closed: boolean;
-  start_time: string;
-  end_time: string;
+  is_closed:   boolean;
+  start_time:  string;
+  end_time:    string;
+  has_break:   boolean;
+  break_start: string;
+  break_end:   string;
 };
 
-const DEFAULT_DAY: DaySchedule = { is_closed: false, start_time: '09:00', end_time: '17:00' };
-
+const DEFAULT_DAY: DaySchedule = {
+  is_closed:   false,
+  start_time:  '09:00',
+  end_time:    '17:00',
+  has_break:   false,
+  break_start: '12:00',
+  break_end:   '13:00',
+};
 
 const DOW_KEYS = [
   'setup.hours.day.1',
@@ -74,13 +83,42 @@ export default function StaffHoursPage() {
       });
 
       if (Array.isArray(hours) && hours.length > 0) {
-        const loaded: Record<number, DaySchedule> = { ...Object.fromEntries(DOW_ORDER.map((d) => [d, { ...DEFAULT_DAY }])) };
+        // Group rows by day_of_week, keyed by sort_order
+        const byDay: Record<number, Record<number, { start_time: string; end_time: string; is_closed: boolean }>> = {};
         for (const row of hours) {
-          loaded[row.day_of_week] = {
+          const dow = row.day_of_week;
+          if (!byDay[dow]) byDay[dow] = {};
+          byDay[dow][row.sort_order] = {
             is_closed:  row.is_closed,
             start_time: row.start_time?.slice(0, 5) ?? '09:00',
             end_time:   row.end_time?.slice(0, 5)   ?? '17:00',
           };
+        }
+        const loaded: Record<number, DaySchedule> = { ...Object.fromEntries(DOW_ORDER.map((d) => [d, { ...DEFAULT_DAY }])) };
+        for (const dow of DOW_ORDER) {
+          const p0 = byDay[dow]?.[0];
+          const p1 = byDay[dow]?.[1];
+          if (!p0) continue;
+          if (p1) {
+            // has break: period0 = work start → break start, period1 = break end → work end
+            loaded[dow] = {
+              is_closed:   p0.is_closed,
+              start_time:  p0.start_time,
+              break_start: p0.end_time,
+              break_end:   p1.start_time,
+              end_time:    p1.end_time,
+              has_break:   true,
+            };
+          } else {
+            loaded[dow] = {
+              is_closed:   p0.is_closed,
+              start_time:  p0.start_time,
+              end_time:    p0.end_time,
+              has_break:   false,
+              break_start: '12:00',
+              break_end:   '13:00',
+            };
+          }
         }
         setSchedule(loaded);
       }
@@ -92,17 +130,51 @@ export default function StaffHoursPage() {
     if (!locationId) return;
     setSaving(true);
     let anyError = false;
+
     for (const dow of DOW_ORDER) {
       const day = schedule[dow];
-      const { data } = await (supabase as any).rpc('set_my_staff_hours', {
-        p_location_id: locationId,
-        p_day_of_week: dow,
-        p_open_time:   day.start_time,
-        p_close_time:  day.end_time,
-        p_is_closed:   day.is_closed,
-      });
-      if (!data?.ok) anyError = true;
+
+      if (day.has_break && !day.is_closed) {
+        // Period 0: start → break_start
+        const r0 = await (supabase as any).rpc('set_my_staff_hours', {
+          p_location_id: locationId,
+          p_day_of_week: dow,
+          p_open_time:   day.start_time,
+          p_close_time:  day.break_start,
+          p_is_closed:   false,
+          p_sort_order:  0,
+        });
+        if (!r0.data?.ok) anyError = true;
+        // Period 1: break_end → end_time
+        const r1 = await (supabase as any).rpc('set_my_staff_hours', {
+          p_location_id: locationId,
+          p_day_of_week: dow,
+          p_open_time:   day.break_end,
+          p_close_time:  day.end_time,
+          p_is_closed:   false,
+          p_sort_order:  1,
+        });
+        if (!r1.data?.ok) anyError = true;
+      } else {
+        // Period 0 only
+        const r0 = await (supabase as any).rpc('set_my_staff_hours', {
+          p_location_id: locationId,
+          p_day_of_week: dow,
+          p_open_time:   day.start_time,
+          p_close_time:  day.end_time,
+          p_is_closed:   day.is_closed,
+          p_sort_order:  0,
+        });
+        if (!r0.data?.ok) anyError = true;
+        // Delete period 1 if it existed before (no error if absent)
+        await (supabase as any).rpc('delete_my_staff_hour_period', {
+          p_location_id: locationId,
+          p_day_of_week: dow,
+          p_sort_order:  1,
+        });
+      }
     }
+
     setSaving(false);
     if (anyError) {
       toast.error(t('staffHours.saveError'));
@@ -113,6 +185,27 @@ export default function StaffHoursPage() {
 
   function updateDay(dow: number, patch: Partial<DaySchedule>) {
     setSchedule((prev) => ({ ...prev, [dow]: { ...prev[dow], ...patch } }));
+  }
+
+  function toggleBreak(dow: number) {
+    setSchedule((prev) => {
+      const day = prev[dow];
+      if (day.has_break) {
+        // Remove break: collapse end time to period1's end
+        return { ...prev, [dow]: { ...day, has_break: false, end_time: day.end_time } };
+      } else {
+        // Add break: default 12:00-13:00, shift end to after break
+        return {
+          ...prev,
+          [dow]: {
+            ...day,
+            has_break:   true,
+            break_start: '12:00',
+            break_end:   '13:00',
+          },
+        };
+      }
+    });
   }
 
   return (
@@ -158,6 +251,7 @@ export default function StaffHoursPage() {
                       key={dow}
                       className={`flex flex-col gap-2 p-4 ${idx > 0 ? 'border-t border-border' : ''}`}
                     >
+                      {/* Day name + open/closed badge */}
                       <div className="flex items-center gap-3">
                         <span className="text-sm font-medium w-28">{t(labelKey)}</span>
                         <button
@@ -172,21 +266,65 @@ export default function StaffHoursPage() {
                           {day.is_closed ? t('setup.hours.closed') : t('setup.hours.open')}
                         </button>
                       </div>
+
+                      {/* Time inputs — only when open */}
                       {!day.is_closed && (
-                        <div className="flex items-center gap-2 pl-28">
-                          <input
-                            type="time"
-                            value={day.start_time}
-                            onChange={(e) => updateDay(dow, { start_time: e.target.value })}
-                            className={timeCls}
-                          />
-                          <span className="text-muted-foreground text-xs">–</span>
-                          <input
-                            type="time"
-                            value={day.end_time}
-                            onChange={(e) => updateDay(dow, { end_time: e.target.value })}
-                            className={timeCls}
-                          />
+                        <div className="flex flex-col gap-1.5 pl-28">
+                          {/* Main period: start → (break_start if break, else end_time) */}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <input
+                              type="time"
+                              value={day.start_time}
+                              onChange={(e) => updateDay(dow, { start_time: e.target.value })}
+                              className={timeCls}
+                            />
+                            <span className="text-muted-foreground text-xs">–</span>
+                            <input
+                              type="time"
+                              value={day.has_break ? day.end_time : day.end_time}
+                              onChange={(e) => updateDay(dow, { end_time: e.target.value })}
+                              className={timeCls}
+                            />
+                            {!day.has_break && (
+                              <button
+                                type="button"
+                                onClick={() => toggleBreak(dow)}
+                                className="text-[11px] font-medium text-primary/70 hover:text-primary transition-colors px-1.5 py-0.5 rounded border border-primary/20 hover:border-primary/50"
+                              >
+                                + {t('bookingSetup.hours.addSecondPeriod')}
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Break row */}
+                          {day.has_break && (
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-[11px] text-muted-foreground w-12 shrink-0">
+                                {t('bookingSetup.hours.break')}
+                              </span>
+                              <input
+                                type="time"
+                                value={day.break_start}
+                                onChange={(e) => updateDay(dow, { break_start: e.target.value })}
+                                className={timeCls}
+                              />
+                              <span className="text-muted-foreground text-xs">–</span>
+                              <input
+                                type="time"
+                                value={day.break_end}
+                                onChange={(e) => updateDay(dow, { break_end: e.target.value })}
+                                className={timeCls}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => toggleBreak(dow)}
+                                className="text-[11px] font-medium text-destructive/60 hover:text-destructive transition-colors flex items-center gap-0.5"
+                              >
+                                <X className="w-3 h-3" />
+                                {t('bookingSetup.hours.removeSecondPeriod')}
+                              </button>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
