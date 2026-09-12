@@ -17,24 +17,6 @@ type DaySchedule = {
 
 const DEFAULT_DAY: DaySchedule = { is_closed: false, start_time: '09:00', end_time: '17:00' };
 
-const HOURS   = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
-const MINUTES = ['00', '15', '30', '45'];
-
-function TimeSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const [h, m] = value.split(':');
-  const selCls = "border border-border rounded-lg px-2 py-1.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer";
-  return (
-    <div className="flex items-center gap-1">
-      <select value={h} onChange={e => onChange(`${e.target.value}:${m}`)} className={selCls}>
-        {HOURS.map(hr => <option key={hr} value={hr}>{hr}</option>)}
-      </select>
-      <span className="text-muted-foreground text-xs font-bold">:</span>
-      <select value={m} onChange={e => onChange(`${h}:${e.target.value}`)} className={selCls}>
-        {MINUTES.map(mn => <option key={mn} value={mn}>{mn}</option>)}
-      </select>
-    </div>
-  );
-}
 
 const DOW_KEYS = [
   'setup.hours.day.1',
@@ -170,38 +152,42 @@ export default function StaffHoursPage() {
                 {DOW_ORDER.map((dow, idx) => {
                   const day = schedule[dow];
                   const labelKey = DOW_KEYS[idx];
+                  const timeCls = "border border-border rounded-lg px-2 py-1 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary w-28";
                   return (
                     <div
                       key={dow}
                       className={`flex flex-col gap-2 p-4 ${idx > 0 ? 'border-t border-border' : ''}`}
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
                         <span className="text-sm font-medium w-28">{t(labelKey)}</span>
                         <button
                           type="button"
-                          role="switch"
-                          aria-checked={!day.is_closed}
                           onClick={() => updateDay(dow, { is_closed: !day.is_closed })}
-                          className={`relative w-9 h-5 rounded-full transition-colors ${!day.is_closed ? 'bg-primary' : 'bg-muted-foreground/30'}`}
+                          className={`text-xs font-semibold px-2.5 py-0.5 rounded-full transition-colors ${
+                            day.is_closed
+                              ? 'bg-muted text-muted-foreground hover:bg-muted/80'
+                              : 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900'
+                          }`}
                         >
-                          <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${!day.is_closed ? 'translate-x-4' : 'translate-x-0'}`} />
+                          {day.is_closed ? t('setup.hours.closed') : t('setup.hours.open')}
                         </button>
                       </div>
                       {!day.is_closed && (
-                        <div className="flex items-center gap-2 pl-0">
-                          <TimeSelect
+                        <div className="flex items-center gap-2 pl-28">
+                          <input
+                            type="time"
                             value={day.start_time}
-                            onChange={(v) => updateDay(dow, { start_time: v })}
+                            onChange={(e) => updateDay(dow, { start_time: e.target.value })}
+                            className={timeCls}
                           />
                           <span className="text-muted-foreground text-xs">–</span>
-                          <TimeSelect
+                          <input
+                            type="time"
                             value={day.end_time}
-                            onChange={(v) => updateDay(dow, { end_time: v })}
+                            onChange={(e) => updateDay(dow, { end_time: e.target.value })}
+                            className={timeCls}
                           />
                         </div>
-                      )}
-                      {day.is_closed && (
-                        <p className="text-xs text-muted-foreground pl-0">{t('setup.hours.closed')}</p>
                       )}
                     </div>
                   );
