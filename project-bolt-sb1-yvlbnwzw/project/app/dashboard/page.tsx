@@ -563,35 +563,7 @@ function DashboardContent() {
                 {t('dashboard.business.needsPremiumButton')} →
               </button>
             </div>
-          ) : isBusinessProfile ? (
-            // Whitelisted + Premium + active business
-            <div className="bg-card border border-border rounded-2xl p-4 flex items-center gap-3">
-              <div className="p-2.5 bg-blue-100 dark:bg-blue-950 rounded-xl shrink-0">
-                <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-foreground">{t('dashboard.business.activeTitle')}</p>
-                <span className="text-xs font-medium text-green-600 dark:text-green-400">{t('dashboard.business.activeStatus')}</span>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => router.push('/dashboard/business/bookings')}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-orange-500 hover:text-orange-400 transition-colors"
-                >
-                  <Calendar className="h-3.5 w-3.5" />
-                  Rezervacije
-                </button>
-                <span className="text-border">|</span>
-                <button
-                  onClick={() => router.push('/dashboard/business/setup')}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <Settings className="h-3.5 w-3.5" />
-                  {t('dashboard.business.activeButton')}
-                </button>
-              </div>
-            </div>
-          ) : (
+          ) : isBusinessProfile ? null : (
             // Whitelisted + Premium + no business profile yet
             <div className="bg-card border border-blue-200 dark:border-blue-900 rounded-2xl p-4 flex items-center gap-3">
               <div className="p-2.5 bg-blue-100 dark:bg-blue-950 rounded-xl shrink-0">
@@ -618,13 +590,29 @@ function DashboardContent() {
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 {t('dashboard.services.title')}
               </p>
-              <button
-                onClick={() => router.push(`/booking/${profile.id}`)}
-                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ExternalLink className="h-3 w-3" />
-                {t('dashboard.services.bookingPage')}
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => router.push('/dashboard/business/bookings')}
+                  className="flex items-center gap-1 text-xs font-semibold text-orange-500 hover:text-orange-400 transition-colors"
+                >
+                  <Calendar className="h-3 w-3" />
+                  Rezervacije
+                </button>
+                <button
+                  onClick={() => router.push('/dashboard/business/setup')}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Settings className="h-3 w-3" />
+                  {t('dashboard.business.activeButton')}
+                </button>
+                <button
+                  onClick={() => router.push(`/booking/${profile.id}`)}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  {t('dashboard.services.bookingPage')}
+                </button>
+              </div>
             </div>
 
             {businessServices.length === 0 ? (
