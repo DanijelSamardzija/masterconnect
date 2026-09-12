@@ -50,8 +50,30 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {},
 });
 
+// Read Supabase's stored session synchronously from localStorage so pages
+// can start loading data immediately on page refresh, without waiting for
+// the async getSession() network/IO round trip.
+function readStoredSupabaseUser(): User | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    const projectRef = new URL(supabaseUrl).hostname.split('.')[0];
+    const raw = localStorage.getItem(`sb-${projectRef}-auth-token`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    // Only trust the stored user if the access token has not yet expired.
+    const expiresAt: number | undefined = parsed?.expires_at;
+    if (expiresAt && expiresAt > Math.floor(Date.now() / 1000)) {
+      return (parsed?.user as User) ?? null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => readStoredSupabaseUser());
   const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
