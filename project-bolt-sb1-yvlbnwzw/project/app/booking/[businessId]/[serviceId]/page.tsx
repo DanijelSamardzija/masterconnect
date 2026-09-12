@@ -492,6 +492,7 @@ export default function BookingSlotPickerPage() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder={t('booking.phonePlaceholder')}
+                  required
                   className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
@@ -511,7 +512,7 @@ export default function BookingSlotPickerPage() {
                 <Button variant="outline" className="flex-1" onClick={() => setDialogOpen(false)}>
                   <X className="w-4 h-4 mr-1" /> {t('block.cancel')}
                 </Button>
-                <Button className="flex-1" onClick={handleBook} disabled={booking}>
+                <Button className="flex-1" onClick={handleBook} disabled={booking || !phone.trim()}>
                   {booking ? t('booking.booking') : t('booking.book')}
                 </Button>
               </div>

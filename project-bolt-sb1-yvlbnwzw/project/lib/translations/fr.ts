@@ -1769,7 +1769,7 @@ export default {
   'booking.prevWeek': 'Semaine précédente',
   'booking.nextWeek': 'Semaine suivante',
   'booking.confirm': 'Confirmer la réservation',
-  'booking.phone': 'Téléphone (facultatif)',
+  'booking.phone': 'Téléphone *',
   'booking.phonePlaceholder': 'Votre numéro de téléphone...',
   'booking.notes': 'Notes (facultatif)',
   'booking.notesPlaceholder': 'Demandes ou notes pour le prestataire...',

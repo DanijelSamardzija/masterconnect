@@ -1839,7 +1839,7 @@ export default {
   'booking.prevWeek': 'Prethodna sedmica',
   'booking.nextWeek': 'Sljedeća sedmica',
   'booking.confirm': 'Potvrdi rezervaciju',
-  'booking.phone': 'Telefon (opciono)',
+  'booking.phone': 'Telefon *',
   'booking.phonePlaceholder': 'Vaš broj telefona...',
   'booking.notes': 'Napomena (nije obavezno)',
   'booking.notesPlaceholder': 'Zahtjevi ili napomene za pružaoca usluge...',

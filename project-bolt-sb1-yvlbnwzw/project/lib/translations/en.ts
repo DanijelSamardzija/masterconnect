@@ -1839,7 +1839,7 @@ export default {
   'booking.prevWeek': 'Previous week',
   'booking.nextWeek': 'Next week',
   'booking.confirm': 'Confirm booking',
-  'booking.phone': 'Phone (optional)',
+  'booking.phone': 'Phone *',
   'booking.phonePlaceholder': 'Your phone number...',
   'booking.notes': 'Notes (optional)',
   'booking.notesPlaceholder': 'Any requests or notes for the provider...',

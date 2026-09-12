@@ -1762,7 +1762,7 @@ export default {
   'booking.prevWeek': 'Semana anterior',
   'booking.nextWeek': 'Semana siguiente',
   'booking.confirm': 'Confirmar reserva',
-  'booking.phone': 'Teléfono (opcional)',
+  'booking.phone': 'Teléfono *',
   'booking.phonePlaceholder': 'Tu número de teléfono...',
   'booking.notes': 'Notas (opcional)',
   'booking.notesPlaceholder': 'Solicitudes o notas para el proveedor...',
