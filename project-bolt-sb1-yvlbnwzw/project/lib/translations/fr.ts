@@ -2268,4 +2268,12 @@ export default {
   'ownerBookings.cancelModal.reasonPlaceholder': 'Raison de l\'annulation (facultatif)...',
   'ownerBookings.cancelModal.back': 'Retour',
   'ownerBookings.cancelModal.confirm': 'Confirmer l\'annulation',
+  'ownerBookings.guestLabel': 'invité',
+  'ownerBookings.add.button': 'Ajouter un RDV',
+  'ownerBookings.add.title': 'Nouveau rendez-vous',
+  'ownerBookings.add.namePlaceholder': 'Nom du client *',
+  'ownerBookings.add.phonePlaceholder': 'Téléphone (facultatif)',
+  'ownerBookings.add.notesPlaceholder': 'Note (facultatif)',
+  'ownerBookings.add.save': 'Enregistrer le RDV',
+  'ownerBookings.add.success': 'Rendez-vous ajouté',
 } as const;

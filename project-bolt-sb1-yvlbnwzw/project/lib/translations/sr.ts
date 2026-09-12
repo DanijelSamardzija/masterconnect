@@ -2338,4 +2338,12 @@ export default {
   'ownerBookings.cancelModal.reasonPlaceholder': 'Razlog otkazivanja (opciono)...',
   'ownerBookings.cancelModal.back': 'Nazad',
   'ownerBookings.cancelModal.confirm': 'Potvrdi otkazivanje',
+  'ownerBookings.guestLabel': 'gost',
+  'ownerBookings.add.button': 'Dodaj termin',
+  'ownerBookings.add.title': 'Novi termin',
+  'ownerBookings.add.namePlaceholder': 'Ime klijenta *',
+  'ownerBookings.add.phonePlaceholder': 'Telefon (opciono)',
+  'ownerBookings.add.notesPlaceholder': 'Napomena (opciono)',
+  'ownerBookings.add.save': 'Sačuvaj termin',
+  'ownerBookings.add.success': 'Termin dodan',
 } as const;

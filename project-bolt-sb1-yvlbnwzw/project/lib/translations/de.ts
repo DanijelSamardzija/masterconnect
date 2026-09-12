@@ -2328,4 +2328,12 @@ export default {
   'ownerBookings.cancelModal.reasonPlaceholder': 'Grund für die Absage (optional)...',
   'ownerBookings.cancelModal.back': 'Zurück',
   'ownerBookings.cancelModal.confirm': 'Absage bestätigen',
+  'ownerBookings.guestLabel': 'Gast',
+  'ownerBookings.add.button': 'Termin hinzufügen',
+  'ownerBookings.add.title': 'Neuer Termin',
+  'ownerBookings.add.namePlaceholder': 'Kundenname *',
+  'ownerBookings.add.phonePlaceholder': 'Telefon (optional)',
+  'ownerBookings.add.notesPlaceholder': 'Notiz (optional)',
+  'ownerBookings.add.save': 'Termin speichern',
+  'ownerBookings.add.success': 'Termin hinzugefügt',
 } as const;

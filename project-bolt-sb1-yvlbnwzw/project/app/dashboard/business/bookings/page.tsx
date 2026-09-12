@@ -10,7 +10,7 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   ChevronLeft, Calendar, Users, CheckCircle2, XCircle,
-  Clock, AlertCircle
+  Clock, AlertCircle, Plus
 } from 'lucide-react';
 
 type Booking = {
@@ -22,10 +22,11 @@ type Booking = {
   staff_member_id: string | null;
   notes: string | null;
   client_name: string | null;
+  guest_name: string | null;
 };
 
 type StaffMember = { id: string; name: string };
-
+type Service     = { id: string; name: string; duration_minutes: number };
 type Filter = 'upcoming' | 'pending' | 'all';
 
 function OwnerBookingsContent() {
@@ -33,26 +34,41 @@ function OwnerBookingsContent() {
   const router = useRouter();
   const { t } = useLanguage();
 
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [staff, setStaff]       = useState<StaffMember[]>([]);
-  const [loading, setLoading]   = useState(true);
-  const [filter, setFilter]     = useState<Filter>('upcoming');
+  const [bookings, setBookings]     = useState<Booking[]>([]);
+  const [staff, setStaff]           = useState<StaffMember[]>([]);
+  const [services, setServices]     = useState<Service[]>([]);
+  const [loading, setLoading]       = useState(true);
+  const [filter, setFilter]         = useState<Filter>('upcoming');
   const [staffFilter, setStaffFilter] = useState<string>('all');
-  const [isOwner, setIsOwner]   = useState<boolean | null>(null);
+  const [isOwner, setIsOwner]       = useState<boolean | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const [reassignOpen, setReassignOpen]         = useState(false);
+  // Reassign modal
+  const [reassignOpen, setReassignOpen]           = useState(false);
   const [reassignBookingId, setReassignBookingId] = useState<string | null>(null);
   const [reassignStaffId, setReassignStaffId]     = useState('');
-  const [actionLoading, setActionLoading]         = useState<string | null>(null);
 
-  const [cancelOpen, setCancelOpen]         = useState(false);
+  // Cancel modal
+  const [cancelOpen, setCancelOpen]           = useState(false);
   const [cancelBookingId, setCancelBookingId] = useState<string | null>(null);
   const [cancelReason, setCancelReason]       = useState('');
+
+  // Manual booking modal
+  const [addOpen, setAddOpen]           = useState(false);
+  const [addServiceId, setAddServiceId] = useState('');
+  const [addStaffId, setAddStaffId]     = useState('');
+  const [addDate, setAddDate]           = useState('');
+  const [addTime, setAddTime]           = useState('');
+  const [addName, setAddName]           = useState('');
+  const [addPhone, setAddPhone]         = useState('');
+  const [addNotes, setAddNotes]         = useState('');
+  const [addLoading, setAddLoading]     = useState(false);
 
   useEffect(() => {
     if (!profile) return;
     checkOwnerRole();
     fetchStaff();
+    fetchServices();
   }, [profile]);
 
   useEffect(() => {
@@ -83,12 +99,22 @@ function OwnerBookingsContent() {
     if (data) setStaff(data.map((s: any) => ({ id: s.id, name: s.profiles?.name || '—' })));
   };
 
+  const fetchServices = async () => {
+    if (!profile) return;
+    const { data } = await (supabase as any)
+      .from('service_catalog')
+      .select('id, name, duration_minutes')
+      .eq('business_id', profile.id)
+      .eq('is_active', true);
+    if (data) setServices(data);
+  };
+
   const fetchBookings = async () => {
     if (!profile) return;
     setLoading(true);
     let query = (supabase as any)
       .from('bookings')
-      .select('id, starts_at, ends_at, service_name_snapshot, status, staff_member_id, notes, profiles!bookings_client_id_fkey(name)')
+      .select('id, starts_at, ends_at, service_name_snapshot, status, staff_member_id, notes, guest_name, profiles!bookings_client_id_fkey(name)')
       .eq('business_id', profile.id);
 
     if (filter === 'upcoming') {
@@ -102,7 +128,10 @@ function OwnerBookingsContent() {
     }
 
     const { data } = await query.order('starts_at', { ascending: filter !== 'all' }).limit(50);
-    setBookings((data || []).map((b: any) => ({ ...b, client_name: b.profiles?.name ?? null })));
+    setBookings((data || []).map((b: any) => ({
+      ...b,
+      client_name: b.profiles?.name ?? null,
+    })));
     setLoading(false);
   };
 
@@ -158,6 +187,44 @@ function OwnerBookingsContent() {
     setReassignOpen(true);
   };
 
+  const openAddModal = () => {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm   = String(now.getMonth() + 1).padStart(2, '0');
+    const dd   = String(now.getDate()).padStart(2, '0');
+    const hh   = String(now.getHours()).padStart(2, '0');
+    const min  = String(Math.ceil(now.getMinutes() / 15) * 15 % 60).padStart(2, '0');
+    setAddDate(`${yyyy}-${mm}-${dd}`);
+    setAddTime(`${hh}:${min}`);
+    setAddServiceId(services[0]?.id || '');
+    setAddStaffId(staff[0]?.id || '');
+    setAddName('');
+    setAddPhone('');
+    setAddNotes('');
+    setAddOpen(true);
+  };
+
+  const handleAddBooking = async () => {
+    if (!addServiceId || !addStaffId || !addDate || !addTime || !addName.trim()) return;
+    setAddLoading(true);
+    const startsAt = new Date(`${addDate}T${addTime}:00`).toISOString();
+    const { data, error } = await (supabase as any).rpc('owner_create_booking', {
+      p_service_id:      addServiceId,
+      p_staff_member_id: addStaffId,
+      p_starts_at:       startsAt,
+      p_guest_name:      addName.trim(),
+      p_guest_phone:     addPhone.trim() || null,
+      p_notes:           addNotes.trim() || null,
+    });
+    setAddLoading(false);
+    if (error || data?.ok === false) { toast.error(data?.error || 'Greška'); return; }
+    toast.success(t('ownerBookings.add.success'));
+    setAddOpen(false);
+    fetchBookings();
+  };
+
+  const clientLabel = (b: Booking) => b.client_name || b.guest_name;
+
   const statusConfig: Record<string, { label: string; cls: string; icon: React.ReactNode }> = {
     pending:   { label: t('ownerBookings.status.pending'),   cls: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400', icon: <Clock className="h-3 w-3" /> },
     confirmed: { label: t('ownerBookings.status.confirmed'), cls: 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400',   icon: <CheckCircle2 className="h-3 w-3" /> },
@@ -192,10 +259,17 @@ function OwnerBookingsContent() {
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
-          <div>
+          <div className="flex-1">
             <h1 className="text-xl font-bold text-foreground">{t('ownerBookings.title')}</h1>
             <p className="text-xs text-muted-foreground">{t('ownerBookings.subtitle')}</p>
           </div>
+          <button
+            onClick={openAddModal}
+            className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl px-3 py-2 text-sm font-semibold transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            {t('ownerBookings.add.button')}
+          </button>
         </div>
 
         {/* Filter tabs */}
@@ -247,10 +321,10 @@ function OwnerBookingsContent() {
               const sc = statusConfig[b.status] ?? { label: b.status, cls: 'bg-muted text-muted-foreground', icon: null };
               const isPast = new Date(b.starts_at) < new Date();
               const isActive = ['pending', 'confirmed'].includes(b.status);
+              const client = clientLabel(b);
 
               return (
                 <div key={b.id} className="bg-card border border-border rounded-2xl p-4 space-y-3">
-                  {/* Date + status row */}
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <p className="text-sm font-semibold text-foreground">
@@ -267,17 +341,16 @@ function OwnerBookingsContent() {
                     </span>
                   </div>
 
-                  {/* Service + staff */}
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
                     <span className="font-medium text-foreground truncate">{b.service_name_snapshot}</span>
                     {staffName && <span className="shrink-0">· {staffName}</span>}
                   </div>
 
-                  {/* Client */}
-                  {b.client_name && (
+                  {client && (
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Users className="h-3 w-3 shrink-0" />
-                      <span>{b.client_name}</span>
+                      <span>{client}</span>
+                      {b.guest_name && <span className="text-[10px] px-1.5 py-0.5 bg-muted rounded-full">{t('ownerBookings.guestLabel')}</span>}
                     </div>
                   )}
 
@@ -285,7 +358,6 @@ function OwnerBookingsContent() {
                     <p className="text-xs text-muted-foreground/70 italic">{b.notes}</p>
                   )}
 
-                  {/* Action buttons */}
                   {isActive && (
                     <div className="flex items-center gap-2 pt-1 border-t border-border">
                       {b.status === 'pending' && (
@@ -324,6 +396,91 @@ function OwnerBookingsContent() {
           </div>
         )}
       </div>
+
+      {/* Manual booking modal */}
+      <Dialog open={addOpen} onOpenChange={(o) => { if (!o) setAddOpen(false); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus className="h-4 w-4 text-orange-500" />
+              {t('ownerBookings.add.title')}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 pt-1">
+            {/* Service */}
+            <select
+              value={addServiceId}
+              onChange={e => setAddServiceId(e.target.value)}
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+            >
+              {services.map(s => <option key={s.id} value={s.id}>{s.name} ({s.duration_minutes} min)</option>)}
+            </select>
+
+            {/* Staff */}
+            {staff.length > 1 && (
+              <select
+                value={addStaffId}
+                onChange={e => setAddStaffId(e.target.value)}
+                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+              >
+                {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            )}
+
+            {/* Date + Time */}
+            <div className="flex gap-2">
+              <input
+                type="date"
+                value={addDate}
+                onChange={e => setAddDate(e.target.value)}
+                className="flex-1 border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+              />
+              <input
+                type="time"
+                value={addTime}
+                onChange={e => setAddTime(e.target.value)}
+                step="900"
+                className="w-28 border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+              />
+            </div>
+
+            {/* Client name */}
+            <input
+              type="text"
+              value={addName}
+              onChange={e => setAddName(e.target.value)}
+              placeholder={t('ownerBookings.add.namePlaceholder')}
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+            />
+
+            {/* Phone */}
+            <input
+              type="tel"
+              value={addPhone}
+              onChange={e => setAddPhone(e.target.value)}
+              placeholder={t('ownerBookings.add.phonePlaceholder')}
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+            />
+
+            {/* Notes */}
+            <textarea
+              value={addNotes}
+              onChange={e => setAddNotes(e.target.value)}
+              placeholder={t('ownerBookings.add.notesPlaceholder')}
+              rows={2}
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
+            />
+
+            <button
+              onClick={handleAddBooking}
+              disabled={addLoading || !addServiceId || !addStaffId || !addDate || !addTime || !addName.trim()}
+              className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white rounded-xl py-2.5 text-sm font-semibold transition-colors"
+            >
+              {addLoading ? '...' : t('ownerBookings.add.save')}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Cancel modal */}
       <Dialog open={cancelOpen} onOpenChange={(o) => { if (!o) { setCancelOpen(false); setCancelBookingId(null); setCancelReason(''); } }}>

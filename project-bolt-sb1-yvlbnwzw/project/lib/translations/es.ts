@@ -2261,4 +2261,12 @@ export default {
   'ownerBookings.cancelModal.reasonPlaceholder': 'Motivo de cancelación (opcional)...',
   'ownerBookings.cancelModal.back': 'Volver',
   'ownerBookings.cancelModal.confirm': 'Confirmar cancelación',
+  'ownerBookings.guestLabel': 'invitado',
+  'ownerBookings.add.button': 'Añadir cita',
+  'ownerBookings.add.title': 'Nueva cita',
+  'ownerBookings.add.namePlaceholder': 'Nombre del cliente *',
+  'ownerBookings.add.phonePlaceholder': 'Teléfono (opcional)',
+  'ownerBookings.add.notesPlaceholder': 'Nota (opcional)',
+  'ownerBookings.add.save': 'Guardar cita',
+  'ownerBookings.add.success': 'Cita añadida',
 } as const;

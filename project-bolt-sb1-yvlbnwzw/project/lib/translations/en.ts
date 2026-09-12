@@ -2338,4 +2338,12 @@ export default {
   'ownerBookings.cancelModal.reasonPlaceholder': 'Reason for cancellation (optional)...',
   'ownerBookings.cancelModal.back': 'Go back',
   'ownerBookings.cancelModal.confirm': 'Confirm cancellation',
+  'ownerBookings.guestLabel': 'guest',
+  'ownerBookings.add.button': 'Add booking',
+  'ownerBookings.add.title': 'New booking',
+  'ownerBookings.add.namePlaceholder': 'Client name *',
+  'ownerBookings.add.phonePlaceholder': 'Phone (optional)',
+  'ownerBookings.add.notesPlaceholder': 'Note (optional)',
+  'ownerBookings.add.save': 'Save booking',
+  'ownerBookings.add.success': 'Booking added',
 } as const;
