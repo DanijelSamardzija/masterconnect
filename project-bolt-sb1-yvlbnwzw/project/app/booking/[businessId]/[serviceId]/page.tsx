@@ -98,6 +98,12 @@ function weekStart(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
+function slotLocalHHMM(isoStr: string, tz: string): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false,
+  }).format(new Date(isoStr));
+}
+
 function bookingErrorKey(errorCode: string): string {
   const map: Record<string, string> = {
     capacity_full: 'booking.error.capacityFull',
@@ -132,6 +138,7 @@ export default function BookingSlotPickerPage() {
   const [staffOptions, setStaffOptions] = useState<StaffOption[]>([]);
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null); // null = "any"
   const [loadingStaff, setLoadingStaff] = useState(false);
+  const [breaks, setBreaks] = useState<Record<string, { break_start: string; break_end: string }>>({});
 
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -208,6 +215,21 @@ export default function BookingSlotPickerPage() {
       loadStaff(selectedLocationId);
     }
   }, [loadingMeta, selectedLocationId, weekDate, loadSlots, loadStaff]);
+
+  useEffect(() => {
+    if (!selectedStaffId) { setBreaks({}); return; }
+    const ws = weekStart(weekDate);
+    (supabase as any).rpc('public_get_week_breaks', {
+      p_staff_member_id: selectedStaffId,
+      p_week_start: ws,
+    }).then(({ data }: { data: { shift_date: string; break_start: string; break_end: string }[] | null }) => {
+      const map: Record<string, { break_start: string; break_end: string }> = {};
+      if (Array.isArray(data)) {
+        data.forEach(b => { map[b.shift_date] = { break_start: b.break_start, break_end: b.break_end }; });
+      }
+      setBreaks(map);
+    });
+  }, [selectedStaffId, weekDate]);
 
   function onLocationChange(locId: string) {
     const loc = locations.find((l) => l.id === locId);
@@ -421,26 +443,44 @@ export default function BookingSlotPickerPage() {
                     <div>{dayLabel}</div>
                     <div>{day.getDate()}</div>
                   </div>
-                  {daySlots
-                    .filter((s) => s.available)
-                    .map((s) => (
-                      <button
-                        key={s.slot_start}
-                        onClick={() => {
-                          if (!user) { router.push('/login'); return; }
-                          if (!hasAccess) return;
-                          setSelectedSlot(s);
-                          setPhone('');
-                          setNotes('');
-                          setPartySize(1);
-                          setDialogOpen(true);
-                        }}
-                        disabled={!hasAccess && !authLoading}
-                        className="text-xs py-1.5 px-0.5 rounded-md bg-primary/10 hover:bg-primary/20 text-primary font-medium transition-colors text-center w-full disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        {formatTime(s.slot_start, selectedTimezone)}
-                      </button>
-                    ))}
+                  {(() => {
+                    const available = daySlots.filter((s) => s.available);
+                    const dayBreak = breaks[dayKey];
+                    let breakInserted = false;
+                    return available.map((s) => {
+                      const items: React.ReactNode[] = [];
+                      if (dayBreak && !breakInserted) {
+                        const slotHHMM = slotLocalHHMM(s.slot_start, selectedTimezone);
+                        if (slotHHMM >= dayBreak.break_end.slice(0, 5)) {
+                          breakInserted = true;
+                          items.push(
+                            <div key="pausa" className="text-center text-[9px] text-orange-500 font-medium py-0.5 px-1 bg-orange-50 dark:bg-orange-950/20 rounded border border-orange-200 dark:border-orange-800/40">
+                              {t('schedule.break')}<br />{dayBreak.break_start.slice(0, 5)}–{dayBreak.break_end.slice(0, 5)}
+                            </div>
+                          );
+                        }
+                      }
+                      items.push(
+                        <button
+                          key={s.slot_start}
+                          onClick={() => {
+                            if (!user) { router.push('/login'); return; }
+                            if (!hasAccess) return;
+                            setSelectedSlot(s);
+                            setPhone('');
+                            setNotes('');
+                            setPartySize(1);
+                            setDialogOpen(true);
+                          }}
+                          disabled={!hasAccess && !authLoading}
+                          className="text-xs py-1.5 px-0.5 rounded-md bg-primary/10 hover:bg-primary/20 text-primary font-medium transition-colors text-center w-full disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          {formatTime(s.slot_start, selectedTimezone)}
+                        </button>
+                      );
+                      return items;
+                    });
+                  })()}
                 </div>
               );
             })}

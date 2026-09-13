@@ -2419,6 +2419,10 @@ export default {
   'schedule.staffView.canEdit': 'Možeš uređivati vlastite smjene',
   'schedule.staffView.dayOff': 'Slobodan dan',
   'schedule.staffView.regular': 'Redovni raspored',
+  'schedule.break': 'Pauza',
+  'schedule.breakStart': 'Početak pauze',
+  'schedule.breakEnd': 'Kraj pauze',
+  'schedule.addBreak': 'Dodaj pauzu',
   'schedule.info': 'Ovdje postavljaš raspored za konkretne sedmice — ako radnik sljedeće sedmice radi drugačije nego obično, unesi to ovdje. Nadjačava stalni raspored samo za te datume.',
   'ownerStaffHours.info': 'Ovdje postavljaš STALNI sedmični raspored — sate koje radnik radi svaki pon, uto, itd. Ovo je šablon koji se ponavlja svake sedmice. Možeš i postaviti različite sate po mjesecima (npr. ljetni raspored).',
 } as const;

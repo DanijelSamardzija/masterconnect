@@ -15,6 +15,8 @@ type ShiftRow = {
   end_time: string | null;
   is_off: boolean;
   notes: string | null;
+  break_start: string | null;
+  break_end: string | null;
 };
 
 type StaffRow = {
@@ -31,6 +33,9 @@ type EditState = {
   startTime: string;
   endTime: string;
   notes: string;
+  hasBreak: boolean;
+  breakStart: string;
+  breakEnd: string;
 };
 
 const DOW_KEYS = [
@@ -137,17 +142,23 @@ function OwnerScheduleContent() {
     let startTime = '09:00';
     let endTime = '17:00';
     let notes = '';
+    let hasBreak = false;
+    let breakStart = '13:00';
+    let breakEnd = '14:00';
     if (shift) {
       if (shift.is_off) {
         mode = 'off';
       } else {
         mode = 'working';
-        startTime = shift.start_time?.slice(0, 5) ?? '09:00';
-        endTime   = shift.end_time?.slice(0, 5)   ?? '17:00';
-        notes     = shift.notes ?? '';
+        startTime  = shift.start_time?.slice(0, 5) ?? '09:00';
+        endTime    = shift.end_time?.slice(0, 5)   ?? '17:00';
+        notes      = shift.notes ?? '';
+        hasBreak   = !!(shift.break_start && shift.break_end);
+        breakStart = shift.break_start?.slice(0, 5) ?? '13:00';
+        breakEnd   = shift.break_end?.slice(0, 5)   ?? '14:00';
       }
     }
-    setEdit({ staffId, staffName, date, mode, startTime, endTime, notes });
+    setEdit({ staffId, staffName, date, mode, startTime, endTime, notes, hasBreak, breakStart, breakEnd });
   }
 
   async function handleSave() {
@@ -167,6 +178,8 @@ function OwnerScheduleContent() {
           p_end_time:        edit.mode === 'working' ? edit.endTime   : null,
           p_is_off:          edit.mode === 'off',
           p_notes:           edit.notes.trim() || null,
+          p_break_start:     edit.mode === 'working' && edit.hasBreak ? edit.breakStart : null,
+          p_break_end:       edit.mode === 'working' && edit.hasBreak ? edit.breakEnd   : null,
         });
         if (data?.ok === false) throw new Error(data.error);
       }
@@ -456,6 +469,42 @@ function OwnerScheduleContent() {
                     />
                   </div>
                 </div>
+                {/* Break toggle */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setEdit(ev => ev ? { ...ev, hasBreak: !ev.hasBreak } : ev)}
+                    className={`text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors ${
+                      edit.hasBreak
+                        ? 'bg-orange-50 dark:bg-orange-950/30 border-orange-300 dark:border-orange-700 text-orange-700 dark:text-orange-400'
+                        : 'border-dashed border-border text-muted-foreground hover:border-orange-300 hover:text-orange-600'
+                    }`}
+                  >
+                    {edit.hasBreak ? `${t('schedule.break')}: ${edit.breakStart} – ${edit.breakEnd}` : `+ ${t('schedule.addBreak')}`}
+                  </button>
+                </div>
+                {edit.hasBreak && (
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1">
+                      <label className="text-[10px] text-muted-foreground block mb-1">{t('schedule.breakStart')}</label>
+                      <input
+                        type="time"
+                        value={edit.breakStart}
+                        onChange={e => setEdit(ev => ev ? { ...ev, breakStart: e.target.value } : ev)}
+                        className={timeCls + ' w-full'}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-[10px] text-muted-foreground block mb-1">{t('schedule.breakEnd')}</label>
+                      <input
+                        type="time"
+                        value={edit.breakEnd}
+                        onChange={e => setEdit(ev => ev ? { ...ev, breakEnd: e.target.value } : ev)}
+                        className={timeCls + ' w-full'}
+                      />
+                    </div>
+                  </div>
+                )}
                 <div>
                   <label className="text-[10px] text-muted-foreground block mb-1">{t('schedule.notes')}</label>
                   <input

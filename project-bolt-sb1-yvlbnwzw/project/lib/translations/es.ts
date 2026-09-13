@@ -2334,6 +2334,10 @@ export default {
   'schedule.staffView.canEdit': 'Puedes editar tus propios turnos',
   'schedule.staffView.dayOff': 'Día libre',
   'schedule.staffView.regular': 'Horario regular',
+  'schedule.break': 'Pausa',
+  'schedule.breakStart': 'Inicio de la pausa',
+  'schedule.breakEnd': 'Fin de la pausa',
+  'schedule.addBreak': 'Añadir pausa',
   'schedule.info': 'Establece el horario para semanas concretas — si un empleado trabaja diferente la próxima semana, ingrésalo aquí. Anula el horario regular solo para esas fechas.',
   'ownerStaffHours.info': 'Aquí estableces el horario semanal RECURRENTE — las horas que trabaja cada lun, mar, etc. Es una plantilla que se repite cada semana. También puedes establecer horas diferentes por mes (ej. horario de verano).',
 } as const;

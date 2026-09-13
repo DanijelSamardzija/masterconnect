@@ -2341,6 +2341,10 @@ export default {
   'schedule.staffView.canEdit': 'Vous pouvez modifier vos propres créneaux',
   'schedule.staffView.dayOff': 'Jour de repos',
   'schedule.staffView.regular': 'Horaire régulier',
+  'schedule.break': 'Pause',
+  'schedule.breakStart': 'Début de la pause',
+  'schedule.breakEnd': 'Fin de la pause',
+  'schedule.addBreak': 'Ajouter une pause',
   'schedule.info': 'Planifiez des semaines spécifiques — si un employé travaille différemment la semaine prochaine, saisissez-le ici. Remplace l\'horaire régulier uniquement pour ces dates.',
   'ownerStaffHours.info': 'Définissez l\'horaire hebdomadaire RÉCURRENT — les heures travaillées chaque lun, mar, etc. C\'est un modèle qui se répète chaque semaine. Vous pouvez aussi définir des heures différentes par mois (ex. horaire d\'été).',
 } as const;
