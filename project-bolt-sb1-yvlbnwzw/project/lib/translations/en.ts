@@ -2444,6 +2444,7 @@ export default {
   'schedule.staffView.subtitle': 'Your shifts for the next 2 weeks',
   'schedule.staffView.noShifts': 'No specific shifts — using regular schedule',
   'schedule.staffView.canEdit': 'You can edit your own shifts',
+  'schedule.staffView.info': 'Green = your shift for that day (set working hours). Gray = day off. No color = regular schedule, no special shift entered. Click a day to add a shift or day off. Editing is only possible if the owner has given you permission.',
   'schedule.staffView.dayOff': 'Day off',
   'schedule.staffView.regular': 'Regular schedule',
   'schedule.absenceLink': 'Annual leave or sick leave? Add it in Settings →',

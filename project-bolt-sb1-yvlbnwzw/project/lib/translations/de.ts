@@ -2426,6 +2426,7 @@ export default {
   'schedule.staffView.subtitle': 'Deine Schichten (2 Wochen)',
   'schedule.staffView.noShifts': 'Keine speziellen Schichten — Standardplan gilt',
   'schedule.staffView.canEdit': 'Du kannst eigene Schichten bearbeiten',
+  'schedule.staffView.info': 'Grün = deine Schicht für diesen Tag (eingetragene Arbeitszeit). Grau = freier Tag. Keine Farbe = regulärer Plan, keine besondere Schicht eingetragen. Klicke auf einen Tag, um eine Schicht oder einen freien Tag einzutragen. Bearbeitung ist nur möglich, wenn der Inhaber dir die Berechtigung erteilt hat.',
   'schedule.staffView.dayOff': 'Freier Tag',
   'schedule.staffView.regular': 'Standardplan',
   'schedule.absenceLink': 'Urlaub oder Krankenstand? In den Einstellungen hinzufügen →',

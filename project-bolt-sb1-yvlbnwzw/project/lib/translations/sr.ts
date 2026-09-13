@@ -2444,6 +2444,7 @@ export default {
   'schedule.staffView.subtitle': 'Pregled tvojih smjena (2 sedmice)',
   'schedule.staffView.noShifts': 'Nema posebnih smjena — radi se po redovnom rasporedu',
   'schedule.staffView.canEdit': 'Možeš uređivati vlastite smjene',
+  'schedule.staffView.info': 'Zeleno = tvoja smjena za taj dan (uneseno radno vrijeme). Sivo = slobodan dan. Bez boje = redovni raspored, bez posebne smjene. Klikni na dan da uneseš smjenu ili slobodan dan. Uređivanje je moguće samo ako ti vlasnik to dozvoli.',
   'schedule.staffView.dayOff': 'Slobodan dan',
   'schedule.staffView.regular': 'Redovni raspored',
   'schedule.absenceLink': 'Godišnji odmor ili bolovanje? Dodaj u Podešavanjima →',

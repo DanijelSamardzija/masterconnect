@@ -2366,6 +2366,7 @@ export default {
   'schedule.staffView.subtitle': 'Vos créneaux (2 semaines)',
   'schedule.staffView.noShifts': 'Aucun quart spécifique — horaire régulier appliqué',
   'schedule.staffView.canEdit': 'Vous pouvez modifier vos propres créneaux',
+  'schedule.staffView.info': 'Vert = votre créneau pour ce jour (horaire de travail saisi). Gris = jour de congé. Sans couleur = planning habituel, aucun créneau spécial. Cliquez sur un jour pour saisir un créneau ou un jour de congé. La modification n\'est possible que si le responsable vous en a donné la permission.',
   'schedule.staffView.dayOff': 'Jour de repos',
   'schedule.staffView.regular': 'Horaire régulier',
   'schedule.absenceLink': 'Congés annuels ou arrêt maladie ? Ajoutez-les dans Paramètres →',

@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Info } from 'lucide-react';
 
 type ShiftRow = {
   shift_date: string;
@@ -79,6 +79,7 @@ function StaffScheduleContent() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   const [weekDate, setWeekDate] = useState<Date>(() => getMonday(new Date()));
+  const [infoOpen, setInfoOpen] = useState(false);
   const [shifts, setShifts] = useState<ShiftRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [canEdit, setCanEdit] = useState(false);
@@ -200,10 +201,26 @@ function StaffScheduleContent() {
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div className="flex-1">
-            <h1 className="text-xl font-semibold">{t('schedule.staffView.title')}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-semibold">{t('schedule.staffView.title')}</h1>
+              <button
+                onClick={() => setInfoOpen(o => !o)}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Info className="w-4 h-4" />
+              </button>
+            </div>
             <p className="text-xs text-muted-foreground mt-0.5">{t('schedule.staffView.subtitle')}</p>
           </div>
         </div>
+
+        {infoOpen && (
+          <div className="mb-4 px-3 py-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+            <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
+              {t('schedule.staffView.info')}
+            </p>
+          </div>
+        )}
 
         {canEdit && (
           <div className="mb-4 px-3 py-2 rounded-xl bg-primary/8 border border-primary/20">
