@@ -252,7 +252,7 @@ export default function BookingSlotPickerPage() {
 
   async function handleBook() {
     if (!selectedSlot || !user) return;
-    if (!hasAccess) { router.push('/login'); return; }
+    if (!hasAccess) { router.push(`/login?redirect=${encodeURIComponent(`/booking/${businessId}/${serviceId}`)}`); return; }
     setBooking(true);
     const { data } = await (supabase as any).rpc('create_booking', {
       p_business_id: businessId,
@@ -471,7 +471,7 @@ export default function BookingSlotPickerPage() {
                         <button
                           key={s.slot_start}
                           onClick={() => {
-                            if (!user) { router.push('/login'); return; }
+                            if (!user) { router.push(`/login?redirect=${encodeURIComponent(`/booking/${businessId}/${serviceId}`)}`); return; }
                             if (!hasAccess) return;
                             setSelectedSlot(s);
                             setPhone('');
