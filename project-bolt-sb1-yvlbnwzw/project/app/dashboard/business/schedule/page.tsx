@@ -358,6 +358,16 @@ function OwnerScheduleContent() {
                             <span className="text-[10px] font-semibold text-green-700 dark:text-green-400">
                               {shift.end_time?.slice(0, 5)}
                             </span>
+                            {shift.break_start && shift.break_end && (
+                              <span className="text-[8px] text-orange-500 font-medium leading-tight mt-0.5">
+                                ☕ {shift.break_start.slice(0, 5)}–{shift.break_end.slice(0, 5)}
+                              </span>
+                            )}
+                            {shift.notes && (
+                              <span className="text-[8px] text-muted-foreground leading-tight truncate max-w-[52px]" title={shift.notes}>
+                                📝
+                              </span>
+                            )}
                           </div>
                         );
                         cellCls = 'bg-green-50 dark:bg-green-950/20';

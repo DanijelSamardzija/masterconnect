@@ -204,9 +204,16 @@ function StaffScheduleContent() {
                   rowCls = 'bg-muted/30 border border-border';
                 } else {
                   badge = (
-                    <span className="text-xs font-semibold text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-950/30 px-2.5 py-1 rounded-full">
-                      {shift.start_time?.slice(0, 5)} – {shift.end_time?.slice(0, 5)}
-                    </span>
+                    <div className="flex flex-col items-start gap-0.5">
+                      <span className="text-xs font-semibold text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-950/30 px-2.5 py-1 rounded-full">
+                        {shift.start_time?.slice(0, 5)} – {shift.end_time?.slice(0, 5)}
+                      </span>
+                      {shift.break_start && shift.break_end && (
+                        <span className="text-[10px] text-orange-500 font-medium px-2.5">
+                          ☕ {shift.break_start.slice(0, 5)}–{shift.break_end.slice(0, 5)}
+                        </span>
+                      )}
+                    </div>
                   );
                   rowCls = 'bg-card border border-border';
                 }
