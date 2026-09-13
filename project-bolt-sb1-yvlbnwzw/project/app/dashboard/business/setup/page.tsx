@@ -187,6 +187,14 @@ const TIMEZONE_OPTIONS: { value: string; label: string }[] = [
   { value: 'Pacific/Auckland',    label: 'Auckland (Pacific/Auckland)' },
 ];
 
+const BIZ_CATEGORIES = [
+  { key: 'appointment',  emoji: '🗓️', ready: true },
+  { key: 'restaurant',   emoji: '🍽️', ready: false },
+  { key: 'food_order',   emoji: '🍔', ready: false },
+  { key: 'tradespeople', emoji: '🔧', ready: true },
+  { key: 'accommodation',emoji: '🏠', ready: false },
+] as const;
+
 function matchCountryValue(nominatimCountry: string): string {
   if (!nominatimCountry) return '';
   const lower = nominatimCountry.toLowerCase().trim();
@@ -253,6 +261,7 @@ export default function BusinessSetupPage() {
 
   // ── Profile state ──────────────────────────────────────────────────────────
   const [bizName, setBizName] = useState('');
+  const [bizCategory, setBizCategory] = useState<string>('');
   const [timezone, setTimezone] = useState('Europe/Sarajevo');
   const [isBusinessActive, setIsBusinessActive] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
@@ -357,12 +366,13 @@ export default function BusinessSetupPage() {
     (async () => {
       setProfileLoading(true);
       const [profileRes, locRes] = await Promise.all([
-        supabase.from('profiles').select('name, is_business').eq('id', user.id).single(),
+        supabase.from('profiles').select('name, is_business, booking_category').eq('id', user.id).single(),
         supabase.from('business_locations').select('timezone').eq('business_id', user.id).eq('is_primary', true).maybeSingle(),
       ]);
       if (profileRes.data) {
         setBizName(profileRes.data.name ?? '');
         setIsBusinessActive(profileRes.data.is_business ?? false);
+        setBizCategory((profileRes.data as any).booking_category ?? '');
       }
       // Load saved timezone from primary location; fall back to browser timezone for new users
       setTimezone(locRes.data?.timezone ?? getBrowserTimezone());
@@ -546,6 +556,9 @@ export default function BusinessSetupPage() {
     }
     setIsBusinessActive(true);
     if (result.location_id) setPrimaryLocId(result.location_id);
+    if (bizCategory) {
+      await (supabase as any).from('profiles').update({ booking_category: bizCategory }).eq('id', user.id);
+    }
     toast.success(t('setup.profile.saved'));
   }
 
@@ -1271,6 +1284,58 @@ export default function BusinessSetupPage() {
                 </div>
               ) : (
                 <>
+                  {/* Business category picker */}
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-medium text-muted-foreground">{t('setup.bizCategory.label')}</label>
+                    <p className="text-xs text-muted-foreground -mt-1">{t('setup.bizCategory.help')}</p>
+                    <div className="flex flex-col gap-2 mt-1">
+                      {BIZ_CATEGORIES.map(({ key, emoji, ready }) => {
+                        const isSelected = bizCategory === key;
+                        return (
+                          <button
+                            key={key}
+                            type="button"
+                            disabled={!ready}
+                            onClick={() => ready && setBizCategory(key)}
+                            className={`w-full text-left rounded-xl border p-3.5 transition-all ${
+                              isSelected
+                                ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                                : ready
+                                  ? 'border-border hover:border-primary/50 hover:bg-accent/40'
+                                  : 'border-border bg-muted/30 opacity-60 cursor-not-allowed'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-start gap-3">
+                                <span className="text-2xl leading-none mt-0.5">{emoji}</span>
+                                <div className="flex flex-col gap-0.5">
+                                  <span className={`text-sm font-semibold ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+                                    {t(`setup.bizCategory.${key}.name` as Parameters<typeof t>[0])}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {t(`setup.bizCategory.${key}.desc` as Parameters<typeof t>[0])}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground/70 mt-1">
+                                    {t(`setup.bizCategory.${key}.examples` as Parameters<typeof t>[0])}
+                                  </span>
+                                </div>
+                              </div>
+                              <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full mt-0.5 ${
+                                ready
+                                  ? isSelected
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400'
+                                  : 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
+                              }`}>
+                                {ready ? t('setup.bizCategory.ready') : t('setup.bizCategory.comingSoon')}
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   {labelInput(t('setup.profile.name'),
                     <>
                       <input
