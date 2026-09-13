@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/protected-route';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
-import { ChevronLeft, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 type ShiftRow = {
   shift_date: string;
@@ -30,16 +30,45 @@ type EditState = {
   breakEnd: string;
 };
 
-const DAY_LABELS: Record<number, string> = {
+const DAY_SHORT: Record<number, string> = {
   0: 'Ned', 1: 'Pon', 2: 'Uto', 3: 'Sri', 4: 'Čet', 5: 'Pet', 6: 'Sub',
 };
 
+// Mon=1 .. Sun=0 order
+const DOW_ORDER = [1, 2, 3, 4, 5, 6, 0];
+
+function getMonday(d: Date): Date {
+  const copy = new Date(d);
+  copy.setHours(0, 0, 0, 0);
+  const day = copy.getDay();
+  const diff = copy.getDate() - day + (day === 0 ? -6 : 1);
+  copy.setDate(diff);
+  return copy;
+}
+
+function addDays(d: Date, n: number): Date {
+  const copy = new Date(d);
+  copy.setDate(copy.getDate() + n);
+  return copy;
+}
+
 function isoDate(d: Date): string {
-  return d.toISOString().slice(0, 10);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 function isToday(dateStr: string): boolean {
   return dateStr === isoDate(new Date());
+}
+
+function formatWeekRange(monday: Date): string {
+  const sunday = addDays(monday, 6);
+  const opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
+  const startStr = monday.toLocaleDateString('sr-RS', opts);
+  const endStr = sunday.toLocaleDateString('sr-RS', { day: 'numeric', month: 'short', year: 'numeric' });
+  return `${startStr} – ${endStr}`;
 }
 
 function StaffScheduleContent() {
@@ -49,6 +78,7 @@ function StaffScheduleContent() {
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
+  const [weekDate, setWeekDate] = useState<Date>(() => getMonday(new Date()));
   const [shifts, setShifts] = useState<ShiftRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [canEdit, setCanEdit] = useState(false);
@@ -56,21 +86,21 @@ function StaffScheduleContent() {
   const [edit, setEdit] = useState<EditState | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // 14 days starting today
-  const days = Array.from({ length: 14 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() + i);
-    d.setHours(0, 0, 0, 0);
-    return d;
+  const weekDays = DOW_ORDER.map((_, i) => {
+    const mon = getMonday(weekDate);
+    // DOW_ORDER: 1,2,3,4,5,6,0 → offset from Monday: 0,1,2,3,4,5,6
+    return addDays(mon, i);
   });
 
-  async function loadShifts() {
+  const loadShifts = useCallback(async (mon: Date) => {
+    const from = isoDate(mon);
+    const to = isoDate(addDays(mon, 6));
     const { data } = await (supabase as any).rpc('staff_get_my_shifts', {
-      p_from_date: isoDate(days[0]),
-      p_to_date:   isoDate(days[days.length - 1]),
+      p_from_date: from,
+      p_to_date:   to,
     });
     setShifts(Array.isArray(data) ? data : []);
-  }
+  }, []);
 
   useEffect(() => {
     if (!profile) return;
@@ -85,10 +115,14 @@ function StaffScheduleContent() {
       if (!sm) { setLoading(false); return; }
       setHasStaff(true);
       setCanEdit(!!sm.permissions?.can_set_hours);
-      await loadShifts();
+      await loadShifts(getMonday(new Date()));
       setLoading(false);
     })();
-  }, [profile]);
+  }, [profile, loadShifts]);
+
+  useEffect(() => {
+    if (hasStaff) loadShifts(weekDate);
+  }, [weekDate, hasStaff, loadShifts]);
 
   function getShift(dateStr: string): ShiftRow | null {
     return shifts.find(s => s.shift_date === dateStr) ?? null;
@@ -143,19 +177,21 @@ function StaffScheduleContent() {
       }
       toast.success(t('schedule.savedSuccess'));
       setEdit(null);
-      await loadShifts();
+      await loadShifts(weekDate);
     } catch {
       toast.error(t('schedule.saveError'));
     }
     setSaving(false);
   }
 
+  const todayMonday = isoDate(getMonday(new Date()));
   const timeCls = 'border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary w-full';
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-lg mx-auto px-4 py-6">
+      <div className="max-w-5xl mx-auto px-4 py-6">
 
+        {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <button
             onClick={() => router.push('/dashboard/staff/bookings')}
@@ -184,80 +220,128 @@ function StaffScheduleContent() {
             <p className="text-sm text-muted-foreground">{t('staffHours.noPermission')}</p>
           </div>
         ) : (
-          <div className="space-y-2">
-            {days.map((day) => {
-              const dateStr = isoDate(day);
-              const shift = getShift(dateStr);
-              const today = isToday(dateStr);
-              const dow = day.getDay();
+          <>
+            {/* Week navigation */}
+            <div className="flex items-center justify-between mb-4">
+              <button
+                onClick={() => setWeekDate(d => addDays(getMonday(d), -7))}
+                disabled={isoDate(getMonday(weekDate)) <= todayMonday}
+                className="p-2 rounded-lg hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
 
-              let badge: React.ReactNode = null;
-              let rowCls = 'bg-card border border-border';
+              <div className="flex items-center gap-2">
+                {isoDate(getMonday(weekDate)) !== todayMonday && (
+                  <button
+                    onClick={() => setWeekDate(getMonday(new Date()))}
+                    className="text-xs text-primary font-medium px-2.5 py-1 rounded-lg border border-primary/30 hover:bg-primary/5 transition-colors"
+                  >
+                    {t('schedule.thisWeek')}
+                  </button>
+                )}
+                <span className="text-sm font-medium text-foreground">
+                  {formatWeekRange(getMonday(weekDate))}
+                </span>
+              </div>
 
-              if (shift) {
-                if (shift.is_off) {
-                  badge = (
-                    <span className="text-xs font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
-                      {t('schedule.staffView.dayOff')}
-                    </span>
-                  );
-                  rowCls = 'bg-muted/30 border border-border';
-                } else {
-                  badge = (
-                    <div className="flex flex-col items-start gap-0.5">
-                      <span className="text-xs font-semibold text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-950/30 px-2.5 py-1 rounded-full">
-                        {shift.start_time?.slice(0, 5)} – {shift.end_time?.slice(0, 5)}
-                      </span>
-                      {shift.break_start && shift.break_end && (
-                        <span className="text-[10px] text-orange-500 font-medium px-2.5">
-                          ☕ {shift.break_start.slice(0, 5)}–{shift.break_end.slice(0, 5)}
-                        </span>
-                      )}
-                    </div>
-                  );
-                  rowCls = 'bg-card border border-border';
-                }
-              } else {
-                badge = (
-                  <span className="text-xs text-muted-foreground/50">
-                    {t('schedule.staffView.regular')}
-                  </span>
-                );
-              }
+              <button
+                onClick={() => setWeekDate(d => addDays(getMonday(d), 7))}
+                className="p-2 rounded-lg hover:bg-accent transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
 
-              return (
-                <button
-                  key={dateStr}
-                  type="button"
-                  onClick={() => openEdit(dateStr)}
-                  disabled={!canEdit}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-left ${rowCls} ${
-                    canEdit ? 'hover:border-primary/30 cursor-pointer' : 'cursor-default'
-                  } ${today ? 'ring-1 ring-primary/40' : ''}`}
-                >
-                  <div className={`w-12 shrink-0 text-center`}>
-                    <p className={`text-xs font-semibold ${today ? 'text-primary' : 'text-muted-foreground'}`}>
-                      {DAY_LABELS[dow]}
-                    </p>
-                    <p className={`text-lg font-bold leading-tight ${today ? 'text-primary' : 'text-foreground'}`}>
-                      {day.getDate()}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground/60">
-                      {day.toLocaleDateString('sr-RS', { month: 'short' })}
-                    </p>
-                  </div>
-                  <div className="flex-1 flex items-center justify-between gap-2">
-                    {badge}
-                    {shift?.notes?.trim() && (
-                      <p className="text-[10px] text-muted-foreground italic truncate max-w-[120px]">
-                        {shift.notes}
-                      </p>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+            {/* Weekly table */}
+            <div className="overflow-x-auto rounded-xl border border-border">
+              <table className="w-full min-w-[600px] border-collapse">
+                <thead>
+                  <tr>
+                    {weekDays.map((day) => {
+                      const dow = day.getDay();
+                      const dateStr = isoDate(day);
+                      const today = isToday(dateStr);
+                      return (
+                        <th
+                          key={dateStr}
+                          className={`text-center py-2.5 px-1 border-b border-border text-xs font-semibold ${
+                            today ? 'text-primary' : 'text-muted-foreground'
+                          }`}
+                        >
+                          <div>{DAY_SHORT[dow]}</div>
+                          <div className={`text-sm font-bold mt-0.5 ${today ? 'text-primary' : 'text-foreground'}`}>
+                            {day.getDate()}.
+                          </div>
+                        </th>
+                      );
+                    })}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    {weekDays.map((day) => {
+                      const dateStr = isoDate(day);
+                      const shift = getShift(dateStr);
+                      const today = isToday(dateStr);
+
+                      let cellContent: React.ReactNode;
+                      let cellCls = 'bg-background';
+
+                      if (!shift) {
+                        cellCls = 'bg-muted/20';
+                        cellContent = (
+                          <span className="text-[10px] text-muted-foreground/60 leading-tight">
+                            {t('schedule.staffView.regular')}
+                          </span>
+                        );
+                      } else if (shift.is_off) {
+                        cellCls = 'bg-muted/50';
+                        cellContent = (
+                          <span className="text-[10px] font-medium text-muted-foreground px-1.5 py-0.5 rounded-full bg-muted">
+                            {t('schedule.staffView.dayOff')}
+                          </span>
+                        );
+                      } else {
+                        cellCls = 'bg-green-50 dark:bg-green-950/20';
+                        cellContent = (
+                          <div className="flex flex-col items-center gap-0.5">
+                            <span className="text-[11px] font-semibold text-green-700 dark:text-green-400 leading-tight">
+                              {shift.start_time?.slice(0, 5)}
+                            </span>
+                            <span className="text-[10px] text-green-700/70 dark:text-green-400/70">–</span>
+                            <span className="text-[11px] font-semibold text-green-700 dark:text-green-400 leading-tight">
+                              {shift.end_time?.slice(0, 5)}
+                            </span>
+                            {shift.break_start && shift.break_end && (
+                              <span className="text-[9px] text-orange-500 font-medium mt-0.5 leading-tight">
+                                ☕ {shift.break_start.slice(0, 5)}–{shift.break_end.slice(0, 5)}
+                              </span>
+                            )}
+                            {shift.notes?.trim() && (
+                              <span className="text-[9px] text-muted-foreground mt-0.5">📝</span>
+                            )}
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <td
+                          key={dateStr}
+                          onClick={() => openEdit(dateStr)}
+                          className={`border-r last:border-r-0 border-border text-center px-1 py-4 align-middle ${cellCls} ${
+                            today ? 'ring-1 ring-inset ring-primary/30' : ''
+                          } ${canEdit ? 'cursor-pointer hover:brightness-95 dark:hover:brightness-110 transition-all' : ''}`}
+                        >
+                          {cellContent}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
@@ -332,7 +416,6 @@ function StaffScheduleContent() {
                     />
                   </div>
                 </div>
-                {/* Break toggle */}
                 <div>
                   <button
                     type="button"
