@@ -2367,6 +2367,6 @@ export default {
   'schedule.breakStart': 'Inicio de la pausa',
   'schedule.breakEnd': 'Fin de la pausa',
   'schedule.addBreak': 'Añadir pausa',
-  'schedule.info': 'Establece el horario para semanas concretas — si un empleado trabaja diferente la próxima semana, ingrésalo aquí. Anula el horario regular solo para esas fechas.',
+  'schedule.info': 'La vista semanal muestra el horario efectivo para cada día. Verde oscuro (cambio) = configuraste explícitamente este día para esta semana. Verde claro (Regular) = trabaja según su horario regular, sin cambio. Gris sólido (cambio) = día libre que configuraste explícitamente. Gris discontinuo (Regular) = día libre según el horario regular. Haz clic en cualquier día para agregar o cambiar el horario de esa semana. Para vacaciones anuales o baja por enfermedad, usa Configuración (enlace debajo de la tabla).',
   'ownerStaffHours.info': 'Aquí estableces el horario semanal RECURRENTE — las horas que trabaja cada lun, mar, etc. Es una plantilla que se repite cada semana. También puedes establecer horas diferentes por mes (ej. horario de verano).',
 } as const;

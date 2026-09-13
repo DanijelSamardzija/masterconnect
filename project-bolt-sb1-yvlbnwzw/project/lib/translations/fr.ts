@@ -2374,6 +2374,6 @@ export default {
   'schedule.breakStart': 'Début de la pause',
   'schedule.breakEnd': 'Fin de la pause',
   'schedule.addBreak': 'Ajouter une pause',
-  'schedule.info': 'Planifiez des semaines spécifiques — si un employé travaille différemment la semaine prochaine, saisissez-le ici. Remplace l\'horaire régulier uniquement pour ces dates.',
+  'schedule.info': 'La vue hebdomadaire affiche le planning effectif pour chaque jour. Vert foncé (modif.) = vous avez explicitement défini ce jour pour cette semaine. Vert clair (Régulier) = travaille selon son planning habituel, sans modification. Gris solide (modif.) = jour de congé que vous avez explicitement défini. Gris pointillé (Régulier) = jour de congé selon le planning habituel. Cliquez sur n\'importe quel jour pour ajouter ou modifier le planning de cette semaine. Pour les congés annuels ou les arrêts maladie, utilisez les Paramètres (lien sous le tableau).',
   'ownerStaffHours.info': 'Définissez l\'horaire hebdomadaire RÉCURRENT — les heures travaillées chaque lun, mar, etc. C\'est un modèle qui se répète chaque semaine. Vous pouvez aussi définir des heures différentes par mois (ex. horaire d\'été).',
 } as const;
