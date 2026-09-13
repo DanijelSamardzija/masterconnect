@@ -397,6 +397,18 @@ function OwnerScheduleContent() {
             </div>
           </div>
         )}
+
+        {/* Absence shortcut */}
+        {!loading && (
+          <div className="mt-4 px-1">
+            <button
+              onClick={() => router.push('/dashboard/business/setup?tab=hours')}
+              className="text-xs text-muted-foreground hover:text-primary transition-colors"
+            >
+              {t('schedule.absenceLink')}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Edit modal */}

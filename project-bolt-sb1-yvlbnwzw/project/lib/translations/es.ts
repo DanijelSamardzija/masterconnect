@@ -2334,6 +2334,7 @@ export default {
   'schedule.staffView.canEdit': 'Puedes editar tus propios turnos',
   'schedule.staffView.dayOff': 'Día libre',
   'schedule.staffView.regular': 'Horario regular',
+  'schedule.absenceLink': '¿Vacaciones o baja por enfermedad? Agrégalo en Configuración →',
   'schedule.defaultHint': 'Elimina el horario personalizado para este día — el empleado sigue el horario regular.',
   'schedule.break': 'Pausa',
   'schedule.breakStart': 'Inicio de la pausa',

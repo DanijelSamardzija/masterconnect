@@ -2401,6 +2401,7 @@ export default {
   'schedule.staffView.canEdit': 'Du kannst eigene Schichten bearbeiten',
   'schedule.staffView.dayOff': 'Freier Tag',
   'schedule.staffView.regular': 'Standardplan',
+  'schedule.absenceLink': 'Urlaub oder Krankenstand? In den Einstellungen hinzufügen →',
   'schedule.defaultHint': 'Entfernt den benutzerdefinierten Plan für diesen Tag — der Mitarbeiter arbeitet nach dem regulären Plan.',
   'schedule.break': 'Pause',
   'schedule.breakStart': 'Pausenbeginn',
