@@ -2419,4 +2419,6 @@ export default {
   'schedule.staffView.canEdit': 'You can edit your own shifts',
   'schedule.staffView.dayOff': 'Day off',
   'schedule.staffView.regular': 'Regular schedule',
+  'schedule.info': 'Set the schedule for specific weeks — if a staff member works differently next week, enter it here. This overrides the regular schedule only for those dates.',
+  'ownerStaffHours.info': 'Set the RECURRING weekly schedule — the hours a staff member works every Mon, Tue, etc. This is a template that repeats every week. You can also set different hours per month (e.g. summer schedule).',
 } as const;

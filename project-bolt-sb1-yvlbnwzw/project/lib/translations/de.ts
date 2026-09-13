@@ -2401,4 +2401,6 @@ export default {
   'schedule.staffView.canEdit': 'Du kannst eigene Schichten bearbeiten',
   'schedule.staffView.dayOff': 'Freier Tag',
   'schedule.staffView.regular': 'Standardplan',
+  'schedule.info': 'Plane konkrete Wochen — wenn ein Mitarbeiter nächste Woche anders arbeitet, trage es hier ein. Überschreibt den Standardplan nur für diese Daten.',
+  'ownerStaffHours.info': 'Hier stellst du den WIEDERKEHRENDEN Wochenplan ein — die Stunden, die ein Mitarbeiter jeden Mo, Di usw. arbeitet. Dies ist eine Vorlage, die jede Woche wiederholt wird. Du kannst auch monatlich unterschiedliche Stunden festlegen.',
 } as const;

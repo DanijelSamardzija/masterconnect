@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
-import { ChevronLeft, ChevronRight, Copy, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Copy, X, Info } from 'lucide-react';
 
 type ShiftRow = {
   shift_date: string;
@@ -77,6 +77,7 @@ function OwnerScheduleContent() {
   const [loading, setLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
   const [copying, setCopying] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
   const [edit, setEdit] = useState<EditState | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -216,7 +217,16 @@ function OwnerScheduleContent() {
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div className="flex-1">
-            <h1 className="text-xl font-semibold">{t('schedule.title')}</h1>
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-xl font-semibold">{t('schedule.title')}</h1>
+              <button
+                type="button"
+                onClick={() => setInfoOpen(o => !o)}
+                className="text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+              >
+                <Info className="w-4 h-4" />
+              </button>
+            </div>
             <p className="text-xs text-muted-foreground mt-0.5">{t('schedule.subtitle')}</p>
           </div>
           <button
@@ -229,6 +239,14 @@ function OwnerScheduleContent() {
             <span className="hidden sm:inline">{t('schedule.copyWeek')}</span>
           </button>
         </div>
+
+        {/* Info panel */}
+        {infoOpen && (
+          <div className="mb-4 flex items-start gap-2 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl px-4 py-3">
+            <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+            <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">{t('schedule.info')}</p>
+          </div>
+        )}
 
         {/* Week navigation */}
         <div className="flex items-center gap-2 mb-5">

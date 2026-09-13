@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
-import { ChevronLeft, Clock, Users, X } from 'lucide-react';
+import { ChevronLeft, Clock, Users, X, Info } from 'lucide-react';
 
 type StaffMember = { id: string; name: string; primary_location_id: string | null };
 
@@ -116,6 +116,7 @@ function OwnerStaffHoursContent() {
   const [scheduleLoading, setScheduleLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
 
   useEffect(() => {
     if (!profile) return;
@@ -306,10 +307,27 @@ function OwnerStaffHoursContent() {
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div className="flex-1">
-            <h1 className="text-xl font-semibold">{t('ownerStaffHours.title')}</h1>
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-xl font-semibold">{t('ownerStaffHours.title')}</h1>
+              <button
+                type="button"
+                onClick={() => setInfoOpen(o => !o)}
+                className="text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+              >
+                <Info className="w-4 h-4" />
+              </button>
+            </div>
             <p className="text-xs text-muted-foreground mt-0.5">{t('ownerStaffHours.subtitle')}</p>
           </div>
         </div>
+
+        {/* Info panel */}
+        {infoOpen && (
+          <div className="mb-4 flex items-start gap-2 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl px-4 py-3">
+            <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+            <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">{t('ownerStaffHours.info')}</p>
+          </div>
+        )}
 
         {loading ? (
           <div className="flex justify-center py-12">
