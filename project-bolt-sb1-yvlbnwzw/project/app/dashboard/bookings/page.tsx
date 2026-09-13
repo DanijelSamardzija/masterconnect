@@ -91,6 +91,7 @@ export default function MyBookingsPage() {
   const [rescheduleDate, setRescheduleDate] = useState('');
   const [rescheduleTime, setRescheduleTime] = useState('');
   const [rescheduleWeek, setRescheduleWeek] = useState<Date>(weekMonday(new Date()));
+  const [rescheduleReason, setRescheduleReason] = useState('');
   const [rescheduling, setRescheduling] = useState(false);
 
   useEffect(() => {
@@ -152,6 +153,7 @@ export default function MyBookingsPage() {
     const { data } = await (supabase as any).rpc('client_reschedule_booking', {
       p_booking_id:    rescheduleTarget.id,
       p_new_starts_at: isoStr,
+      p_reason:        rescheduleReason.trim() || null,
     });
     setRescheduling(false);
     const result = data as { ok: boolean; error?: string } | null;
@@ -169,6 +171,7 @@ export default function MyBookingsPage() {
       body: JSON.stringify({ type: 'reschedule', booking_id: rescheduleTarget.id }),
     }).catch(() => {});
     setRescheduleTarget(null);
+    setRescheduleReason('');
     setUpcoming(prev => prev.map(b =>
       b.id === rescheduleTarget.id
         ? { ...b, starts_at: isoStr }
@@ -368,8 +371,20 @@ export default function MyBookingsPage() {
                   </select>
                 </div>
               </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">
+                  {t('booking.rescheduleModal.reasonLabel')}
+                </label>
+                <textarea
+                  value={rescheduleReason}
+                  onChange={e => setRescheduleReason(e.target.value)}
+                  placeholder={t('booking.rescheduleModal.reasonPlaceholder')}
+                  rows={2}
+                  className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                />
+              </div>
               <div className="flex gap-2">
-                <button onClick={() => setRescheduleTarget(null)}
+                <button onClick={() => { setRescheduleTarget(null); setRescheduleReason(''); }}
                   className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors"
                 >
                   {t('block.cancel')}

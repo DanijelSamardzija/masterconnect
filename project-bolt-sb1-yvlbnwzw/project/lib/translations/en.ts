@@ -1914,6 +1914,8 @@ export default {
   'booking.rescheduleError.conflict': 'That time slot is not available',
   'booking.rescheduleError.tooSoon': 'Not enough notice time',
   'booking.bookNow': 'Book now',
+  'booking.rescheduleModal.reasonLabel': 'Reason (optional)',
+  'booking.rescheduleModal.reasonPlaceholder': 'E.g. I cannot make it at that time...',
   'booking.testPhase': 'Test · Development phase',
   'booking.testPhaseNote': 'The booking system is currently in a testing phase.',
   'booking.onlineBooking': 'Online booking available',

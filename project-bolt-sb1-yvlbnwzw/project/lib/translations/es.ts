@@ -1837,6 +1837,8 @@ export default {
   'booking.rescheduleError.conflict': 'Ese horario no está disponible',
   'booking.rescheduleError.tooSoon': 'Tiempo insuficiente de antelación',
   'booking.bookNow': 'Reservar ahora',
+  'booking.rescheduleModal.reasonLabel': 'Motivo (opcional)',
+  'booking.rescheduleModal.reasonPlaceholder': 'P. ej. No puedo a esa hora...',
   'booking.testPhase': 'Test · Fase de desarrollo',
   'booking.testPhaseNote': 'El sistema de reservas está actualmente en fase de prueba.',
   'booking.onlineBooking': 'Reserva en línea disponible',
