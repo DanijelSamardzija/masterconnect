@@ -2441,7 +2441,7 @@ export default {
   'schedule.day.short.6': 'Sat',
   'schedule.day.short.0': 'Sun',
   'schedule.staffView.title': 'My Schedule',
-  'schedule.staffView.subtitle': 'Your shifts for the next 2 weeks',
+  'schedule.staffView.subtitle': 'Weekly overview of your shifts',
   'schedule.staffView.noShifts': 'No specific shifts — using regular schedule',
   'schedule.staffView.canEdit': 'You can edit your own shifts',
   'schedule.staffView.info': 'Green = your shift for that day (set working hours). Gray = day off. No color = regular schedule, no special shift entered. Click a day to add a shift or day off. Editing is only possible if the owner has given you permission.',

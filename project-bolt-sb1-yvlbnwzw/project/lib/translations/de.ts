@@ -2423,7 +2423,7 @@ export default {
   'schedule.day.short.6': 'Sa',
   'schedule.day.short.0': 'So',
   'schedule.staffView.title': 'Mein Dienstplan',
-  'schedule.staffView.subtitle': 'Deine Schichten (2 Wochen)',
+  'schedule.staffView.subtitle': 'Wöchentliche Übersicht deiner Schichten',
   'schedule.staffView.noShifts': 'Keine speziellen Schichten — Standardplan gilt',
   'schedule.staffView.canEdit': 'Du kannst eigene Schichten bearbeiten',
   'schedule.staffView.info': 'Grün = deine Schicht für diesen Tag (eingetragene Arbeitszeit). Grau = freier Tag. Keine Farbe = regulärer Plan, keine besondere Schicht eingetragen. Klicke auf einen Tag, um eine Schicht oder einen freien Tag einzutragen. Bearbeitung ist nur möglich, wenn der Inhaber dir die Berechtigung erteilt hat.',

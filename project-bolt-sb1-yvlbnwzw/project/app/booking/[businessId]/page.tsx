@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { ArrowLeft, Calendar, Clock, Users, DollarSign } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Users, DollarSign, MapPin, Phone } from 'lucide-react';
 
 type Business = {
   id: string;
@@ -15,6 +15,16 @@ type Business = {
   live_status: string | null;
   city: string | null;
   category: string | null;
+};
+
+type Location = {
+  id: string;
+  name: string;
+  address: string | null;
+  city: string | null;
+  country: string | null;
+  phone: string | null;
+  is_primary: boolean;
 };
 
 type Service = {
@@ -41,13 +51,14 @@ export default function BusinessBookingProfilePage() {
 
   const [business, setBusiness] = useState<Business | null>(null);
   const [services, setServices] = useState<Service[]>([]);
+  const [primaryLocation, setPrimaryLocation] = useState<Location | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!businessId) return;
     (async () => {
       setLoading(true);
-      const [bizRes, svcRes] = await Promise.all([
+      const [bizRes, svcRes, locRes] = await Promise.all([
         supabase
           .from('profiles')
           .select('id, name, avatar_url, live_status, city, category')
@@ -60,9 +71,18 @@ export default function BusinessBookingProfilePage() {
           .eq('business_id', businessId)
           .eq('is_active', true)
           .order('name'),
+        supabase
+          .from('business_locations')
+          .select('id, name, address, city, country, phone, is_primary')
+          .eq('business_id', businessId)
+          .eq('is_active', true)
+          .order('is_primary', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
       ]);
       setBusiness(bizRes.data ?? null);
       setServices((svcRes.data as Service[]) ?? []);
+      setPrimaryLocation((locRes.data as Location) ?? null);
       setLoading(false);
     })();
   }, [businessId]);
@@ -112,10 +132,24 @@ export default function BusinessBookingProfilePage() {
           </Avatar>
           <div>
             <h1 className="text-xl font-semibold">{business.name}</h1>
-            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-              {business.city && (
+            <div className="flex flex-col gap-0.5 mt-0.5">
+              {primaryLocation && (primaryLocation.address || primaryLocation.city) && (
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <MapPin className="w-3 h-3 shrink-0" />
+                  {[primaryLocation.address, primaryLocation.city, primaryLocation.country].filter(Boolean).join(', ')}
+                </span>
+              )}
+              {primaryLocation?.phone && (
+                <a href={`tel:${primaryLocation.phone}`} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors">
+                  <Phone className="w-3 h-3 shrink-0" />
+                  {primaryLocation.phone}
+                </a>
+              )}
+              {!primaryLocation && business.city && (
                 <span className="text-sm text-muted-foreground">{business.city}</span>
               )}
+            </div>
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
               {business.live_status && business.live_status !== 'unavailable' && business.live_status !== 'by_schedule' && (
                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                   business.live_status === 'available_now'

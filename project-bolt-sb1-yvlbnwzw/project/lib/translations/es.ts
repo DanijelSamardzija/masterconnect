@@ -2356,7 +2356,7 @@ export default {
   'schedule.day.short.6': 'Sáb',
   'schedule.day.short.0': 'Dom',
   'schedule.staffView.title': 'Mi horario',
-  'schedule.staffView.subtitle': 'Tus turnos (2 semanas)',
+  'schedule.staffView.subtitle': 'Vista semanal de tus turnos',
   'schedule.staffView.noShifts': 'Sin turnos especiales — se usa el horario regular',
   'schedule.staffView.canEdit': 'Puedes editar tus propios turnos',
   'schedule.staffView.info': 'Verde = tu turno para ese día (horario de trabajo registrado). Gris = día libre. Sin color = horario regular, sin turno especial. Haz clic en un día para agregar un turno o día libre. La edición solo es posible si el propietario te ha dado permiso.',

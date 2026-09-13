@@ -2363,7 +2363,7 @@ export default {
   'schedule.day.short.6': 'Sam',
   'schedule.day.short.0': 'Dim',
   'schedule.staffView.title': 'Mon planning',
-  'schedule.staffView.subtitle': 'Vos créneaux (2 semaines)',
+  'schedule.staffView.subtitle': 'Vue hebdomadaire de vos créneaux',
   'schedule.staffView.noShifts': 'Aucun quart spécifique — horaire régulier appliqué',
   'schedule.staffView.canEdit': 'Vous pouvez modifier vos propres créneaux',
   'schedule.staffView.info': 'Vert = votre créneau pour ce jour (horaire de travail saisi). Gris = jour de congé. Sans couleur = planning habituel, aucun créneau spécial. Cliquez sur un jour pour saisir un créneau ou un jour de congé. La modification n\'est possible que si le responsable vous en a donné la permission.',
