@@ -125,7 +125,7 @@ export default function StaffBookingsPage() {
     const { data, error } = await (supabase as any).rpc('staff_cancel_booking', { p_booking_id: cancelId });
     setCancelling(false);
     if (error || data?.ok === false) {
-      toast.error(data?.error || 'Greška');
+      toast.error(error?.message || data?.error || 'Greška');
       return;
     }
     toast.success(t('staffDashboard.cancelSuccess'));
