@@ -410,6 +410,13 @@ function OwnerScheduleContent() {
           </div>
         )}
 
+        {/* Default schedule note */}
+        {!loading && staffRows.length > 0 && (
+          <p className="text-[11px] text-muted-foreground/70 mt-1.5 px-1">
+            {t('schedule.defaultNote')}
+          </p>
+        )}
+
         {/* Absence shortcut */}
         {!loading && (
           <div className="mt-4 px-1">

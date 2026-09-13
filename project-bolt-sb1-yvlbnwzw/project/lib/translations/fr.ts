@@ -2346,6 +2346,7 @@ export default {
   'schedule.dayOff': 'Jour de repos',
   'schedule.defaultSchedule': 'Horaire régulier',
   'schedule.defaultShort': 'Régulier',
+  'schedule.defaultNote': '* « Régulier » signifie aucun changement particulier pour cette semaine — le membre du personnel travaille selon son planning habituel. Les jours de congé dans le planning régulier n\'afficheront aucun créneau sur la page de réservation.',
   'schedule.save': 'Enregistrer',
   'schedule.deleteOverride': 'Réinitialiser',
   'schedule.noStaff': 'Aucun employé actif',

@@ -2339,6 +2339,7 @@ export default {
   'schedule.dayOff': 'Día libre',
   'schedule.defaultSchedule': 'Horario regular',
   'schedule.defaultShort': 'Regular',
+  'schedule.defaultNote': '* "Regular" significa que no hay cambios especiales para esta semana — el empleado trabaja según su horario habitual. Los días libres en el horario regular no mostrarán turnos en la página de reservas.',
   'schedule.save': 'Guardar',
   'schedule.deleteOverride': 'Volver al horario regular',
   'schedule.noStaff': 'Sin personal activo',
