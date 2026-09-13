@@ -11,7 +11,7 @@ import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
 import {
   ArrowLeft, ChevronLeft, ChevronRight, Clock, Users,
-  Check, Calendar, X
+  Check, Calendar, X, MapPin, Phone
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,6 +33,10 @@ type Location = {
   name: string;
   timezone: string;
   is_primary: boolean;
+  city: string | null;
+  country: string | null;
+  address: string | null;
+  phone: string | null;
 };
 
 type Service = {
@@ -157,7 +161,7 @@ export default function BookingSlotPickerPage() {
         const [bizRes, svcRes, locRes] = await Promise.all([
           supabase.from('profiles').select('id, name').eq('id', businessId).eq('is_business', true).maybeSingle(),
           (supabase as any).from('service_catalog').select('id, name, description, duration_minutes, capacity, price, price_type, currency').eq('id', serviceId).eq('business_id', businessId).eq('is_active', true).maybeSingle(),
-          supabase.from('business_locations').select('id, name, timezone, is_primary').eq('business_id', businessId).eq('is_active', true).order('is_primary', { ascending: false }),
+          supabase.from('business_locations').select('id, name, timezone, is_primary, city, country, address, phone').eq('business_id', businessId).eq('is_active', true).order('is_primary', { ascending: false }),
         ]);
         setBusiness(bizRes.data ?? null);
         setService((svcRes.data as Service) ?? null);
@@ -330,6 +334,7 @@ export default function BookingSlotPickerPage() {
   }
 
   const todayStr = weekStart(getMonday(startOfDay(new Date())));
+  const selectedLocation = locations.find(l => l.id === selectedLocationId) ?? locations[0] ?? null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -344,7 +349,27 @@ export default function BookingSlotPickerPage() {
 
         <div className="mb-6">
           <h1 className="text-xl font-semibold">{service.name}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{business.name}</p>
+          <p className="text-sm font-medium text-muted-foreground mt-0.5">{business.name}</p>
+          {selectedLocation && (
+            <div className="mt-1.5 flex flex-col gap-0.5">
+              {(selectedLocation.address || selectedLocation.city) && (
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <MapPin className="w-3 h-3 shrink-0" />
+                  {[selectedLocation.name, selectedLocation.address, selectedLocation.city, selectedLocation.country]
+                    .filter(Boolean).join(', ')}
+                </span>
+              )}
+              {selectedLocation.phone && (
+                <a
+                  href={`tel:${selectedLocation.phone}`}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+                >
+                  <Phone className="w-3 h-3 shrink-0" />
+                  {selectedLocation.phone}
+                </a>
+              )}
+            </div>
+          )}
           <div className="flex flex-wrap gap-3 mt-2 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
               <Clock className="w-3.5 h-3.5" />
