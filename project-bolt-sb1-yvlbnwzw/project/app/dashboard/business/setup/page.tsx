@@ -349,6 +349,7 @@ export default function BusinessSetupPage() {
   const [serviceLocMap, setServiceLocMap] = useState<Record<string, string[]>>({});
   const [serviceLocSaving, setServiceLocSaving] = useState<string | null>(null);
   const [deletingSvcId, setDeletingSvcId] = useState<string | null>(null);
+  const [showBookingGuide, setShowBookingGuide] = useState(false);
 
   // ── Load profile on mount ──────────────────────────────────────────────────
   useEffect(() => {
@@ -1319,11 +1320,20 @@ export default function BusinessSetupPage() {
               </div>
 
               {/* How-it-works guide */}
-              <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/40 p-4 flex flex-col gap-3">
-                <div className="flex items-center gap-2">
-                  <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
-                  <span className="text-sm font-semibold text-blue-900 dark:text-blue-200">
-                    {t('setup.services.guide.title')}
+              <button
+                type="button"
+                onClick={() => setShowBookingGuide(true)}
+                className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/40 p-4 flex flex-col gap-3 text-left hover:border-blue-400 dark:hover:border-blue-600 transition-colors w-full"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                    <span className="text-sm font-semibold text-blue-900 dark:text-blue-200">
+                      {t('setup.services.guide.title')}
+                    </span>
+                  </div>
+                  <span className="text-xs text-blue-600 dark:text-blue-400 font-medium shrink-0">
+                    {t('setup.services.guide.readMore')}
                   </span>
                 </div>
                 <ol className="flex flex-col gap-2 pl-1">
@@ -1339,7 +1349,115 @@ export default function BusinessSetupPage() {
                 <p className="text-xs text-blue-700 dark:text-blue-400 border-t border-blue-200 dark:border-blue-800 pt-2.5 mt-0.5">
                   💡 {t('setup.services.guide.tip')}
                 </p>
-              </div>
+              </button>
+
+              {/* Booking guide modal */}
+              {showBookingGuide && (
+                <div
+                  className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+                  onClick={() => setShowBookingGuide(false)}
+                >
+                  <div className="absolute inset-0 bg-black/50" />
+                  <div
+                    className="relative bg-background rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[90dvh] overflow-y-auto shadow-2xl"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {/* Modal header */}
+                    <div className="sticky top-0 bg-background border-b border-border flex items-center justify-between px-5 py-4 rounded-t-2xl sm:rounded-t-2xl z-10">
+                      <div className="flex items-center gap-2">
+                        <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                        <h2 className="text-base font-semibold">{t('setup.guide.modal.title')}</h2>
+                      </div>
+                      <button
+                        onClick={() => setShowBookingGuide(false)}
+                        className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-accent transition-colors"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <div className="px-5 py-5 flex flex-col gap-6">
+                      {/* Section: Setup */}
+                      <section>
+                        <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">1</span>
+                          {t('setup.guide.modal.setup.title')}
+                        </h3>
+                        <ul className="flex flex-col gap-2">
+                          {(['1','2','3','4'] as const).map((n) => (
+                            <li key={n} className="flex items-start gap-2 text-sm text-muted-foreground">
+                              <span className="text-primary mt-0.5 shrink-0">•</span>
+                              {t(`setup.guide.modal.setup.${n}` as Parameters<typeof t>[0])}
+                            </li>
+                          ))}
+                        </ul>
+                      </section>
+
+                      {/* Section: Flow */}
+                      <section>
+                        <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">2</span>
+                          {t('setup.guide.modal.flow.title')}
+                        </h3>
+                        <ol className="flex flex-col gap-2">
+                          {(['1','2','3'] as const).map((n, i) => (
+                            <li key={n} className="flex items-start gap-2.5 text-sm text-muted-foreground">
+                              <span className="shrink-0 w-5 h-5 rounded-full bg-muted text-muted-foreground text-xs font-bold flex items-center justify-center mt-0.5">{i+1}</span>
+                              {t(`setup.guide.modal.flow.${n}` as Parameters<typeof t>[0])}
+                            </li>
+                          ))}
+                        </ol>
+                      </section>
+
+                      {/* Section: Slots */}
+                      <section>
+                        <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">3</span>
+                          {t('setup.guide.modal.slots.title')}
+                        </h3>
+                        <ul className="flex flex-col gap-2">
+                          {(['1','2','3','4'] as const).map((n) => (
+                            <li key={n} className="flex items-start gap-2 text-sm text-muted-foreground">
+                              <span className="text-primary mt-0.5 shrink-0">•</span>
+                              {t(`setup.guide.modal.slots.${n}` as Parameters<typeof t>[0])}
+                            </li>
+                          ))}
+                        </ul>
+                      </section>
+
+                      {/* Section: Can */}
+                      <section className="rounded-xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 p-4">
+                        <h3 className="text-sm font-semibold text-green-800 dark:text-green-300 mb-3">
+                          ✓ {t('setup.guide.modal.can.title')}
+                        </h3>
+                        <ul className="flex flex-col gap-1.5">
+                          {(['1','2','3','4','5','6'] as const).map((n) => (
+                            <li key={n} className="flex items-start gap-2 text-sm text-green-700 dark:text-green-400">
+                              <span className="mt-0.5 shrink-0">✓</span>
+                              {t(`setup.guide.modal.can.${n}` as Parameters<typeof t>[0])}
+                            </li>
+                          ))}
+                        </ul>
+                      </section>
+
+                      {/* Section: Cannot */}
+                      <section className="rounded-xl bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 p-4">
+                        <h3 className="text-sm font-semibold text-orange-800 dark:text-orange-300 mb-3">
+                          ✗ {t('setup.guide.modal.cannot.title')}
+                        </h3>
+                        <ul className="flex flex-col gap-1.5">
+                          {(['1','2','3'] as const).map((n) => (
+                            <li key={n} className="flex items-start gap-2 text-sm text-orange-700 dark:text-orange-400">
+                              <span className="mt-0.5 shrink-0">✗</span>
+                              {t(`setup.guide.modal.cannot.${n}` as Parameters<typeof t>[0])}
+                            </li>
+                          ))}
+                        </ul>
+                      </section>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-muted-foreground">{t('setup.services.heading')}</span>
