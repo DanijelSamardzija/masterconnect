@@ -191,7 +191,7 @@ const BIZ_CATEGORIES = [
   { key: 'appointment',  emoji: '🗓️', ready: true },
   { key: 'restaurant',   emoji: '🍽️', ready: false },
   { key: 'food_order',   emoji: '🍔', ready: false },
-  { key: 'tradespeople', emoji: '🔧', ready: true },
+  { key: 'tradespeople', emoji: '🔧', ready: false },
   { key: 'accommodation',emoji: '🏠', ready: false },
 ] as const;
 
