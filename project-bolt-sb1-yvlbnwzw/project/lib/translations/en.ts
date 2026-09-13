@@ -2419,6 +2419,7 @@ export default {
   'schedule.staffView.canEdit': 'You can edit your own shifts',
   'schedule.staffView.dayOff': 'Day off',
   'schedule.staffView.regular': 'Regular schedule',
+  'schedule.defaultHint': 'Removes any custom schedule for this day — the staff member follows the regular schedule.',
   'schedule.break': 'Break',
   'schedule.breakStart': 'Break start',
   'schedule.breakEnd': 'Break end',

@@ -2419,6 +2419,7 @@ export default {
   'schedule.staffView.canEdit': 'Možeš uređivati vlastite smjene',
   'schedule.staffView.dayOff': 'Slobodan dan',
   'schedule.staffView.regular': 'Redovni raspored',
+  'schedule.defaultHint': 'Uklanja poseban raspored za ovaj dan — radnik radi po redovnom rasporedu.',
   'schedule.break': 'Pauza',
   'schedule.breakStart': 'Početak pauze',
   'schedule.breakEnd': 'Kraj pauze',

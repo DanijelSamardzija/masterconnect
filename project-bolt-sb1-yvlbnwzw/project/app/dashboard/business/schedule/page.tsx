@@ -446,6 +446,13 @@ function OwnerScheduleContent() {
               ))}
             </div>
 
+            {/* Default mode hint */}
+            {edit.mode === 'default' && (
+              <p className="text-xs text-muted-foreground bg-muted/50 rounded-xl px-3 py-2.5 mb-4">
+                {t('schedule.defaultHint')}
+              </p>
+            )}
+
             {/* Time inputs */}
             {edit.mode === 'working' && (
               <div className="space-y-3 mb-4">

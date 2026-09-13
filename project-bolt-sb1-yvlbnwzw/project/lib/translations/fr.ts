@@ -2341,6 +2341,7 @@ export default {
   'schedule.staffView.canEdit': 'Vous pouvez modifier vos propres créneaux',
   'schedule.staffView.dayOff': 'Jour de repos',
   'schedule.staffView.regular': 'Horaire régulier',
+  'schedule.defaultHint': 'Supprime le planning personnalisé pour ce jour — l\'employé suit le planning habituel.',
   'schedule.break': 'Pause',
   'schedule.breakStart': 'Début de la pause',
   'schedule.breakEnd': 'Fin de la pause',
