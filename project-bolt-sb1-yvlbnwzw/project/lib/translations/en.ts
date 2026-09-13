@@ -1914,6 +1914,8 @@ export default {
   'booking.rescheduleError.conflict': 'That time slot is not available',
   'booking.rescheduleError.tooSoon': 'Not enough notice time',
   'booking.bookNow': 'Book now',
+  'booking.testPhase': 'Test · Development phase',
+  'booking.testPhaseNote': 'The booking system is currently in a testing phase.',
   'booking.onlineBooking': 'Online booking available',
   'booking.error.notConfirmed': 'Only confirmed bookings can be completed',
   'booking.error.notStarted': 'Appointment has not started yet — cannot mark as no-show',

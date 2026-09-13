@@ -1837,6 +1837,8 @@ export default {
   'booking.rescheduleError.conflict': 'Ese horario no está disponible',
   'booking.rescheduleError.tooSoon': 'Tiempo insuficiente de antelación',
   'booking.bookNow': 'Reservar ahora',
+  'booking.testPhase': 'Test · Fase de desarrollo',
+  'booking.testPhaseNote': 'El sistema de reservas está actualmente en fase de prueba.',
   'booking.onlineBooking': 'Reserva en línea disponible',
   'booking.error.notConfirmed': 'Solo las reservas confirmadas pueden completarse',
   'booking.error.notStarted': 'La cita aún no ha comenzado — no se puede marcar como no presentado',

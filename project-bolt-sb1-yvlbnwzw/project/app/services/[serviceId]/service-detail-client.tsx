@@ -559,18 +559,23 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                   {!isOwner && (
                     <div className="space-y-2">
                       {service.booking_enabled && service.business_id && (
-                        <Button
-                          size="lg"
-                          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-11 text-base gap-2"
-                          asChild
-                        >
-                          <Link href={linkedSvcId
-                            ? `/booking/${service.business_id}/${linkedSvcId}`
-                            : `/booking/${service.business_id}`}>
-                            <Calendar className="h-4 w-4" />
-                            {t('booking.bookNow')}
-                          </Link>
-                        </Button>
+                        <div className="space-y-1.5">
+                          <Button
+                            size="lg"
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-11 text-base gap-2"
+                            asChild
+                          >
+                            <Link href={linkedSvcId
+                              ? `/booking/${service.business_id}/${linkedSvcId}`
+                              : `/booking/${service.business_id}`}>
+                              <Calendar className="h-4 w-4" />
+                              {t('booking.bookNow')}
+                            </Link>
+                          </Button>
+                          <p className="text-center text-[11px] text-muted-foreground">
+                            🧪 {t('booking.testPhaseNote')}
+                          </p>
+                        </div>
                       )}
                       <Button
                         size="lg"
@@ -721,7 +726,7 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
 
                   {/* ── Booking section ────────────────────────────────── */}
                   <div className="border-t border-orange-200 dark:border-orange-800 pt-3">
-                    <div className="flex items-center gap-1.5 mb-2">
+                    <div className="flex items-center gap-1.5 mb-2 flex-wrap">
                       <Calendar className="h-3.5 w-3.5 text-orange-600 dark:text-orange-400" />
                       <span className="text-xs font-semibold text-orange-700 dark:text-orange-300">
                         {t('serviceDetail.booking.heading')}
@@ -731,6 +736,9 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                           · {t('booking.activate.active')}
                         </span>
                       )}
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-yellow-100 dark:bg-yellow-950 text-yellow-700 dark:text-yellow-400">
+                        🧪 {t('booking.testPhase')}
+                      </span>
                     </div>
 
                     {isOwnerPremium === null || isBusinessProfile === null ? (

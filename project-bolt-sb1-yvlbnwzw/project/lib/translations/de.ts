@@ -1904,6 +1904,8 @@ export default {
   'booking.rescheduleError.conflict': 'Dieser Termin ist nicht verfügbar',
   'booking.rescheduleError.tooSoon': 'Zu wenig Vorlaufzeit',
   'booking.bookNow': 'Jetzt buchen',
+  'booking.testPhase': 'Test · Entwicklungsphase',
+  'booking.testPhaseNote': 'Das Buchungssystem befindet sich derzeit in einer Testphase.',
   'booking.onlineBooking': 'Online-Buchung verfügbar',
   'booking.error.notConfirmed': 'Nur bestätigte Buchungen können abgeschlossen werden',
   'booking.error.notStarted': 'Der Termin hat noch nicht begonnen — kann nicht als Nichterscheinen markiert werden',

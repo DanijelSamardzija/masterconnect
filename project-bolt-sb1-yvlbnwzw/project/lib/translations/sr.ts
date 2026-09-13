@@ -1914,6 +1914,8 @@ export default {
   'booking.rescheduleError.conflict': 'Odabrani termin nije slobodan',
   'booking.rescheduleError.tooSoon': 'Vremenski period je prekratak',
   'booking.bookNow': 'Rezerviši odmah',
+  'booking.testPhase': 'Test · Faza razvoja',
+  'booking.testPhaseNote': 'Sistem za rezervacije je u fazi testiranja.',
   'booking.onlineBooking': 'Online rezervacija dostupna',
   'booking.error.notConfirmed': 'Samo potvrđene rezervacije mogu biti završene',
   'booking.error.notStarted': 'Termin još nije počeo — ne može se označiti kao nedolazak',

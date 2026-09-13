@@ -1844,6 +1844,8 @@ export default {
   'booking.rescheduleError.conflict': "Ce créneau n'est pas disponible",
   'booking.rescheduleError.tooSoon': 'Délai de préavis insuffisant',
   'booking.bookNow': 'Réserver maintenant',
+  'booking.testPhase': 'Test · Phase de développement',
+  'booking.testPhaseNote': 'Le système de réservation est actuellement en phase de test.',
   'booking.onlineBooking': 'Réservation en ligne disponible',
   'booking.error.notConfirmed': 'Seules les réservations confirmées peuvent être terminées',
   'booking.error.notStarted': 'Le rendez-vous n\'a pas encore commencé — impossible de marquer comme absent',
