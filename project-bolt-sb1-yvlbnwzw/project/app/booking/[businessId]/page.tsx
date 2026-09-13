@@ -123,27 +123,34 @@ export default function BusinessBookingProfilePage() {
           {t('booking.discovery.title')}
         </button>
 
-        <div className="border border-border rounded-2xl p-4 flex items-center gap-4 mb-6">
-          <Avatar className="h-16 w-16 shrink-0">
-            <AvatarImage src={business.avatar_url ?? undefined} alt={business.name} />
-            <AvatarFallback className="text-xl font-semibold">
-              {business.name[0]?.toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-lg font-semibold">{business.name}</h1>
-              {business.live_status && business.live_status !== 'unavailable' && business.live_status !== 'by_schedule' && (
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                  business.live_status === 'available_now'
-                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                    : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                }`}>
-                  {t(`live.status.${business.live_status}` as Parameters<typeof t>[0])}
-                </span>
-              )}
+        <div className="border border-border rounded-2xl overflow-hidden mb-6">
+          {/* Avatar + name */}
+          <div className="flex items-center gap-3 px-4 py-3">
+            <Avatar className="h-12 w-12 shrink-0">
+              <AvatarImage src={business.avatar_url ?? undefined} alt={business.name} />
+              <AvatarFallback className="text-base font-semibold">
+                {business.name[0]?.toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-base font-semibold">{business.name}</h1>
+                {business.live_status && business.live_status !== 'unavailable' && business.live_status !== 'by_schedule' && (
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                    business.live_status === 'available_now'
+                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                      : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                  }`}>
+                    {t(`live.status.${business.live_status}` as Parameters<typeof t>[0])}
+                  </span>
+                )}
+              </div>
             </div>
-            <div className="flex flex-col gap-1 mt-1">
+          </div>
+
+          {/* Location + phone — separated by divider */}
+          {(primaryLocation && (primaryLocation.address || primaryLocation.city || primaryLocation.phone)) || (!primaryLocation && business.city) ? (
+            <div className="border-t border-border px-4 py-2.5 flex flex-col gap-1.5">
               {primaryLocation && (primaryLocation.address || primaryLocation.city) && (
                 <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <MapPin className="w-3 h-3 shrink-0" />
@@ -157,10 +164,13 @@ export default function BusinessBookingProfilePage() {
                 </a>
               )}
               {!primaryLocation && business.city && (
-                <span className="text-xs text-muted-foreground">{business.city}</span>
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <MapPin className="w-3 h-3 shrink-0" />
+                  {business.city}
+                </span>
               )}
             </div>
-          </div>
+          ) : null}
         </div>
 
         {services.length === 0 ? (
