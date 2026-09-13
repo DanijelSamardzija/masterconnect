@@ -1318,6 +1318,29 @@ export default function BusinessSetupPage() {
                 <p className="text-xs text-muted-foreground mt-1">{t('setup.services.tabIntroDesc')}</p>
               </div>
 
+              {/* How-it-works guide */}
+              <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/40 p-4 flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                  <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                  <span className="text-sm font-semibold text-blue-900 dark:text-blue-200">
+                    {t('setup.services.guide.title')}
+                  </span>
+                </div>
+                <ol className="flex flex-col gap-2 pl-1">
+                  {(['step1', 'step2', 'step3'] as const).map((step, i) => (
+                    <li key={step} className="flex items-start gap-2.5 text-sm text-blue-800 dark:text-blue-300">
+                      <span className="shrink-0 w-5 h-5 rounded-full bg-blue-200 dark:bg-blue-800 text-blue-700 dark:text-blue-300 text-xs font-bold flex items-center justify-center mt-0.5">
+                        {i + 1}
+                      </span>
+                      {t(`setup.services.guide.${step}` as Parameters<typeof t>[0])}
+                    </li>
+                  ))}
+                </ol>
+                <p className="text-xs text-blue-700 dark:text-blue-400 border-t border-blue-200 dark:border-blue-800 pt-2.5 mt-0.5">
+                  💡 {t('setup.services.guide.tip')}
+                </p>
+              </div>
+
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-muted-foreground">{t('setup.services.heading')}</span>
                 {isBusinessActive && (
