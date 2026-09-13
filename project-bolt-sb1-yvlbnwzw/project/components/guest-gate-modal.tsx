@@ -16,6 +16,7 @@ const ACTION_TEXT: Record<GuestAction, string> = {
   phone: 'vidiš kontakt informacije',
   save: 'sačuvaš oglas',
   contact: 'stupiš u kontakt',
+  book: 'rezervišeš termin',
 };
 
 interface Props {
