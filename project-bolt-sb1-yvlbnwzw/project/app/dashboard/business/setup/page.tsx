@@ -59,7 +59,6 @@ type BookingRules = {
   min_notice_minutes: number;
   max_advance_days: number;
   cancellation_hours: number;
-  slot_interval_min: number;
 };
 
 type PostListing = {
@@ -280,7 +279,6 @@ export default function BusinessSetupPage() {
     min_notice_minutes: 60,
     max_advance_days: 60,
     cancellation_hours: 24,
-    slot_interval_min: 15,
   });
   const [rulesLoading, setRulesLoading] = useState(initialTab === 'rules');
   const [rulesSaving, setRulesSaving] = useState(false);
@@ -667,7 +665,6 @@ export default function BusinessSetupPage() {
       p_min_notice_minutes: rules.min_notice_minutes,
       p_max_advance_days:   rules.max_advance_days,
       p_cancellation_hours: rules.cancellation_hours,
-      p_slot_interval_min:  rules.slot_interval_min,
     });
     setRulesSaving(false);
     const result = data as { ok: boolean; error?: string } | null;
@@ -2097,29 +2094,6 @@ export default function BusinessSetupPage() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    {/* Slot interval */}
-                    <div className="flex flex-col gap-1.5">
-                      <div className="flex items-center gap-1.5">
-                        <label className="text-sm font-medium">{t('setup.rules.slotInterval')}</label>
-                        <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'slot' ? null : 'slot')} className="text-muted-foreground/60 hover:text-primary transition-colors">
-                          <Info className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                      {activeRuleInfo === 'slot' && (
-                        <p className="text-xs text-muted-foreground leading-relaxed bg-muted/40 px-3 py-2 rounded-lg border border-border/50">
-                          {t('setup.rules.slotInterval.desc')}
-                        </p>
-                      )}
-                      <select
-                        value={rules.slot_interval_min}
-                        onChange={(e) => setRules((r) => ({ ...r, slot_interval_min: Number(e.target.value) }))}
-                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                      >
-                        {[10, 15, 20, 30, 45, 60, 90, 120].map((v) => (
-                          <option key={v} value={v}>{v} min</option>
-                        ))}
-                      </select>
-                    </div>
                     {/* Max advance */}
                     <div className="flex flex-col gap-1.5">
                       <div className="flex items-center gap-1.5">
