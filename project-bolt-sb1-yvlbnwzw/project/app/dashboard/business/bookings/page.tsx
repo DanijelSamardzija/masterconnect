@@ -436,7 +436,9 @@ function OwnerBookingsContent() {
           {FILTERS.map(f => (
             <button key={f.key} onClick={() => { setFilter(f.key); try { localStorage.setItem('ownerBookingsFilter', f.key); } catch {} }}
               className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-                filter === f.key ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                filter === f.key
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               {f.label}
