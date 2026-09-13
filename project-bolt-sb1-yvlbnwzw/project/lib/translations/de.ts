@@ -2405,6 +2405,7 @@ export default {
   'schedule.working': 'Arbeitet',
   'schedule.dayOff': 'Freier Tag',
   'schedule.defaultSchedule': 'Standardplan',
+  'schedule.defaultShort': 'Standard',
   'schedule.save': 'Speichern',
   'schedule.deleteOverride': 'Zurücksetzen',
   'schedule.noStaff': 'Keine aktiven Mitarbeiter',

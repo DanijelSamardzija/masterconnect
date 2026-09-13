@@ -2423,6 +2423,7 @@ export default {
   'schedule.working': 'Working',
   'schedule.dayOff': 'Day off',
   'schedule.defaultSchedule': 'Regular schedule',
+  'schedule.defaultShort': 'Regular',
   'schedule.save': 'Save',
   'schedule.deleteOverride': 'Revert to default',
   'schedule.noStaff': 'No active staff',

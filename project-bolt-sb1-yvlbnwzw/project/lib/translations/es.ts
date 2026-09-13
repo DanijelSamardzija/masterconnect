@@ -2338,6 +2338,7 @@ export default {
   'schedule.working': 'Trabajando',
   'schedule.dayOff': 'Día libre',
   'schedule.defaultSchedule': 'Horario regular',
+  'schedule.defaultShort': 'Regular',
   'schedule.save': 'Guardar',
   'schedule.deleteOverride': 'Volver al horario regular',
   'schedule.noStaff': 'Sin personal activo',

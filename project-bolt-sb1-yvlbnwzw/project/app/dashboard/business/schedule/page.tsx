@@ -338,7 +338,9 @@ function OwnerScheduleContent() {
 
                       if (!shift) {
                         cellContent = (
-                          <span className="text-[10px] text-muted-foreground/40">—</span>
+                          <span className="text-[10px] font-medium text-muted-foreground/60 bg-muted/40 px-1.5 py-0.5 rounded border border-dashed border-border">
+                            {t('schedule.defaultShort')}
+                          </span>
                         );
                         cellCls = today ? 'bg-primary/3' : '';
                       } else if (shift.is_off) {

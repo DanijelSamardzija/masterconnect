@@ -2345,6 +2345,7 @@ export default {
   'schedule.working': 'Travaille',
   'schedule.dayOff': 'Jour de repos',
   'schedule.defaultSchedule': 'Horaire régulier',
+  'schedule.defaultShort': 'Régulier',
   'schedule.save': 'Enregistrer',
   'schedule.deleteOverride': 'Réinitialiser',
   'schedule.noStaff': 'Aucun employé actif',

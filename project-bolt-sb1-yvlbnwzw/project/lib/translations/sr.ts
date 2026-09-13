@@ -2423,6 +2423,7 @@ export default {
   'schedule.working': 'Radi',
   'schedule.dayOff': 'Slobodan dan',
   'schedule.defaultSchedule': 'Redovni raspored',
+  'schedule.defaultShort': 'Redovni',
   'schedule.save': 'Sačuvaj',
   'schedule.deleteOverride': 'Vrati na redovni',
   'schedule.noStaff': 'Nema aktivnih radnika',
