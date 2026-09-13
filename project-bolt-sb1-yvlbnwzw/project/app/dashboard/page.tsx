@@ -626,42 +626,42 @@ function DashboardContent() {
         {/* Business services section — booking beta + premium + active business */}
         {isBookingBetaUser(profile.id) && isPremium && isBusinessProfile && businessServicesLoaded && (
           <div className="space-y-3">
-            <div className="flex items-center justify-between px-1">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <div className="flex items-center justify-between px-1 gap-2 overflow-hidden">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider shrink-0">
                 {t('dashboard.services.title')}
               </p>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide min-w-0 pb-0.5">
                 <button
                   onClick={() => router.push('/dashboard/business/bookings')}
-                  className="flex items-center gap-1 text-xs font-semibold text-orange-500 hover:text-orange-400 transition-colors"
+                  className="flex items-center gap-1 text-xs font-semibold text-orange-500 hover:text-orange-400 transition-colors whitespace-nowrap shrink-0"
                 >
                   <Calendar className="h-3 w-3" />
                   Rezervacije
                 </button>
                 <button
                   onClick={() => router.push('/dashboard/business/schedule')}
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0"
                 >
                   <Calendar className="h-3 w-3" />
                   {t('schedule.title')}
                 </button>
                 <button
                   onClick={() => router.push('/dashboard/business/staff-hours')}
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0"
                 >
                   <Clock className="h-3 w-3" />
                   {t('ownerStaffHours.title')}
                 </button>
                 <button
                   onClick={() => router.push('/dashboard/business/setup')}
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0"
                 >
                   <Settings className="h-3 w-3" />
                   {t('dashboard.business.activeButton')}
                 </button>
                 <button
                   onClick={() => router.push(`/booking/${profile.id}`)}
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0"
                 >
                   <ExternalLink className="h-3 w-3" />
                   {t('dashboard.services.bookingPage')}
