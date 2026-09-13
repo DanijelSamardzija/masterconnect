@@ -17,7 +17,7 @@ import { trackEvent, saveAnonymousId, identifyUser } from '@/lib/analytics';
 
 // Briše localStorage ali čuva ključeve koji ne smiju biti obrisani
 function clearLocalStorageSafe() {
-  const KEEP_KEYS = ['pwa_install_dismissed_v2', 'lang'];
+  const KEEP_KEYS = ['pwa_install_dismissed_v2', 'lang', 'guest_intent'];
   const saved: Record<string, string> = {};
   for (const key of KEEP_KEYS) {
     const val = localStorage.getItem(key);
