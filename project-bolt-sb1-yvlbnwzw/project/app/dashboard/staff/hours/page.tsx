@@ -112,26 +112,45 @@ export default function StaffHoursPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [hasPermission, setHasPermission] = useState(false);
+  const [myRole, setMyRole] = useState<string>('');
+  const [acceptBookings, setAcceptBookings] = useState(true);
+  const [togglingAccept, setTogglingAccept] = useState(false);
 
   useEffect(() => {
     if (!profile) return;
     (async () => {
       const { data: sm } = await (supabase as any)
         .from('staff_members')
-        .select('id, primary_location_id, permissions')
+        .select('id, primary_location_id, permissions, role, accept_bookings, business_id')
         .eq('user_id', profile.id)
         .eq('is_active', true)
-        .in('role', ['worker', 'manager'])
+        .in('role', ['worker', 'manager', 'owner'])
         .limit(1)
         .maybeSingle();
 
       if (!sm) { setLoading(false); return; }
 
       setStaffMemberId(sm.id);
-      const perm = !!sm.permissions?.can_set_hours;
+      setMyRole(sm.role);
+      setAcceptBookings(sm.accept_bookings ?? true);
+
+      const isOwner = sm.role === 'owner';
+      const perm = isOwner || !!sm.permissions?.can_set_hours;
       setHasPermission(perm);
 
-      const locId = sm.primary_location_id;
+      let locId: string | null = sm.primary_location_id;
+      if (!locId && isOwner) {
+        const { data: loc } = await (supabase as any)
+          .from('business_locations')
+          .select('id')
+          .eq('business_id', sm.business_id)
+          .eq('is_active', true)
+          .order('is_primary', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        locId = loc?.id ?? null;
+      }
+
       if (!locId) { setLoading(false); return; }
       setLocationId(locId);
 
@@ -162,52 +181,60 @@ export default function StaffHoursPage() {
     }
   }
 
+  async function handleToggleAcceptBookings() {
+    if (!staffMemberId) return;
+    setTogglingAccept(true);
+    const newVal = !acceptBookings;
+    const { data } = await (supabase as any).rpc('set_accept_bookings', {
+      p_staff_member_id: staffMemberId,
+      p_accept: newVal,
+    });
+    if (data?.ok) {
+      setAcceptBookings(newVal);
+    } else {
+      toast.error('Greška');
+    }
+    setTogglingAccept(false);
+  }
+
   async function handleSave() {
-    if (!locationId) return;
+    if (!locationId || !staffMemberId) return;
     setSaving(true);
     let anyError = false;
+    const isOwner = myRole === 'owner';
 
     for (const dow of DOW_ORDER) {
       const day = schedule[dow];
 
       if (day.has_break && !day.is_closed) {
-        const r0 = await (supabase as any).rpc('set_my_staff_hours', {
-          p_location_id: locationId,
-          p_day_of_week: dow,
-          p_open_time:   day.start_time,
-          p_close_time:  day.break_start,
-          p_is_closed:   false,
-          p_sort_order:  0,
-          p_month:       selectedMonth,
-        });
+        const r0 = await (supabase as any).rpc(
+          isOwner ? 'owner_set_staff_hours' : 'set_my_staff_hours',
+          isOwner
+            ? { p_staff_member_id: staffMemberId, p_location_id: locationId, p_day_of_week: dow, p_open_time: day.start_time, p_close_time: day.break_start, p_is_closed: false, p_sort_order: 0, p_month: selectedMonth }
+            : { p_location_id: locationId, p_day_of_week: dow, p_open_time: day.start_time, p_close_time: day.break_start, p_is_closed: false, p_sort_order: 0, p_month: selectedMonth }
+        );
         if (!r0.data?.ok) anyError = true;
-        const r1 = await (supabase as any).rpc('set_my_staff_hours', {
-          p_location_id: locationId,
-          p_day_of_week: dow,
-          p_open_time:   day.break_end,
-          p_close_time:  day.end_time,
-          p_is_closed:   false,
-          p_sort_order:  1,
-          p_month:       selectedMonth,
-        });
+        const r1 = await (supabase as any).rpc(
+          isOwner ? 'owner_set_staff_hours' : 'set_my_staff_hours',
+          isOwner
+            ? { p_staff_member_id: staffMemberId, p_location_id: locationId, p_day_of_week: dow, p_open_time: day.break_end, p_close_time: day.end_time, p_is_closed: false, p_sort_order: 1, p_month: selectedMonth }
+            : { p_location_id: locationId, p_day_of_week: dow, p_open_time: day.break_end, p_close_time: day.end_time, p_is_closed: false, p_sort_order: 1, p_month: selectedMonth }
+        );
         if (!r1.data?.ok) anyError = true;
       } else {
-        const r0 = await (supabase as any).rpc('set_my_staff_hours', {
-          p_location_id: locationId,
-          p_day_of_week: dow,
-          p_open_time:   day.start_time,
-          p_close_time:  day.end_time,
-          p_is_closed:   day.is_closed,
-          p_sort_order:  0,
-          p_month:       selectedMonth,
-        });
+        const r0 = await (supabase as any).rpc(
+          isOwner ? 'owner_set_staff_hours' : 'set_my_staff_hours',
+          isOwner
+            ? { p_staff_member_id: staffMemberId, p_location_id: locationId, p_day_of_week: dow, p_open_time: day.start_time, p_close_time: day.end_time, p_is_closed: day.is_closed, p_sort_order: 0, p_month: selectedMonth }
+            : { p_location_id: locationId, p_day_of_week: dow, p_open_time: day.start_time, p_close_time: day.end_time, p_is_closed: day.is_closed, p_sort_order: 0, p_month: selectedMonth }
+        );
         if (!r0.data?.ok) anyError = true;
-        await (supabase as any).rpc('delete_my_staff_hour_period', {
-          p_location_id: locationId,
-          p_day_of_week: dow,
-          p_sort_order:  1,
-          p_month:       selectedMonth,
-        });
+        await (supabase as any).rpc(
+          isOwner ? 'owner_delete_staff_hour_period' : 'delete_my_staff_hour_period',
+          isOwner
+            ? { p_staff_member_id: staffMemberId, p_location_id: locationId, p_day_of_week: dow, p_sort_order: 1, p_month: selectedMonth }
+            : { p_location_id: locationId, p_day_of_week: dow, p_sort_order: 1, p_month: selectedMonth }
+        );
       }
     }
 
@@ -267,6 +294,32 @@ export default function StaffHoursPage() {
             </div>
           ) : (
             <>
+              {/* Accept bookings toggle */}
+              {staffMemberId && (
+                <div className="flex items-center justify-between border border-border rounded-xl px-4 py-3 mb-5">
+                  <div>
+                    <p className="text-sm font-medium">{t('staffHours.acceptBookings')}</p>
+                    {!acceptBookings && (
+                      <p className="text-xs text-muted-foreground mt-0.5">{t('staffHours.acceptBookingsHint')}</p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    disabled={togglingAccept}
+                    onClick={handleToggleAcceptBookings}
+                    className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200 disabled:opacity-60 ${
+                      acceptBookings ? 'bg-primary' : 'bg-muted'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
+                        acceptBookings ? 'translate-x-5' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </button>
+                </div>
+              )}
+
               {/* Month selector */}
               <div className="mb-4">
                 <p className="text-xs text-muted-foreground mb-2">{t('staffHours.selectMonth')}</p>

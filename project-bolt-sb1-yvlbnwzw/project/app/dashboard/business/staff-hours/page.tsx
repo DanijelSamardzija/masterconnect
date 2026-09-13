@@ -9,7 +9,7 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
 import { ChevronLeft, Clock, Users, X, Info } from 'lucide-react';
 
-type StaffMember = { id: string; name: string; primary_location_id: string | null };
+type StaffMember = { id: string; name: string; primary_location_id: string | null; accept_bookings: boolean; role: string };
 
 type DaySchedule = {
   is_closed:   boolean;
@@ -146,19 +146,21 @@ function OwnerStaffHoursContent() {
 
       if (loc) setLocationId(loc.id);
 
-      // Get all staff members
+      // Get all staff members (including owner themselves)
       const { data: staff } = await (supabase as any)
         .from('staff_members')
-        .select('id, primary_location_id, profiles!staff_members_user_id_fkey(name)')
+        .select('id, primary_location_id, accept_bookings, role, profiles!staff_members_user_id_fkey(name)')
         .eq('business_id', ownerSm.business_id)
         .eq('is_active', true)
-        .in('role', ['worker', 'manager']);
+        .in('role', ['worker', 'manager', 'owner']);
 
       if (staff && staff.length > 0) {
         const list = staff.map((s: any) => ({
           id: s.id,
           name: s.profiles?.name || '—',
           primary_location_id: s.primary_location_id,
+          accept_bookings: s.accept_bookings ?? true,
+          role: s.role,
         }));
         setStaffList(list);
         setSelectedStaffId(list[0].id);
@@ -185,6 +187,19 @@ function OwnerStaffHoursContent() {
       setSchedule(emptySchedule());
     }
     setScheduleLoading(false);
+  }
+
+  async function handleToggleAcceptBookings(smId: string, current: boolean) {
+    const newVal = !current;
+    const { data } = await (supabase as any).rpc('set_accept_bookings', {
+      p_staff_member_id: smId,
+      p_accept: newVal,
+    });
+    if (data?.ok) {
+      setStaffList(prev => prev.map(s => s.id === smId ? { ...s, accept_bookings: newVal } : s));
+    } else {
+      toast.error('Greška');
+    }
   }
 
   async function handleStaffChange(smId: string) {
@@ -343,20 +358,41 @@ function OwnerStaffHoursContent() {
             {/* Staff picker */}
             <div className="mb-4">
               <label className="block text-xs text-muted-foreground mb-1.5">{t('ownerStaffHours.selectStaff')}</label>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-col gap-2">
                 {staffList.map(sm => (
-                  <button
-                    key={sm.id}
-                    type="button"
-                    onClick={() => handleStaffChange(sm.id)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors ${
-                      selectedStaffId === sm.id
-                        ? 'bg-primary text-white border-primary'
-                        : 'border-border bg-background hover:bg-accent text-foreground'
-                    }`}
-                  >
-                    {sm.name}
-                  </button>
+                  <div key={sm.id} className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleStaffChange(sm.id)}
+                      className={`flex-1 text-left px-3 py-2 rounded-xl text-xs font-medium border transition-colors ${
+                        selectedStaffId === sm.id
+                          ? 'bg-primary text-white border-primary'
+                          : 'border-border bg-background hover:bg-accent text-foreground'
+                      }`}
+                    >
+                      {sm.name}
+                      {sm.role === 'owner' && (
+                        <span className={`ml-1.5 text-[10px] font-normal opacity-70`}>(vlasnik)</span>
+                      )}
+                    </button>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="text-[10px] text-muted-foreground">{t('staffHours.acceptBookings')}</span>
+                      <button
+                        type="button"
+                        title={t('staffHours.acceptBookings')}
+                        onClick={() => handleToggleAcceptBookings(sm.id, sm.accept_bookings)}
+                        className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 ${
+                          sm.accept_bookings ? 'bg-primary' : 'bg-muted'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
+                            sm.accept_bookings ? 'translate-x-4' : 'translate-x-0.5'
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>

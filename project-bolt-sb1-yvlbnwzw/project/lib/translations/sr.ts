@@ -2263,6 +2263,8 @@ export default {
   'setup.rules.minNotice.desc': 'Koliko unaprijed klijent mora rezervisati termin.',
   'setup.rules.maxAdvance.desc': 'Koliko dana unaprijed klijenti mogu rezervisati termin.',
   // Staff self-schedule pages
+  'staffHours.acceptBookings': 'Primam rezervacije',
+  'staffHours.acceptBookingsHint': 'Kada je isključeno, klijenti te ne mogu odabrati pri rezervaciji',
   'staffHours.title': 'Moje Smjene',
   'staffHours.subtitle': 'Postavi svoje radno vrijeme',
   'staffHours.save': 'Sačuvaj raspored',

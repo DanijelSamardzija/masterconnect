@@ -2263,6 +2263,8 @@ export default {
   'setup.rules.minNotice.desc': 'How far in advance a client must book an appointment.',
   'setup.rules.maxAdvance.desc': 'How many days in advance clients can book an appointment.',
   // Staff self-schedule pages
+  'staffHours.acceptBookings': 'Accept bookings',
+  'staffHours.acceptBookingsHint': 'When off, clients cannot select you when booking',
   'staffHours.title': 'My Shifts',
   'staffHours.subtitle': 'Set your working hours',
   'staffHours.save': 'Save schedule',

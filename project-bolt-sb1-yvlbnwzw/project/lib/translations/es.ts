@@ -2186,6 +2186,8 @@ export default {
   'setup.rules.minNotice.desc': 'Con cuánta antelación debe reservar el cliente.',
   'setup.rules.maxAdvance.desc': 'Con cuántos días de antelación pueden reservar los clientes.',
   // Staff self-schedule pages
+  'staffHours.acceptBookings': 'Aceptar reservas',
+  'staffHours.acceptBookingsHint': 'Cuando está desactivado, los clientes no pueden seleccionarte al reservar',
   'staffHours.title': 'Mis Turnos',
   'staffHours.subtitle': 'Establece tu horario de trabajo',
   'staffHours.save': 'Guardar horario',

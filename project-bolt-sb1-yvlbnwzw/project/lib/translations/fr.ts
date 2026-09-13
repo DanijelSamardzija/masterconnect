@@ -2193,6 +2193,8 @@ export default {
   'setup.rules.minNotice.desc': "Combien de temps à l'avance le client doit réserver un rendez-vous.",
   'setup.rules.maxAdvance.desc': "Combien de jours à l'avance les clients peuvent réserver un rendez-vous.",
   // Staff self-schedule pages
+  'staffHours.acceptBookings': 'Accepter les réservations',
+  'staffHours.acceptBookingsHint': 'Désactivé = les clients ne peuvent pas vous sélectionner lors de la réservation',
   'staffHours.title': 'Mes Horaires',
   'staffHours.subtitle': 'Définir vos heures de travail',
   'staffHours.save': 'Enregistrer le planning',

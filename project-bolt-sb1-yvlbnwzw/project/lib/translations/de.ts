@@ -2253,6 +2253,8 @@ export default {
   'setup.rules.minNotice.desc': 'Wie weit im Voraus ein Kunde einen Termin buchen muss.',
   'setup.rules.maxAdvance.desc': 'Wie viele Tage im Voraus Kunden einen Termin buchen können.',
   // Staff self-schedule pages
+  'staffHours.acceptBookings': 'Buchungen annehmen',
+  'staffHours.acceptBookingsHint': 'Wenn deaktiviert, können Kunden dich bei der Buchung nicht auswählen',
   'staffHours.title': 'Meine Schichten',
   'staffHours.subtitle': 'Deine Arbeitszeiten festlegen',
   'staffHours.save': 'Zeitplan speichern',
