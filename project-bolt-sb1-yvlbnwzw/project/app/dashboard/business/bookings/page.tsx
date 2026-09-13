@@ -93,6 +93,7 @@ function OwnerBookingsContent() {
   const [rescheduleBookingId, setRescheduleBookingId] = useState<string | null>(null);
   const [rescheduleDate, setRescheduleDate]           = useState('');
   const [rescheduleTime, setRescheduleTime]           = useState('');
+  const [rescheduleWeek, setRescheduleWeek]           = useState<Date>(weekMonday(new Date()));
   const [rescheduleLoading, setRescheduleLoading]     = useState(false);
 
   // Client history modal
@@ -274,8 +275,13 @@ function OwnerBookingsContent() {
   const openReschedule = (b: Booking) => {
     setRescheduleBookingId(b.id);
     const d = new Date(b.starts_at);
-    setRescheduleDate(d.toISOString().slice(0, 10));
-    setRescheduleTime(d.toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit', hour12: false }));
+    const dateKey = d.toISOString().slice(0, 10);
+    setRescheduleDate(dateKey);
+    setRescheduleWeek(weekMonday(d));
+    const h = String(d.getHours()).padStart(2, '0');
+    const rawM = d.getMinutes();
+    const m = String(Math.round(rawM / 5) * 5 % 60).padStart(2, '0');
+    setRescheduleTime(`${h}:${m}`);
     setRescheduleOpen(true);
   };
 
@@ -794,15 +800,68 @@ function OwnerBookingsContent() {
           <div className="space-y-4 pt-1">
             <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground">{t('ownerBookings.rescheduleModal.dateLabel')}</label>
-              <input type="date" value={rescheduleDate} onChange={e => setRescheduleDate(e.target.value)}
-                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
-              />
+              <div className="flex items-center justify-between mb-1">
+                <button onClick={() => setRescheduleWeek(w => addDays(w, -7))}
+                  className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <span className="text-xs font-semibold text-foreground">
+                  {rescheduleWeek.toLocaleDateString(locale, { day: 'numeric', month: 'long' })}
+                  {' – '}
+                  {addDays(rescheduleWeek, 6).toLocaleDateString(locale, { day: 'numeric', month: 'long' })}
+                </span>
+                <button onClick={() => setRescheduleWeek(w => addDays(w, 7))}
+                  className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="grid grid-cols-7 gap-1">
+                {Array.from({ length: 7 }, (_, i) => addDays(rescheduleWeek, i)).map(day => {
+                  const key = toDateKey(day);
+                  const isSelected = rescheduleDate === key;
+                  const isToday = toDateKey(new Date()) === key;
+                  const isPast = day < new Date(new Date().toDateString());
+                  return (
+                    <button key={key} onClick={() => !isPast && setRescheduleDate(key)}
+                      disabled={isPast}
+                      className={`flex flex-col items-center py-1.5 rounded-lg text-[10px] font-semibold transition-colors ${
+                        isSelected
+                          ? 'bg-orange-500 text-white'
+                          : isPast
+                          ? 'bg-muted/30 text-muted-foreground/40 cursor-default'
+                          : 'bg-muted text-foreground hover:bg-orange-100 dark:hover:bg-orange-950'
+                      }`}
+                    >
+                      <span>{day.toLocaleDateString(locale, { weekday: 'short' }).replace(/\.$/, '')}</span>
+                      <span className={`text-xs font-bold ${isToday && !isSelected ? 'text-orange-500' : ''}`}>{day.getDate()}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground">{t('ownerBookings.rescheduleModal.timeLabel')}</label>
-              <input type="time" value={rescheduleTime} onChange={e => setRescheduleTime(e.target.value)}
-                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
-              />
+              <div className="flex items-center gap-2">
+                <select
+                  value={(rescheduleTime || '09:00').split(':')[0]}
+                  onChange={e => setRescheduleTime(`${e.target.value}:${(rescheduleTime || '09:00').split(':')[1]}`)}
+                  className="flex-1 border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+                >
+                  {Array.from({ length: 18 }, (_, i) => String(i + 6).padStart(2, '0')).map(h => (
+                    <option key={h} value={h}>{h}</option>
+                  ))}
+                </select>
+                <span className="text-muted-foreground font-bold text-lg">:</span>
+                <select
+                  value={(rescheduleTime || '09:00').split(':')[1]}
+                  onChange={e => setRescheduleTime(`${(rescheduleTime || '09:00').split(':')[0]}:${e.target.value}`)}
+                  className="flex-1 border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+                >
+                  {['00','05','10','15','20','25','30','35','40','45','50','55'].map(m => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+              </div>
             </div>
             <button onClick={handleReschedule} disabled={rescheduleLoading || !rescheduleDate || !rescheduleTime}
               className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-40 text-white rounded-xl py-2.5 text-sm font-semibold transition-colors"

@@ -9,7 +9,7 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { useBookingAccess } from '@/lib/hooks/use-booking-access';
 import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
-import { Calendar, Clock, X, ChevronRight, Star, CalendarClock } from 'lucide-react';
+import { Calendar, Clock, X, ChevronRight, ChevronLeft, Star, CalendarClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -52,6 +52,18 @@ function StatusBadge({ status, t }: { status: string; t: (k: string) => string }
   );
 }
 
+function weekMonday(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getDay() || 7;
+  d.setDate(d.getDate() - (day - 1));
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+function addDays(d: Date, n: number): Date {
+  const r = new Date(d); r.setDate(r.getDate() + n); return r;
+}
+function toDateKey(d: Date): string { return d.toISOString().slice(0, 10); }
+
 function formatDt(isoStr: string): string {
   return new Intl.DateTimeFormat(undefined, {
     year: 'numeric', month: 'short', day: 'numeric',
@@ -78,6 +90,7 @@ export default function MyBookingsPage() {
   const [rescheduleTarget, setRescheduleTarget] = useState<Booking | null>(null);
   const [rescheduleDate, setRescheduleDate] = useState('');
   const [rescheduleTime, setRescheduleTime] = useState('');
+  const [rescheduleWeek, setRescheduleWeek] = useState<Date>(weekMonday(new Date()));
   const [rescheduling, setRescheduling] = useState(false);
 
   useEffect(() => {
@@ -172,7 +185,10 @@ export default function MyBookingsPage() {
   const openReschedule = (b: Booking) => {
     const d = new Date(b.starts_at);
     setRescheduleDate(d.toISOString().slice(0, 10));
-    setRescheduleTime(d.toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit', hour12: false }));
+    setRescheduleWeek(weekMonday(d));
+    const h = String(d.getHours()).padStart(2, '0');
+    const m = String(Math.round(d.getMinutes() / 5) * 5 % 60).padStart(2, '0');
+    setRescheduleTime(`${h}:${m}`);
     setRescheduleTarget(b);
   };
 
@@ -289,15 +305,68 @@ export default function MyBookingsPage() {
             <div className="space-y-4 pt-1">
               <div className="space-y-2">
                 <label className="text-xs font-medium text-muted-foreground">{t('booking.rescheduleModal.dateLabel')}</label>
-                <input type="date" value={rescheduleDate} onChange={e => setRescheduleDate(e.target.value)}
-                  className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+                <div className="flex items-center justify-between mb-1">
+                  <button onClick={() => setRescheduleWeek(w => addDays(w, -7))}
+                    className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
+                    <ChevronRight className="h-4 w-4 rotate-180" />
+                  </button>
+                  <span className="text-xs font-semibold text-foreground">
+                    {rescheduleWeek.toLocaleDateString(undefined, { day: 'numeric', month: 'long' })}
+                    {' – '}
+                    {addDays(rescheduleWeek, 6).toLocaleDateString(undefined, { day: 'numeric', month: 'long' })}
+                  </span>
+                  <button onClick={() => setRescheduleWeek(w => addDays(w, 7))}
+                    className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-7 gap-1">
+                  {Array.from({ length: 7 }, (_, i) => addDays(rescheduleWeek, i)).map(day => {
+                    const key = toDateKey(day);
+                    const isSelected = rescheduleDate === key;
+                    const isToday = toDateKey(new Date()) === key;
+                    const isPast = day < new Date(new Date().toDateString());
+                    return (
+                      <button key={key} onClick={() => !isPast && setRescheduleDate(key)}
+                        disabled={isPast}
+                        className={`flex flex-col items-center py-1.5 rounded-lg text-[10px] font-semibold transition-colors ${
+                          isSelected
+                            ? 'bg-primary text-white'
+                            : isPast
+                            ? 'bg-muted/30 text-muted-foreground/40 cursor-default'
+                            : 'bg-muted text-foreground hover:bg-primary/10'
+                        }`}
+                      >
+                        <span>{day.toLocaleDateString(undefined, { weekday: 'short' }).replace(/\.$/, '')}</span>
+                        <span className={`text-xs font-bold ${isToday && !isSelected ? 'text-primary' : ''}`}>{day.getDate()}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-medium text-muted-foreground">{t('booking.rescheduleModal.timeLabel')}</label>
-                <input type="time" value={rescheduleTime} onChange={e => setRescheduleTime(e.target.value)}
-                  className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+                <div className="flex items-center gap-2">
+                  <select
+                    value={(rescheduleTime || '09:00').split(':')[0]}
+                    onChange={e => setRescheduleTime(`${e.target.value}:${(rescheduleTime || '09:00').split(':')[1]}`)}
+                    className="flex-1 border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    {Array.from({ length: 18 }, (_, i) => String(i + 6).padStart(2, '0')).map(h => (
+                      <option key={h} value={h}>{h}</option>
+                    ))}
+                  </select>
+                  <span className="text-muted-foreground font-bold text-lg">:</span>
+                  <select
+                    value={(rescheduleTime || '09:00').split(':')[1]}
+                    onChange={e => setRescheduleTime(`${(rescheduleTime || '09:00').split(':')[0]}:${e.target.value}`)}
+                    className="flex-1 border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    {['00','05','10','15','20','25','30','35','40','45','50','55'].map(m => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <div className="flex gap-2">
                 <button onClick={() => setRescheduleTarget(null)}
