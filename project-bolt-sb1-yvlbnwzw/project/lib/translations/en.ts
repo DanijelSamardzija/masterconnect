@@ -2373,6 +2373,7 @@ export default {
   'ownerBookings.confirm': 'Confirm',
   'ownerBookings.cancel': 'Cancel',
   'ownerBookings.reassign': 'Change staff',
+  'ownerBookings.reassignPlaceholder': 'Select a staff member...',
   'ownerBookings.confirmed': 'Booking confirmed',
   'ownerBookings.cancelled': 'Booking cancelled',
   'ownerBookings.reassigned': 'Staff changed',

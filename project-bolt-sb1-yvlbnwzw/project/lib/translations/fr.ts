@@ -2295,6 +2295,7 @@ export default {
   'ownerBookings.confirm': 'Confirmer',
   'ownerBookings.cancel': 'Annuler',
   'ownerBookings.reassign': 'Changer de personnel',
+  'ownerBookings.reassignPlaceholder': 'Sélectionner un membre du personnel...',
   'ownerBookings.confirmed': 'Réservation confirmée',
   'ownerBookings.cancelled': 'Réservation annulée',
   'ownerBookings.reassigned': 'Personnel modifié',

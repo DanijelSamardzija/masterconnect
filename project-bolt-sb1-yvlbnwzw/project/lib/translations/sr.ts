@@ -2373,6 +2373,7 @@ export default {
   'ownerBookings.confirm': 'Potvrdi',
   'ownerBookings.cancel': 'Otkaži',
   'ownerBookings.reassign': 'Promijeni radnika',
+  'ownerBookings.reassignPlaceholder': 'Izaberi radnika...',
   'ownerBookings.confirmed': 'Termin potvrđen',
   'ownerBookings.cancelled': 'Termin otkazan',
   'ownerBookings.reassigned': 'Radnik promijenjen',
