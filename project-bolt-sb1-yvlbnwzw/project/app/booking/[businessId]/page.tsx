@@ -123,7 +123,7 @@ export default function BusinessBookingProfilePage() {
           {t('booking.discovery.title')}
         </button>
 
-        <div className="border border-border rounded-2xl overflow-hidden mb-6">
+        <div className="border border-border rounded-2xl overflow-hidden">
           {/* Avatar + name */}
           <div className="flex items-center gap-3 px-4 py-3">
             <Avatar className="h-12 w-12 shrink-0">
@@ -148,8 +148,59 @@ export default function BusinessBookingProfilePage() {
             </div>
           </div>
 
-          {/* Location + phone — separated by divider */}
-          {(primaryLocation && (primaryLocation.address || primaryLocation.city || primaryLocation.phone)) || (!primaryLocation && business.city) ? (
+          {/* Services list */}
+          {services.length === 0 ? (
+            <div className="border-t border-border px-4 py-6 text-center">
+              <p className="text-muted-foreground text-sm">{t('booking.noServices')}</p>
+            </div>
+          ) : (
+            <div className="border-t border-border divide-y divide-border">
+              {services.map((svc) => {
+                const typeKey = BOOKING_TYPE_LABELS[svc.booking_type];
+                return (
+                  <Link
+                    key={svc.id}
+                    href={`/booking/${businessId}/${svc.id}`}
+                    className="flex items-start justify-between gap-3 px-4 py-4 hover:bg-accent/30 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h2 className="font-medium text-sm truncate">{svc.name}</h2>
+                        {typeKey && (
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground shrink-0">
+                            {t(typeKey as Parameters<typeof t>[0])}
+                          </span>
+                        )}
+                      </div>
+                      {svc.description && (
+                        <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                          {svc.description}
+                        </p>
+                      )}
+                      <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {t('booking.duration').replace('{min}', String(svc.duration_minutes))}
+                        </span>
+                        {svc.capacity > 1 && (
+                          <span className="flex items-center gap-1">
+                            <Users className="w-3 h-3" />
+                            {t('booking.guests')}: {svc.capacity}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-sm font-medium shrink-0 text-foreground">
+                      {formatPrice(svc)}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Location + phone */}
+          {((primaryLocation && (primaryLocation.address || primaryLocation.city || primaryLocation.phone)) || (!primaryLocation && business.city)) && (
             <div className="border-t border-border px-4 py-2.5 flex flex-col gap-1.5">
               {primaryLocation && (primaryLocation.address || primaryLocation.city) && (
                 <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -170,58 +221,8 @@ export default function BusinessBookingProfilePage() {
                 </span>
               )}
             </div>
-          ) : null}
+          )}
         </div>
-
-        {services.length === 0 ? (
-          <p className="text-muted-foreground text-center py-12">{t('booking.noServices')}</p>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {services.map((svc) => {
-              const typeKey = BOOKING_TYPE_LABELS[svc.booking_type];
-              return (
-                <Link
-                  key={svc.id}
-                  href={`/booking/${businessId}/${svc.id}`}
-                  className="block border border-border rounded-xl p-5 hover:border-primary hover:bg-accent/30 transition-all"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h2 className="font-medium text-base truncate">{svc.name}</h2>
-                        {typeKey && (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground shrink-0">
-                            {t(typeKey as Parameters<typeof t>[0])}
-                          </span>
-                        )}
-                      </div>
-                      {svc.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                          {svc.description}
-                        </p>
-                      )}
-                      <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5" />
-                          {t('booking.duration').replace('{min}', String(svc.duration_minutes))}
-                        </span>
-                        {svc.capacity > 1 && (
-                          <span className="flex items-center gap-1">
-                            <Users className="w-3.5 h-3.5" />
-                            {t('booking.guests')}: {svc.capacity}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 text-sm font-medium shrink-0 text-foreground">
-                      {formatPrice(svc)}
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
       </div>
     </div>
   );
