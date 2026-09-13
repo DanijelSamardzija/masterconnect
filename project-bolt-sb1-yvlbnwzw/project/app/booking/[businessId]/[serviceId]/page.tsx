@@ -131,7 +131,7 @@ export default function BookingSlotPickerPage() {
   const [selectedLocationId, setSelectedLocationId] = useState<string>('');
   const [selectedTimezone, setSelectedTimezone] = useState<string>('UTC');
 
-  const [weekDate, setWeekDate] = useState<Date>(() => startOfDay(new Date()));
+  const [weekDate, setWeekDate] = useState<Date>(() => getMonday(startOfDay(new Date())));
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [loadingMeta, setLoadingMeta] = useState(true);
@@ -329,7 +329,7 @@ export default function BookingSlotPickerPage() {
     );
   }
 
-  const todayStr = weekStart(startOfDay(new Date()));
+  const todayStr = weekStart(getMonday(startOfDay(new Date())));
 
   return (
     <div className="min-h-screen bg-background">
