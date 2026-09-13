@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useBookingAccess } from '@/lib/hooks/use-booking-access';
+import { saveGuestIntent } from '@/lib/guest-intent';
 import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
 import {
@@ -252,7 +253,7 @@ export default function BookingSlotPickerPage() {
 
   async function handleBook() {
     if (!selectedSlot || !user) return;
-    if (!hasAccess) { router.push(`/login?redirect=${encodeURIComponent(`/booking/${businessId}/${serviceId}`)}`); return; }
+    if (!hasAccess) { saveGuestIntent({ action: 'book', returnTo: `/booking/${businessId}/${serviceId}` }); router.push(`/login?redirect=${encodeURIComponent(`/booking/${businessId}/${serviceId}`)}`); return; }
     setBooking(true);
     const { data } = await (supabase as any).rpc('create_booking', {
       p_business_id: businessId,
@@ -471,7 +472,7 @@ export default function BookingSlotPickerPage() {
                         <button
                           key={s.slot_start}
                           onClick={() => {
-                            if (!user) { router.push(`/login?redirect=${encodeURIComponent(`/booking/${businessId}/${serviceId}`)}`); return; }
+                            if (!user) { saveGuestIntent({ action: 'book', returnTo: `/booking/${businessId}/${serviceId}` }); router.push(`/login?redirect=${encodeURIComponent(`/booking/${businessId}/${serviceId}`)}`); return; }
                             if (!hasAccess) return;
                             setSelectedSlot(s);
                             setPhone('');

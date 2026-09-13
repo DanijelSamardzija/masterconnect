@@ -7,7 +7,8 @@ export type GuestAction =
   | 'post'
   | 'phone'
   | 'save'
-  | 'contact';
+  | 'contact'
+  | 'book';
 
 export interface GuestIntent {
   action: GuestAction;
