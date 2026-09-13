@@ -21,11 +21,14 @@ type Booking = {
   status: string;
   staff_member_id: string | null;
   notes: string | null;
+  client_id: string | null;
   client_name: string | null;
   client_phone: string | null;
   guest_name: string | null;
   guest_phone: string | null;
 };
+
+type HistoryBooking = { id: string; starts_at: string; service_name_snapshot: string; status: string };
 
 type StaffMember = { id: string; name: string };
 type Service     = { id: string; name: string; duration_minutes: number };
@@ -84,6 +87,20 @@ function OwnerBookingsContent() {
   const [deleteBookingId, setDeleteBookingId] = useState<string | null>(null);
   const [cancelBookingId, setCancelBookingId] = useState<string | null>(null);
   const [cancelReason, setCancelReason]       = useState('');
+
+  // Reschedule modal
+  const [rescheduleOpen, setRescheduleOpen]           = useState(false);
+  const [rescheduleBookingId, setRescheduleBookingId] = useState<string | null>(null);
+  const [rescheduleDate, setRescheduleDate]           = useState('');
+  const [rescheduleTime, setRescheduleTime]           = useState('');
+  const [rescheduleLoading, setRescheduleLoading]     = useState(false);
+
+  // Client history modal
+  const [historyOpen, setHistoryOpen]           = useState(false);
+  const [historyClientId, setHistoryClientId]   = useState<string | null>(null);
+  const [historyClientName, setHistoryClientName] = useState('');
+  const [historyBookings, setHistoryBookings]   = useState<HistoryBooking[]>([]);
+  const [historyLoading, setHistoryLoading]     = useState(false);
 
   // Manual booking modal
   const [addOpen, setAddOpen]             = useState(false);
@@ -157,7 +174,7 @@ function OwnerBookingsContent() {
     setLoading(true);
     let query = (supabase as any)
       .from('bookings')
-      .select('id, starts_at, ends_at, service_name_snapshot, status, staff_member_id, notes, guest_name, guest_phone, profiles!bookings_client_id_fkey(name, phone)')
+      .select('id, starts_at, ends_at, service_name_snapshot, status, staff_member_id, notes, client_id, guest_name, guest_phone, profiles!bookings_client_id_fkey(name, phone)')
       .eq('business_id', profile.id);
     if (filter === 'upcoming')
       query = query.gte('starts_at', new Date().toISOString()).in('status', ['pending', 'confirmed']);
@@ -167,6 +184,7 @@ function OwnerBookingsContent() {
     const { data } = await query.order('starts_at', { ascending: filter !== 'all' }).limit(50);
     setBookings((data || []).map((b: any) => ({
       ...b,
+      client_id:    b.client_id    ?? null,
       client_name:  b.profiles?.name  ?? null,
       client_phone: b.profiles?.phone ?? null,
     })));
@@ -246,6 +264,53 @@ function OwnerBookingsContent() {
     setBookings(prev => prev.map(b => b.id === reassignBookingId ? { ...b, staff_member_id: reassignStaffId } : b));
     setReassignOpen(false);
     setReassignBookingId(null);
+  };
+
+  const openReschedule = (b: Booking) => {
+    setRescheduleBookingId(b.id);
+    const d = new Date(b.starts_at);
+    setRescheduleDate(d.toISOString().slice(0, 10));
+    setRescheduleTime(d.toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit', hour12: false }));
+    setRescheduleOpen(true);
+  };
+
+  const handleReschedule = async () => {
+    if (!rescheduleBookingId || !rescheduleDate || !rescheduleTime) return;
+    setRescheduleLoading(true);
+    const isoStr = new Date(`${rescheduleDate}T${rescheduleTime}`).toISOString();
+    const { data, error } = await (supabase as any).rpc('owner_reschedule_booking', {
+      p_booking_id:    rescheduleBookingId,
+      p_new_starts_at: isoStr,
+    });
+    setRescheduleLoading(false);
+    if (error || data?.ok === false) {
+      const key = data?.error === 'conflict'
+        ? 'ownerBookings.rescheduleError.conflict'
+        : 'ownerBookings.rescheduleError.tooSoon';
+      toast.error(t(key as Parameters<typeof t>[0]));
+      return;
+    }
+    toast.success(t('ownerBookings.rescheduled'));
+    setRescheduleOpen(false);
+    setRescheduleBookingId(null);
+    fetchBookings();
+  };
+
+  const openHistory = async (clientId: string, clientName: string) => {
+    setHistoryClientId(clientId);
+    setHistoryClientName(clientName);
+    setHistoryLoading(true);
+    setHistoryOpen(true);
+    setHistoryBookings([]);
+    const { data } = await (supabase as any)
+      .from('bookings')
+      .select('id, starts_at, service_name_snapshot, status')
+      .eq('business_id', profile?.id)
+      .eq('client_id', clientId)
+      .order('starts_at', { ascending: false })
+      .limit(20);
+    setHistoryBookings(data || []);
+    setHistoryLoading(false);
   };
 
   const openReassign = (b: Booking) => {
@@ -419,7 +484,16 @@ function OwnerBookingsContent() {
                   {client && (
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Users className="h-3 w-3 shrink-0" />
-                      <span>{client}</span>
+                      {b.client_id ? (
+                        <button
+                          onClick={() => openHistory(b.client_id!, client!)}
+                          className="font-medium text-foreground hover:text-primary underline-offset-2 hover:underline transition-colors"
+                        >
+                          {client}
+                        </button>
+                      ) : (
+                        <span>{client}</span>
+                      )}
                       {(b.client_phone || b.guest_phone) && (
                         <span className="text-muted-foreground">· {b.client_phone || b.guest_phone}</span>
                       )}
@@ -443,6 +517,14 @@ function OwnerBookingsContent() {
                         <Users className="h-3.5 w-3.5" />
                         {t('ownerBookings.reassign')}
                       </button>
+                      {!isPast && (
+                        <button onClick={() => openReschedule(b)} disabled={!!actionLoading}
+                          className="flex items-center justify-center gap-1.5 bg-muted hover:bg-muted/80 disabled:opacity-50 text-foreground rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
+                        >
+                          <Clock className="h-3.5 w-3.5" />
+                          {t('ownerBookings.reschedule')}
+                        </button>
+                      )}
                       {!isPast && (
                         <button onClick={() => openCancelModal(b.id)} disabled={!!actionLoading}
                           className="flex items-center justify-center gap-1.5 bg-red-100 hover:bg-red-200 dark:bg-red-950 dark:hover:bg-red-900 disabled:opacity-50 text-red-600 dark:text-red-400 rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
@@ -686,6 +768,75 @@ function OwnerBookingsContent() {
             >
               {actionLoading?.endsWith('-reassign') ? '...' : t('ownerBookings.confirmed')}
             </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Reschedule modal ──────────────────────────────────────────── */}
+      <Dialog open={rescheduleOpen} onOpenChange={o => { if (!o) { setRescheduleOpen(false); setRescheduleBookingId(null); } }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-orange-500" />
+              {t('ownerBookings.rescheduleModal.title')}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-1">
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-muted-foreground">{t('ownerBookings.rescheduleModal.dateLabel')}</label>
+              <input type="date" value={rescheduleDate} onChange={e => setRescheduleDate(e.target.value)}
+                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-muted-foreground">{t('ownerBookings.rescheduleModal.timeLabel')}</label>
+              <input type="time" value={rescheduleTime} onChange={e => setRescheduleTime(e.target.value)}
+                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+              />
+            </div>
+            <button onClick={handleReschedule} disabled={rescheduleLoading || !rescheduleDate || !rescheduleTime}
+              className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-40 text-white rounded-xl py-2.5 text-sm font-semibold transition-colors"
+            >
+              {rescheduleLoading ? '...' : t('ownerBookings.rescheduleModal.confirm')}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Client history modal ──────────────────────────────────────── */}
+      <Dialog open={historyOpen} onOpenChange={o => { if (!o) setHistoryOpen(false); }}>
+        <DialogContent className="max-w-sm max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              {t('ownerBookings.clientHistory')} — {historyClientName}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="pt-2 space-y-2">
+            {historyLoading ? (
+              <div className="flex justify-center py-6">
+                <div className="h-5 w-5 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
+              </div>
+            ) : historyBookings.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">{t('ownerBookings.clientHistoryEmpty')}</p>
+            ) : (
+              historyBookings.map(b => {
+                const sc = statusConfig[b.status] ?? { label: b.status, cls: 'bg-muted text-muted-foreground', icon: null };
+                return (
+                  <div key={b.id} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/40">
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-foreground truncate">{b.service_name_snapshot}</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {new Date(b.starts_at).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </p>
+                    </div>
+                    <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full shrink-0 ${sc.cls}`}>
+                      {sc.icon} {sc.label}
+                    </span>
+                  </div>
+                );
+              })
+            )}
           </div>
         </DialogContent>
       </Dialog>

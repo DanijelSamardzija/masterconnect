@@ -6,6 +6,8 @@ import { ProtectedRoute } from '@/components/protected-route';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   Calendar, Clock, ChevronRight, Users, Plus, Ban, Settings, CalendarOff,
   CheckCircle2, AlertCircle, XCircle
@@ -53,6 +55,8 @@ export default function StaffBookingsPage() {
   const [allBookings, setAllBookings] = useState<StaffBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [permissions, setPermissions] = useState<Permissions>(DEFAULT_PERMS);
+  const [cancelId, setCancelId] = useState<string | null>(null);
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -113,6 +117,20 @@ export default function StaffBookingsPage() {
     completed: { cls: 'bg-muted text-muted-foreground',                                        icon: <CheckCircle2 className="h-3 w-3" /> },
     no_show:   { cls: 'bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-400',            icon: <AlertCircle className="h-3 w-3" /> },
     cancelled: { cls: 'bg-muted text-muted-foreground',                                        icon: <XCircle className="h-3 w-3" /> },
+  };
+
+  const handleStaffCancel = async () => {
+    if (!cancelId) return;
+    setCancelling(true);
+    const { data, error } = await (supabase as any).rpc('staff_cancel_booking', { p_booking_id: cancelId });
+    setCancelling(false);
+    if (error || data?.ok === false) {
+      toast.error(data?.error || 'Greška');
+      return;
+    }
+    toast.success(t('staffDashboard.cancelSuccess'));
+    setAllBookings(prev => prev.map(b => b.booking_id === cancelId ? { ...b, status: 'cancelled' } : b));
+    setCancelId(null);
   };
 
   const hasAnyAction = permissions.can_create_bookings || permissions.can_block_time || permissions.can_set_hours;
@@ -254,6 +272,7 @@ export default function StaffBookingsPage() {
                         {permissions.can_cancel_bookings && b.status === 'confirmed' && (
                           <button
                             title={t('staffDashboard.cancelBooking')}
+                            onClick={() => setCancelId(b.booking_id)}
                             className="text-muted-foreground hover:text-destructive transition-colors"
                           >
                             <Ban className="w-3.5 h-3.5" />
@@ -289,6 +308,36 @@ export default function StaffBookingsPage() {
             </div>
           )}
         </div>
+
+        {/* Cancel confirm dialog */}
+        <Dialog open={!!cancelId} onOpenChange={o => { if (!o) setCancelId(null); }}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-destructive">
+                <XCircle className="h-4 w-4" />
+                {t('staffDashboard.cancelConfirmTitle')}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-1">
+              <p className="text-sm text-muted-foreground">{t('staffDashboard.cancelConfirmBody')}</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setCancelId(null)}
+                  className="flex-1 border border-border rounded-xl py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors"
+                >
+                  {t('ownerBookings.cancelModal.back')}
+                </button>
+                <button
+                  onClick={handleStaffCancel}
+                  disabled={cancelling}
+                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl py-2.5 text-sm font-semibold transition-colors"
+                >
+                  {cancelling ? '...' : t('ownerBookings.cancelModal.confirm')}
+                </button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </ProtectedRoute>
   );

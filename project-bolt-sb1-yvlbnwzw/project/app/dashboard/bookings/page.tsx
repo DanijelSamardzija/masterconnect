@@ -9,7 +9,7 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { useBookingAccess } from '@/lib/hooks/use-booking-access';
 import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
-import { Calendar, Clock, X, ChevronRight, Star } from 'lucide-react';
+import { Calendar, Clock, X, ChevronRight, Star, CalendarClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -21,6 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ReviewModal } from '@/components/review-modal';
 
 type Booking = {
@@ -74,6 +75,10 @@ export default function MyBookingsPage() {
   const [cancelReason, setCancelReason] = useState('');
   const [cancelling, setCancelling] = useState(false);
   const [reviewTarget, setReviewTarget] = useState<{ bookingId: string; proId: string; proName: string } | null>(null);
+  const [rescheduleTarget, setRescheduleTarget] = useState<Booking | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState('');
+  const [rescheduleTime, setRescheduleTime] = useState('');
+  const [rescheduling, setRescheduling] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -122,8 +127,44 @@ export default function MyBookingsPage() {
     setUpcoming((prev) => prev.filter((b) => b.id !== cancelTarget));
   }
 
+  async function handleReschedule() {
+    if (!rescheduleTarget || !rescheduleDate || !rescheduleTime) return;
+    setRescheduling(true);
+    const isoStr = new Date(`${rescheduleDate}T${rescheduleTime}`).toISOString();
+    const { data } = await (supabase as any).rpc('client_reschedule_booking', {
+      p_booking_id:    rescheduleTarget.id,
+      p_new_starts_at: isoStr,
+    });
+    setRescheduling(false);
+    const result = data as { ok: boolean; error?: string } | null;
+    if (!result?.ok) {
+      const key = result?.error === 'conflict'
+        ? 'booking.rescheduleError.conflict'
+        : 'booking.rescheduleError.tooSoon';
+      toast.error(t(key as Parameters<typeof t>[0]));
+      return;
+    }
+    toast.success(t('booking.rescheduled'));
+    setRescheduleTarget(null);
+    setUpcoming(prev => prev.map(b =>
+      b.id === rescheduleTarget.id
+        ? { ...b, starts_at: isoStr }
+        : b
+    ));
+  }
+
   const canCancel = (b: Booking) =>
     ['pending', 'confirmed'].includes(b.status) && new Date(b.starts_at) > new Date();
+
+  const canReschedule = (b: Booking) =>
+    ['pending', 'confirmed'].includes(b.status) && new Date(b.starts_at) > new Date();
+
+  const openReschedule = (b: Booking) => {
+    const d = new Date(b.starts_at);
+    setRescheduleDate(d.toISOString().slice(0, 10));
+    setRescheduleTime(d.toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit', hour12: false }));
+    setRescheduleTarget(b);
+  };
 
   if (!authLoading && !hasAccess) {
     return (
@@ -181,6 +222,7 @@ export default function MyBookingsPage() {
                         booking={b}
                         t={t}
                         onCancel={canCancel(b) ? () => { setCancelTarget(b.id); setCancelReason(''); } : undefined}
+                        onReschedule={canReschedule(b) ? () => openReschedule(b) : undefined}
                       />
                     ))}
                   </div>
@@ -225,6 +267,44 @@ export default function MyBookingsPage() {
           />
         )}
 
+        {/* Reschedule dialog */}
+        <Dialog open={!!rescheduleTarget} onOpenChange={o => { if (!o) setRescheduleTarget(null); }}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <CalendarClock className="h-4 w-4 text-primary" />
+                {t('booking.rescheduleModal.title')}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-1">
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">{t('booking.rescheduleModal.dateLabel')}</label>
+                <input type="date" value={rescheduleDate} onChange={e => setRescheduleDate(e.target.value)}
+                  className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">{t('booking.rescheduleModal.timeLabel')}</label>
+                <input type="time" value={rescheduleTime} onChange={e => setRescheduleTime(e.target.value)}
+                  className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => setRescheduleTarget(null)}
+                  className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors"
+                >
+                  {t('block.cancel')}
+                </button>
+                <button onClick={handleReschedule} disabled={rescheduling || !rescheduleDate || !rescheduleTime}
+                  className="flex-1 bg-primary hover:bg-primary/90 disabled:opacity-50 text-white rounded-lg py-2.5 text-sm font-semibold transition-colors"
+                >
+                  {rescheduling ? '...' : t('booking.rescheduleModal.confirm')}
+                </button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Cancel dialog */}
         <AlertDialog open={!!cancelTarget} onOpenChange={(open) => !open && setCancelTarget(null)}>
           <AlertDialogContent>
@@ -263,11 +343,13 @@ function BookingCard({
   t,
   onCancel,
   onReview,
+  onReschedule,
 }: {
   booking: Booking;
   t: (k: string) => string;
   onCancel?: () => void;
   onReview?: () => void;
+  onReschedule?: () => void;
 }) {
   return (
     <div className="border border-border rounded-xl p-4 flex flex-col gap-2">
@@ -289,8 +371,19 @@ function BookingCard({
       {b.location && (
         <p className="text-xs text-muted-foreground">{(b.location as any).name}</p>
       )}
-      {(onCancel || onReview) && (
-        <div className="flex gap-2 mt-1">
+      {(onCancel || onReview || onReschedule) && (
+        <div className="flex flex-wrap gap-2 mt-1">
+          {onReschedule && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 px-2"
+              onClick={onReschedule}
+            >
+              <CalendarClock className="w-3.5 h-3.5 mr-1" />
+              {t('booking.reschedule')}
+            </Button>
+          )}
           {onCancel && (
             <Button
               variant="ghost"
