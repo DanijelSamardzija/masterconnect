@@ -536,35 +536,32 @@ function DashboardContent() {
           <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
         </button>
 
-        {/* Staff cards — shown when user is a worker/manager in someone else's business */}
+        {/* Staff card — shown when user is a worker/manager in someone else's business */}
         {staffBusinessName && (
-          <div className="space-y-2">
-            <button
-              onClick={() => router.push('/dashboard/staff/bookings')}
-              className="w-full bg-card border border-border rounded-2xl p-4 flex items-center gap-3 hover:border-orange-400/50 hover:bg-accent transition-colors text-left"
-            >
-              <div className="p-2.5 bg-orange-100 dark:bg-orange-950 rounded-xl shrink-0">
-                <Calendar className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+          <div className="bg-card border border-border rounded-2xl p-4 flex items-center gap-3">
+            <div className="p-2.5 bg-orange-100 dark:bg-orange-950 rounded-xl shrink-0">
+              <Calendar className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">{staffBusinessName}</p>
+              <p className="text-xs text-muted-foreground mb-2">{t('dashboard.staff.memberDesc')}</p>
+              <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide">
+                <button
+                  onClick={() => router.push('/dashboard/staff/bookings')}
+                  className="flex items-center gap-1 text-xs font-semibold text-orange-500 hover:text-orange-400 transition-colors whitespace-nowrap shrink-0"
+                >
+                  <Calendar className="h-3 w-3" />
+                  Rezervacije
+                </button>
+                <button
+                  onClick={() => router.push('/dashboard/staff/schedule')}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0"
+                >
+                  <Clock className="h-3 w-3" />
+                  {t('schedule.staffView.title')}
+                </button>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-foreground">{staffBusinessName}</p>
-                <p className="text-xs text-muted-foreground">{t('dashboard.staff.memberDesc')}</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-            </button>
-            <button
-              onClick={() => router.push('/dashboard/staff/schedule')}
-              className="w-full bg-card border border-border rounded-2xl p-4 flex items-center gap-3 hover:border-orange-400/50 hover:bg-accent transition-colors text-left"
-            >
-              <div className="p-2.5 bg-blue-100 dark:bg-blue-950 rounded-xl shrink-0">
-                <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-foreground">{t('schedule.staffView.title')}</p>
-                <p className="text-xs text-muted-foreground">{t('schedule.staffView.subtitle')}</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-            </button>
+            </div>
           </div>
         )}
 
