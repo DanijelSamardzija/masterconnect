@@ -2424,7 +2424,7 @@ export default {
   'schedule.dayOff': 'Slobodan dan',
   'schedule.defaultSchedule': 'Redovni raspored',
   'schedule.defaultShort': 'Redovni',
-  'schedule.defaultNote': '* "Redovni" znači da nema posebnih izmjena za tu sedmicu — radnik radi prema svom uobičajenom rasporedu. Slobodni dani iz redovnog rasporeda neće imati termine na booking stranici.',
+  'schedule.override': 'izmjena',
   'schedule.save': 'Sačuvaj',
   'schedule.deleteOverride': 'Vrati na redovni',
   'schedule.noStaff': 'Nema aktivnih radnika',

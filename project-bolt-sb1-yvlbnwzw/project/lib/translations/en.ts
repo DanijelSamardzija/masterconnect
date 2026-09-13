@@ -2424,7 +2424,7 @@ export default {
   'schedule.dayOff': 'Day off',
   'schedule.defaultSchedule': 'Regular schedule',
   'schedule.defaultShort': 'Regular',
-  'schedule.defaultNote': '* "Regular" means no special changes for this week — the staff member works according to their usual schedule. Days off in the regular schedule will show no slots on the booking page.',
+  'schedule.override': 'override',
   'schedule.save': 'Save',
   'schedule.deleteOverride': 'Revert to default',
   'schedule.noStaff': 'No active staff',

@@ -2406,7 +2406,7 @@ export default {
   'schedule.dayOff': 'Freier Tag',
   'schedule.defaultSchedule': 'Standardplan',
   'schedule.defaultShort': 'Standard',
-  'schedule.defaultNote': '* „Standard" bedeutet keine besonderen Änderungen für diese Woche — der Mitarbeiter arbeitet nach seinem üblichen Plan. Freie Tage im Standardplan zeigen keine Termine auf der Buchungsseite.',
+  'schedule.override': 'Änderung',
   'schedule.save': 'Speichern',
   'schedule.deleteOverride': 'Zurücksetzen',
   'schedule.noStaff': 'Keine aktiven Mitarbeiter',

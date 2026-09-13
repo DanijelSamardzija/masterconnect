@@ -11,6 +11,7 @@ import { ChevronLeft, ChevronRight, Copy, X, Info } from 'lucide-react';
 
 type ShiftRow = {
   shift_date: string;
+  is_override: boolean;
   start_time: string | null;
   end_time: string | null;
   is_off: boolean;
@@ -336,43 +337,50 @@ function OwnerScheduleContent() {
                       let cellContent: React.ReactNode;
                       let cellCls = '';
 
-                      if (!shift) {
-                        cellContent = (
-                          <span className="text-[10px] font-medium text-muted-foreground/60 bg-muted/40 px-1.5 py-0.5 rounded border border-dashed border-border">
-                            {t('schedule.defaultShort')}
-                          </span>
-                        );
-                        cellCls = today ? 'bg-primary/3' : '';
-                      } else if (shift.is_off) {
-                        cellContent = (
-                          <span className="text-[10px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                            {t('schedule.dayOff')}
-                          </span>
-                        );
-                        cellCls = 'bg-muted/20';
-                      } else {
+                      if (!shift || shift.is_off) {
+                        const isOverride = shift?.is_override ?? false;
                         cellContent = (
                           <div className="flex flex-col items-center gap-0.5">
-                            <span className="text-[10px] font-semibold text-green-700 dark:text-green-400">
+                            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
+                              isOverride
+                                ? 'text-muted-foreground bg-muted'
+                                : 'text-muted-foreground/60 bg-muted/40 border border-dashed border-border'
+                            }`}>
+                              {t('schedule.dayOff')}
+                            </span>
+                            {!isOverride && (
+                              <span className="text-[8px] text-muted-foreground/50">{t('schedule.defaultShort')}</span>
+                            )}
+                          </div>
+                        );
+                        cellCls = isOverride ? 'bg-muted/20' : (today ? 'bg-primary/3' : '');
+                      } else {
+                        const isOverride = shift.is_override;
+                        cellContent = (
+                          <div className="flex flex-col items-center gap-0.5">
+                            <span className={`text-[10px] font-semibold ${isOverride ? 'text-green-700 dark:text-green-400' : 'text-green-600/70 dark:text-green-500/70'}`}>
                               {shift.start_time?.slice(0, 5)}
                             </span>
                             <span className="text-[9px] text-muted-foreground">–</span>
-                            <span className="text-[10px] font-semibold text-green-700 dark:text-green-400">
+                            <span className={`text-[10px] font-semibold ${isOverride ? 'text-green-700 dark:text-green-400' : 'text-green-600/70 dark:text-green-500/70'}`}>
                               {shift.end_time?.slice(0, 5)}
                             </span>
+                            {!isOverride && (
+                              <span className="text-[8px] text-muted-foreground/50">{t('schedule.defaultShort')}</span>
+                            )}
                             {shift.break_start && shift.break_end && (
                               <span className="text-[8px] text-orange-500 font-medium leading-tight mt-0.5">
                                 ☕ {shift.break_start.slice(0, 5)}–{shift.break_end.slice(0, 5)}
                               </span>
                             )}
                             {shift.notes && (
-                              <span className="text-[8px] text-muted-foreground leading-tight truncate max-w-[52px]" title={shift.notes}>
-                                📝
-                              </span>
+                              <span className="text-[8px] text-muted-foreground leading-tight" title={shift.notes}>📝</span>
                             )}
                           </div>
                         );
-                        cellCls = 'bg-green-50 dark:bg-green-950/20';
+                        cellCls = isOverride
+                          ? 'bg-green-50 dark:bg-green-950/20'
+                          : 'bg-green-50/40 dark:bg-green-950/10';
                       }
 
                       return (
@@ -394,28 +402,26 @@ function OwnerScheduleContent() {
 
         {/* Legend */}
         {!loading && staffRows.length > 0 && (
-          <div className="flex items-center gap-4 mt-3 px-1">
+          <div className="flex flex-wrap items-center gap-4 mt-3 px-1">
             <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
               <span className="w-3 h-3 rounded-sm bg-green-100 dark:bg-green-950/40 border border-green-300 dark:border-green-800 inline-block" />
-              {t('schedule.working')}
+              {t('schedule.working')} ({t('schedule.override')})
+            </div>
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <span className="w-3 h-3 rounded-sm bg-green-50/60 dark:bg-green-950/10 border border-green-200 dark:border-green-900 inline-block" />
+              {t('schedule.working')} ({t('schedule.defaultShort')})
             </div>
             <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
               <span className="w-3 h-3 rounded-sm bg-muted border border-border inline-block" />
-              {t('schedule.dayOff')}
+              {t('schedule.dayOff')} ({t('schedule.override')})
             </div>
             <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <span className="w-3 h-3 rounded-sm bg-background border border-dashed border-border inline-block" />
-              {t('schedule.defaultSchedule')}
+              <span className="w-3 h-3 rounded-sm bg-muted/30 border border-dashed border-border inline-block" />
+              {t('schedule.dayOff')} ({t('schedule.defaultShort')})
             </div>
           </div>
         )}
 
-        {/* Default schedule note */}
-        {!loading && staffRows.length > 0 && (
-          <p className="text-[11px] text-muted-foreground/70 mt-1.5 px-1">
-            {t('schedule.defaultNote')}
-          </p>
-        )}
 
         {/* Absence shortcut */}
         {!loading && (
