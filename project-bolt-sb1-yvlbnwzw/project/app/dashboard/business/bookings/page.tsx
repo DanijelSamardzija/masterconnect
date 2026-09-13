@@ -231,6 +231,11 @@ function OwnerBookingsContent() {
     setActionLoading(null);
     if (error || data?.ok === false) { toast.error(data?.error || 'Greška'); return; }
     toast.success(t('ownerBookings.cancelled'));
+    fetch('/api/booking/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'cancellation', booking_id: cancelBookingId }),
+    }).catch(() => {});
     setBookings(prev => prev.filter(b => b.id !== cancelBookingId));
     setCancelOpen(false);
     setCancelBookingId(null);
@@ -291,6 +296,11 @@ function OwnerBookingsContent() {
       return;
     }
     toast.success(t('ownerBookings.rescheduled'));
+    fetch('/api/booking/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'reschedule', booking_id: rescheduleBookingId }),
+    }).catch(() => {});
     setRescheduleOpen(false);
     setRescheduleBookingId(null);
     fetchBookings();

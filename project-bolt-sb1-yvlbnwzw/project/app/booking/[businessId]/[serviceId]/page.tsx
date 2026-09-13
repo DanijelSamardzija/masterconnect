@@ -264,7 +264,7 @@ export default function BookingSlotPickerPage() {
       ...(selectedStaffId ? { p_staff_member_id: selectedStaffId } : {}),
     });
     setBooking(false);
-    const result = data as { ok: boolean; error?: string; status?: string } | null;
+    const result = data as { ok: boolean; error?: string; status?: string; booking_id?: string } | null;
     if (!result?.ok) {
       toast.error(t(bookingErrorKey(result?.error ?? '') as Parameters<typeof t>[0]));
       return;
@@ -276,6 +276,13 @@ export default function BookingSlotPickerPage() {
     setDialogOpen(false);
     const msg = result.status === 'confirmed' ? t('booking.successConfirmed') : t('booking.successPending');
     toast.success(msg);
+    if (result.booking_id) {
+      fetch('/api/booking/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'confirmation', booking_id: result.booking_id }),
+      }).catch(() => {});
+    }
   }
 
   if (loadingMeta) {

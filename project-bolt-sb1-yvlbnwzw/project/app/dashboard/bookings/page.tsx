@@ -122,6 +122,11 @@ export default function MyBookingsPage() {
       return;
     }
     toast.success(t('booking.cancelSuccess'));
+    fetch('/api/booking/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'cancellation', booking_id: cancelTarget }),
+    }).catch(() => {});
     setCancelTarget(null);
     setCancelReason('');
     setUpcoming((prev) => prev.filter((b) => b.id !== cancelTarget));
@@ -145,6 +150,11 @@ export default function MyBookingsPage() {
       return;
     }
     toast.success(t('booking.rescheduled'));
+    fetch('/api/booking/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'reschedule', booking_id: rescheduleTarget.id }),
+    }).catch(() => {});
     setRescheduleTarget(null);
     setUpcoming(prev => prev.map(b =>
       b.id === rescheduleTarget.id
