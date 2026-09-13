@@ -1989,6 +1989,7 @@ export default {
   'setup.bizCategory.restaurant.name': 'Restoran i kafić',
   'setup.bizCategory.restaurant.desc': 'Klijent rezerviše sto za određeni broj osoba i datum',
   'setup.bizCategory.restaurant.examples': 'Restoran, kafić, pizzeria, roštilj, taverna, bistro...',
+  'setup.bizCategory.restaurant.note': 'Ako uz to dostavljate hranu, otvorite i poseban oglas u kategoriji "Narudžbe i dostava".',
   'setup.bizCategory.food_order.name': 'Narudžbe i dostava',
   'setup.bizCategory.food_order.desc': 'Klijent bira iz menija, dodaje u košaricu i naručuje',
   'setup.bizCategory.food_order.examples': 'Hamburgerija, brza hrana, pizza dostava, torte po narudžbi, ketering, sushi...',

@@ -1989,6 +1989,7 @@ export default {
   'setup.bizCategory.restaurant.name': 'Restaurant & café',
   'setup.bizCategory.restaurant.desc': 'Client reserves a table for a set number of guests and date',
   'setup.bizCategory.restaurant.examples': 'Restaurant, café, pizzeria, grill, bistro, tavern...',
+  'setup.bizCategory.restaurant.note': 'If you also deliver food, open a separate listing under "Orders & delivery".',
   'setup.bizCategory.food_order.name': 'Orders & delivery',
   'setup.bizCategory.food_order.desc': 'Client browses the menu, adds to cart and orders',
   'setup.bizCategory.food_order.examples': 'Burger joint, fast food, pizza delivery, custom cakes, catering, sushi...',

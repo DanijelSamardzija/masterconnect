@@ -1919,6 +1919,7 @@ export default {
   'setup.bizCategory.restaurant.name': 'Restaurant & café',
   'setup.bizCategory.restaurant.desc': 'Le client réserve une table pour un nombre de personnes et une date',
   'setup.bizCategory.restaurant.examples': 'Restaurant, café, pizzeria, grill, bistro, taverne...',
+  'setup.bizCategory.restaurant.note': 'Si vous livrez aussi de la nourriture, ouvrez une fiche séparée dans "Commandes & livraison".',
   'setup.bizCategory.food_order.name': 'Commandes & livraison',
   'setup.bizCategory.food_order.desc': 'Le client parcourt le menu, ajoute au panier et commande',
   'setup.bizCategory.food_order.examples': 'Burger, restauration rapide, livraison de pizzas, gâteaux sur commande, traiteur, sushi...',

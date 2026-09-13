@@ -1318,6 +1318,12 @@ export default function BusinessSetupPage() {
                                   <span className="text-xs text-muted-foreground/70 mt-1">
                                     {t(`setup.bizCategory.${key}.examples` as Parameters<typeof t>[0])}
                                   </span>
+                                  {key === 'restaurant' && (
+                                    <span className="text-xs text-amber-600 dark:text-amber-400 mt-1.5 flex items-start gap-1">
+                                      <span className="shrink-0">💡</span>
+                                      {t('setup.bizCategory.restaurant.note')}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                               <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full mt-0.5 ${

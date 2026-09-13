@@ -1979,6 +1979,7 @@ export default {
   'setup.bizCategory.restaurant.name': 'Restaurant & Café',
   'setup.bizCategory.restaurant.desc': 'Kunde reserviert einen Tisch für eine bestimmte Gästezahl und ein Datum',
   'setup.bizCategory.restaurant.examples': 'Restaurant, Café, Pizzeria, Grill, Bistro, Taverne...',
+  'setup.bizCategory.restaurant.note': 'Wenn Sie auch Essen liefern, eröffnen Sie ein separates Angebot unter "Bestellungen & Lieferung".',
   'setup.bizCategory.food_order.name': 'Bestellungen & Lieferung',
   'setup.bizCategory.food_order.desc': 'Kunde durchsucht die Speisekarte, legt in den Warenkorb und bestellt',
   'setup.bizCategory.food_order.examples': 'Burgerrestaurant, Fast Food, Pizzalieferung, Tortenbestellung, Catering, Sushi...',

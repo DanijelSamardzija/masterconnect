@@ -1912,6 +1912,7 @@ export default {
   'setup.bizCategory.restaurant.name': 'Restaurante y cafetería',
   'setup.bizCategory.restaurant.desc': 'El cliente reserva una mesa para un número de personas y fecha',
   'setup.bizCategory.restaurant.examples': 'Restaurante, cafetería, pizzería, parrilla, bistró, taberna...',
+  'setup.bizCategory.restaurant.note': 'Si también haces entregas a domicilio, abre un listado separado en "Pedidos y entrega".',
   'setup.bizCategory.food_order.name': 'Pedidos y entrega',
   'setup.bizCategory.food_order.desc': 'El cliente navega el menú, agrega al carrito y hace el pedido',
   'setup.bizCategory.food_order.examples': 'Hamburguesería, comida rápida, pizzería a domicilio, tartas por encargo, catering, sushi...',
