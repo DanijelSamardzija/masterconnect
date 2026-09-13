@@ -210,12 +210,19 @@ export default function BookingSlotPickerPage() {
     }
   }, [businessId, serviceId, selectedLocationId, selectedStaffId, weekDate]);
 
+  // Load staff only when location changes (not when week/staff changes)
+  useEffect(() => {
+    if (!loadingMeta && selectedLocationId) {
+      loadStaff(selectedLocationId);
+    }
+  }, [loadingMeta, selectedLocationId, loadStaff]);
+
+  // Load slots when week or selected staff changes
   useEffect(() => {
     if (!loadingMeta && selectedLocationId) {
       loadSlots();
-      loadStaff(selectedLocationId);
     }
-  }, [loadingMeta, selectedLocationId, weekDate, loadSlots, loadStaff]);
+  }, [loadingMeta, selectedLocationId, weekDate, loadSlots]);
 
   useEffect(() => {
     if (!selectedStaffId) { setBreaks({}); return; }
