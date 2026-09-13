@@ -2299,6 +2299,7 @@ export default {
   'ownerBookings.confirmed': 'Réservation confirmée',
   'ownerBookings.cancelled': 'Réservation annulée',
   'ownerBookings.reassigned': 'Personnel modifié',
+  'ownerBookings.errorStaffConflict': 'Ce membre du personnel a déjà un rendez-vous à cette heure',
   'ownerBookings.status.pending': 'En attente',
   'ownerBookings.status.confirmed': 'Confirmé',
   'ownerBookings.status.completed': 'Terminé',

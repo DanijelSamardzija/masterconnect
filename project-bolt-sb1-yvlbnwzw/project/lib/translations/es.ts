@@ -2292,6 +2292,7 @@ export default {
   'ownerBookings.confirmed': 'Reserva confirmada',
   'ownerBookings.cancelled': 'Reserva cancelada',
   'ownerBookings.reassigned': 'Empleado cambiado',
+  'ownerBookings.errorStaffConflict': 'El empleado ya tiene una cita en ese horario',
   'ownerBookings.status.pending': 'Pendiente',
   'ownerBookings.status.confirmed': 'Confirmada',
   'ownerBookings.status.completed': 'Completada',

@@ -2377,6 +2377,7 @@ export default {
   'ownerBookings.confirmed': 'Termin potvrđen',
   'ownerBookings.cancelled': 'Termin otkazan',
   'ownerBookings.reassigned': 'Radnik promijenjen',
+  'ownerBookings.errorStaffConflict': 'Radnik već ima termin u to vrijeme',
   'ownerBookings.status.pending': 'Na čekanju',
   'ownerBookings.status.confirmed': 'Potvrđen',
   'ownerBookings.status.completed': 'Završen',

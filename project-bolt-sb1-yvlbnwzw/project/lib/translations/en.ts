@@ -2377,6 +2377,7 @@ export default {
   'ownerBookings.confirmed': 'Booking confirmed',
   'ownerBookings.cancelled': 'Booking cancelled',
   'ownerBookings.reassigned': 'Staff changed',
+  'ownerBookings.errorStaffConflict': 'Staff member already has a booking at this time',
   'ownerBookings.status.pending': 'Pending',
   'ownerBookings.status.confirmed': 'Confirmed',
   'ownerBookings.status.completed': 'Completed',

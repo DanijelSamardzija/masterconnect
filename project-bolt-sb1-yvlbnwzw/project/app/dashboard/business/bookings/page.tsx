@@ -265,7 +265,11 @@ function OwnerBookingsContent() {
       p_staff_member_id: reassignStaffId,
     });
     setActionLoading(null);
-    if (error || data?.ok === false) { toast.error(data?.error || 'Greška'); return; }
+    if (error || data?.ok === false) {
+      if (data?.error === 'staff_conflict') toast.error(t('ownerBookings.errorStaffConflict'));
+      else toast.error(data?.error || 'Greška');
+      return;
+    }
     toast.success(t('ownerBookings.reassigned'));
     setBookings(prev => prev.map(b => b.id === reassignBookingId ? { ...b, staff_member_id: reassignStaffId } : b));
     setReassignOpen(false);

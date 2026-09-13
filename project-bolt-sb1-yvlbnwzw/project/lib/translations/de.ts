@@ -2359,6 +2359,7 @@ export default {
   'ownerBookings.confirmed': 'Buchung bestätigt',
   'ownerBookings.cancelled': 'Buchung storniert',
   'ownerBookings.reassigned': 'Mitarbeiter geändert',
+  'ownerBookings.errorStaffConflict': 'Mitarbeiter hat bereits einen Termin zu dieser Zeit',
   'ownerBookings.status.pending': 'Ausstehend',
   'ownerBookings.status.confirmed': 'Bestätigt',
   'ownerBookings.status.completed': 'Abgeschlossen',
