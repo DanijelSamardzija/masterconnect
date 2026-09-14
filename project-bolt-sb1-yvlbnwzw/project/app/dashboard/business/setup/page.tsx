@@ -10,11 +10,18 @@ import { useBookingAccess } from '@/lib/hooks/use-booking-access';
 import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
 import { ChevronRight, Plus, Pencil, X, CheckCircle2, MapPin, ExternalLink, AlertTriangle, Check, Loader2, Info } from 'lucide-react';
+import { RestaurantTablesTab } from '@/components/setup/RestaurantTablesTab';
+import { MenuTab } from '@/components/setup/MenuTab';
+import { DeliverySettingsTab } from '@/components/setup/DeliverySettingsTab';
+import { TradeServicesTab } from '@/components/setup/TradeServicesTab';
+import { AccommodationUnitsTab } from '@/components/setup/AccommodationUnitsTab';
+import { AccommodationSettingsTab } from '@/components/setup/AccommodationSettingsTab';
 import { Button } from '@/components/ui/button';
 import { CityAutocomplete } from '@/components/city-autocomplete';
 import { countries } from '@/lib/countries';
 
-type Tab = 'profile' | 'services' | 'hours' | 'locations' | 'rules' | 'staff';
+type Tab = 'profile' | 'services' | 'hours' | 'locations' | 'rules' | 'staff'
+         | 'tables' | 'menu' | 'delivery' | 'trade_services' | 'acc_units' | 'acc_rules';
 
 type ServiceRow = {
   id: string;
@@ -254,7 +261,8 @@ export default function BusinessSetupPage() {
   const searchParams = useSearchParams();
   const { hasAccess, loading: authLoading } = useBookingAccess();
 
-  const VALID_TABS: Tab[] = ['profile', 'services', 'hours', 'locations', 'rules', 'staff'];
+  const VALID_TABS: Tab[] = ['profile', 'services', 'hours', 'locations', 'rules', 'staff',
+    'tables', 'menu', 'delivery', 'trade_services', 'acc_units', 'acc_rules'];
   const tabFromUrl = searchParams.get('tab') as Tab | null;
   const initialTab: Tab = tabFromUrl && VALID_TABS.includes(tabFromUrl) ? tabFromUrl : 'profile';
   const [activeTab, setActiveTab] = useState<Tab>(initialTab);
@@ -1212,15 +1220,52 @@ export default function BusinessSetupPage() {
     });
   }
 
-  // ── Tabs ───────────────────────────────────────────────────────────────────
-  const TABS: { key: Tab; label: string }[] = [
-    { key: 'profile',   label: t('setup.tab.profile') },
-    { key: 'services',  label: t('setup.tab.services') },
-    { key: 'hours',     label: t('setup.tab.hours') },
-    { key: 'locations', label: t('setup.tab.locations') },
-    { key: 'staff',     label: t('setup.tab.staff') },
-    { key: 'rules',     label: t('setup.tab.rules') },
-  ];
+  // ── Tabs — varies by bizCategory ───────────────────────────────────────────
+  const TABS: { key: Tab; label: string }[] = (() => {
+    const base: { key: Tab; label: string }[] = [
+      { key: 'profile', label: t('setup.tab.profile') },
+    ];
+    if (bizCategory === 'restaurant') {
+      base.push(
+        { key: 'tables',    label: t('restaurant.setup.tab') },
+        { key: 'hours',     label: t('setup.tab.hours') },
+        { key: 'locations', label: t('setup.tab.locations') },
+        { key: 'staff',     label: t('setup.tab.staff') },
+        { key: 'rules',     label: t('setup.tab.rules') },
+      );
+    } else if (bizCategory === 'food_order') {
+      base.push(
+        { key: 'menu',      label: t('menu.setup.tab') },
+        { key: 'delivery',  label: t('delivery.setup.tab') },
+        { key: 'hours',     label: t('setup.tab.hours') },
+        { key: 'staff',     label: t('setup.tab.staff') },
+      );
+    } else if (bizCategory === 'tradespeople') {
+      base.push(
+        { key: 'trade_services', label: t('trade.setup.tab') },
+        { key: 'hours',          label: t('setup.tab.hours') },
+        { key: 'locations',      label: t('setup.tab.locations') },
+        { key: 'staff',          label: t('setup.tab.staff') },
+        { key: 'rules',          label: t('setup.tab.rules') },
+      );
+    } else if (bizCategory === 'accommodation') {
+      base.push(
+        { key: 'acc_units', label: t('acc.setup.tab') },
+        { key: 'acc_rules', label: t('acc.settings.tab') },
+        { key: 'staff',     label: t('setup.tab.staff') },
+      );
+    } else {
+      // Default: appointment (frizeri, doktori...) or no category
+      base.push(
+        { key: 'services',  label: t('setup.tab.services') },
+        { key: 'hours',     label: t('setup.tab.hours') },
+        { key: 'locations', label: t('setup.tab.locations') },
+        { key: 'staff',     label: t('setup.tab.staff') },
+        { key: 'rules',     label: t('setup.tab.rules') },
+      );
+    }
+    return base;
+  })();
 
   // ── Render ─────────────────────────────────────────────────────────────────
   if (!authLoading && !hasAccess) {
@@ -2779,6 +2824,48 @@ export default function BusinessSetupPage() {
                   )}
                 </>
               )}
+            </div>
+          )}
+
+          {/* ── Tab: Restaurant Tables ────────────────────────────────────── */}
+          {activeTab === 'tables' && user && (
+            <div className="flex flex-col gap-5">
+              <RestaurantTablesTab businessId={user.id} />
+            </div>
+          )}
+
+          {/* ── Tab: Menu ─────────────────────────────────────────────────── */}
+          {activeTab === 'menu' && user && (
+            <div className="flex flex-col gap-5">
+              <MenuTab businessId={user.id} />
+            </div>
+          )}
+
+          {/* ── Tab: Delivery Settings ────────────────────────────────────── */}
+          {activeTab === 'delivery' && user && (
+            <div className="flex flex-col gap-5">
+              <DeliverySettingsTab businessId={user.id} />
+            </div>
+          )}
+
+          {/* ── Tab: Trade Services ───────────────────────────────────────── */}
+          {activeTab === 'trade_services' && user && (
+            <div className="flex flex-col gap-5">
+              <TradeServicesTab businessId={user.id} />
+            </div>
+          )}
+
+          {/* ── Tab: Accommodation Units ──────────────────────────────────── */}
+          {activeTab === 'acc_units' && user && (
+            <div className="flex flex-col gap-5">
+              <AccommodationUnitsTab businessId={user.id} />
+            </div>
+          )}
+
+          {/* ── Tab: Accommodation Rules ──────────────────────────────────── */}
+          {activeTab === 'acc_rules' && user && (
+            <div className="flex flex-col gap-5">
+              <AccommodationSettingsTab businessId={user.id} />
             </div>
           )}
 
