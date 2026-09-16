@@ -252,6 +252,7 @@ export default function MyBookingsPage() {
                         key={b.id}
                         booking={b}
                         t={t}
+                        locale={locale}
                         onCancel={canCancel(b) ? () => { setCancelTarget(b.id); setCancelReason(''); } : undefined}
                         onReschedule={canReschedule(b) ? () => openReschedule(b) : undefined}
                       />
@@ -272,6 +273,7 @@ export default function MyBookingsPage() {
                         key={b.id}
                         booking={b}
                         t={t}
+                        locale={locale}
                         onReview={b.status === 'completed' && b.business_id ? () => setReviewTarget({
                           bookingId: b.id,
                           proId: b.business_id!,
@@ -437,12 +439,14 @@ export default function MyBookingsPage() {
 function BookingCard({
   booking: b,
   t,
+  locale,
   onCancel,
   onReview,
   onReschedule,
 }: {
   booking: Booking;
   t: (k: string) => string;
+  locale: string;
   onCancel?: () => void;
   onReview?: () => void;
   onReschedule?: () => void;
