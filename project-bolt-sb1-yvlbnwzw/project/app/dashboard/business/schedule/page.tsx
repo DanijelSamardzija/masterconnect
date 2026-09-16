@@ -109,7 +109,7 @@ function OwnerScheduleContent() {
     const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), 1);
   });
   const [staffRows, setStaffRows] = useState<StaffRow[]>([]);
-  const [staffAccept, setStaffAccept] = useState<{id: string; name: string; accept: boolean}[]>([]);
+  const [staffAccept, setStaffAccept] = useState<{id: string; name: string; accept: boolean; role: string}[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
   const [copying, setCopying] = useState(false);
@@ -179,6 +179,7 @@ function OwnerScheduleContent() {
           id: s.id,
           name: s.profiles?.name || '—',
           accept: s.accept_bookings ?? true,
+          role: s.role ?? 'worker',
         })));
       }
 
@@ -559,206 +560,129 @@ function OwnerScheduleContent() {
           <div className="text-center py-16">
             <p className="text-muted-foreground text-sm">{t('schedule.noStaff')}</p>
           </div>
-        ) : viewMode === 'week' ? (
-          /* ── WEEK VIEW ── */
-          <div className="overflow-x-auto rounded-xl border border-border">
-            <table className="w-full min-w-[640px] border-collapse">
-              <thead>
-                <tr className="bg-muted/40">
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground w-32 border-b border-border">
-                    Radnik
-                  </th>
-                  {weekDays.map((day, i) => {
-                    const today = isToday(day);
-                    return (
-                      <th
-                        key={i}
-                        className={`px-2 py-3 text-center text-xs font-semibold border-b border-border border-l ${
-                          today ? 'text-primary bg-primary/5' : 'text-muted-foreground'
-                        }`}
-                      >
-                        <div>{t(DOW_KEYS[i])}</div>
-                        <div className={`text-[10px] mt-0.5 font-normal ${today ? 'text-primary' : 'text-muted-foreground/60'}`}>
-                          {day.getDate()}.{day.getMonth() + 1}.
-                        </div>
-                      </th>
-                    );
-                  })}
-                </tr>
-              </thead>
-              <tbody>
-                {staffRows.map((staff, si) => (
-                  <tr key={staff.staff_member_id} className={si > 0 ? 'border-t border-border' : ''}>
-                    <td className="px-4 py-3 text-sm font-medium text-foreground whitespace-nowrap">
-                      {staff.staff_name}
-                    </td>
-                    {weekDays.map((day, di) => {
-                      const dateStr = isoDate(day);
-                      const shift = getShift(staff.staff_member_id, dateStr);
-                      const today = isToday(day);
-
-                      let cellContent: React.ReactNode;
-                      let cellCls = '';
-
-                      if (!shift || shift.is_off) {
-                        const isOverride = shift?.is_override ?? false;
-                        cellContent = (
-                          <div className="flex flex-col items-center gap-0.5">
-                            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
-                              isOverride
-                                ? 'text-muted-foreground bg-muted'
-                                : 'text-muted-foreground/60 bg-muted/40 border border-dashed border-border'
-                            }`}>
-                              {t('schedule.dayOff')}
-                            </span>
-                            {!isOverride && (
-                              <span className="text-[8px] text-muted-foreground/50">{t('schedule.defaultShort')}</span>
-                            )}
-                          </div>
-                        );
-                        cellCls = isOverride ? 'bg-muted/20' : (today ? 'bg-primary/3' : '');
-                      } else {
-                        const isOverride = shift.is_override;
-                        cellContent = (
-                          <div className="flex flex-col items-center gap-0.5">
-                            <span className={`text-[10px] font-semibold ${isOverride ? 'text-green-700 dark:text-green-400' : 'text-green-600/70 dark:text-green-500/70'}`}>
-                              {shift.start_time?.slice(0, 5)}
-                            </span>
-                            <span className="text-[9px] text-muted-foreground">–</span>
-                            <span className={`text-[10px] font-semibold ${isOverride ? 'text-green-700 dark:text-green-400' : 'text-green-600/70 dark:text-green-500/70'}`}>
-                              {shift.end_time?.slice(0, 5)}
-                            </span>
-                            {!isOverride && (
-                              <span className="text-[8px] text-muted-foreground/50">{t('schedule.defaultShort')}</span>
-                            )}
-                            {shift.break_start && shift.break_end && (
-                              <span className="text-[8px] text-orange-500 font-medium leading-tight mt-0.5">
-                                ☕ {shift.break_start.slice(0, 5)}–{shift.break_end.slice(0, 5)}
-                              </span>
-                            )}
-                            {shift.notes && (
-                              <span className="text-[8px] text-muted-foreground leading-tight" title={shift.notes}>📝</span>
-                            )}
-                          </div>
-                        );
-                        cellCls = isOverride
-                          ? 'bg-green-50 dark:bg-green-950/20'
-                          : 'bg-green-50/40 dark:bg-green-950/10';
-                      }
-
-                      return (
-                        <td
-                          key={di}
-                          className={`px-2 py-3 text-center border-l border-border cursor-pointer hover:bg-accent/60 transition-colors ${cellCls}`}
-                          onClick={() => openEdit(staff.staff_member_id, staff.staff_name, dateStr)}
-                        >
-                          {cellContent}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
         ) : (
-          /* ── MONTH VIEW ── */
-          <div className="overflow-x-auto rounded-xl border border-border">
-            <table className="border-collapse" style={{ minWidth: `${80 + monthDays.length * 38}px` }}>
-              <thead>
-                <tr className="bg-muted/40">
-                  <th className="sticky left-0 z-10 bg-muted/40 text-left px-3 py-2.5 text-xs font-semibold text-muted-foreground border-b border-border min-w-[80px]">
-                    Radnik
-                  </th>
-                  {monthDays.map((day, i) => {
-                    const today = isToday(day);
-                    const dow = day.getDay();
-                    const isWeekend = dow === 0 || dow === 6;
-                    return (
-                      <th
-                        key={i}
-                        className={`px-0 py-2.5 text-center border-b border-border border-l w-[38px] min-w-[38px] ${
-                          today
-                            ? 'text-primary bg-primary/5'
-                            : isWeekend
-                              ? 'text-muted-foreground/50 bg-muted/20'
-                              : 'text-muted-foreground'
-                        }`}
-                      >
-                        <div className="text-[10px] font-semibold leading-tight">{day.getDate()}</div>
-                        <div className="text-[8px] font-normal leading-tight opacity-70">
-                          {['N', 'P', 'U', 'S', 'Č', 'P', 'S'][dow]}
-                        </div>
-                      </th>
-                    );
-                  })}
-                </tr>
-              </thead>
-              <tbody>
-                {staffRows.map((staff, si) => (
-                  <tr key={staff.staff_member_id} className={si > 0 ? 'border-t border-border' : ''}>
-                    <td className="sticky left-0 z-10 bg-background px-3 py-2 text-xs font-medium text-foreground whitespace-nowrap border-r border-border">
-                      {staff.staff_name}
-                    </td>
-                    {monthDays.map((day, di) => {
-                      const dateStr = isoDate(day);
-                      const shift = getShift(staff.staff_member_id, dateStr);
-                      const today = isToday(day);
-                      const dow = day.getDay();
-                      const isWeekend = dow === 0 || dow === 6;
+          /* ── PER-STAFF SCROLLABLE CARDS (week + month) ── */
+          <div className="space-y-3">
+            {[...staffRows]
+              .sort((a, b) => {
+                const order: Record<string, number> = { owner: 0, manager: 1, worker: 2 };
+                const ra = staffAccept.find(s => s.id === a.staff_member_id)?.role ?? 'worker';
+                const rb = staffAccept.find(s => s.id === b.staff_member_id)?.role ?? 'worker';
+                return (order[ra] ?? 2) - (order[rb] ?? 2);
+              })
+              .map((staff) => {
+                const days = viewMode === 'week' ? weekDays : monthDays;
+                const isOwnerStaff = staffAccept.find(s => s.id === staff.staff_member_id)?.role === 'owner';
+                return (
+                  <div key={staff.staff_member_id} className="rounded-xl border border-border overflow-hidden">
+                    {/* Staff name header */}
+                    <div className="px-3 py-2 bg-muted/30 border-b border-border flex items-center gap-1.5">
+                      <span className="text-sm font-semibold text-foreground">{staff.staff_name}</span>
+                      {isOwnerStaff && (
+                        <span className="text-[10px] text-muted-foreground font-normal">(vlasnik)</span>
+                      )}
+                    </div>
+                    {/* Scrollable date grid */}
+                    <div className="overflow-x-auto">
+                      <table className="border-collapse" style={{ minWidth: viewMode === 'week' ? '480px' : `${days.length * 38}px` }}>
+                        <thead>
+                          <tr className="bg-muted/20">
+                            {days.map((day, i) => {
+                              const today = isToday(day);
+                              const dow = day.getDay();
+                              const isWeekend = dow === 0 || dow === 6;
+                              if (viewMode === 'week') {
+                                return (
+                                  <th key={i} className={`px-2 py-2 text-center text-xs font-semibold border-b border-border ${i > 0 ? 'border-l' : ''} ${today ? 'text-primary bg-primary/5' : 'text-muted-foreground'}`}>
+                                    <div>{t(DOW_KEYS[i])}</div>
+                                    <div className={`text-[10px] font-normal ${today ? 'text-primary' : 'text-muted-foreground/60'}`}>{fmtDay(day)}</div>
+                                  </th>
+                                );
+                              } else {
+                                return (
+                                  <th key={i} className={`px-0 py-2 text-center border-b border-border border-l w-[38px] min-w-[38px] ${today ? 'text-primary bg-primary/5' : isWeekend ? 'text-muted-foreground/50 bg-muted/20' : 'text-muted-foreground'}`}>
+                                    <div className="text-[10px] font-semibold leading-tight">{day.getDate()}</div>
+                                    <div className="text-[8px] font-normal leading-tight opacity-70">{['N','P','U','S','Č','P','S'][dow]}</div>
+                                  </th>
+                                );
+                              }
+                            })}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            {days.map((day, di) => {
+                              const dateStr = isoDate(day);
+                              const shift = getShift(staff.staff_member_id, dateStr);
+                              const today = isToday(day);
+                              const dow = day.getDay();
+                              const isWeekend = dow === 0 || dow === 6;
+                              let cellContent: React.ReactNode;
+                              let cellCls = '';
 
-                      let cellContent: React.ReactNode;
-                      let cellCls = '';
-
-                      if (!shift) {
-                        cellContent = (
-                          <span className="text-[9px] text-muted-foreground/30">—</span>
-                        );
-                        cellCls = isWeekend ? 'bg-muted/10' : (today ? 'bg-primary/3' : '');
-                      } else if (shift.is_off) {
-                        cellContent = (
-                          <span className={`text-[9px] font-medium px-1 py-0.5 rounded ${
-                            shift.is_override ? 'bg-muted text-muted-foreground' : 'text-muted-foreground/40'
-                          }`}>✕</span>
-                        );
-                        cellCls = shift.is_override ? 'bg-muted/20' : (isWeekend ? 'bg-muted/10' : '');
-                      } else {
-                        const isOverride = shift.is_override;
-                        cellContent = (
-                          <div className="flex flex-col items-center leading-tight">
-                            <span className={`text-[9px] font-semibold ${
-                              isOverride ? 'text-green-700 dark:text-green-400' : 'text-green-600/60 dark:text-green-500/60'
-                            }`}>
-                              {shift.start_time?.slice(0, 5)}
-                            </span>
-                            {shift.break_start && (
-                              <span className="text-[7px] text-orange-400">☕</span>
-                            )}
-                            {shift.notes && (
-                              <span className="text-[7px] text-muted-foreground">📝</span>
-                            )}
-                          </div>
-                        );
-                        cellCls = isOverride
-                          ? 'bg-green-50 dark:bg-green-950/20'
-                          : 'bg-green-50/30 dark:bg-green-950/10';
-                      }
-
-                      return (
-                        <td
-                          key={di}
-                          className={`px-0 py-2 text-center border-l border-border cursor-pointer hover:bg-accent/60 transition-colors ${cellCls}`}
-                          style={{ width: '38px' }}
-                          onClick={() => openEdit(staff.staff_member_id, staff.staff_name, dateStr)}
-                        >
-                          {cellContent}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                              if (viewMode === 'week') {
+                                if (!shift || shift.is_off) {
+                                  const isOverride = shift?.is_override ?? false;
+                                  cellContent = (
+                                    <div className="flex flex-col items-center gap-0.5">
+                                      <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${isOverride ? 'text-muted-foreground bg-muted' : 'text-muted-foreground/60 bg-muted/40 border border-dashed border-border'}`}>
+                                        {t('schedule.dayOff')}
+                                      </span>
+                                      {!isOverride && <span className="text-[8px] text-muted-foreground/50">{t('schedule.defaultShort')}</span>}
+                                    </div>
+                                  );
+                                  cellCls = isOverride ? 'bg-muted/20' : (today ? 'bg-primary/3' : '');
+                                } else {
+                                  const isOverride = shift.is_override;
+                                  cellContent = (
+                                    <div className="flex flex-col items-center gap-0.5">
+                                      <span className={`text-[10px] font-semibold ${isOverride ? 'text-green-700 dark:text-green-400' : 'text-green-600/70 dark:text-green-500/70'}`}>{shift.start_time?.slice(0, 5)}</span>
+                                      <span className="text-[9px] text-muted-foreground">–</span>
+                                      <span className={`text-[10px] font-semibold ${isOverride ? 'text-green-700 dark:text-green-400' : 'text-green-600/70 dark:text-green-500/70'}`}>{shift.end_time?.slice(0, 5)}</span>
+                                      {!isOverride && <span className="text-[8px] text-muted-foreground/50">{t('schedule.defaultShort')}</span>}
+                                      {shift.break_start && shift.break_end && <span className="text-[8px] text-orange-500 font-medium leading-tight mt-0.5">☕ {shift.break_start.slice(0,5)}–{shift.break_end.slice(0,5)}</span>}
+                                      {shift.notes && <span className="text-[8px] text-muted-foreground leading-tight" title={shift.notes}>📝</span>}
+                                    </div>
+                                  );
+                                  cellCls = isOverride ? 'bg-green-50 dark:bg-green-950/20' : 'bg-green-50/40 dark:bg-green-950/10';
+                                }
+                                return (
+                                  <td key={di} className={`px-2 py-3 text-center ${di > 0 ? 'border-l' : ''} border-border cursor-pointer hover:bg-accent/60 transition-colors ${cellCls}`} onClick={() => openEdit(staff.staff_member_id, staff.staff_name, dateStr)}>
+                                    {cellContent}
+                                  </td>
+                                );
+                              } else {
+                                if (!shift) {
+                                  cellContent = <span className="text-[9px] text-muted-foreground/30">—</span>;
+                                  cellCls = isWeekend ? 'bg-muted/10' : (today ? 'bg-primary/3' : '');
+                                } else if (shift.is_off) {
+                                  cellContent = <span className={`text-[9px] font-medium px-1 py-0.5 rounded ${shift.is_override ? 'bg-muted text-muted-foreground' : 'text-muted-foreground/40'}`}>✕</span>;
+                                  cellCls = shift.is_override ? 'bg-muted/20' : (isWeekend ? 'bg-muted/10' : '');
+                                } else {
+                                  const isOverride = shift.is_override;
+                                  cellContent = (
+                                    <div className="flex flex-col items-center leading-tight">
+                                      <span className={`text-[9px] font-semibold ${isOverride ? 'text-green-700 dark:text-green-400' : 'text-green-600/60 dark:text-green-500/60'}`}>{shift.start_time?.slice(0,5)}</span>
+                                      {shift.break_start && <span className="text-[7px] text-orange-400">☕</span>}
+                                      {shift.notes && <span className="text-[7px] text-muted-foreground">📝</span>}
+                                    </div>
+                                  );
+                                  cellCls = isOverride ? 'bg-green-50 dark:bg-green-950/20' : 'bg-green-50/30 dark:bg-green-950/10';
+                                }
+                                return (
+                                  <td key={di} className={`px-0 py-2 text-center border-l border-border cursor-pointer hover:bg-accent/60 transition-colors ${cellCls}`} style={{ width: '38px' }} onClick={() => openEdit(staff.staff_member_id, staff.staff_name, dateStr)}>
+                                    {cellContent}
+                                  </td>
+                                );
+                              }
+                            })}
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                );
+              })}
           </div>
         )}
 
