@@ -130,6 +130,9 @@ function OwnerScheduleContent() {
   const [edit, setEdit] = useState<EditState | null>(null);
   const [saving, setSaving] = useState(false);
   const [absences, setAbsences] = useState<AbsenceRow[]>([]);
+  const [primaryLocId, setPrimaryLocId] = useState<string | null>(null);
+  // staffId → day_of_week(0=Sun..6=Sat) → { is_closed, start_time, end_time }
+  const [staffDefaultHours, setStaffDefaultHours] = useState<Record<string, Record<number, { is_closed: boolean; start_time: string; end_time: string }>>>({});
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
@@ -194,7 +197,10 @@ function OwnerScheduleContent() {
         .eq('is_primary', true)
         .eq('is_active', true)
         .maybeSingle();
-      if (locData?.id) loadAbsences(locData.id);
+      if (locData?.id) {
+        setPrimaryLocId(locData.id);
+        loadAbsences(locData.id);
+      }
 
       const { data: staff } = await (supabase as any)
         .from('staff_members')
@@ -203,12 +209,42 @@ function OwnerScheduleContent() {
         .eq('is_active', true)
         .in('role', ['worker', 'manager', 'owner']);
       if (Array.isArray(staff)) {
-        setStaffAccept(staff.map((s: any) => ({
+        const members = staff.map((s: any) => ({
           id: s.id,
           name: s.profiles?.name || '—',
           accept: s.accept_bookings ?? true,
           role: s.role ?? 'worker',
-        })));
+        }));
+        setStaffAccept(members);
+
+        if (locData?.id) {
+          type HourDBRow = { day_of_week: number; start_time: string; end_time: string; is_closed: boolean; sort_order: number };
+          const hoursResults = await Promise.all(
+            members.map(m =>
+              (supabase as any).rpc('get_staff_opening_hours', {
+                p_staff_member_id: m.id,
+                p_location_id: locData.id,
+              })
+            )
+          );
+          const newMap: Record<string, Record<number, { is_closed: boolean; start_time: string; end_time: string }>> = {};
+          for (let i = 0; i < members.length; i++) {
+            const rows = (hoursResults[i].data as HourDBRow[]) ?? [];
+            if (rows.length === 0) continue;
+            const dayMap: Record<number, { is_closed: boolean; start_time: string; end_time: string }> = {};
+            for (const row of rows) {
+              if (!dayMap[row.day_of_week]) {
+                dayMap[row.day_of_week] = {
+                  is_closed: row.is_closed,
+                  start_time: row.start_time?.slice(0, 5) ?? '09:00',
+                  end_time: row.end_time?.slice(0, 5) ?? '17:00',
+                };
+              }
+            }
+            newMap[members[i].id] = dayMap;
+          }
+          setStaffDefaultHours(newMap);
+        }
       }
 
       await loadShifts(weekStart);
@@ -777,17 +813,40 @@ function OwnerScheduleContent() {
                                     </td>
                                   );
                                 }
-                                if (!shift || shift.is_off) {
-                                  const isOverride = shift?.is_override ?? false;
-                                  cellContent = (
-                                    <div className="flex flex-col items-center gap-0.5">
-                                      <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${isOverride ? 'text-muted-foreground bg-muted' : 'text-muted-foreground bg-muted/40 border border-dashed border-border'}`}>
-                                        {t('schedule.dayOff')}
-                                      </span>
-                                      {!isOverride && <span className="text-[10px] text-muted-foreground/80">{t('schedule.defaultShort')}</span>}
-                                    </div>
-                                  );
-                                  cellCls = isOverride ? 'bg-muted/20' : (today ? 'bg-primary/3' : '');
+                                if (!shift || (shift && !shift.is_override && shift.is_off)) {
+                                  // No override — check standard hours from setup
+                                  const defaultDay = staffDefaultHours[sa.id]?.[dow];
+                                  if (defaultDay && !defaultDay.is_closed) {
+                                    cellContent = (
+                                      <div className="flex flex-col items-center gap-0.5">
+                                        <span className="text-xs font-semibold text-green-600 dark:text-green-500">{defaultDay.start_time}</span>
+                                        <span className="text-[10px] text-muted-foreground">–</span>
+                                        <span className="text-xs font-semibold text-green-600 dark:text-green-500">{defaultDay.end_time}</span>
+                                        <span className="text-[10px] text-muted-foreground/80">{t('schedule.defaultShort')}</span>
+                                      </div>
+                                    );
+                                    cellCls = today ? 'bg-green-50/40 dark:bg-green-950/10' : 'bg-green-50/20 dark:bg-green-950/5';
+                                  } else if (shift?.is_override) {
+                                    cellContent = (
+                                      <div className="flex flex-col items-center gap-0.5">
+                                        <span className="text-xs font-medium px-1.5 py-0.5 rounded text-muted-foreground bg-muted">
+                                          {t('schedule.dayOff')}
+                                        </span>
+                                      </div>
+                                    );
+                                    cellCls = 'bg-muted/20';
+                                  } else {
+                                    cellContent = (
+                                      <div className="flex flex-col items-center gap-0.5">
+                                        <span className="text-xs font-medium px-1.5 py-0.5 rounded text-muted-foreground bg-muted/40 border border-dashed border-border">
+                                          {t('schedule.dayOff')}
+                                        </span>
+                                        <span className="text-[10px] text-muted-foreground/80">{t('schedule.defaultShort')}</span>
+                                      </div>
+                                    );
+                                    cellCls = today ? 'bg-primary/3' : '';
+                                  }
+                                  cellCls = cellCls || '';
                                 } else {
                                   const isOverride = shift.is_override;
                                   cellContent = (
@@ -819,8 +878,18 @@ function OwnerScheduleContent() {
                                   );
                                 }
                                 if (!shift) {
-                                  cellContent = <span className="text-xs text-muted-foreground/60">—</span>;
-                                  cellCls = isWeekend ? 'bg-muted/10' : (today ? 'bg-primary/3' : '');
+                                  const defaultDay = staffDefaultHours[sa.id]?.[dow];
+                                  if (defaultDay && !defaultDay.is_closed) {
+                                    cellContent = (
+                                      <div className="flex flex-col items-center leading-tight">
+                                        <span className="text-[10px] font-semibold text-green-600 dark:text-green-500">{defaultDay.start_time.slice(0,5)}</span>
+                                      </div>
+                                    );
+                                    cellCls = 'bg-green-50/20 dark:bg-green-950/5';
+                                  } else {
+                                    cellContent = <span className="text-xs text-muted-foreground/60">—</span>;
+                                    cellCls = isWeekend ? 'bg-muted/10' : (today ? 'bg-primary/3' : '');
+                                  }
                                 } else if (shift.is_off) {
                                   cellContent = <span className={`text-xs font-medium px-1 py-0.5 rounded ${shift.is_override ? 'bg-muted text-muted-foreground' : 'text-muted-foreground/70'}`}>✕</span>;
                                   cellCls = shift.is_override ? 'bg-muted/20' : (isWeekend ? 'bg-muted/10' : '');
