@@ -39,6 +39,15 @@ type EditState = {
   breakEnd: string;
 };
 
+type AbsenceRow = {
+  id: string;
+  staff_member_id: string;
+  date_from: string;
+  date_to: string;
+  reason: string;
+  note: string | null;
+};
+
 // Booking system start — navigation cannot go before this month
 const BOOKING_START_YEAR = 2026;
 const BOOKING_START_MONTH = 8; // September (0-indexed)
@@ -120,8 +129,14 @@ function OwnerScheduleContent() {
   const [infoOpen, setInfoOpen] = useState(false);
   const [edit, setEdit] = useState<EditState | null>(null);
   const [saving, setSaving] = useState(false);
+  const [absences, setAbsences] = useState<AbsenceRow[]>([]);
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+
+  const loadAbsences = useCallback(async (locId: string) => {
+    const { data } = await (supabase as any).rpc('get_location_staff_absences', { p_location_id: locId });
+    setAbsences(Array.isArray(data) ? data : []);
+  }, []);
 
   const loadShifts = useCallback(async (ws: Date) => {
     setLoading(true);
@@ -171,6 +186,15 @@ function OwnerScheduleContent() {
         .maybeSingle();
       if (!sm) { setLoading(false); return; }
       setIsOwner(true);
+
+      const { data: locData } = await supabase
+        .from('business_locations')
+        .select('id')
+        .eq('business_id', sm.business_id)
+        .eq('is_primary', true)
+        .eq('is_active', true)
+        .maybeSingle();
+      if (locData?.id) loadAbsences(locData.id);
 
       const { data: staff } = await (supabase as any)
         .from('staff_members')
@@ -301,6 +325,10 @@ function OwnerScheduleContent() {
     setViewMode(mode);
     if (mode === 'week') loadShifts(weekStart);
     else loadMonthShifts(monthDate);
+  }
+
+  function getAbsence(staffId: string, date: string): AbsenceRow | null {
+    return absences.find(a => a.staff_member_id === staffId && a.date_from <= date && a.date_to >= date) ?? null;
   }
 
   function getShift(staffId: string, date: string): ShiftRow | null {
@@ -726,6 +754,7 @@ function OwnerScheduleContent() {
                             {days.map((day, di) => {
                               const dateStr = isoDate(day);
                               const shift = getShift(sa.id, dateStr);
+                              const absence = getAbsence(sa.id, dateStr);
                               const today = isToday(day);
                               const dow = day.getDay();
                               const isWeekend = dow === 0 || dow === 6;
@@ -733,6 +762,21 @@ function OwnerScheduleContent() {
                               let cellCls = '';
 
                               if (viewMode === 'week') {
+                                if (absence) {
+                                  const reasonLabel = t(`setup.closures.reason.${absence.reason}` as Parameters<typeof t>[0]);
+                                  cellContent = (
+                                    <div className="flex flex-col items-center gap-0.5">
+                                      <span className="text-[10px] font-semibold text-amber-700 dark:text-amber-400 text-center leading-tight px-1">{reasonLabel}</span>
+                                      {absence.note && <span className="text-[9px] text-muted-foreground leading-tight truncate max-w-[60px]">{absence.note}</span>}
+                                    </div>
+                                  );
+                                  cellCls = 'bg-amber-50 dark:bg-amber-950/20';
+                                  return (
+                                    <td key={di} className={`px-2 py-3 text-center ${di > 0 ? 'border-l' : ''} border-border ${cellCls}`}>
+                                      {cellContent}
+                                    </td>
+                                  );
+                                }
                                 if (!shift || shift.is_off) {
                                   const isOverride = shift?.is_override ?? false;
                                   cellContent = (
@@ -764,6 +808,16 @@ function OwnerScheduleContent() {
                                   </td>
                                 );
                               } else {
+                                if (absence) {
+                                  const reasonLabel = t(`setup.closures.reason.${absence.reason}` as Parameters<typeof t>[0]);
+                                  cellContent = <span className="text-[9px] font-semibold text-amber-700 dark:text-amber-400 leading-tight px-0.5 text-center">{reasonLabel.slice(0, 3)}</span>;
+                                  cellCls = 'bg-amber-50 dark:bg-amber-950/20';
+                                  return (
+                                    <td key={di} className={`px-0 py-2 text-center border-l border-border ${cellCls}`} style={{ width: '44px' }} title={reasonLabel}>
+                                      {cellContent}
+                                    </td>
+                                  );
+                                }
                                 if (!shift) {
                                   cellContent = <span className="text-xs text-muted-foreground/60">—</span>;
                                   cellCls = isWeekend ? 'bg-muted/10' : (today ? 'bg-primary/3' : '');
@@ -816,6 +870,10 @@ function OwnerScheduleContent() {
             <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
               <span className="w-3 h-3 rounded-sm bg-muted/30 border border-dashed border-border inline-block" />
               {t('schedule.dayOff')} ({t('schedule.defaultShort')})
+            </div>
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <span className="w-3 h-3 rounded-sm bg-amber-50 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-700 inline-block" />
+              {t('absences.title')}
             </div>
           </div>
         )}
