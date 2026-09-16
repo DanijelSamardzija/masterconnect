@@ -111,6 +111,8 @@ function OwnerScheduleContent() {
   const [staffRows, setStaffRows] = useState<StaffRow[]>([]);
   const [staffAccept, setStaffAccept] = useState<{id: string; name: string; accept: boolean; role: string}[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cardWeeks, setCardWeeks] = useState<Record<string, Date>>({});
+  const [cardShifts, setCardShifts] = useState<Record<string, ShiftRow[]>>({});
   const [isOwner, setIsOwner] = useState(false);
   const [copying, setCopying] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
@@ -200,7 +202,22 @@ function OwnerScheduleContent() {
   function thisWeek() {
     const ws = getMondayOf(new Date());
     setWeekStart(ws);
+    setCardWeeks({});
+    setCardShifts({});
     loadShifts(ws);
+  }
+
+  async function navCard(staffId: string, delta: number) {
+    const current = cardWeeks[staffId] ?? weekStart;
+    const newWeek = addDays(current, delta * 7);
+    if (newWeek.getTime() < bookingStartMonday.getTime()) return;
+    if (addDays(newWeek, 7).getTime() >= maxMonthStart.getTime()) return;
+    setCardWeeks(prev => ({ ...prev, [staffId]: newWeek }));
+    const { data } = await (supabase as any).rpc('owner_get_week_shifts', { p_week_start: isoDate(newWeek) });
+    if (Array.isArray(data)) {
+      const found = (data as StaffRow[]).find(r => r.staff_member_id === staffId);
+      setCardShifts(prev => ({ ...prev, [staffId]: found?.shifts ?? [] }));
+    }
   }
 
   function prevMonth() {
@@ -227,6 +244,9 @@ function OwnerScheduleContent() {
   }
 
   function getShift(staffId: string, date: string): ShiftRow | null {
+    if (cardShifts[staffId]) {
+      return cardShifts[staffId].find(s => s.shift_date === date) ?? null;
+    }
     const row = staffRows.find(r => r.staff_member_id === staffId);
     return row?.shifts.find(s => s.shift_date === date) ?? null;
   }
@@ -279,9 +299,20 @@ function OwnerScheduleContent() {
         if (data?.ok === false) throw new Error(data.error);
       }
       toast.success(t('schedule.savedSuccess'));
+      const savedStaffId = edit.staffId;
       setEdit(null);
-      if (viewMode === 'month') await loadMonthShifts(monthDate);
-      else await loadShifts(weekStart);
+      if (viewMode === 'month') {
+        await loadMonthShifts(monthDate);
+      } else if (cardWeeks[savedStaffId]) {
+        const cw = cardWeeks[savedStaffId];
+        const { data } = await (supabase as any).rpc('owner_get_week_shifts', { p_week_start: isoDate(cw) });
+        if (Array.isArray(data)) {
+          const found = (data as StaffRow[]).find(r => r.staff_member_id === savedStaffId);
+          setCardShifts(prev => ({ ...prev, [savedStaffId]: found?.shifts ?? [] }));
+        }
+      } else {
+        await loadShifts(weekStart);
+      }
     } catch {
       toast.error(t('schedule.saveError'));
     }
@@ -475,27 +506,10 @@ function OwnerScheduleContent() {
           {viewMode === 'week' ? (
             <>
               <button
-                onClick={prevWeek}
-                disabled={prevWeekDisabled}
-                className="p-1.5 rounded-lg border border-border hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
                 onClick={thisWeek}
                 className="text-xs font-medium px-2.5 py-1.5 rounded-lg border border-border hover:bg-accent transition-colors"
               >
                 {t('schedule.thisWeek')}
-              </button>
-              <span className="flex-1 text-center text-sm font-medium text-foreground">
-                {fmtDay(weekDays[0])} – {fmtDay(weekDays[6])} {weekDays[6].getFullYear()}.
-              </span>
-              <button
-                onClick={nextWeek}
-                disabled={nextWeekDisabled}
-                className="p-1.5 rounded-lg border border-border hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <ChevronRight className="w-4 h-4" />
               </button>
             </>
           ) : (
@@ -569,10 +583,36 @@ function OwnerScheduleContent() {
                 return (order[a.role] ?? 2) - (order[b.role] ?? 2);
               })
               .map((sa) => {
-                const days = viewMode === 'week' ? weekDays : monthDays;
+                const effectiveWeek = cardWeeks[sa.id] ?? weekStart;
+                const effectiveWeekDays = Array.from({ length: 7 }, (_, i) => addDays(effectiveWeek, i));
+                const days = viewMode === 'week' ? effectiveWeekDays : monthDays;
                 const isOwnerStaff = sa.role === 'owner';
+                const cardPrevDisabled = effectiveWeek.getTime() <= bookingStartMonday.getTime();
+                const cardNextDisabled = addDays(effectiveWeek, 7).getTime() >= maxMonthStart.getTime();
                 return (
                   <div key={sa.id} className="rounded-xl border border-border overflow-hidden">
+                    {/* Per-card week navigation (week view only) */}
+                    {viewMode === 'week' && (
+                      <div className="flex items-center gap-1 px-2 py-1.5 bg-muted/20 border-b border-border">
+                        <button
+                          onClick={() => navCard(sa.id, -1)}
+                          disabled={cardPrevDisabled}
+                          className="p-0.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground"
+                        >
+                          <ChevronLeft className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="text-xs font-medium text-foreground px-0.5 whitespace-nowrap">
+                          {fmtDay(effectiveWeekDays[0])} – {fmtDay(effectiveWeekDays[6])} {effectiveWeekDays[6].getFullYear()}.
+                        </span>
+                        <button
+                          onClick={() => navCard(sa.id, 1)}
+                          disabled={cardNextDisabled}
+                          className="p-0.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground"
+                        >
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
                     {/* Scrollable date grid — name is first column */}
                     <div className="overflow-x-auto">
                       <table className="border-collapse" style={{ minWidth: viewMode === 'week' ? '520px' : `${80 + days.length * 38}px` }}>
