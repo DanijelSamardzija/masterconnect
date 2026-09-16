@@ -109,6 +109,7 @@ function OwnerScheduleContent() {
     const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), 1);
   });
   const [staffRows, setStaffRows] = useState<StaffRow[]>([]);
+  const [staffAccept, setStaffAccept] = useState<{id: string; name: string; accept: boolean}[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
   const [copying, setCopying] = useState(false);
@@ -159,13 +160,28 @@ function OwnerScheduleContent() {
     (async () => {
       const { data: sm } = await (supabase as any)
         .from('staff_members')
-        .select('role')
+        .select('role, business_id')
         .eq('user_id', profile.id)
         .eq('is_active', true)
         .in('role', ['owner', 'manager'])
         .maybeSingle();
       if (!sm) { setLoading(false); return; }
       setIsOwner(true);
+
+      const { data: staff } = await (supabase as any)
+        .from('staff_members')
+        .select('id, accept_bookings, role, profiles!staff_members_user_id_fkey(name)')
+        .eq('business_id', sm.business_id)
+        .eq('is_active', true)
+        .in('role', ['worker', 'manager', 'owner']);
+      if (Array.isArray(staff)) {
+        setStaffAccept(staff.map((s: any) => ({
+          id: s.id,
+          name: s.profiles?.name || '—',
+          accept: s.accept_bookings ?? true,
+        })));
+      }
+
       await loadShifts(weekStart);
     })();
   }, [profile]);
@@ -281,6 +297,19 @@ function OwnerScheduleContent() {
     setCopying(false);
     if (data?.ok) {
       toast.success(t('schedule.copyWeekDone'));
+    } else {
+      toast.error(t('schedule.saveError'));
+    }
+  }
+
+  async function handleToggleAccept(smId: string, current: boolean) {
+    const newVal = !current;
+    const { data } = await (supabase as any).rpc('set_accept_bookings', {
+      p_staff_member_id: smId,
+      p_accept: newVal,
+    });
+    if (data?.ok) {
+      setStaffAccept(prev => prev.map(s => s.id === smId ? { ...s, accept: newVal } : s));
     } else {
       toast.error(t('schedule.saveError'));
     }
@@ -497,8 +526,30 @@ function OwnerScheduleContent() {
           )}
         </div>
 
-        {/* Retention notice */}
-        <p className="text-[11px] text-muted-foreground/50 mb-4 pl-1">{t('schedule.retention')}</p>
+        {/* Retention notice + accept-bookings toggles */}
+        <p className="text-[11px] text-muted-foreground/50 mb-2 pl-1">{t('schedule.retention')}</p>
+        {staffAccept.length > 0 && (
+          <div className="flex flex-wrap gap-x-4 gap-y-1 mb-4 pl-1">
+            {staffAccept.map(s => (
+              <div key={s.id} className="flex items-center gap-1.5">
+                <span className="text-[11px] text-muted-foreground">{s.name}</span>
+                <button
+                  type="button"
+                  title={t('staffHours.acceptBookings')}
+                  onClick={() => handleToggleAccept(s.id, s.accept)}
+                  className={`relative inline-flex h-4 w-7 shrink-0 rounded-full transition-colors duration-200 ${
+                    s.accept ? 'bg-primary' : 'bg-muted-foreground/30'
+                  }`}
+                >
+                  <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
+                    s.accept ? 'translate-x-3.5' : 'translate-x-0.5'
+                  }`} />
+                </button>
+                <span className="text-[10px] text-muted-foreground/60">{t('staffHours.acceptBookings')}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {loading ? (
           <div className="flex justify-center py-16">
