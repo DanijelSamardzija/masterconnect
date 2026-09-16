@@ -1354,7 +1354,7 @@ export default function BookingSetupWizardPage() {
                         </button>
                       )}
                       <button
-                        onClick={() => router.push('/dashboard/business/setup')}
+                        onClick={() => router.push('/booking/business/setup')}
                         className="w-full flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-xl py-3 transition-colors"
                       >
                         <ExternalLink className="w-4 h-4" />

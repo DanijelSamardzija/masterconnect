@@ -474,7 +474,7 @@ function DashboardContent() {
                 <p className="text-xs text-muted-foreground truncate">{t('dashboard.business.ctaDesc')}</p>
               </div>
               <button
-                onClick={() => router.push('/dashboard/business/setup')}
+                onClick={() => router.push('/booking/business/setup')}
                 className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 shrink-0"
               >
                 {t('dashboard.business.ctaButton')} →

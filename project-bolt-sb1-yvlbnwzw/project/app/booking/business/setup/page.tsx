@@ -1284,7 +1284,7 @@ export default function BusinessSetupPage() {
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">
             <button
-              onClick={() => router.push('/dashboard')}
+              onClick={() => router.push('/booking/business')}
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               <ChevronRight className="w-5 h-5 rotate-180" />
@@ -1305,7 +1305,7 @@ export default function BusinessSetupPage() {
                 key={key}
                 onClick={() => {
                   setActiveTab(key);
-                  router.replace(`/dashboard/business/setup?tab=${key}`, { scroll: false });
+                  router.replace(`/booking/business/setup?tab=${key}`, { scroll: false });
                 }}
                 className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
                   activeTab === key

@@ -824,7 +824,7 @@ function OwnerScheduleContent() {
         {!loading && (
           <div className="mt-4 px-1">
             <button
-              onClick={() => router.push('/dashboard/business/absences')}
+              onClick={() => router.push('/booking/business/absences')}
               className="text-xs text-muted-foreground hover:text-primary transition-colors"
             >
               {t('schedule.absenceLink')}

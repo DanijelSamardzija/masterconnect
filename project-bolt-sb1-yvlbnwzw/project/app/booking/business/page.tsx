@@ -171,28 +171,28 @@ function BusinessContent() {
           </button>
           <div className="flex items-center gap-2.5 overflow-x-auto scrollbar-hide min-w-0">
             <button
-              onClick={() => router.push('/dashboard/business/bookings')}
+              onClick={() => router.push('/booking/business/bookings')}
               className="flex items-center gap-1 text-xs font-semibold text-orange-500 hover:text-orange-400 transition-colors whitespace-nowrap shrink-0"
             >
               <Calendar className="h-3 w-3" />
               Rezervacije
             </button>
             <button
-              onClick={() => router.push('/dashboard/business/schedule')}
+              onClick={() => router.push('/booking/business/schedule')}
               className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0"
             >
               <Calendar className="h-3 w-3" />
               {t('schedule.title')}
             </button>
             <button
-              onClick={() => router.push('/dashboard/business/setup')}
+              onClick={() => router.push('/booking/business/setup')}
               className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0"
             >
               <Settings className="h-3 w-3" />
               {t('dashboard.business.activeButton')}
             </button>
             <button
-              onClick={() => router.push('/dashboard/business/absences')}
+              onClick={() => router.push('/booking/business/absences')}
               className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0"
             >
               <Calendar className="h-3 w-3" />
@@ -214,7 +214,7 @@ function BusinessContent() {
             <Calendar className="h-8 w-8 mx-auto mb-2 text-muted-foreground opacity-40" />
             <p className="text-sm text-muted-foreground">{t('dashboard.services.empty')}</p>
             <button
-              onClick={() => router.push('/dashboard/business/setup?tab=services')}
+              onClick={() => router.push('/booking/business/setup?tab=services')}
               className="mt-2 text-xs font-semibold text-orange-500 hover:text-orange-400"
             >
               {t('dashboard.services.settings')} →
@@ -230,7 +230,7 @@ function BusinessContent() {
                 <Calendar className="h-8 w-8 mx-auto mb-2 text-muted-foreground opacity-40" />
                 <p className="text-sm text-muted-foreground">{t('dashboard.services.empty')}</p>
                 <button
-                  onClick={() => router.push('/dashboard/business/setup?tab=services')}
+                  onClick={() => router.push('/booking/business/setup?tab=services')}
                   className="mt-2 text-xs font-semibold text-orange-500 hover:text-orange-400"
                 >
                   {t('dashboard.services.settings')} →
