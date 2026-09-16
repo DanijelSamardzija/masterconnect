@@ -374,7 +374,7 @@ export default function BusinessSetupPage() {
     (async () => {
       setProfileLoading(true);
       const [profileRes, locRes] = await Promise.all([
-        supabase.from('profiles').select('name, is_business, booking_category').eq('id', user.id).single(),
+        supabase.from('profiles').select('name, is_business').eq('id', user.id).single(),
         supabase.from('business_locations').select('timezone').eq('business_id', user.id).eq('is_primary', true).maybeSingle(),
       ]);
       if (profileRes.data) {

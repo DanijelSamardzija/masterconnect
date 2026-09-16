@@ -114,7 +114,7 @@ export default function BookingPage() {
       desc: t('booking.hub.cat.dogadjajiDesc'),
       soon: true,
     },
-  ] as const;
+  ];
 
   const filtered = CATEGORIES.filter(
     (c) =>
