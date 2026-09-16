@@ -2754,6 +2754,7 @@ export default {
   'schedule.thisWeek': 'Diese Woche',
   'schedule.copyWeek': 'Nächste Woche kopieren',
   'schedule.copyWeekDone': 'Woche kopiert',
+  'schedule.ownerLabel': 'Inhaber',
   'schedule.working': 'Arbeitet',
   'schedule.dayOff': 'Freier Tag',
   'schedule.defaultSchedule': 'Standardplan',

@@ -683,11 +683,11 @@ function OwnerScheduleContent() {
                     )}
                     {/* Scrollable date grid — name is first column */}
                     <div className="overflow-x-auto">
-                      <table className="border-collapse" style={{ minWidth: viewMode === 'week' ? '560px' : `${92 + days.length * 44}px` }}>
+                      <table className="border-collapse" style={{ minWidth: viewMode === 'week' ? '580px' : `${100 + days.length * 44}px` }}>
                         <thead>
                           <tr className="bg-muted/20">
                             {/* Name column header — empty */}
-                            <th className="border-b border-border border-r w-[92px] min-w-[92px]" />
+                            <th className="border-b border-border border-r w-[100px] min-w-[100px]" />
                             {days.map((day, i) => {
                               const today = isToday(day);
                               const dow = day.getDay();
@@ -718,9 +718,9 @@ function OwnerScheduleContent() {
                               const last = parts.slice(1).join(' ');
                               return (
                                 <td className="px-2 py-3 border-r border-border align-middle bg-muted/10">
-                                  <div className="text-xs font-semibold text-foreground leading-tight whitespace-nowrap">{first}</div>
+                                  <div className="text-sm font-semibold text-foreground leading-tight whitespace-nowrap">{first}</div>
                                   {last && <div className="text-xs text-muted-foreground leading-tight whitespace-nowrap">{last}</div>}
-                                  {isOwnerStaff && <div className="text-[11px] text-muted-foreground/50 leading-tight mt-0.5">vlasnik</div>}
+                                  {isOwnerStaff && <div className="text-[11px] text-muted-foreground/50 leading-tight mt-0.5">{t('schedule.ownerLabel')}</div>}
                                 </td>
                               );
                             })()}

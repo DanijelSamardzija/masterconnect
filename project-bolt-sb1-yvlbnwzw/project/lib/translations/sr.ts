@@ -2772,6 +2772,7 @@ export default {
   'schedule.thisWeek': 'Ova sedmica',
   'schedule.copyWeek': 'Kopiraj na sljedeću sedmicu',
   'schedule.copyWeekDone': 'Sedmica kopirana',
+  'schedule.ownerLabel': 'vlasnik',
   'schedule.working': 'Radi',
   'schedule.dayOff': 'Slobodan dan',
   'schedule.defaultSchedule': 'Redovni raspored',

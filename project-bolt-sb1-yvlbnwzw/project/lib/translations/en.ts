@@ -2772,6 +2772,7 @@ export default {
   'schedule.thisWeek': 'This week',
   'schedule.copyWeek': 'Copy to next week',
   'schedule.copyWeekDone': 'Week copied',
+  'schedule.ownerLabel': 'owner',
   'schedule.working': 'Working',
   'schedule.dayOff': 'Day off',
   'schedule.defaultSchedule': 'Regular schedule',
