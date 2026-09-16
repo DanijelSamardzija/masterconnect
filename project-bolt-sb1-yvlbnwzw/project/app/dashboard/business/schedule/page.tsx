@@ -573,25 +573,20 @@ function OwnerScheduleContent() {
                 const isOwnerStaff = sa.role === 'owner';
                 return (
                   <div key={sa.id} className="rounded-xl border border-border overflow-hidden">
-                    {/* Staff name header */}
-                    <div className="px-3 py-2 bg-muted/30 border-b border-border flex items-center gap-1.5">
-                      <span className="text-sm font-semibold text-foreground">{sa.name}</span>
-                      {isOwnerStaff && (
-                        <span className="text-[10px] text-muted-foreground font-normal">(vlasnik)</span>
-                      )}
-                    </div>
-                    {/* Scrollable date grid */}
+                    {/* Scrollable date grid — name is first column */}
                     <div className="overflow-x-auto">
-                      <table className="border-collapse" style={{ minWidth: viewMode === 'week' ? '480px' : `${days.length * 38}px` }}>
+                      <table className="border-collapse" style={{ minWidth: viewMode === 'week' ? '520px' : `${80 + days.length * 38}px` }}>
                         <thead>
                           <tr className="bg-muted/20">
+                            {/* Name column header — empty */}
+                            <th className="border-b border-border border-r w-[80px] min-w-[80px]" />
                             {days.map((day, i) => {
                               const today = isToday(day);
                               const dow = day.getDay();
                               const isWeekend = dow === 0 || dow === 6;
                               if (viewMode === 'week') {
                                 return (
-                                  <th key={i} className={`px-2 py-2 text-center text-xs font-semibold border-b border-border ${i > 0 ? 'border-l' : ''} ${today ? 'text-primary bg-primary/5' : 'text-muted-foreground'} whitespace-nowrap`}>
+                                  <th key={i} className={`px-2 py-2 text-center text-xs font-semibold border-b border-border border-l ${today ? 'text-primary bg-primary/5' : 'text-muted-foreground'} whitespace-nowrap`}>
                                     {t(DOW_KEYS[i])} <span className={`text-[10px] font-normal ${today ? 'text-primary' : 'text-muted-foreground/60'}`}>{fmtDay(day)}</span>
                                   </th>
                                 );
@@ -608,6 +603,19 @@ function OwnerScheduleContent() {
                         </thead>
                         <tbody>
                           <tr>
+                            {/* Name cell — first name / last name */}
+                            {(() => {
+                              const parts = sa.name.trim().split(' ');
+                              const first = parts[0];
+                              const last = parts.slice(1).join(' ');
+                              return (
+                                <td className="px-2 py-3 border-r border-border align-middle bg-muted/10">
+                                  <div className="text-[11px] font-semibold text-foreground leading-tight whitespace-nowrap">{first}</div>
+                                  {last && <div className="text-[11px] text-muted-foreground leading-tight whitespace-nowrap">{last}</div>}
+                                  {isOwnerStaff && <div className="text-[9px] text-muted-foreground/50 leading-tight mt-0.5">vlasnik</div>}
+                                </td>
+                              );
+                            })()}
                             {days.map((day, di) => {
                               const dateStr = isoDate(day);
                               const shift = getShift(sa.id, dateStr);
