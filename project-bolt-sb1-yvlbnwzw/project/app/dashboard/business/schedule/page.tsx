@@ -258,6 +258,21 @@ function OwnerScheduleContent() {
     }
   }
 
+  function prevGlobalWeek() {
+    const ws = addDays(weekStart, -7);
+    setWeekStart(ws);
+    setCardWeeks({});
+    setCardShifts({});
+    loadShifts(ws);
+  }
+  function nextGlobalWeek() {
+    const ws = addDays(weekStart, 7);
+    setWeekStart(ws);
+    setCardWeeks({});
+    setCardShifts({});
+    loadShifts(ws);
+  }
+
   function goThisMonth() {
     const n = new Date();
     const md = new Date(n.getFullYear(), n.getMonth(), 1);
@@ -401,6 +416,8 @@ function OwnerScheduleContent() {
   const maxMonthIdx = now.getFullYear() * 12 + now.getMonth() + 6;
   const bookingStartMonday = getMondayOf(new Date(BOOKING_START_YEAR, BOOKING_START_MONTH, 1));
   const maxMonthStart = new Date(now.getFullYear(), now.getMonth() + 6, 1);
+  const prevGlobalWeekDisabled = weekStart.getTime() <= bookingStartMonday.getTime();
+  const nextGlobalWeekDisabled = addDays(weekStart, 7).getTime() >= maxMonthStart.getTime();
 
   function downloadSchedule() {
     const header = 'Radnik,Datum,Dan,Početak,Kraj,Pauza,Napomena';
@@ -543,6 +560,25 @@ function OwnerScheduleContent() {
               >
                 {t('schedule.thisWeek')}
               </button>
+              <div className="flex items-center gap-0.5">
+                <button
+                  onClick={prevGlobalWeek}
+                  disabled={prevGlobalWeekDisabled}
+                  className="p-1 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <span className="text-sm font-medium text-foreground whitespace-nowrap px-0.5">
+                  {fmtDay(weekDays[0])} – {fmtDay(weekDays[6])} {weekDays[6].getFullYear()}.
+                </span>
+                <button
+                  onClick={nextGlobalWeek}
+                  disabled={nextGlobalWeekDisabled}
+                  className="p-1 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             </>
           ) : (
             <>
