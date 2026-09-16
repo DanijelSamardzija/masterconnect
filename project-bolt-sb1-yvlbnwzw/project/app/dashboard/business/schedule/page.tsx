@@ -529,9 +529,9 @@ function OwnerScheduleContent() {
         {/* Retention notice + accept-bookings toggles */}
         <p className="text-[11px] text-muted-foreground/50 mb-2 pl-1">{t('schedule.retention')}</p>
         {staffAccept.length > 0 && (
-          <div className="flex flex-wrap gap-x-4 gap-y-1 mb-4 pl-1">
+          <div className="flex gap-x-4 overflow-x-auto scrollbar-hide mb-4 pl-1 pb-0.5">
             {staffAccept.map(s => (
-              <div key={s.id} className="flex items-center gap-1.5">
+              <div key={s.id} className="flex items-center gap-1.5 shrink-0">
                 <span className="text-[11px] text-muted-foreground">{s.name}</span>
                 <button
                   type="button"
