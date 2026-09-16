@@ -582,7 +582,7 @@ function OwnerScheduleContent() {
                     </div>
                     {/* Scrollable date grid */}
                     <div className="overflow-x-auto">
-                      <table className="border-collapse" style={{ minWidth: viewMode === 'week' ? '480px' : `${days.length * 38}px` }}>
+                      <table className="border-collapse" style={{ minWidth: viewMode === 'week' ? '630px' : `${days.length * 38}px` }}>
                         <thead>
                           <tr className="bg-muted/20">
                             {days.map((day, i) => {
@@ -623,7 +623,7 @@ function OwnerScheduleContent() {
                                   const isOverride = shift?.is_override ?? false;
                                   cellContent = (
                                     <div className="flex flex-col items-center gap-0.5">
-                                      <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${isOverride ? 'text-muted-foreground bg-muted' : 'text-muted-foreground/60 bg-muted/40 border border-dashed border-border'}`}>
+                                      <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded whitespace-nowrap ${isOverride ? 'text-muted-foreground bg-muted' : 'text-muted-foreground/60 bg-muted/40 border border-dashed border-border'}`}>
                                         {t('schedule.dayOff')}
                                       </span>
                                       {!isOverride && <span className="text-[8px] text-muted-foreground/50">{t('schedule.defaultShort')}</span>}
