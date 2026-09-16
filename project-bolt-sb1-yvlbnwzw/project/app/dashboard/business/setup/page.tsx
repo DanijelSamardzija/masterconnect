@@ -1913,7 +1913,7 @@ export default function BusinessSetupPage() {
               ) : (
                 <>
                   <div className="flex flex-col divide-y divide-border border border-border rounded-xl overflow-hidden">
-                    {hours.map((h) => (
+                    {[...hours].sort((a, b) => (a.day_of_week === 0 ? 7 : a.day_of_week) - (b.day_of_week === 0 ? 7 : b.day_of_week)).map((h) => (
                       <div key={h.day_of_week} className="px-4 py-3 flex flex-col gap-2">
                         <div className="flex items-center gap-3">
                           <span className="w-24 text-sm font-medium shrink-0">
@@ -2676,7 +2676,7 @@ export default function BusinessSetupPage() {
                                 <p className="text-[11px] text-muted-foreground mb-2">{t('setup.staff.hours.hint')}</p>
                                 {staffHoursMap[sm.id] ? (
                                   <div className="flex flex-col divide-y divide-border border border-border rounded-xl overflow-hidden mb-2">
-                                    {(staffHoursMap[sm.id] ?? []).map((h) => (
+                                    {[...(staffHoursMap[sm.id] ?? [])].sort((a, b) => (a.day_of_week === 0 ? 7 : a.day_of_week) - (b.day_of_week === 0 ? 7 : b.day_of_week)).map((h) => (
                                       <div key={h.day_of_week} className="px-3 py-2 flex flex-col gap-1.5">
                                         <div className="flex items-center gap-2">
                                           <span className="w-20 text-xs font-medium shrink-0">
