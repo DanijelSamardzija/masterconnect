@@ -1824,7 +1824,7 @@ export default {
   // Booking UI (F6)
   'booking.myBookings': 'Meine Buchungen',
   'booking.hub.title': 'Booking',
-  'booking.hub.myBiz': 'Meine Buchungen',
+  'booking.hub.myBiz': 'Mein Booking',
   'booking.hub.myBizDesc': 'Dienste verwalten',
   'booking.hub.myRes': 'Meine Reservierungen',
   'booking.hub.myResDesc': 'Bevorstehende Termine',

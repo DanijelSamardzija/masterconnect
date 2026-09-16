@@ -1834,7 +1834,7 @@ export default {
   // Booking UI (F6)
   'booking.myBookings': 'Moje rezervacije',
   'booking.hub.title': 'Booking',
-  'booking.hub.myBiz': 'Moje bukinge',
+  'booking.hub.myBiz': 'Moj Boking',
   'booking.hub.myBizDesc': 'Upravljaj uslugama',
   'booking.hub.myRes': 'Moje rezervacije',
   'booking.hub.myResDesc': 'Predstojeći termini',
