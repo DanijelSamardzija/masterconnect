@@ -185,13 +185,6 @@ function BusinessContent() {
               {t('schedule.title')}
             </button>
             <button
-              onClick={() => router.push('/dashboard/business/staff-hours')}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0"
-            >
-              <Clock className="h-3 w-3" />
-              {t('ownerStaffHours.title')}
-            </button>
-            <button
               onClick={() => router.push('/dashboard/business/setup')}
               className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0"
             >
