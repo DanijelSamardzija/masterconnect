@@ -63,6 +63,14 @@ type StaffOption = {
   role: string;
 };
 
+type OpeningHourRow = {
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  is_closed: boolean;
+  sort_order: number;
+};
+
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 function getMonday(d: Date): Date {
@@ -142,6 +150,9 @@ export default function BookingSlotPickerPage() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [loadingMeta, setLoadingMeta] = useState(true);
 
+  const [openingHours, setOpeningHours] = useState<OpeningHourRow[]>([]);
+  const [hoursOpen, setHoursOpen] = useState(false);
+
   const [staffOptions, setStaffOptions] = useState<StaffOption[]>([]);
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null); // null = "any"
   const [loadingStaff, setLoadingStaff] = useState(false);
@@ -173,6 +184,8 @@ export default function BookingSlotPickerPage() {
           const primary = locs.find((l: Location) => l.is_primary) ?? locs[0];
           setSelectedLocationId(primary.id);
           setSelectedTimezone(primary.timezone);
+          const hoursRes = await (supabase as any).rpc('get_opening_hours', { p_location_id: primary.id });
+          setOpeningHours((hoursRes.data as OpeningHourRow[]) ?? []);
         }
       } finally {
         setLoadingMeta(false);
@@ -250,6 +263,8 @@ export default function BookingSlotPickerPage() {
     if (!loc) return;
     setSelectedLocationId(locId);
     setSelectedTimezone(loc.timezone);
+    (supabase as any).rpc('get_opening_hours', { p_location_id: locId })
+      .then(({ data }: { data: OpeningHourRow[] | null }) => setOpeningHours(data ?? []));
   }
 
   const slotsByDay: Record<string, Slot[]> = {};
@@ -386,6 +401,47 @@ export default function BookingSlotPickerPage() {
               <span>{t('booking.priceNegotiable')}</span>
             )}
           </div>
+
+          {/* Working hours collapsible */}
+          {openingHours.length > 0 && (
+            <div className="mt-3">
+              <button
+                onClick={() => setHoursOpen(o => !o)}
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Clock className="w-3.5 h-3.5" />
+                <span>{t('setup.hours.heading')}</span>
+                <ChevronRight className={`w-3.5 h-3.5 transition-transform duration-200 ${hoursOpen ? 'rotate-90' : ''}`} />
+              </button>
+              {hoursOpen && (
+                <div className="mt-2 border border-border rounded-xl overflow-hidden bg-card">
+                  {[1,2,3,4,5,6,0].map(dow => {
+                    const periods = openingHours.filter(h => h.day_of_week === dow && !h.is_closed);
+                    const isClosed = periods.length === 0;
+                    return (
+                      <div key={dow} className="flex items-center px-3 py-2 border-b border-border last:border-0">
+                        <span className="w-28 text-xs font-medium text-foreground shrink-0">
+                          {t(`setup.hours.day.${dow}` as Parameters<typeof t>[0])}
+                        </span>
+                        {isClosed ? (
+                          <span className="text-xs text-muted-foreground">{t('setup.hours.closed')}</span>
+                        ) : (
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {periods.map((p, i) => (
+                              <span key={i} className="flex items-center gap-1.5 text-xs text-foreground">
+                                {i > 0 && <span className="text-muted-foreground">·</span>}
+                                {p.start_time.slice(0, 5)} – {p.end_time.slice(0, 5)}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Beta notice — shown when user doesn't have access yet */}
