@@ -591,9 +591,8 @@ function OwnerScheduleContent() {
                               const isWeekend = dow === 0 || dow === 6;
                               if (viewMode === 'week') {
                                 return (
-                                  <th key={i} className={`px-2 py-2 text-center text-xs font-semibold border-b border-border ${i > 0 ? 'border-l' : ''} ${today ? 'text-primary bg-primary/5' : 'text-muted-foreground'}`}>
-                                    <div>{t(DOW_KEYS[i])}</div>
-                                    <div className={`text-[10px] font-normal ${today ? 'text-primary' : 'text-muted-foreground/60'}`}>{fmtDay(day)}</div>
+                                  <th key={i} className={`px-2 py-2 text-center text-xs font-semibold border-b border-border ${i > 0 ? 'border-l' : ''} ${today ? 'text-primary bg-primary/5' : 'text-muted-foreground'} whitespace-nowrap`}>
+                                    {t(DOW_KEYS[i])} <span className={`text-[10px] font-normal ${today ? 'text-primary' : 'text-muted-foreground/60'}`}>{fmtDay(day)}</span>
                                   </th>
                                 );
                               } else {
