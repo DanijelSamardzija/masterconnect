@@ -523,7 +523,7 @@ function DashboardContent() {
 
         {/* My bookings card — shown to all users */}
         <button
-          onClick={() => router.push('/dashboard/bookings')}
+          onClick={() => router.push('/booking')}
           className="w-full bg-card border border-border rounded-2xl p-4 flex items-center gap-3 hover:border-orange-400/50 hover:bg-accent transition-colors text-left"
         >
           <div className="p-2.5 bg-orange-100 dark:bg-orange-950 rounded-xl shrink-0">
