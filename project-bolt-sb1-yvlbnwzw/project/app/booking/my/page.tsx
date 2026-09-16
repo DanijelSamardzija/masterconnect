@@ -6,6 +6,7 @@ import { ProtectedRoute } from '@/components/protected-route';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { langToLocale } from '@/lib/utils/locale';
 import { useBookingAccess } from '@/lib/hooks/use-booking-access';
 import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
@@ -64,8 +65,8 @@ function addDays(d: Date, n: number): Date {
 }
 function toDateKey(d: Date): string { return d.toISOString().slice(0, 10); }
 
-function formatDt(isoStr: string): string {
-  return new Intl.DateTimeFormat(undefined, {
+function formatDt(isoStr: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
     year: 'numeric', month: 'short', day: 'numeric',
     hour: '2-digit', minute: '2-digit',
   }).format(new Date(isoStr));
@@ -73,7 +74,8 @@ function formatDt(isoStr: string): string {
 
 export default function MyBookingsPage() {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const locale = langToLocale(language);
   const router = useRouter();
   const { hasAccess, loading: authLoading } = useBookingAccess();
 
@@ -314,9 +316,9 @@ export default function MyBookingsPage() {
                     <ChevronRight className="h-4 w-4 rotate-180" />
                   </button>
                   <span className="text-xs font-semibold text-foreground">
-                    {rescheduleWeek.toLocaleDateString(undefined, { day: 'numeric', month: 'long' })}
+                    {rescheduleWeek.toLocaleDateString(locale, { day: 'numeric', month: 'long' })}
                     {' – '}
-                    {addDays(rescheduleWeek, 6).toLocaleDateString(undefined, { day: 'numeric', month: 'long' })}
+                    {addDays(rescheduleWeek, 6).toLocaleDateString(locale, { day: 'numeric', month: 'long' })}
                   </span>
                   <button onClick={() => setRescheduleWeek(w => addDays(w, 7))}
                     className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
@@ -340,7 +342,7 @@ export default function MyBookingsPage() {
                             : 'bg-muted text-foreground hover:bg-primary/10'
                         }`}
                       >
-                        <span>{day.toLocaleDateString(undefined, { weekday: 'short' }).replace(/\.$/, '')}</span>
+                        <span>{day.toLocaleDateString(locale, { weekday: 'short' }).replace(/\.$/, '')}</span>
                         <span className={`text-xs font-bold ${isToday && !isSelected ? 'text-primary' : ''}`}>{day.getDate()}</span>
                       </button>
                     );
@@ -460,7 +462,7 @@ function BookingCard({
       </div>
       <div className="flex items-center gap-1 text-xs text-muted-foreground">
         <Calendar className="w-3 h-3" />
-        {formatDt(b.starts_at)}
+        {formatDt(b.starts_at, locale)}
       </div>
       {b.location && (
         <p className="text-xs text-muted-foreground">{(b.location as any).name}</p>

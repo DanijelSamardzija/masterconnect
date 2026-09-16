@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { langToLocale } from '@/lib/utils/locale';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useBookingAccess } from '@/lib/hooks/use-booking-access';
 import { saveGuestIntent } from '@/lib/guest-intent';
@@ -90,8 +91,8 @@ function formatTime(isoStr: string, tz: string): string {
   }).format(new Date(isoStr));
 }
 
-function formatDate(d: Date): string {
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+function formatDate(d: Date, locale: string): string {
+  return d.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
 }
 
 function weekStart(d: Date): string {
@@ -125,7 +126,8 @@ function bookingErrorKey(errorCode: string): string {
 export default function BookingSlotPickerPage() {
   const { businessId, serviceId } = useParams<{ businessId: string; serviceId: string }>();
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const locale = langToLocale(language);
   const { user } = useAuth();
   const { hasAccess, loading: authLoading } = useBookingAccess();
 
@@ -452,7 +454,7 @@ export default function BookingSlotPickerPage() {
             <ChevronLeft className="w-4 h-4" />
           </button>
           <span className="text-sm font-medium">
-            {formatDate(weekDays[0])} – {formatDate(weekDays[6])}
+            {formatDate(weekDays[0], locale)} – {formatDate(weekDays[6], locale)}
           </span>
           <button
             onClick={() => setWeekDate((d) => addDays(d, 7))}
@@ -541,7 +543,7 @@ export default function BookingSlotPickerPage() {
                 <span className="font-medium text-foreground">
                   {formatTime(selectedSlot.slot_start, selectedTimezone)}
                 </span>
-                {' '}({formatDate(new Date(selectedSlot.slot_start))})
+                {' '}({formatDate(new Date(selectedSlot.slot_start), locale)})
               </div>
 
               {service.capacity > 1 && (
