@@ -117,13 +117,13 @@ export default function BusinessBookingProfilePage() {
       <div className="max-w-2xl mx-auto px-4 py-6">
         <button
           onClick={() => router.push('/booking')}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-sm mb-6 transition-colors"
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-sm mb-6 transition-colors py-2"
         >
           <ArrowLeft className="w-4 h-4" />
           {t('booking.discovery.title')}
         </button>
 
-        <div className="border border-border rounded-2xl overflow-hidden">
+        <div className="border border-border rounded-xl overflow-hidden">
           {/* Avatar + name */}
           <div className="flex items-center gap-3 px-4 py-3">
             <Avatar className="h-12 w-12 shrink-0">

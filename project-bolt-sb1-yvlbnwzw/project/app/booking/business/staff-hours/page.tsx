@@ -317,7 +317,7 @@ function OwnerStaffHoursContent() {
         <div className="flex items-center gap-3 mb-6">
           <button
             onClick={() => router.back()}
-            className="text-muted-foreground hover:text-foreground transition-colors"
+            className="p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground shrink-0"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -457,7 +457,7 @@ function OwnerStaffHoursContent() {
                         </div>
 
                         {!day.is_closed && (
-                          <div className="flex flex-col gap-1.5 pl-28">
+                          <div className="flex flex-col gap-1.5 pl-4">
                             <div className="flex items-center gap-2 flex-wrap">
                               <input
                                 type="time"
@@ -476,7 +476,7 @@ function OwnerStaffHoursContent() {
                                 <button
                                   type="button"
                                   onClick={() => toggleBreak(dow)}
-                                  className="text-[11px] font-medium text-primary/70 hover:text-primary transition-colors px-1.5 py-0.5 rounded border border-primary/20 hover:border-primary/50"
+                                  className="text-xs font-medium text-primary/70 hover:text-primary transition-colors px-2 py-1 rounded border border-primary/20 hover:border-primary/50"
                                 >
                                   + {t('bookingSetup.hours.addSecondPeriod')}
                                 </button>
@@ -485,7 +485,7 @@ function OwnerStaffHoursContent() {
 
                             {day.has_break && (
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-[11px] text-muted-foreground w-12 shrink-0">
+                                <span className="text-xs text-muted-foreground shrink-0">
                                   {t('bookingSetup.hours.break')}
                                 </span>
                                 <input
@@ -504,7 +504,7 @@ function OwnerStaffHoursContent() {
                                 <button
                                   type="button"
                                   onClick={() => toggleBreak(dow)}
-                                  className="text-[11px] font-medium text-destructive/60 hover:text-destructive transition-colors flex items-center gap-0.5"
+                                  className="text-xs font-medium text-destructive/70 hover:text-destructive transition-colors flex items-center gap-1 px-2 py-1 rounded hover:bg-destructive/10"
                                 >
                                   <X className="w-3 h-3" />
                                   {t('bookingSetup.hours.removeSecondPeriod')}

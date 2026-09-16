@@ -557,7 +557,7 @@ function OwnerScheduleContent() {
         <div className="flex items-center gap-3 mb-6">
           <button
             onClick={() => router.back()}
-            className="text-muted-foreground hover:text-foreground transition-colors"
+            className="p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground shrink-0"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -624,13 +624,13 @@ function OwnerScheduleContent() {
               {t('schedule.thisWeek')}
             </button>
             <div className="flex items-center gap-0.5">
-              <button onClick={() => { setViewMode('week'); prevGlobalWeek(); }} disabled={prevGlobalWeekDisabled} className="p-0.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
+              <button onClick={() => { setViewMode('week'); prevGlobalWeek(); }} disabled={prevGlobalWeekDisabled} className="p-1.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
                 <ChevronLeft className="w-3.5 h-3.5" />
               </button>
               <span className="text-xs font-medium text-foreground whitespace-nowrap px-0.5">
                 {fmtDay(weekDays[0])} – {fmtDay(weekDays[6])} {weekDays[6].getFullYear()}.
               </span>
-              <button onClick={() => { setViewMode('week'); nextGlobalWeek(); }} disabled={nextGlobalWeekDisabled} className="p-0.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
+              <button onClick={() => { setViewMode('week'); nextGlobalWeek(); }} disabled={nextGlobalWeekDisabled} className="p-1.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -651,13 +651,13 @@ function OwnerScheduleContent() {
               {t('schedule.thisMonth')}
             </button>
             <div className="flex items-center gap-0.5">
-              <button onClick={() => { setViewMode('month'); prevGlobalMonth(); }} disabled={prevGlobalMonthDisabled} className="p-0.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
+              <button onClick={() => { setViewMode('month'); prevGlobalMonth(); }} disabled={prevGlobalMonthDisabled} className="p-1.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
                 <ChevronLeft className="w-3.5 h-3.5" />
               </button>
               <span className="text-xs font-medium text-foreground whitespace-nowrap px-0.5">
                 {monthLabelCap}
               </span>
-              <button onClick={() => { setViewMode('month'); nextGlobalMonth(); }} disabled={nextGlobalMonthDisabled} className="p-0.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
+              <button onClick={() => { setViewMode('month'); nextGlobalMonth(); }} disabled={nextGlobalMonthDisabled} className="p-1.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -674,12 +674,12 @@ function OwnerScheduleContent() {
                   type="button"
                   title={t('staffHours.acceptBookings')}
                   onClick={() => handleToggleAccept(s.id, s.accept)}
-                  className={`relative inline-flex h-4 w-7 shrink-0 rounded-full transition-colors duration-200 ${
+                  className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 ${
                     s.accept ? 'bg-primary' : 'bg-muted-foreground/30'
                   }`}
                 >
-                  <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
-                    s.accept ? 'translate-x-3.5' : 'translate-x-0.5'
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
+                    s.accept ? 'translate-x-[18px]' : 'translate-x-0.5'
                   }`} />
                 </button>
                 <span className="text-[10px] text-muted-foreground/60">{t('staffHours.acceptBookings')}</span>
@@ -720,26 +720,26 @@ function OwnerScheduleContent() {
                   <div key={sa.id} className="rounded-xl border border-border overflow-hidden">
                     {/* Per-card navigation: week arrows or month arrows */}
                     {viewMode === 'week' ? (
-                      <div className="flex items-center gap-1 px-2 py-1.5 bg-muted/20 border-b border-border">
-                        <button onClick={() => navCard(sa.id, -1)} disabled={cardPrevDisabled} className="p-0.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
+                      <div className="flex items-center gap-1 px-2 py-1 bg-muted/20 border-b border-border">
+                        <button onClick={() => navCard(sa.id, -1)} disabled={cardPrevDisabled} className="p-1.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
                           <ChevronLeft className="w-3.5 h-3.5" />
                         </button>
-                        <span className="text-xs font-medium text-foreground px-0.5 whitespace-nowrap">
+                        <span className="text-xs font-medium text-foreground px-0.5 whitespace-nowrap flex-1 text-center">
                           {fmtDay(effectiveWeekDays[0])} – {fmtDay(effectiveWeekDays[6])} {effectiveWeekDays[6].getFullYear()}.
                         </span>
-                        <button onClick={() => navCard(sa.id, 1)} disabled={cardNextDisabled} className="p-0.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
+                        <button onClick={() => navCard(sa.id, 1)} disabled={cardNextDisabled} className="p-1.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
                           <ChevronRight className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1 px-2 py-1.5 bg-muted/20 border-b border-border">
-                        <button onClick={() => navCardMonth(sa.id, -1)} disabled={cardMonthPrevDisabled} className="p-0.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
+                      <div className="flex items-center gap-1 px-2 py-1 bg-muted/20 border-b border-border">
+                        <button onClick={() => navCardMonth(sa.id, -1)} disabled={cardMonthPrevDisabled} className="p-1.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
                           <ChevronLeft className="w-3.5 h-3.5" />
                         </button>
-                        <span className="text-xs font-medium text-foreground px-0.5 whitespace-nowrap">
+                        <span className="text-xs font-medium text-foreground px-0.5 whitespace-nowrap flex-1 text-center">
                           {effectiveMonthLabel}
                         </span>
-                        <button onClick={() => navCardMonth(sa.id, 1)} disabled={cardMonthNextDisabled} className="p-0.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
+                        <button onClick={() => navCardMonth(sa.id, 1)} disabled={cardMonthNextDisabled} className="p-1.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
                           <ChevronRight className="w-3.5 h-3.5" />
                         </button>
                       </div>

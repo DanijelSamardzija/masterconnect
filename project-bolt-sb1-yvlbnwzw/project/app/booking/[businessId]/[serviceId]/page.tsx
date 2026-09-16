@@ -693,18 +693,18 @@ export default function BookingSlotPickerPage() {
             <div className="flex items-center justify-between mb-2">
               <button
                 onClick={() => setCalendarMonth(m => { const d = new Date(m); d.setMonth(d.getMonth() - 1); return d; })}
-                className="p-1 hover:bg-accent rounded-md transition-colors"
+                className="p-1.5 hover:bg-accent rounded-md transition-colors text-muted-foreground"
               >
-                <ChevronLeft className="w-3 h-3" />
+                <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="text-xs font-medium">
+              <span className="text-sm font-medium">
                 {calendarMonth.toLocaleDateString(locale, { month: 'long', year: 'numeric' })}
               </span>
               <button
                 onClick={() => setCalendarMonth(m => { const d = new Date(m); d.setMonth(d.getMonth() + 1); return d; })}
-                className="p-1 hover:bg-accent rounded-md transition-colors"
+                className="p-1.5 hover:bg-accent rounded-md transition-colors text-muted-foreground"
               >
-                <ChevronRight className="w-3 h-3" />
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
             <div className="grid grid-cols-7 gap-0.5 mb-1">

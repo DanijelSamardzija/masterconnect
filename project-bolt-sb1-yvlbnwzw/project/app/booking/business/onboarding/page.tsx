@@ -1380,7 +1380,7 @@ export default function BookingSetupWizardPage() {
                 <button
                   onClick={back}
                   disabled={saving}
-                  className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors py-2 px-1"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   {t('bookingSetup.back')}

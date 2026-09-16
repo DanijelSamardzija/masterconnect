@@ -208,7 +208,7 @@ export default function AbsencesPage() {
           <div className="flex items-center gap-3 mb-6">
             <button
               onClick={() => router.back()}
-              className="p-1.5 rounded-xl hover:bg-accent transition-colors text-muted-foreground"
+              className="p-2 rounded-xl hover:bg-accent transition-colors text-muted-foreground"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -271,7 +271,7 @@ export default function AbsencesPage() {
                             <button
                               onClick={() => handleDeleteClosure(c.id)}
                               disabled={deletingClosureId === c.id}
-                              className="shrink-0 text-muted-foreground hover:text-destructive transition-colors"
+                              className="shrink-0 p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                             >
                               {deletingClosureId === c.id
                                 ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -316,7 +316,7 @@ export default function AbsencesPage() {
                     <div className="flex flex-col gap-2 p-3 rounded-xl border border-border/60 bg-muted/20">
                       <div className="flex gap-2">
                         <div className="flex flex-col gap-1 flex-1">
-                          <label className="text-[11px] font-medium text-muted-foreground">{t('setup.closures.from')}</label>
+                          <label className="text-xs font-medium text-muted-foreground">{t('setup.closures.from')}</label>
                           <input
                             type="date"
                             value={closureFrom}
@@ -325,7 +325,7 @@ export default function AbsencesPage() {
                           />
                         </div>
                         <div className="flex flex-col gap-1 flex-1">
-                          <label className="text-[11px] font-medium text-muted-foreground">{t('setup.closures.to')}</label>
+                          <label className="text-xs font-medium text-muted-foreground">{t('setup.closures.to')}</label>
                           <input
                             type="date"
                             value={closureTo}
@@ -356,7 +356,7 @@ export default function AbsencesPage() {
                       <button
                         onClick={() => handleSaveClosure(false)}
                         disabled={closureSaving || !closureFrom || !closureTo}
-                        className="self-start flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        className="self-start flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                       >
                         {closureSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                         {t('setup.closures.save')}
@@ -389,7 +389,7 @@ export default function AbsencesPage() {
                         </select>
                         <div className="flex gap-2">
                           <div className="flex flex-col gap-1 flex-1">
-                            <label className="text-[11px] font-medium text-muted-foreground">{t('setup.closures.from')}</label>
+                            <label className="text-xs font-medium text-muted-foreground">{t('setup.closures.from')}</label>
                             <input
                               type="date"
                               value={absenceFrom}
@@ -398,7 +398,7 @@ export default function AbsencesPage() {
                             />
                           </div>
                           <div className="flex flex-col gap-1 flex-1">
-                            <label className="text-[11px] font-medium text-muted-foreground">{t('setup.closures.to')}</label>
+                            <label className="text-xs font-medium text-muted-foreground">{t('setup.closures.to')}</label>
                             <input
                               type="date"
                               value={absenceTo}
@@ -432,7 +432,7 @@ export default function AbsencesPage() {
                           <div className="flex flex-col gap-2 p-2.5 rounded-lg border border-orange-300 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-700">
                             <div className="flex items-start gap-2">
                               <AlertTriangle className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400 shrink-0 mt-0.5" />
-                              <p className="text-[11px] text-orange-800 dark:text-orange-300 leading-relaxed">
+                              <p className="text-xs text-orange-800 dark:text-orange-300 leading-relaxed">
                                 {t('absences.staff.hasBookings').replace('{n}', String(absenceWarning))}
                               </p>
                             </div>
@@ -458,7 +458,7 @@ export default function AbsencesPage() {
                           <button
                             onClick={() => handleSaveAbsence(false)}
                             disabled={absenceSaving || !absenceStaffId || !absenceFrom || !absenceTo}
-                            className="self-start flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                            className="self-start flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                           >
                             {absenceSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                             {t('setup.closures.save')}
@@ -498,7 +498,7 @@ export default function AbsencesPage() {
                                   <button
                                     onClick={() => handleDeleteAbsence(a.id)}
                                     disabled={deletingAbsenceId === a.id}
-                                    className="shrink-0 text-muted-foreground hover:text-destructive transition-colors"
+                                    className="shrink-0 p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                                   >
                                     {deletingAbsenceId === a.id
                                       ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
