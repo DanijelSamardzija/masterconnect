@@ -273,6 +273,21 @@ function OwnerScheduleContent() {
     loadShifts(ws);
   }
 
+  function prevGlobalMonth() {
+    const md = new Date(monthDate.getFullYear(), monthDate.getMonth() - 1, 1);
+    setMonthDate(md);
+    setCardMonths({});
+    setCardMonthShifts({});
+    loadMonthShifts(md);
+  }
+  function nextGlobalMonth() {
+    const md = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 1);
+    setMonthDate(md);
+    setCardMonths({});
+    setCardMonthShifts({});
+    loadMonthShifts(md);
+  }
+
   function goThisMonth() {
     const n = new Date();
     const md = new Date(n.getFullYear(), n.getMonth(), 1);
@@ -418,6 +433,9 @@ function OwnerScheduleContent() {
   const maxMonthStart = new Date(now.getFullYear(), now.getMonth() + 6, 1);
   const prevGlobalWeekDisabled = weekStart.getTime() <= bookingStartMonday.getTime();
   const nextGlobalWeekDisabled = addDays(weekStart, 7).getTime() >= maxMonthStart.getTime();
+  const prevGlobalMonthDisabled = monthIdx(monthDate) <= bookingStartIdx;
+  const nextGlobalMonthDisabled = monthIdx(monthDate) >= maxMonthIdx;
+  const monthLabelCap = `${SR_MONTHS[monthDate.getMonth()]} ${monthDate.getFullYear()}.`;
 
   function downloadSchedule() {
     const header = 'Radnik,Datum,Dan,Početak,Kraj,Pauza,Napomena';
@@ -588,6 +606,25 @@ function OwnerScheduleContent() {
               >
                 {t('schedule.thisMonth')}
               </button>
+              <div className="flex items-center gap-0.5">
+                <button
+                  onClick={prevGlobalMonth}
+                  disabled={prevGlobalMonthDisabled}
+                  className="p-1 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <span className="text-sm font-medium text-foreground whitespace-nowrap px-0.5">
+                  {monthLabelCap}
+                </span>
+                <button
+                  onClick={nextGlobalMonth}
+                  disabled={nextGlobalMonthDisabled}
+                  className="p-1 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             </>
           )}
         </div>
