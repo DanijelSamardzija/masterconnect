@@ -347,7 +347,7 @@ export function AiMatchModal({ open, onClose, postId, isPro, postType }: AiMatch
                           </span>
                           {p.average_rating != null && (
                             <>
-                              <span className="text-muted-foreground/40 mx-1">·</span>
+                              <span className="text-muted-foreground/70 mx-1">·</span>
                               <Star className="h-3 w-3 text-amber-400 shrink-0" />
                               <span className="text-[11px] text-muted-foreground">
                                 {p.average_rating.toFixed(1)}

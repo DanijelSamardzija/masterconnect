@@ -150,7 +150,7 @@ export default function StaffTimeOffPage() {
             </div>
           ) : !hasPermission ? (
             <div className="text-center py-12">
-              <CalendarOff className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+              <CalendarOff className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
               <p className="text-muted-foreground text-sm">{t('staffTimeOff.noPermission')}</p>
             </div>
           ) : (

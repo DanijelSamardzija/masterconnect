@@ -834,7 +834,7 @@ function OwnerBookingsContent() {
                         isSelected
                           ? 'bg-orange-500 text-white'
                           : isPast
-                          ? 'bg-muted/30 text-muted-foreground/40 cursor-default'
+                          ? 'bg-muted/40 text-muted-foreground/60 cursor-default'
                           : 'bg-muted text-foreground hover:bg-orange-100 dark:hover:bg-orange-950'
                       }`}
                     >

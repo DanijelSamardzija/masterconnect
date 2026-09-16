@@ -340,7 +340,7 @@ export default function MyBookingsPage() {
                           isSelected
                             ? 'bg-primary text-white'
                             : isPast
-                            ? 'bg-muted/30 text-muted-foreground/40 cursor-default'
+                            ? 'bg-muted/40 text-muted-foreground/60 cursor-default'
                             : 'bg-muted text-foreground hover:bg-primary/10'
                         }`}
                       >

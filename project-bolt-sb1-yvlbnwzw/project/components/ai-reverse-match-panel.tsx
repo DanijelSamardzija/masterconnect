@@ -186,7 +186,7 @@ export function AiReverseMatchPanel({ open, onClose }: AiReverseMatchPanelProps)
 
               {state.data.ranked_posts.length === 0 ? (
                 <div className="flex flex-col items-center gap-3 py-10">
-                  <Briefcase className="w-8 h-8 text-muted-foreground/40" />
+                  <Briefcase className="w-8 h-8 text-muted-foreground/60" />
                   <p className="text-sm text-muted-foreground text-center">{t('aiMatch.reverse.noResults')}</p>
                 </div>
               ) : (

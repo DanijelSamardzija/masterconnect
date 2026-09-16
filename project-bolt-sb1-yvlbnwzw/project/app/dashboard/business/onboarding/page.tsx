@@ -899,7 +899,7 @@ export default function BookingSetupWizardPage() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-xs text-muted-foreground/60">{t('bookingSetup.hours.closures.empty')}</p>
+                      <p className="text-xs text-muted-foreground/80">{t('bookingSetup.hours.closures.empty')}</p>
                     )}
 
                     {/* Force-confirm warning */}
@@ -1115,7 +1115,7 @@ export default function BookingSetupWizardPage() {
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-1.5">
                       <label className="text-sm font-medium">{t('setup.rules.confirmation')}</label>
-                      <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'confirmation' ? null : 'confirmation')} className="text-muted-foreground/60 hover:text-primary transition-colors">
+                      <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'confirmation' ? null : 'confirmation')} className="text-muted-foreground/80 hover:text-primary transition-colors">
                         <Info className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -1148,7 +1148,7 @@ export default function BookingSetupWizardPage() {
                   <div className="flex flex-col gap-1.5">
                     <div className="flex items-center gap-1.5">
                       <label className="text-sm font-medium">{t('setup.rules.slotInterval')}</label>
-                      <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'slot' ? null : 'slot')} className="text-muted-foreground/60 hover:text-primary transition-colors">
+                      <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'slot' ? null : 'slot')} className="text-muted-foreground/80 hover:text-primary transition-colors">
                         <Info className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -1171,7 +1171,7 @@ export default function BookingSetupWizardPage() {
                     <div className="flex flex-col gap-1.5 flex-1">
                       <div className="flex items-center gap-1.5">
                         <label className="text-xs font-medium text-muted-foreground">{t('setup.rules.cancellation')}</label>
-                        <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'cancel' ? null : 'cancel')} className="text-muted-foreground/60 hover:text-primary transition-colors">
+                        <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'cancel' ? null : 'cancel')} className="text-muted-foreground/80 hover:text-primary transition-colors">
                           <Info className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -1195,7 +1195,7 @@ export default function BookingSetupWizardPage() {
                     <div className="flex flex-col gap-1.5 flex-1">
                       <div className="flex items-center gap-1.5">
                         <label className="text-xs font-medium text-muted-foreground">{t('setup.rules.minNotice')}</label>
-                        <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'notice' ? null : 'notice')} className="text-muted-foreground/60 hover:text-primary transition-colors">
+                        <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'notice' ? null : 'notice')} className="text-muted-foreground/80 hover:text-primary transition-colors">
                           <Info className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -1222,7 +1222,7 @@ export default function BookingSetupWizardPage() {
                   <div className="flex flex-col gap-1.5">
                     <div className="flex items-center gap-1.5">
                       <label className="text-sm font-medium">{t('setup.rules.maxAdvance')}</label>
-                      <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'advance' ? null : 'advance')} className="text-muted-foreground/60 hover:text-primary transition-colors">
+                      <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'advance' ? null : 'advance')} className="text-muted-foreground/80 hover:text-primary transition-colors">
                         <Info className="w-3.5 h-3.5" />
                       </button>
                     </div>

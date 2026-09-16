@@ -285,7 +285,7 @@ export default function StaffHoursPage() {
             </div>
           ) : !hasPermission ? (
             <div className="text-center py-12">
-              <Clock className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+              <Clock className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
               <p className="text-muted-foreground text-sm">{t('staffHours.noPermission')}</p>
             </div>
           ) : !locationId ? (

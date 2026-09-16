@@ -242,7 +242,7 @@ export default function StaffBookingsPage() {
             </div>
           ) : displayed.length === 0 ? (
             <div className="bg-card border border-border rounded-2xl px-5 py-12 text-center">
-              <Calendar className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+              <Calendar className="w-10 h-10 text-muted-foreground/50 mx-auto mb-3" />
               <p className="text-muted-foreground text-sm">{emptyMsg}</p>
             </div>
           ) : (
@@ -283,7 +283,7 @@ export default function StaffBookingsPage() {
 
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <span className="font-medium text-foreground">{b.service_name}</span>
-                      <span className="text-muted-foreground/50">·</span>
+                      <span className="text-muted-foreground/70">·</span>
                       <Clock className="w-3 h-3 shrink-0" />
                       <span>{b.duration_minutes} min</span>
                     </div>

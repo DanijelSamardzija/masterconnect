@@ -2344,7 +2344,7 @@ export default function BusinessSetupPage() {
                   <div className="flex flex-col gap-1.5">
                     <div className="flex items-center gap-1.5">
                       <label className="text-sm font-medium">{t('setup.rules.confirmation')}</label>
-                      <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'confirmation' ? null : 'confirmation')} className="text-muted-foreground/60 hover:text-primary transition-colors">
+                      <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'confirmation' ? null : 'confirmation')} className="text-muted-foreground/80 hover:text-primary transition-colors">
                         <Info className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -2368,7 +2368,7 @@ export default function BusinessSetupPage() {
                     <div className="flex flex-col gap-1.5">
                       <div className="flex items-center gap-1.5">
                         <label className="text-sm font-medium">{t('setup.rules.maxAdvance')}</label>
-                        <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'advance' ? null : 'advance')} className="text-muted-foreground/60 hover:text-primary transition-colors">
+                        <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'advance' ? null : 'advance')} className="text-muted-foreground/80 hover:text-primary transition-colors">
                           <Info className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -2396,7 +2396,7 @@ export default function BusinessSetupPage() {
                     <div className="flex flex-col gap-1.5">
                       <div className="flex items-center gap-1.5">
                         <label className="text-sm font-medium">{t('setup.rules.minNotice')}</label>
-                        <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'notice' ? null : 'notice')} className="text-muted-foreground/60 hover:text-primary transition-colors">
+                        <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'notice' ? null : 'notice')} className="text-muted-foreground/80 hover:text-primary transition-colors">
                           <Info className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -2419,7 +2419,7 @@ export default function BusinessSetupPage() {
                     <div className="flex flex-col gap-1.5">
                       <div className="flex items-center gap-1.5">
                         <label className="text-sm font-medium">{t('setup.rules.cancellation')}</label>
-                        <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'cancel' ? null : 'cancel')} className="text-muted-foreground/60 hover:text-primary transition-colors">
+                        <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'cancel' ? null : 'cancel')} className="text-muted-foreground/80 hover:text-primary transition-colors">
                           <Info className="w-3.5 h-3.5" />
                         </button>
                       </div>

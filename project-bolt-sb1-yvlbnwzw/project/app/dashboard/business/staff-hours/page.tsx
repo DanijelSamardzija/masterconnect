@@ -327,7 +327,7 @@ function OwnerStaffHoursContent() {
               <button
                 type="button"
                 onClick={() => setInfoOpen(o => !o)}
-                className="text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+                className="text-muted-foreground/70 hover:text-muted-foreground transition-colors"
               >
                 <Info className="w-4 h-4" />
               </button>
@@ -345,7 +345,7 @@ function OwnerStaffHoursContent() {
         )}
 
         {/* Retention notice */}
-        <p className="text-[11px] text-muted-foreground/50 mb-4 pl-1">{t('ownerStaffHours.retention')}</p>
+        <p className="text-[11px] text-muted-foreground/80 mb-4 pl-1">{t('ownerStaffHours.retention')}</p>
 
         {loading ? (
           <div className="flex justify-center py-12">
@@ -353,7 +353,7 @@ function OwnerStaffHoursContent() {
           </div>
         ) : staffList.length === 0 ? (
           <div className="text-center py-12">
-            <Users className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+            <Users className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
             <p className="text-muted-foreground text-sm">{t('ownerStaffHours.noStaff')}</p>
           </div>
         ) : (

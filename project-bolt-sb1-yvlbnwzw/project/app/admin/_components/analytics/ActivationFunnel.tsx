@@ -39,7 +39,7 @@ export function ActivationFunnel({ steps }: Props) {
           <div key={step.key} className="flex items-center gap-3">
             {/* Label */}
             <div className="w-32 shrink-0">
-              <p className={`text-xs font-semibold leading-snug ${step.available ? 'text-foreground' : 'text-muted-foreground/60'}`}>
+              <p className={`text-xs font-semibold leading-snug ${step.available ? 'text-foreground' : 'text-muted-foreground/80'}`}>
                 {step.label}
               </p>
               <p className="text-[10px] text-muted-foreground leading-tight">{step.sublabel}</p>
@@ -54,8 +54,8 @@ export function ActivationFunnel({ steps }: Props) {
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center gap-1.5">
-                  <Lock className="h-3 w-3 text-muted-foreground/40" />
-                  <span className="text-[10px] text-muted-foreground/50">Dolazi uskoro</span>
+                  <Lock className="h-3 w-3 text-muted-foreground/60" />
+                  <span className="text-[10px] text-muted-foreground/80">Dolazi uskoro</span>
                 </div>
               )}
             </div>
@@ -76,7 +76,7 @@ export function ActivationFunnel({ steps }: Props) {
                   </>
                 )
               ) : (
-                <span className="text-xs text-muted-foreground/40">—</span>
+                <span className="text-xs text-muted-foreground/70">—</span>
               )}
             </div>
           </div>

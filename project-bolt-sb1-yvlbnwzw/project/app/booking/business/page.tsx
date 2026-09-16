@@ -274,7 +274,7 @@ function BusinessContent() {
                           <div className="absolute top-0.5 right-0.5 z-10">
                             <button
                               onClick={() => setActiveTooltip(activeTooltip === tooltipKey ? null : tooltipKey)}
-                              className="p-0.5 text-muted-foreground/30 hover:text-muted-foreground/70 transition-colors"
+                              className="p-0.5 text-muted-foreground/60 hover:text-muted-foreground transition-colors"
                             >
                               <Info className="h-2.5 w-2.5" />
                             </button>
@@ -318,7 +318,7 @@ function BusinessContent() {
                           {phone ? ` · ${phone}` : ''}
                         </p>
                         {b.notes?.trim() && (
-                          <p className="text-[11px] text-muted-foreground/60 italic truncate">{b.notes}</p>
+                          <p className="text-[11px] text-muted-foreground/80 italic truncate">{b.notes}</p>
                         )}
                       </div>
                       <button

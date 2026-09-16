@@ -481,7 +481,7 @@ export default function BookingSlotPickerPage() {
               const isPast = weekStart(day) < todayStr;
               return (
                 <div key={dayKey} className="flex flex-col gap-1">
-                  <div className={`text-center text-xs font-medium pb-1 ${isPast ? 'text-muted-foreground/40' : 'text-muted-foreground'}`}>
+                  <div className={`text-center text-xs font-medium pb-1 ${isPast ? 'text-muted-foreground/60' : 'text-muted-foreground'}`}>
                     <div>{dayLabel}</div>
                     <div>{day.getDate()}</div>
                   </div>

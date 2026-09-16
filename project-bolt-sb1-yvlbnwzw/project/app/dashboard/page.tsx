@@ -664,7 +664,7 @@ function DashboardContent() {
                 </>
               ) : (
                 <>
-                  <p className="text-3xl font-bold text-muted-foreground/30">—</p>
+                  <p className="text-3xl font-bold text-muted-foreground/60">—</p>
                   <p className="text-xs text-muted-foreground">{t('dashboard.noReviewsYet')}</p>
                 </>
               )}
@@ -710,7 +710,7 @@ function DashboardContent() {
               </>
             ) : (
               <>
-                <p className="text-3xl font-bold text-muted-foreground/30">—</p>
+                <p className="text-3xl font-bold text-muted-foreground/60">—</p>
                 <p className="text-xs text-muted-foreground">{t('dashboard.noReviewsYet')}</p>
               </>
             )}

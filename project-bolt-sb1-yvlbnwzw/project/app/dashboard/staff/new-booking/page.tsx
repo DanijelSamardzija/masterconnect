@@ -190,7 +190,7 @@ export default function StaffNewBookingPage() {
             </div>
           ) : !hasPermission ? (
             <div className="text-center py-12">
-              <Plus className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+              <Plus className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
               <p className="text-muted-foreground text-sm">{t('staffBooking.noPermission')}</p>
             </div>
           ) : services.length === 0 ? (

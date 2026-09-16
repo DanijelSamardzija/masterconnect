@@ -308,7 +308,7 @@ function StaffScheduleContent() {
                       if (!shift) {
                         cellCls = 'bg-muted/20';
                         cellContent = (
-                          <span className="text-[10px] text-muted-foreground/60 leading-tight">
+                          <span className="text-[10px] text-muted-foreground/80 leading-tight">
                             {t('schedule.staffView.regular')}
                           </span>
                         );

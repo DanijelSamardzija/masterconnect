@@ -25,7 +25,7 @@ export function AnalyticsCard({ icon: Icon, value, label, color, tooltip }: Prop
           <button
             type="button"
             onClick={() => setTipOpen(v => !v)}
-            className="text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+            className="text-muted-foreground/70 hover:text-muted-foreground transition-colors"
             aria-label="Više informacija"
           >
             <Info className="h-3.5 w-3.5" />
