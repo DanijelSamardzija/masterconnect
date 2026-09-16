@@ -207,7 +207,7 @@ export default function AbsencesPage() {
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">
             <button
-              onClick={() => router.push('/booking/business')}
+              onClick={() => router.back()}
               className="p-1.5 rounded-xl hover:bg-accent transition-colors text-muted-foreground"
             >
               <ChevronLeft className="w-5 h-5" />
