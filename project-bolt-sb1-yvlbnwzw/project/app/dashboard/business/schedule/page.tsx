@@ -556,28 +556,26 @@ function OwnerScheduleContent() {
           <div className="flex justify-center py-16">
             <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
-        ) : staffRows.length === 0 ? (
+        ) : staffAccept.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-muted-foreground text-sm">{t('schedule.noStaff')}</p>
           </div>
         ) : (
           /* ── PER-STAFF SCROLLABLE CARDS (week + month) ── */
           <div className="space-y-3">
-            {[...staffRows]
+            {[...staffAccept]
               .sort((a, b) => {
                 const order: Record<string, number> = { owner: 0, manager: 1, worker: 2 };
-                const ra = staffAccept.find(s => s.id === a.staff_member_id)?.role ?? 'worker';
-                const rb = staffAccept.find(s => s.id === b.staff_member_id)?.role ?? 'worker';
-                return (order[ra] ?? 2) - (order[rb] ?? 2);
+                return (order[a.role] ?? 2) - (order[b.role] ?? 2);
               })
-              .map((staff) => {
+              .map((sa) => {
                 const days = viewMode === 'week' ? weekDays : monthDays;
-                const isOwnerStaff = staffAccept.find(s => s.id === staff.staff_member_id)?.role === 'owner';
+                const isOwnerStaff = sa.role === 'owner';
                 return (
-                  <div key={staff.staff_member_id} className="rounded-xl border border-border overflow-hidden">
+                  <div key={sa.id} className="rounded-xl border border-border overflow-hidden">
                     {/* Staff name header */}
                     <div className="px-3 py-2 bg-muted/30 border-b border-border flex items-center gap-1.5">
-                      <span className="text-sm font-semibold text-foreground">{staff.staff_name}</span>
+                      <span className="text-sm font-semibold text-foreground">{sa.name}</span>
                       {isOwnerStaff && (
                         <span className="text-[10px] text-muted-foreground font-normal">(vlasnik)</span>
                       )}
@@ -594,8 +592,7 @@ function OwnerScheduleContent() {
                               if (viewMode === 'week') {
                                 return (
                                   <th key={i} className={`px-2 py-2 text-center text-xs font-semibold border-b border-border ${i > 0 ? 'border-l' : ''} ${today ? 'text-primary bg-primary/5' : 'text-muted-foreground'}`}>
-                                    <div>{t(DOW_KEYS[i])}</div>
-                                    <div className={`text-[10px] font-normal ${today ? 'text-primary' : 'text-muted-foreground/60'}`}>{fmtDay(day)}</div>
+                                    {t(DOW_KEYS[i])} <span className={`text-[10px] font-normal ${today ? 'text-primary' : 'text-muted-foreground/60'}`}>{fmtDay(day)}</span>
                                   </th>
                                 );
                               } else {
@@ -613,7 +610,7 @@ function OwnerScheduleContent() {
                           <tr>
                             {days.map((day, di) => {
                               const dateStr = isoDate(day);
-                              const shift = getShift(staff.staff_member_id, dateStr);
+                              const shift = getShift(sa.id, dateStr);
                               const today = isToday(day);
                               const dow = day.getDay();
                               const isWeekend = dow === 0 || dow === 6;
@@ -647,7 +644,7 @@ function OwnerScheduleContent() {
                                   cellCls = isOverride ? 'bg-green-50 dark:bg-green-950/20' : 'bg-green-50/40 dark:bg-green-950/10';
                                 }
                                 return (
-                                  <td key={di} className={`px-2 py-3 text-center ${di > 0 ? 'border-l' : ''} border-border cursor-pointer hover:bg-accent/60 transition-colors ${cellCls}`} onClick={() => openEdit(staff.staff_member_id, staff.staff_name, dateStr)}>
+                                  <td key={di} className={`px-2 py-3 text-center ${di > 0 ? 'border-l' : ''} border-border cursor-pointer hover:bg-accent/60 transition-colors ${cellCls}`} onClick={() => openEdit(sa.id, sa.name, dateStr)}>
                                     {cellContent}
                                   </td>
                                 );
@@ -670,7 +667,7 @@ function OwnerScheduleContent() {
                                   cellCls = isOverride ? 'bg-green-50 dark:bg-green-950/20' : 'bg-green-50/30 dark:bg-green-950/10';
                                 }
                                 return (
-                                  <td key={di} className={`px-0 py-2 text-center border-l border-border cursor-pointer hover:bg-accent/60 transition-colors ${cellCls}`} style={{ width: '38px' }} onClick={() => openEdit(staff.staff_member_id, staff.staff_name, dateStr)}>
+                                  <td key={di} className={`px-0 py-2 text-center border-l border-border cursor-pointer hover:bg-accent/60 transition-colors ${cellCls}`} style={{ width: '38px' }} onClick={() => openEdit(sa.id, sa.name, dateStr)}>
                                     {cellContent}
                                   </td>
                                 );
@@ -687,7 +684,7 @@ function OwnerScheduleContent() {
         )}
 
         {/* Legend */}
-        {!loading && staffRows.length > 0 && (
+        {!loading && staffAccept.length > 0 && (
           <div className="flex flex-wrap items-center gap-4 mt-3 px-1">
             <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
               <span className="w-3 h-3 rounded-sm bg-green-100 dark:bg-green-950/40 border border-green-300 dark:border-green-800 inline-block" />
