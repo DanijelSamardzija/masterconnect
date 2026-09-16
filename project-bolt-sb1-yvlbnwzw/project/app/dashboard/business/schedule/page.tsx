@@ -290,8 +290,12 @@ function OwnerScheduleContent() {
 
   const monthDays = viewMode === 'month' ? getMonthDays(monthDate) : [];
 
-  const monthLabel = monthDate.toLocaleDateString('sr-RS', { month: 'long', year: 'numeric' });
-  const monthLabelCap = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
+  const SR_MONTHS = ['Januar','Februar','Mart','April','Maj','Jun','Jul','Avgust','Septembar','Oktobar','Novembar','Decembar'];
+  const monthLabelCap = `${SR_MONTHS[monthDate.getMonth()]} ${monthDate.getFullYear()}.`;
+
+  function fmtDay(d: Date) {
+    return `${d.getDate()}.${d.getMonth() + 1}.`;
+  }
 
   // Navigation limits: Sep 2026 → current month + 6
   const bookingStartIdx = BOOKING_START_YEAR * 12 + BOOKING_START_MONTH;
@@ -454,9 +458,7 @@ function OwnerScheduleContent() {
                 {t('schedule.thisWeek')}
               </button>
               <span className="flex-1 text-center text-sm font-medium text-foreground">
-                {weekDays[0].toLocaleDateString('sr-RS', { day: 'numeric', month: 'short' })}
-                {' – '}
-                {weekDays[6].toLocaleDateString('sr-RS', { day: 'numeric', month: 'short', year: 'numeric' })}
+                {fmtDay(weekDays[0])} – {fmtDay(weekDays[6])} {weekDays[6].getFullYear()}.
               </span>
               <button
                 onClick={nextWeek}
