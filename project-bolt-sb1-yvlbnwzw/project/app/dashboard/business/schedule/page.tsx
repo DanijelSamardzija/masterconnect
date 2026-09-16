@@ -683,11 +683,11 @@ function OwnerScheduleContent() {
                     )}
                     {/* Scrollable date grid — name is first column */}
                     <div className="overflow-x-auto">
-                      <table className="border-collapse" style={{ minWidth: viewMode === 'week' ? '520px' : `${80 + days.length * 38}px` }}>
+                      <table className="border-collapse" style={{ minWidth: viewMode === 'week' ? '560px' : `${92 + days.length * 44}px` }}>
                         <thead>
                           <tr className="bg-muted/20">
                             {/* Name column header — empty */}
-                            <th className="border-b border-border border-r w-[80px] min-w-[80px]" />
+                            <th className="border-b border-border border-r w-[92px] min-w-[92px]" />
                             {days.map((day, i) => {
                               const today = isToday(day);
                               const dow = day.getDay();
@@ -695,14 +695,14 @@ function OwnerScheduleContent() {
                               if (viewMode === 'week') {
                                 return (
                                   <th key={i} className={`px-2 py-2 text-center text-xs font-semibold border-b border-border border-l ${today ? 'text-primary bg-primary/5' : 'text-muted-foreground'} whitespace-nowrap`}>
-                                    {t(DOW_KEYS[i])} <span className={`text-[10px] font-normal ${today ? 'text-primary' : 'text-muted-foreground/60'}`}>{fmtDay(day)}</span>
+                                    {t(DOW_KEYS[i])} <span className={`text-xs font-normal ${today ? 'text-primary' : 'text-muted-foreground/60'}`}>{fmtDay(day)}</span>
                                   </th>
                                 );
                               } else {
                                 return (
-                                  <th key={i} className={`px-0 py-2 text-center border-b border-border border-l w-[38px] min-w-[38px] ${today ? 'text-primary bg-primary/5' : isWeekend ? 'text-muted-foreground/50 bg-muted/20' : 'text-muted-foreground'}`}>
-                                    <div className="text-[10px] font-semibold leading-tight">{day.getDate()}</div>
-                                    <div className="text-[8px] font-normal leading-tight opacity-70">{['N','P','U','S','Č','P','S'][dow]}</div>
+                                  <th key={i} className={`px-0 py-2 text-center border-b border-border border-l w-[44px] min-w-[44px] ${today ? 'text-primary bg-primary/5' : isWeekend ? 'text-muted-foreground/50 bg-muted/20' : 'text-muted-foreground'}`}>
+                                    <div className="text-xs font-semibold leading-tight">{day.getDate()}</div>
+                                    <div className="text-[10px] font-normal leading-tight opacity-70">{['N','P','U','S','Č','P','S'][dow]}</div>
                                   </th>
                                 );
                               }
@@ -718,9 +718,9 @@ function OwnerScheduleContent() {
                               const last = parts.slice(1).join(' ');
                               return (
                                 <td className="px-2 py-3 border-r border-border align-middle bg-muted/10">
-                                  <div className="text-[11px] font-semibold text-foreground leading-tight whitespace-nowrap">{first}</div>
-                                  {last && <div className="text-[11px] text-muted-foreground leading-tight whitespace-nowrap">{last}</div>}
-                                  {isOwnerStaff && <div className="text-[9px] text-muted-foreground/50 leading-tight mt-0.5">vlasnik</div>}
+                                  <div className="text-xs font-semibold text-foreground leading-tight whitespace-nowrap">{first}</div>
+                                  {last && <div className="text-xs text-muted-foreground leading-tight whitespace-nowrap">{last}</div>}
+                                  {isOwnerStaff && <div className="text-[11px] text-muted-foreground/50 leading-tight mt-0.5">vlasnik</div>}
                                 </td>
                               );
                             })()}
@@ -738,10 +738,10 @@ function OwnerScheduleContent() {
                                   const isOverride = shift?.is_override ?? false;
                                   cellContent = (
                                     <div className="flex flex-col items-center gap-0.5">
-                                      <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${isOverride ? 'text-muted-foreground bg-muted' : 'text-muted-foreground/60 bg-muted/40 border border-dashed border-border'}`}>
+                                      <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${isOverride ? 'text-muted-foreground bg-muted' : 'text-muted-foreground/60 bg-muted/40 border border-dashed border-border'}`}>
                                         {t('schedule.dayOff')}
                                       </span>
-                                      {!isOverride && <span className="text-[8px] text-muted-foreground/50">{t('schedule.defaultShort')}</span>}
+                                      {!isOverride && <span className="text-[10px] text-muted-foreground/50">{t('schedule.defaultShort')}</span>}
                                     </div>
                                   );
                                   cellCls = isOverride ? 'bg-muted/20' : (today ? 'bg-primary/3' : '');
@@ -749,12 +749,12 @@ function OwnerScheduleContent() {
                                   const isOverride = shift.is_override;
                                   cellContent = (
                                     <div className="flex flex-col items-center gap-0.5">
-                                      <span className={`text-[10px] font-semibold ${isOverride ? 'text-green-700 dark:text-green-400' : 'text-green-600/70 dark:text-green-500/70'}`}>{shift.start_time?.slice(0, 5)}</span>
-                                      <span className="text-[9px] text-muted-foreground">–</span>
-                                      <span className={`text-[10px] font-semibold ${isOverride ? 'text-green-700 dark:text-green-400' : 'text-green-600/70 dark:text-green-500/70'}`}>{shift.end_time?.slice(0, 5)}</span>
-                                      {!isOverride && <span className="text-[8px] text-muted-foreground/50">{t('schedule.defaultShort')}</span>}
-                                      {shift.break_start && shift.break_end && <span className="text-[8px] text-orange-500 font-medium leading-tight mt-0.5">☕ {shift.break_start.slice(0,5)}–{shift.break_end.slice(0,5)}</span>}
-                                      {shift.notes && <span className="text-[8px] text-muted-foreground leading-tight" title={shift.notes}>📝</span>}
+                                      <span className={`text-xs font-semibold ${isOverride ? 'text-green-700 dark:text-green-400' : 'text-green-600/70 dark:text-green-500/70'}`}>{shift.start_time?.slice(0, 5)}</span>
+                                      <span className="text-[10px] text-muted-foreground">–</span>
+                                      <span className={`text-xs font-semibold ${isOverride ? 'text-green-700 dark:text-green-400' : 'text-green-600/70 dark:text-green-500/70'}`}>{shift.end_time?.slice(0, 5)}</span>
+                                      {!isOverride && <span className="text-[10px] text-muted-foreground/50">{t('schedule.defaultShort')}</span>}
+                                      {shift.break_start && shift.break_end && <span className="text-[10px] text-orange-500 font-medium leading-tight mt-0.5">☕ {shift.break_start.slice(0,5)}–{shift.break_end.slice(0,5)}</span>}
+                                      {shift.notes && <span className="text-[10px] text-muted-foreground leading-tight" title={shift.notes}>📝</span>}
                                     </div>
                                   );
                                   cellCls = isOverride ? 'bg-green-50 dark:bg-green-950/20' : 'bg-green-50/40 dark:bg-green-950/10';
@@ -766,24 +766,24 @@ function OwnerScheduleContent() {
                                 );
                               } else {
                                 if (!shift) {
-                                  cellContent = <span className="text-[9px] text-muted-foreground/30">—</span>;
+                                  cellContent = <span className="text-xs text-muted-foreground/30">—</span>;
                                   cellCls = isWeekend ? 'bg-muted/10' : (today ? 'bg-primary/3' : '');
                                 } else if (shift.is_off) {
-                                  cellContent = <span className={`text-[9px] font-medium px-1 py-0.5 rounded ${shift.is_override ? 'bg-muted text-muted-foreground' : 'text-muted-foreground/40'}`}>✕</span>;
+                                  cellContent = <span className={`text-xs font-medium px-1 py-0.5 rounded ${shift.is_override ? 'bg-muted text-muted-foreground' : 'text-muted-foreground/40'}`}>✕</span>;
                                   cellCls = shift.is_override ? 'bg-muted/20' : (isWeekend ? 'bg-muted/10' : '');
                                 } else {
                                   const isOverride = shift.is_override;
                                   cellContent = (
                                     <div className="flex flex-col items-center leading-tight">
-                                      <span className={`text-[9px] font-semibold ${isOverride ? 'text-green-700 dark:text-green-400' : 'text-green-600/60 dark:text-green-500/60'}`}>{shift.start_time?.slice(0,5)}</span>
-                                      {shift.break_start && <span className="text-[7px] text-orange-400">☕</span>}
-                                      {shift.notes && <span className="text-[7px] text-muted-foreground">📝</span>}
+                                      <span className={`text-xs font-semibold ${isOverride ? 'text-green-700 dark:text-green-400' : 'text-green-600/60 dark:text-green-500/60'}`}>{shift.start_time?.slice(0,5)}</span>
+                                      {shift.break_start && <span className="text-[9px] text-orange-400">☕</span>}
+                                      {shift.notes && <span className="text-[9px] text-muted-foreground">📝</span>}
                                     </div>
                                   );
                                   cellCls = isOverride ? 'bg-green-50 dark:bg-green-950/20' : 'bg-green-50/30 dark:bg-green-950/10';
                                 }
                                 return (
-                                  <td key={di} className={`px-0 py-2 text-center border-l border-border cursor-pointer hover:bg-accent/60 transition-colors ${cellCls}`} style={{ width: '38px' }} onClick={() => openEdit(sa.id, sa.name, dateStr)}>
+                                  <td key={di} className={`px-0 py-2 text-center border-l border-border cursor-pointer hover:bg-accent/60 transition-colors ${cellCls}`} style={{ width: '44px' }} onClick={() => openEdit(sa.id, sa.name, dateStr)}>
                                     {cellContent}
                                   </td>
                                 );
