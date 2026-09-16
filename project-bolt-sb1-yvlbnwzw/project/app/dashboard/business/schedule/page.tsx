@@ -113,6 +113,8 @@ function OwnerScheduleContent() {
   const [loading, setLoading] = useState(true);
   const [cardWeeks, setCardWeeks] = useState<Record<string, Date>>({});
   const [cardShifts, setCardShifts] = useState<Record<string, ShiftRow[]>>({});
+  const [cardMonths, setCardMonths] = useState<Record<string, Date>>({});
+  const [cardMonthShifts, setCardMonthShifts] = useState<Record<string, ShiftRow[]>>({});
   const [isOwner, setIsOwner] = useState(false);
   const [copying, setCopying] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
@@ -207,6 +209,39 @@ function OwnerScheduleContent() {
     loadShifts(ws);
   }
 
+  async function loadCardMonthShifts(staffId: string, month: Date): Promise<ShiftRow[]> {
+    const weeks = getMonthWeeks(month);
+    const results = await Promise.all(
+      weeks.map(ws => (supabase as any).rpc('owner_get_week_shifts', { p_week_start: isoDate(ws) }))
+    );
+    const [year, mo] = [month.getFullYear(), month.getMonth()];
+    const shifts: ShiftRow[] = [];
+    for (const { data } of results) {
+      if (!Array.isArray(data)) continue;
+      const found = (data as StaffRow[]).find(r => r.staff_member_id === staffId);
+      if (found) {
+        shifts.push(...found.shifts.filter(s => {
+          const d = new Date(s.shift_date + 'T00:00:00');
+          return d.getFullYear() === year && d.getMonth() === mo;
+        }));
+      }
+    }
+    return shifts;
+  }
+
+  async function navCardMonth(staffId: string, delta: number) {
+    const current = cardMonths[staffId] ?? monthDate;
+    const newMonth = new Date(current.getFullYear(), current.getMonth() + delta, 1);
+    const navMinIdx = BOOKING_START_YEAR * 12 + BOOKING_START_MONTH;
+    const n = new Date();
+    const navMaxIdx = n.getFullYear() * 12 + n.getMonth() + 6;
+    if (monthIdx(newMonth) < navMinIdx) return;
+    if (monthIdx(newMonth) > navMaxIdx) return;
+    setCardMonths(prev => ({ ...prev, [staffId]: newMonth }));
+    const shifts = await loadCardMonthShifts(staffId, newMonth);
+    setCardMonthShifts(prev => ({ ...prev, [staffId]: shifts }));
+  }
+
   async function navCard(staffId: string, delta: number) {
     const current = cardWeeks[staffId] ?? weekStart;
     const newWeek = addDays(current, delta * 7);
@@ -223,20 +258,12 @@ function OwnerScheduleContent() {
     }
   }
 
-  function prevMonth() {
-    const md = new Date(monthDate.getFullYear(), monthDate.getMonth() - 1, 1);
-    setMonthDate(md);
-    loadMonthShifts(md);
-  }
-  function nextMonth() {
-    const md = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 1);
-    setMonthDate(md);
-    loadMonthShifts(md);
-  }
   function goThisMonth() {
     const n = new Date();
     const md = new Date(n.getFullYear(), n.getMonth(), 1);
     setMonthDate(md);
+    setCardMonths({});
+    setCardMonthShifts({});
     loadMonthShifts(md);
   }
 
@@ -247,8 +274,11 @@ function OwnerScheduleContent() {
   }
 
   function getShift(staffId: string, date: string): ShiftRow | null {
-    if (cardShifts[staffId] !== undefined) {
+    if (viewMode === 'week' && cardShifts[staffId] !== undefined) {
       return cardShifts[staffId].find(s => s.shift_date === date) ?? null;
+    }
+    if (viewMode === 'month' && cardMonthShifts[staffId] !== undefined) {
+      return cardMonthShifts[staffId].find(s => s.shift_date === date) ?? null;
     }
     const row = staffRows.find(r => r.staff_member_id === staffId);
     return row?.shifts.find(s => s.shift_date === date) ?? null;
@@ -305,7 +335,12 @@ function OwnerScheduleContent() {
       const savedStaffId = edit.staffId;
       setEdit(null);
       if (viewMode === 'month') {
-        await loadMonthShifts(monthDate);
+        if (cardMonths[savedStaffId] !== undefined) {
+          const shifts = await loadCardMonthShifts(savedStaffId, cardMonths[savedStaffId]);
+          setCardMonthShifts(prev => ({ ...prev, [savedStaffId]: shifts }));
+        } else {
+          await loadMonthShifts(monthDate);
+        }
       } else if (cardWeeks[savedStaffId]) {
         const cw = cardWeeks[savedStaffId];
         const { data } = await (supabase as any).rpc('owner_get_week_shifts', { p_week_start: isoDate(cw) });
@@ -355,7 +390,6 @@ function OwnerScheduleContent() {
   const monthDays = viewMode === 'month' ? getMonthDays(monthDate) : [];
 
   const SR_MONTHS = ['Januar','Februar','Mart','April','Maj','Jun','Jul','Avgust','Septembar','Oktobar','Novembar','Decembar'];
-  const monthLabelCap = `${SR_MONTHS[monthDate.getMonth()]} ${monthDate.getFullYear()}.`;
 
   function fmtDay(d: Date) {
     return `${d.getDate()}.${d.getMonth() + 1}.`;
@@ -367,11 +401,6 @@ function OwnerScheduleContent() {
   const maxMonthIdx = now.getFullYear() * 12 + now.getMonth() + 6;
   const bookingStartMonday = getMondayOf(new Date(BOOKING_START_YEAR, BOOKING_START_MONTH, 1));
   const maxMonthStart = new Date(now.getFullYear(), now.getMonth() + 6, 1);
-
-  const prevWeekDisabled = weekStart.getTime() <= bookingStartMonday.getTime();
-  const nextWeekDisabled = addDays(weekStart, 7).getTime() >= maxMonthStart.getTime();
-  const prevMonthDisabled = monthIdx(monthDate) <= bookingStartIdx;
-  const nextMonthDisabled = monthIdx(monthDate) >= maxMonthIdx;
 
   function downloadSchedule() {
     const header = 'Radnik,Datum,Dan,Početak,Kraj,Pauza,Napomena';
@@ -523,25 +552,6 @@ function OwnerScheduleContent() {
               >
                 {t('schedule.thisMonth')}
               </button>
-              <div className="flex items-center gap-0.5">
-                <button
-                  onClick={prevMonth}
-                  disabled={prevMonthDisabled}
-                  className="p-1 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <span className="text-sm font-medium text-foreground whitespace-nowrap px-0.5">
-                  {monthLabelCap}
-                </span>
-                <button
-                  onClick={nextMonth}
-                  disabled={nextMonthDisabled}
-                  className="p-1 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
             </>
           )}
         </div>
@@ -590,30 +600,39 @@ function OwnerScheduleContent() {
               .map((sa) => {
                 const effectiveWeek = cardWeeks[sa.id] ?? weekStart;
                 const effectiveWeekDays = Array.from({ length: 7 }, (_, i) => addDays(effectiveWeek, i));
-                const days = viewMode === 'week' ? effectiveWeekDays : monthDays;
+                const effectiveMonth = cardMonths[sa.id] ?? monthDate;
+                const effectiveMonthDays = viewMode === 'month' ? getMonthDays(effectiveMonth) : [];
+                const effectiveMonthLabel = `${SR_MONTHS[effectiveMonth.getMonth()]} ${effectiveMonth.getFullYear()}.`;
+                const days = viewMode === 'week' ? effectiveWeekDays : effectiveMonthDays;
                 const isOwnerStaff = sa.role === 'owner';
                 const cardPrevDisabled = effectiveWeek.getTime() <= bookingStartMonday.getTime();
                 const cardNextDisabled = addDays(effectiveWeek, 7).getTime() >= maxMonthStart.getTime();
+                const cardMonthPrevDisabled = monthIdx(effectiveMonth) <= bookingStartIdx;
+                const cardMonthNextDisabled = monthIdx(effectiveMonth) >= maxMonthIdx;
                 return (
                   <div key={sa.id} className="rounded-xl border border-border overflow-hidden">
-                    {/* Per-card week navigation (week view only) */}
-                    {viewMode === 'week' && (
+                    {/* Per-card navigation: week arrows or month arrows */}
+                    {viewMode === 'week' ? (
                       <div className="flex items-center gap-1 px-2 py-1.5 bg-muted/20 border-b border-border">
-                        <button
-                          onClick={() => navCard(sa.id, -1)}
-                          disabled={cardPrevDisabled}
-                          className="p-0.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground"
-                        >
+                        <button onClick={() => navCard(sa.id, -1)} disabled={cardPrevDisabled} className="p-0.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
                           <ChevronLeft className="w-3.5 h-3.5" />
                         </button>
                         <span className="text-xs font-medium text-foreground px-0.5 whitespace-nowrap">
                           {fmtDay(effectiveWeekDays[0])} – {fmtDay(effectiveWeekDays[6])} {effectiveWeekDays[6].getFullYear()}.
                         </span>
-                        <button
-                          onClick={() => navCard(sa.id, 1)}
-                          disabled={cardNextDisabled}
-                          className="p-0.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground"
-                        >
+                        <button onClick={() => navCard(sa.id, 1)} disabled={cardNextDisabled} className="p-0.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1 px-2 py-1.5 bg-muted/20 border-b border-border">
+                        <button onClick={() => navCardMonth(sa.id, -1)} disabled={cardMonthPrevDisabled} className="p-0.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
+                          <ChevronLeft className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="text-xs font-medium text-foreground px-0.5 whitespace-nowrap">
+                          {effectiveMonthLabel}
+                        </span>
+                        <button onClick={() => navCardMonth(sa.id, 1)} disabled={cardMonthNextDisabled} className="p-0.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
                           <ChevronRight className="w-3.5 h-3.5" />
                         </button>
                       </div>
