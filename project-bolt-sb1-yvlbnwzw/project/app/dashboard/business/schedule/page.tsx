@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
-import { ChevronLeft, ChevronRight, Copy, X, Info } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Copy, X, Info, Download } from 'lucide-react';
 
 type ShiftRow = {
   shift_date: string;
@@ -38,6 +38,12 @@ type EditState = {
   breakStart: string;
   breakEnd: string;
 };
+
+// Booking system start — navigation cannot go before this month
+const BOOKING_START_YEAR = 2026;
+const BOOKING_START_MONTH = 8; // September (0-indexed)
+
+function monthIdx(d: Date) { return d.getFullYear() * 12 + d.getMonth(); }
 
 const DOW_KEYS = [
   'schedule.day.short.1',
@@ -287,6 +293,58 @@ function OwnerScheduleContent() {
   const monthLabel = monthDate.toLocaleDateString('sr-RS', { month: 'long', year: 'numeric' });
   const monthLabelCap = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
 
+  // Navigation limits: Sep 2026 → current month + 6
+  const bookingStartIdx = BOOKING_START_YEAR * 12 + BOOKING_START_MONTH;
+  const now = new Date();
+  const maxMonthIdx = now.getFullYear() * 12 + now.getMonth() + 6;
+  const bookingStartMonday = getMondayOf(new Date(BOOKING_START_YEAR, BOOKING_START_MONTH, 1));
+  const maxMonthStart = new Date(now.getFullYear(), now.getMonth() + 6, 1);
+
+  const prevWeekDisabled = weekStart.getTime() <= bookingStartMonday.getTime();
+  const nextWeekDisabled = addDays(weekStart, 7).getTime() >= maxMonthStart.getTime();
+  const prevMonthDisabled = monthIdx(monthDate) <= bookingStartIdx;
+  const nextMonthDisabled = monthIdx(monthDate) >= maxMonthIdx;
+
+  function downloadSchedule() {
+    const header = 'Radnik,Datum,Dan,Početak,Kraj,Pauza,Napomena';
+    const days = viewMode === 'week' ? weekDays : monthDays;
+    const csvRows = [header];
+
+    for (const staff of staffRows) {
+      for (const day of days) {
+        const dateStr = isoDate(day);
+        const shift = getShift(staff.staff_member_id, dateStr);
+        const dayName = day.toLocaleDateString('sr-RS', { weekday: 'short' });
+        let start = 'redovni';
+        let end = '';
+        let breakCol = '';
+        let notes = '';
+        if (shift?.is_off) {
+          start = 'slobodan';
+        } else if (shift && !shift.is_off) {
+          start  = shift.start_time?.slice(0, 5) || '';
+          end    = shift.end_time?.slice(0, 5)   || '';
+          breakCol = (shift.break_start && shift.break_end)
+            ? `${shift.break_start.slice(0, 5)}-${shift.break_end.slice(0, 5)}`
+            : '';
+          notes = shift.notes || '';
+        }
+        csvRows.push(`"${staff.staff_name}","${dateStr}","${dayName}","${start}","${end}","${breakCol}","${notes}"`);
+      }
+    }
+
+    const csv = '﻿' + csvRows.join('\n'); // BOM → Excel opens UTF-8 correctly
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = viewMode === 'week'
+      ? `raspored-${isoDate(weekDays[0])}_${isoDate(weekDays[6])}.csv`
+      : `raspored-${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   if (!isOwner && !loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -320,17 +378,29 @@ function OwnerScheduleContent() {
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">{t('schedule.subtitle')}</p>
           </div>
-          {viewMode === 'week' && (
-            <button
-              onClick={handleCopyWeek}
-              disabled={copying}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground border border-border rounded-lg px-2.5 py-1.5 transition-colors disabled:opacity-50"
-              title={t('schedule.copyWeek')}
-            >
-              <Copy className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">{t('schedule.copyWeek')}</span>
-            </button>
-          )}
+          <div className="flex items-center gap-1.5">
+            {viewMode === 'week' && (
+              <button
+                onClick={handleCopyWeek}
+                disabled={copying}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground border border-border rounded-lg px-2.5 py-1.5 transition-colors disabled:opacity-50"
+                title={t('schedule.copyWeek')}
+              >
+                <Copy className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">{t('schedule.copyWeek')}</span>
+              </button>
+            )}
+            {!loading && staffRows.length > 0 && (
+              <button
+                onClick={downloadSchedule}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground border border-border rounded-lg px-2.5 py-1.5 transition-colors"
+                title={t('schedule.download')}
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">{t('schedule.download')}</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Info panel */}
@@ -372,7 +442,8 @@ function OwnerScheduleContent() {
             <>
               <button
                 onClick={prevWeek}
-                className="p-1.5 rounded-lg border border-border hover:bg-accent transition-colors"
+                disabled={prevWeekDisabled}
+                className="p-1.5 rounded-lg border border-border hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -389,7 +460,8 @@ function OwnerScheduleContent() {
               </span>
               <button
                 onClick={nextWeek}
-                className="p-1.5 rounded-lg border border-border hover:bg-accent transition-colors"
+                disabled={nextWeekDisabled}
+                className="p-1.5 rounded-lg border border-border hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -398,7 +470,8 @@ function OwnerScheduleContent() {
             <>
               <button
                 onClick={prevMonth}
-                className="p-1.5 rounded-lg border border-border hover:bg-accent transition-colors"
+                disabled={prevMonthDisabled}
+                className="p-1.5 rounded-lg border border-border hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -413,7 +486,8 @@ function OwnerScheduleContent() {
               </span>
               <button
                 onClick={nextMonth}
-                className="p-1.5 rounded-lg border border-border hover:bg-accent transition-colors"
+                disabled={nextMonthDisabled}
+                className="p-1.5 rounded-lg border border-border hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>

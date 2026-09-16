@@ -2787,6 +2787,7 @@ export default {
   'schedule.breakStart': 'Pausenbeginn',
   'schedule.breakEnd': 'Pausenende',
   'schedule.addBreak': 'Pause hinzufügen',
+  'schedule.download': 'CSV herunterladen',
   'schedule.viewWeek': 'Woche',
   'schedule.viewMonth': 'Monat',
   'schedule.thisMonth': 'Dieser Monat',

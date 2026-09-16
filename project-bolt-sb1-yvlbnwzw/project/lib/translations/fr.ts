@@ -2727,6 +2727,7 @@ export default {
   'schedule.breakStart': 'Début de la pause',
   'schedule.breakEnd': 'Fin de la pause',
   'schedule.addBreak': 'Ajouter une pause',
+  'schedule.download': 'Télécharger CSV',
   'schedule.viewWeek': 'Semaine',
   'schedule.viewMonth': 'Mois',
   'schedule.thisMonth': 'Ce mois',

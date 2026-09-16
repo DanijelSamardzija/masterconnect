@@ -2805,6 +2805,7 @@ export default {
   'schedule.breakStart': 'Početak pauze',
   'schedule.breakEnd': 'Kraj pauze',
   'schedule.addBreak': 'Dodaj pauzu',
+  'schedule.download': 'Preuzmi CSV',
   'schedule.viewWeek': 'Sedmica',
   'schedule.viewMonth': 'Mesec',
   'schedule.thisMonth': 'Ovaj mesec',

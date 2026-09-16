@@ -2805,6 +2805,7 @@ export default {
   'schedule.breakStart': 'Break start',
   'schedule.breakEnd': 'Break end',
   'schedule.addBreak': 'Add break',
+  'schedule.download': 'Download CSV',
   'schedule.viewWeek': 'Week',
   'schedule.viewMonth': 'Month',
   'schedule.thisMonth': 'This month',
