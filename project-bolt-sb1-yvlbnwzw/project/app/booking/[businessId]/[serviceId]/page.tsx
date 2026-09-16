@@ -78,6 +78,13 @@ type ClosureRow = {
   date_to: string;
 };
 
+type StaffAbsenceRow = {
+  reason: string;
+  note: string | null;
+  date_from: string;
+  date_to: string;
+};
+
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 function getMonday(d: Date): Date {
@@ -160,6 +167,7 @@ export default function BookingSlotPickerPage() {
   const [openingHours, setOpeningHours] = useState<OpeningHourRow[]>([]);
   const [hoursOpen, setHoursOpen] = useState(false);
   const [closures, setClosures] = useState<ClosureRow[]>([]);
+  const [staffAbsences, setStaffAbsences] = useState<StaffAbsenceRow[]>([]);
 
   const [staffOptions, setStaffOptions] = useState<StaffOption[]>([]);
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null); // null = "any"
@@ -252,6 +260,12 @@ export default function BookingSlotPickerPage() {
       loadSlots();
     }
   }, [loadingMeta, selectedLocationId, weekDate, loadSlots]);
+
+  useEffect(() => {
+    if (!selectedStaffId) { setStaffAbsences([]); return; }
+    (supabase as any).rpc('public_get_staff_absences', { p_staff_member_id: selectedStaffId })
+      .then(({ data }: { data: StaffAbsenceRow[] | null }) => setStaffAbsences(data ?? []));
+  }, [selectedStaffId]);
 
   useEffect(() => {
     if (!selectedStaffId) { setBreaks({}); return; }
@@ -577,7 +591,35 @@ export default function BookingSlotPickerPage() {
         {loadingSlots ? (
           <div className="text-center py-12 text-muted-foreground text-sm">{t('booking.loadingSlots')}</div>
         ) : slots.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground text-sm">{t('booking.noSlotsThisWeek')}</div>
+          (() => {
+            const weekFirstDay = weekStart(weekDays[0]);
+            const weekLastDay = weekStart(weekDays[6]);
+            const weekAbsence = selectedStaffId
+              ? staffAbsences.find(a => a.date_from <= weekLastDay && a.date_to >= weekFirstDay)
+              : undefined;
+            const staffName = weekAbsence
+              ? staffOptions.find(s => s.staff_member_id === selectedStaffId)?.name
+              : undefined;
+            const absenceReasonKey = weekAbsence
+              ? (`setup.closures.reason.${weekAbsence.reason}` as Parameters<typeof t>[0])
+              : undefined;
+            const absenceLabel = weekAbsence && absenceReasonKey && ['vacation','sick_leave','holiday','renovation','other'].includes(weekAbsence.reason)
+              ? t(absenceReasonKey) : weekAbsence?.reason;
+            return weekAbsence ? (
+              <div className="text-center py-10 px-4">
+                <p className="text-sm text-muted-foreground">
+                  {staffName && <span className="font-medium text-foreground">{staffName}</span>}
+                  {staffName && ' · '}
+                  <span>{absenceLabel}</span>
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {weekAbsence.date_from} – {weekAbsence.date_to}
+                </p>
+              </div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground text-sm">{t('booking.noSlotsThisWeek')}</div>
+            );
+          })()
         ) : (
           <div className="grid grid-cols-7 gap-1">
             {weekDays.map((day) => {
@@ -596,6 +638,19 @@ export default function BookingSlotPickerPage() {
                   </div>
                   {(() => {
                     const available = daySlots.filter((s) => s.available);
+                    const dayAbsence = selectedStaffId
+                      ? staffAbsences.find(a => a.date_from <= dayKey && a.date_to >= dayKey)
+                      : undefined;
+                    if (available.length === 0 && dayAbsence) {
+                      const rKey = `setup.closures.reason.${dayAbsence.reason}` as Parameters<typeof t>[0];
+                      const rLabel = ['vacation','sick_leave','holiday','renovation','other'].includes(dayAbsence.reason)
+                        ? t(rKey) : dayAbsence.reason;
+                      return [
+                        <div key="absence" className="text-[9px] text-center text-muted-foreground leading-tight px-0.5 py-1 rounded bg-muted/50">
+                          {rLabel}
+                        </div>
+                      ];
+                    }
                     const dayBreak = breaks[dayKey];
                     let breakInserted = false;
                     return available.map((s) => {
