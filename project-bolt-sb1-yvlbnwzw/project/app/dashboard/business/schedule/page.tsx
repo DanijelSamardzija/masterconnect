@@ -247,7 +247,7 @@ function OwnerScheduleContent() {
   }
 
   function getShift(staffId: string, date: string): ShiftRow | null {
-    if (cardShifts[staffId]) {
+    if (cardShifts[staffId] !== undefined) {
       return cardShifts[staffId].find(s => s.shift_date === date) ?? null;
     }
     const row = staffRows.find(r => r.staff_member_id === staffId);
@@ -518,28 +518,30 @@ function OwnerScheduleContent() {
           ) : (
             <>
               <button
-                onClick={prevMonth}
-                disabled={prevMonthDisabled}
-                className="p-1.5 rounded-lg border border-border hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
                 onClick={goThisMonth}
                 className="text-xs font-medium px-2.5 py-1.5 rounded-lg border border-border hover:bg-accent transition-colors"
               >
                 {t('schedule.thisMonth')}
               </button>
-              <span className="flex-1 text-center text-sm font-medium text-foreground">
-                {monthLabelCap}
-              </span>
-              <button
-                onClick={nextMonth}
-                disabled={nextMonthDisabled}
-                className="p-1.5 rounded-lg border border-border hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-0.5">
+                <button
+                  onClick={prevMonth}
+                  disabled={prevMonthDisabled}
+                  className="p-1 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <span className="text-sm font-medium text-foreground whitespace-nowrap px-0.5">
+                  {monthLabelCap}
+                </span>
+                <button
+                  onClick={nextMonth}
+                  disabled={nextMonthDisabled}
+                  className="p-1 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             </>
           )}
         </div>
