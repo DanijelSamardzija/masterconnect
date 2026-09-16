@@ -71,6 +71,13 @@ type OpeningHourRow = {
   sort_order: number;
 };
 
+type ClosureRow = {
+  reason: string;
+  note: string | null;
+  date_from: string;
+  date_to: string;
+};
+
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 function getMonday(d: Date): Date {
@@ -152,6 +159,7 @@ export default function BookingSlotPickerPage() {
 
   const [openingHours, setOpeningHours] = useState<OpeningHourRow[]>([]);
   const [hoursOpen, setHoursOpen] = useState(false);
+  const [closures, setClosures] = useState<ClosureRow[]>([]);
 
   const [staffOptions, setStaffOptions] = useState<StaffOption[]>([]);
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null); // null = "any"
@@ -186,6 +194,8 @@ export default function BookingSlotPickerPage() {
           setSelectedTimezone(primary.timezone);
           const hoursRes = await (supabase as any).rpc('get_opening_hours', { p_location_id: primary.id });
           setOpeningHours((hoursRes.data as OpeningHourRow[]) ?? []);
+          const closuresRes = await (supabase as any).rpc('public_get_business_closures', { p_location_id: primary.id });
+          setClosures((closuresRes.data as ClosureRow[]) ?? []);
         }
       } finally {
         setLoadingMeta(false);
@@ -265,6 +275,8 @@ export default function BookingSlotPickerPage() {
     setSelectedTimezone(loc.timezone);
     (supabase as any).rpc('get_opening_hours', { p_location_id: locId })
       .then(({ data }: { data: OpeningHourRow[] | null }) => setOpeningHours(data ?? []));
+    (supabase as any).rpc('public_get_business_closures', { p_location_id: locId })
+      .then(({ data }: { data: ClosureRow[] | null }) => setClosures(data ?? []));
   }
 
   const slotsByDay: Record<string, Slot[]> = {};
@@ -440,6 +452,47 @@ export default function BookingSlotPickerPage() {
                   })}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Upcoming / active closures */}
+          {closures.length > 0 && (
+            <div className="mt-2 space-y-1.5">
+              {closures.map((c, i) => {
+                const today = new Date().toISOString().slice(0, 10);
+                const isActive = c.date_from <= today && c.date_to >= today;
+                const reasonKey = `setup.closures.reason.${c.reason}` as Parameters<typeof t>[0];
+                const reasonLabel = ['vacation','holiday','renovation','other','sick_leave'].includes(c.reason)
+                  ? t(reasonKey) : c.reason;
+                const fromDate = new Date(c.date_from + 'T00:00:00');
+                const toDate = new Date(c.date_to + 'T00:00:00');
+                const fromStr = fromDate.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+                const toStr = toDate.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+                const dateRange = c.date_from === c.date_to ? fromStr : `${fromStr} – ${toStr}`;
+                return (
+                  <div key={i} className={`flex items-start gap-2 px-3 py-2 rounded-lg text-xs ${
+                    isActive
+                      ? 'bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800'
+                      : 'bg-muted/40 border border-border'
+                  }`}>
+                    <Calendar className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${isActive ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground'}`} />
+                    <div>
+                      <span className={`font-medium ${isActive ? 'text-amber-800 dark:text-amber-300' : 'text-foreground'}`}>
+                        {reasonLabel}
+                      </span>
+                      <span className={`mx-1 ${isActive ? 'text-amber-700 dark:text-amber-400' : 'text-muted-foreground'}`}>·</span>
+                      <span className={isActive ? 'text-amber-700 dark:text-amber-400' : 'text-muted-foreground'}>
+                        {dateRange}
+                      </span>
+                      {c.note && (
+                        <p className={`mt-0.5 ${isActive ? 'text-amber-700/80 dark:text-amber-400/80' : 'text-muted-foreground/80'}`}>
+                          {c.note}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

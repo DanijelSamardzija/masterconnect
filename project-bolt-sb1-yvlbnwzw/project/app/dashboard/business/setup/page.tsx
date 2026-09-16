@@ -2011,7 +2011,7 @@ export default function BusinessSetupPage() {
                       <div className="flex flex-col gap-1.5">
                         {closures.map((c) => {
                           const reasonKey = `setup.closures.reason.${c.reason}` as Parameters<typeof t>[0];
-                          const reasonLabel = ['vacation','holiday','renovation','other'].includes(c.reason)
+                          const reasonLabel = ['vacation','holiday','renovation','other','sick_leave'].includes(c.reason)
                             ? t(reasonKey)
                             : c.reason;
                           return (
@@ -2118,6 +2118,7 @@ export default function BusinessSetupPage() {
                             <option value="holiday">{t('setup.closures.reason.holiday')}</option>
                             <option value="renovation">{t('setup.closures.reason.renovation')}</option>
                             <option value="other">{t('setup.closures.reason.other')}</option>
+                            <option value="sick_leave">{t('setup.closures.reason.sick_leave')}</option>
                           </select>
                           <input
                             type="text"

@@ -2351,6 +2351,7 @@ export default {
   'setup.closures.reason.holiday': 'Día festivo',
   'setup.closures.reason.renovation': 'Renovación',
   'setup.closures.reason.other': 'Otro',
+  'setup.closures.reason.sick_leave': 'Baja por enfermedad',
   'setup.locations.heading': 'Ubicaciones',
   'setup.locations.empty': 'No hay ubicaciones configuradas.',
   'setup.locations.add': 'Agregar ubicación',

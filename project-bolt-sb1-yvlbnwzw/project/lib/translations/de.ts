@@ -2418,6 +2418,7 @@ export default {
   'setup.closures.reason.holiday': 'Feiertag',
   'setup.closures.reason.renovation': 'Renovierung',
   'setup.closures.reason.other': 'Sonstiges',
+  'setup.closures.reason.sick_leave': 'Krankenstand',
   'setup.locations.heading': 'Standorte',
   'setup.locations.empty': 'Keine Standorte konfiguriert.',
   'setup.locations.add': 'Standort hinzufügen',

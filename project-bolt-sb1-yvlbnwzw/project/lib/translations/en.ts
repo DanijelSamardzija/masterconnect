@@ -2428,6 +2428,7 @@ export default {
   'setup.closures.reason.holiday': 'Public holiday',
   'setup.closures.reason.renovation': 'Renovation',
   'setup.closures.reason.other': 'Other',
+  'setup.closures.reason.sick_leave': 'Sick leave',
   'setup.locations.heading': 'Locations',
   'setup.locations.empty': 'No locations configured.',
   'setup.locations.add': 'Add Location',

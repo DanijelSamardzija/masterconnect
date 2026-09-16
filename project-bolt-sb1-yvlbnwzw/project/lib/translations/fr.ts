@@ -2358,6 +2358,7 @@ export default {
   'setup.closures.reason.holiday': 'Jour férié',
   'setup.closures.reason.renovation': 'Rénovation',
   'setup.closures.reason.other': 'Autre',
+  'setup.closures.reason.sick_leave': 'Arrêt maladie',
   'setup.locations.heading': 'Adresses',
   'setup.locations.empty': 'Aucune adresse configurée.',
   'setup.locations.add': 'Ajouter une adresse',

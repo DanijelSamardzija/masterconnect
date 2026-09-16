@@ -2428,6 +2428,7 @@ export default {
   'setup.closures.reason.holiday': 'Praznik',
   'setup.closures.reason.renovation': 'Renoviranje',
   'setup.closures.reason.other': 'Ne radimo',
+  'setup.closures.reason.sick_leave': 'Bolovanje',
   'setup.locations.heading': 'Lokacije',
   'setup.locations.empty': 'Nema konfiguriranih lokacija.',
   'setup.locations.add': 'Dodaj lokaciju',
