@@ -543,90 +543,61 @@ function OwnerScheduleContent() {
           </div>
         )}
 
-        {/* View toggle + navigation */}
-        <div className="flex items-center gap-2 mb-1">
-          {/* View toggle */}
-          <div className="flex rounded-lg border border-border overflow-hidden shrink-0">
+        {/* View + navigation — both always visible */}
+        <div className="flex items-center gap-2 mb-1 flex-wrap">
+          {/* Week group */}
+          <div className={`flex items-center gap-1 px-2 py-1 rounded-lg border transition-colors ${viewMode === 'week' ? 'border-primary/50 bg-primary/5' : 'border-border'}`}>
             <button
               onClick={() => switchView('week')}
-              className={`px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                viewMode === 'week'
-                  ? 'bg-primary text-white'
-                  : 'bg-background text-muted-foreground hover:bg-accent'
-              }`}
+              className={`text-xs font-semibold px-1 py-0.5 rounded transition-colors ${viewMode === 'week' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
             >
               {t('schedule.viewWeek')}
             </button>
             <button
+              onClick={() => { setViewMode('week'); thisWeek(); }}
+              className="text-[11px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded border border-border hover:bg-accent transition-colors"
+            >
+              {t('schedule.thisWeek')}
+            </button>
+            <div className="flex items-center gap-0.5">
+              <button onClick={() => { setViewMode('week'); prevGlobalWeek(); }} disabled={prevGlobalWeekDisabled} className="p-0.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+              <span className="text-xs font-medium text-foreground whitespace-nowrap px-0.5">
+                {fmtDay(weekDays[0])} – {fmtDay(weekDays[6])} {weekDays[6].getFullYear()}.
+              </span>
+              <button onClick={() => { setViewMode('week'); nextGlobalWeek(); }} disabled={nextGlobalWeekDisabled} className="p-0.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Month group */}
+          <div className={`flex items-center gap-1 px-2 py-1 rounded-lg border transition-colors ${viewMode === 'month' ? 'border-primary/50 bg-primary/5' : 'border-border'}`}>
+            <button
               onClick={() => switchView('month')}
-              className={`px-2.5 py-1.5 text-xs font-medium border-l border-border transition-colors ${
-                viewMode === 'month'
-                  ? 'bg-primary text-white'
-                  : 'bg-background text-muted-foreground hover:bg-accent'
-              }`}
+              className={`text-xs font-semibold px-1 py-0.5 rounded transition-colors ${viewMode === 'month' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
             >
               {t('schedule.viewMonth')}
             </button>
+            <button
+              onClick={() => { setViewMode('month'); goThisMonth(); }}
+              className="text-[11px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded border border-border hover:bg-accent transition-colors"
+            >
+              {t('schedule.thisMonth')}
+            </button>
+            <div className="flex items-center gap-0.5">
+              <button onClick={() => { setViewMode('month'); prevGlobalMonth(); }} disabled={prevGlobalMonthDisabled} className="p-0.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+              <span className="text-xs font-medium text-foreground whitespace-nowrap px-0.5">
+                {monthLabelCap}
+              </span>
+              <button onClick={() => { setViewMode('month'); nextGlobalMonth(); }} disabled={nextGlobalMonthDisabled} className="p-0.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
-
-          {/* Navigation */}
-          {viewMode === 'week' ? (
-            <>
-              <button
-                onClick={thisWeek}
-                className="text-xs font-medium px-2.5 py-1.5 rounded-lg border border-border hover:bg-accent transition-colors"
-              >
-                {t('schedule.thisWeek')}
-              </button>
-              <div className="flex items-center gap-0.5">
-                <button
-                  onClick={prevGlobalWeek}
-                  disabled={prevGlobalWeekDisabled}
-                  className="p-1 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <span className="text-sm font-medium text-foreground whitespace-nowrap px-0.5">
-                  {fmtDay(weekDays[0])} – {fmtDay(weekDays[6])} {weekDays[6].getFullYear()}.
-                </span>
-                <button
-                  onClick={nextGlobalWeek}
-                  disabled={nextGlobalWeekDisabled}
-                  className="p-1 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={goThisMonth}
-                className="text-xs font-medium px-2.5 py-1.5 rounded-lg border border-border hover:bg-accent transition-colors"
-              >
-                {t('schedule.thisMonth')}
-              </button>
-              <div className="flex items-center gap-0.5">
-                <button
-                  onClick={prevGlobalMonth}
-                  disabled={prevGlobalMonthDisabled}
-                  className="p-1 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <span className="text-sm font-medium text-foreground whitespace-nowrap px-0.5">
-                  {monthLabelCap}
-                </span>
-                <button
-                  onClick={nextGlobalMonth}
-                  disabled={nextGlobalMonthDisabled}
-                  className="p-1 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </>
-          )}
         </div>
 
         {/* Retention notice + accept-bookings toggles */}
