@@ -85,6 +85,11 @@ type StaffAbsenceRow = {
   date_to: string;
 };
 
+type StaffPickerOption = {
+  staff_member_id: string;
+  name: string;
+};
+
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 function getMonday(d: Date): Date {
@@ -130,6 +135,22 @@ function slotLocalHHMM(isoStr: string, tz: string): string {
   return new Intl.DateTimeFormat('en-CA', {
     timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false,
   }).format(new Date(isoStr));
+}
+
+function getCalendarRows(month: Date): (Date | null)[][] {
+  const year = month.getFullYear();
+  const m = month.getMonth();
+  const firstDay = new Date(year, m, 1);
+  const lastDay = new Date(year, m + 1, 0);
+  const startDow = firstDay.getDay();
+  const startOffset = startDow === 0 ? 6 : startDow - 1;
+  const cells: (Date | null)[] = [];
+  for (let i = 0; i < startOffset; i++) cells.push(null);
+  for (let d = 1; d <= lastDay.getDate(); d++) cells.push(new Date(year, m, d));
+  while (cells.length % 7 !== 0) cells.push(null);
+  const rows: (Date | null)[][] = [];
+  for (let i = 0; i < cells.length; i += 7) rows.push(cells.slice(i, i + 7));
+  return rows;
 }
 
 function bookingErrorKey(errorCode: string): string {
@@ -182,18 +203,29 @@ export default function BookingSlotPickerPage() {
   const [booking, setBooking] = useState(false);
   const [booked, setBooked] = useState(false);
 
+  const [maxAdvanceDays, setMaxAdvanceDays] = useState(60);
+  const [bookingStaffId, setBookingStaffId] = useState<string | null>(null);
+  const [staffPickerOpen, setStaffPickerOpen] = useState(false);
+  const [staffPickerSlot, setStaffPickerSlot] = useState<Slot | null>(null);
+  const [staffPickerOptions, setStaffPickerOptions] = useState<StaffPickerOption[]>([]);
+  const [loadingStaffPicker, setLoadingStaffPicker] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(() => startOfDay(new Date()));
+
   useEffect(() => {
     if (!businessId || !serviceId) return;
     async function loadMeta() {
       setLoadingMeta(true);
       try {
-        const [bizRes, svcRes, locRes] = await Promise.all([
+        const [bizRes, svcRes, locRes, rulesRes] = await Promise.all([
           supabase.from('profiles').select('id, name').eq('id', businessId).eq('is_business', true).maybeSingle(),
           (supabase as any).from('service_catalog').select('id, name, description, duration_minutes, capacity, price, price_type, currency').eq('id', serviceId).eq('business_id', businessId).eq('is_active', true).maybeSingle(),
           supabase.from('business_locations').select('id, name, timezone, is_primary, city, country, address, phone').eq('business_id', businessId).eq('is_active', true).order('is_primary', { ascending: false }),
+          (supabase as any).from('booking_rules').select('max_advance_days').eq('business_id', businessId).maybeSingle(),
         ]);
         setBusiness(bizRes.data ?? null);
         setService((svcRes.data as Service) ?? null);
+        if (rulesRes.data?.max_advance_days) setMaxAdvanceDays(rulesRes.data.max_advance_days);
         const locs = locRes.data ?? [];
         setLocations(locs);
         if (locs.length > 0) {
@@ -234,13 +266,25 @@ export default function BookingSlotPickerPage() {
     setSlots([]);
     try {
       const ws = weekStart(weekDate);
-      const { data } = await (supabase as any).rpc('get_available_slots', {
-        p_business_id: businessId,
-        p_location_id: selectedLocationId,
-        p_service_id: serviceId,
-        p_week_start: ws,
-        ...(selectedStaffId ? { p_staff_member_id: selectedStaffId } : {}),
-      });
+      let data: Slot[] | null = null;
+      if (selectedStaffId) {
+        const res = await (supabase as any).rpc('get_available_slots', {
+          p_business_id: businessId,
+          p_location_id: selectedLocationId,
+          p_service_id: serviceId,
+          p_week_start: ws,
+          p_staff_member_id: selectedStaffId,
+        });
+        data = res.data;
+      } else {
+        const res = await (supabase as any).rpc('get_available_slots_any_staff', {
+          p_business_id: businessId,
+          p_location_id: selectedLocationId,
+          p_service_id: serviceId,
+          p_week_start: ws,
+        });
+        data = res.data;
+      }
       setSlots((data as Slot[]) ?? []);
     } finally {
       setLoadingSlots(false);
@@ -309,6 +353,7 @@ export default function BookingSlotPickerPage() {
     if (!selectedSlot || !user) return;
     if (!hasAccess) { saveGuestIntent({ action: 'book', returnTo: `/booking/${businessId}/${serviceId}` }); router.push(`/login?redirect=${encodeURIComponent(`/booking/${businessId}/${serviceId}`)}`); return; }
     setBooking(true);
+    const staffForBooking = bookingStaffId ?? selectedStaffId;
     const { data } = await (supabase as any).rpc('create_booking', {
       p_business_id: businessId,
       p_location_id: selectedLocationId,
@@ -316,7 +361,7 @@ export default function BookingSlotPickerPage() {
       p_starts_at: selectedSlot.slot_start,
       p_party_size: partySize,
       p_notes: notes.trim() || null,
-      ...(selectedStaffId ? { p_staff_member_id: selectedStaffId } : {}),
+      ...(staffForBooking ? { p_staff_member_id: staffForBooking } : {}),
     });
     setBooking(false);
     const result = data as { ok: boolean; error?: string; status?: string; booking_id?: string } | null;
@@ -328,6 +373,7 @@ export default function BookingSlotPickerPage() {
       await (supabase as any).from('profiles').update({ phone: phone.trim() }).eq('id', user.id);
     }
     setBooked(true);
+    setBookingStaffId(null);
     setDialogOpen(false);
     const msg = result.status === 'confirmed' ? t('booking.successConfirmed') : t('booking.successPending');
     toast.success(msg);
@@ -337,6 +383,53 @@ export default function BookingSlotPickerPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'confirmation', booking_id: result.booking_id }),
       }).catch(() => {});
+    }
+  }
+
+  async function handleSlotClick(slot: Slot) {
+    if (!user) {
+      saveGuestIntent({ action: 'book', returnTo: `/booking/${businessId}/${serviceId}` });
+      router.push(`/login?redirect=${encodeURIComponent(`/booking/${businessId}/${serviceId}`)}`);
+      return;
+    }
+    if (!hasAccess) return;
+    if (selectedStaffId === null && staffOptions.length > 0) {
+      setStaffPickerSlot(slot);
+      setStaffPickerOptions([]);
+      setLoadingStaffPicker(true);
+      setStaffPickerOpen(true);
+      try {
+        const { data } = await (supabase as any).rpc('get_staff_available_for_slot', {
+          p_business_id: businessId,
+          p_location_id: selectedLocationId,
+          p_service_id: serviceId,
+          p_slot_start: slot.slot_start,
+          p_slot_end: slot.slot_end,
+          p_week_start: weekStart(weekDate),
+        });
+        setStaffPickerOptions((data as StaffPickerOption[]) ?? []);
+      } finally {
+        setLoadingStaffPicker(false);
+      }
+    } else {
+      setSelectedSlot(slot);
+      setBookingStaffId(null);
+      setPhone('');
+      setNotes('');
+      setPartySize(1);
+      setDialogOpen(true);
+    }
+  }
+
+  function handlePickStaff(staffMemberId: string) {
+    setBookingStaffId(staffMemberId);
+    setStaffPickerOpen(false);
+    if (staffPickerSlot) {
+      setSelectedSlot(staffPickerSlot);
+      setPhone('');
+      setNotes('');
+      setPartySize(1);
+      setDialogOpen(true);
     }
   }
 
@@ -377,6 +470,8 @@ export default function BookingSlotPickerPage() {
   }
 
   const todayStr = weekStart(getMonday(startOfDay(new Date())));
+  const maxWeekMonday = getMonday(addDays(startOfDay(new Date()), maxAdvanceDays));
+  const isLastWeek = weekStart(weekDate) >= weekStart(maxWeekMonday);
   const selectedLocation = locations.find(l => l.id === selectedLocationId) ?? locations[0] ?? null;
 
   return (
@@ -567,7 +662,7 @@ export default function BookingSlotPickerPage() {
           </div>
         )}
 
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-1">
           <button
             onClick={() => setWeekDate((d) => addDays(d, -7))}
             disabled={weekStart(weekDate) <= todayStr}
@@ -576,17 +671,81 @@ export default function BookingSlotPickerPage() {
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <span className="text-sm font-medium">
+          <button
+            onClick={() => { setCalendarMonth(new Date(weekDate)); setCalendarOpen(o => !o); }}
+            className="flex items-center gap-1.5 text-sm font-medium hover:text-primary transition-colors px-2 py-1 rounded-md hover:bg-accent"
+          >
+            <Calendar className="w-3.5 h-3.5" />
             {formatDate(weekDays[0], locale)} – {formatDate(weekDays[6], locale)}
-          </span>
+          </button>
           <button
             onClick={() => setWeekDate((d) => addDays(d, 7))}
-            className="p-2 rounded-lg hover:bg-accent transition-colors"
+            disabled={isLastWeek}
+            className="p-2 rounded-lg hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             aria-label={t('booking.nextWeek')}
           >
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
+
+        {calendarOpen && (
+          <div className="mb-3 border border-border rounded-xl p-3 bg-background shadow-lg relative z-10">
+            <div className="flex items-center justify-between mb-2">
+              <button
+                onClick={() => setCalendarMonth(m => { const d = new Date(m); d.setMonth(d.getMonth() - 1); return d; })}
+                className="p-1 hover:bg-accent rounded-md transition-colors"
+              >
+                <ChevronLeft className="w-3 h-3" />
+              </button>
+              <span className="text-xs font-medium">
+                {calendarMonth.toLocaleDateString(locale, { month: 'long', year: 'numeric' })}
+              </span>
+              <button
+                onClick={() => setCalendarMonth(m => { const d = new Date(m); d.setMonth(d.getMonth() + 1); return d; })}
+                className="p-1 hover:bg-accent rounded-md transition-colors"
+              >
+                <ChevronRight className="w-3 h-3" />
+              </button>
+            </div>
+            <div className="grid grid-cols-7 gap-0.5 mb-1">
+              {['M','T','W','T','F','S','S'].map((d, i) => (
+                <div key={i} className="text-center text-[10px] text-muted-foreground font-medium py-0.5">{d}</div>
+              ))}
+            </div>
+            {getCalendarRows(calendarMonth).map((row, rowIdx) => (
+              <div key={rowIdx} className="grid grid-cols-7 gap-0.5">
+                {row.map((day, dayIdx) => {
+                  if (!day) return <div key={dayIdx} className="py-1" />;
+                  const today2 = startOfDay(new Date());
+                  const isPast = day < today2;
+                  const isTooFar = day > addDays(today2, maxAdvanceDays);
+                  const disabled = isPast || isTooFar;
+                  const dayMonday = getMonday(new Date(day.getTime()));
+                  const isInSelectedWeek = weekStart(dayMonday) === weekStart(weekDate);
+                  const isTodayDay = day.toDateString() === today2.toDateString();
+                  return (
+                    <button
+                      key={dayIdx}
+                      disabled={disabled}
+                      onClick={() => { setWeekDate(getMonday(new Date(day.getTime()))); setCalendarOpen(false); }}
+                      className={`text-center text-xs py-1 rounded transition-colors ${
+                        disabled
+                          ? 'text-muted-foreground/30 cursor-not-allowed'
+                          : isInSelectedWeek
+                            ? 'bg-primary text-primary-foreground font-medium'
+                            : isTodayDay
+                              ? 'bg-primary/15 text-primary font-medium hover:bg-primary/25'
+                              : 'hover:bg-accent'
+                      }`}
+                    >
+                      {day.getDate()}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        )}
 
         {loadingSlots ? (
           <div className="text-center py-12 text-muted-foreground text-sm">{t('booking.loadingSlots')}</div>
@@ -669,15 +828,7 @@ export default function BookingSlotPickerPage() {
                       items.push(
                         <button
                           key={s.slot_start}
-                          onClick={() => {
-                            if (!user) { saveGuestIntent({ action: 'book', returnTo: `/booking/${businessId}/${serviceId}` }); router.push(`/login?redirect=${encodeURIComponent(`/booking/${businessId}/${serviceId}`)}`); return; }
-                            if (!hasAccess) return;
-                            setSelectedSlot(s);
-                            setPhone('');
-                            setNotes('');
-                            setPartySize(1);
-                            setDialogOpen(true);
-                          }}
+                          onClick={() => handleSlotClick(s)}
                           disabled={!hasAccess && !authLoading}
                           className="text-xs py-1.5 px-0.5 rounded-md bg-primary/10 hover:bg-primary/20 text-primary font-medium transition-colors text-center w-full disabled:opacity-40 disabled:cursor-not-allowed"
                         >
@@ -694,7 +845,7 @@ export default function BookingSlotPickerPage() {
         )}
       </div>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setBookingStaffId(null); }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>{t('booking.confirm')}</DialogTitle>
@@ -762,6 +913,39 @@ export default function BookingSlotPickerPage() {
                   {booking ? t('booking.booking') : t('booking.book')}
                 </Button>
               </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={staffPickerOpen} onOpenChange={setStaffPickerOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t('booking.pickStaff.title')}</DialogTitle>
+          </DialogHeader>
+          {staffPickerSlot && (
+            <p className="text-sm text-muted-foreground -mt-1 mb-1">
+              {formatTime(staffPickerSlot.slot_start, selectedTimezone)}
+              {' '}({formatDate(new Date(staffPickerSlot.slot_start), locale)})
+            </p>
+          )}
+          {loadingStaffPicker ? (
+            <div className="flex justify-center py-6">
+              <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : staffPickerOptions.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">{t('booking.pickStaff.noStaff')}</p>
+          ) : (
+            <div className="flex flex-col gap-2 py-1">
+              {staffPickerOptions.map((s) => (
+                <button
+                  key={s.staff_member_id}
+                  onClick={() => handlePickStaff(s.staff_member_id)}
+                  className="w-full text-left px-4 py-3 rounded-xl border border-border hover:border-primary hover:bg-primary/5 transition-colors text-sm font-medium"
+                >
+                  {s.name}
+                </button>
+              ))}
             </div>
           )}
         </DialogContent>

@@ -2547,6 +2547,8 @@ export default {
   'booking.staff.heading': 'Choose a staff member',
   'booking.staff.any': 'Any available',
   'booking.staff.noStaff': 'No staff available for this service.',
+  'booking.pickStaff.title': 'Choose a staff member',
+  'booking.pickStaff.noStaff': 'No staff available for this slot.',
   // F12 — Staff dashboard
   'staffDashboard.title': 'My Bookings',
   'staffDashboard.empty': 'No upcoming bookings.',

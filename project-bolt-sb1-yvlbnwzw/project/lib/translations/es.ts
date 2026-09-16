@@ -2470,6 +2470,8 @@ export default {
   'booking.staff.heading': 'Elige un trabajador',
   'booking.staff.any': 'Cualquier disponible',
   'booking.staff.noStaff': 'No hay personal disponible para este servicio.',
+  'booking.pickStaff.title': 'Elige un miembro del equipo',
+  'booking.pickStaff.noStaff': 'No hay personal disponible para este horario.',
   // F12 — Staff dashboard
   'staffDashboard.title': 'Mis Reservas',
   'staffDashboard.empty': 'No hay próximas reservas.',

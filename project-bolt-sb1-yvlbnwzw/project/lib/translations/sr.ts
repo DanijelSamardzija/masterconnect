@@ -2547,6 +2547,8 @@ export default {
   'booking.staff.heading': 'Izaberi radnika',
   'booking.staff.any': 'Bilo koji radnik',
   'booking.staff.noStaff': 'Nema dostupnih radnika za ovu uslugu.',
+  'booking.pickStaff.title': 'Odaberite radnika',
+  'booking.pickStaff.noStaff': 'Nema dostupnih radnika za ovaj termin.',
   // F12 — Staff dashboard
   'staffDashboard.title': 'Moje Rezervacije',
   'staffDashboard.empty': 'Nema nadolazećih rezervacija.',
