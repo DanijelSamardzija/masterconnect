@@ -166,7 +166,7 @@ export default function BookingPage() {
             </button>
 
             <button
-              onClick={() => router.push('/dashboard/bookings')}
+              onClick={() => router.push('/booking/my')}
               className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-card border border-border hover:border-primary/50 hover:bg-accent transition-colors text-center"
             >
               <div className="p-2 bg-orange-100 dark:bg-orange-950 rounded-xl">

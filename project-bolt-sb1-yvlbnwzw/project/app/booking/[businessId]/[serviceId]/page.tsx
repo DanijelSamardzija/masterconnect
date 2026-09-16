@@ -326,7 +326,7 @@ export default function BookingSlotPickerPage() {
           <h2 className="text-xl font-semibold mb-2">{t('booking.successConfirmed')}</h2>
           <p className="text-muted-foreground text-sm">{service.name} — {business.name}</p>
         </div>
-        <Button variant="outline" onClick={() => router.push('/dashboard/bookings')}>
+        <Button variant="outline" onClick={() => router.push('/booking/my')}>
           {t('booking.myBookings')}
         </Button>
       </div>

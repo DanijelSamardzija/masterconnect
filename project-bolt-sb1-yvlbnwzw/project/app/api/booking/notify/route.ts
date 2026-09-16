@@ -182,7 +182,7 @@ function buildHtml(c: ReturnType<typeof content>, firstName: string, dt: string)
           <p style="margin:4px 0 0;font-size:16px;font-weight:700;color:#1a1a1a">${dt}</p>
         </div>
         <div style="text-align:center;margin:24px 0">
-          <a href="https://gigzone.app/dashboard/bookings"
+          <a href="https://gigzone.app/booking/my"
              style="background:#ea580c;color:#fff;text-decoration:none;padding:14px 32px;border-radius:12px;font-weight:700;font-size:15px;display:inline-block">
             ${c.cta}
           </a>
@@ -193,7 +193,7 @@ function buildHtml(c: ReturnType<typeof content>, firstName: string, dt: string)
         </p>
       </div>
       <p style="text-align:center;color:#aaa;font-size:11px;margin-top:20px">
-        GigZone · gigzone.app · <a href="https://gigzone.app/dashboard/bookings" style="color:#aaa">Moje rezervacije</a>
+        GigZone · gigzone.app · <a href="https://gigzone.app/booking/my" style="color:#aaa">Moje rezervacije</a>
       </p>
     </div>
   `;

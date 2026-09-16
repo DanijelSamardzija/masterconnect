@@ -454,7 +454,7 @@ async function processPush(body: any) {
                     ${svcName ? `<p style="color:#333;font-weight:600;margin:0 0 4px">${svcName}</p>` : ''}
                     ${dtStr ? `<p style="color:#888;margin:0 0 20px;font-size:14px">📅 ${dtStr}</p>` : '<div style="margin-bottom:20px"></div>'}`;
         ctaText  = eL.bkgCompletedCta;
-        ctaUrl   = `https://www.gigzone.app/dashboard/bookings`;
+        ctaUrl   = `https://www.gigzone.app/booking/my`;
       } else if (action_type === 'booking_reminder') {
         const reminderDt = notifBody || dtStr;
         subject  = subject || eL.bkgReminderHeading;
@@ -462,7 +462,7 @@ async function processPush(body: any) {
         bodyHtml = `<p style="color:#555;margin:0 0 8px">${eL.bkgReminderBody(bizName, reminderDt)}</p>
                     ${svcName ? `<p style="color:#333;font-weight:600;margin:0 0 20px">${svcName}</p>` : '<div style="margin-bottom:20px"></div>'}`;
         ctaText  = eL.bkgReminderCta;
-        ctaUrl   = `https://www.gigzone.app/dashboard/bookings`;
+        ctaUrl   = `https://www.gigzone.app/booking/my`;
       }
 
       if (heading && ctaText) {
