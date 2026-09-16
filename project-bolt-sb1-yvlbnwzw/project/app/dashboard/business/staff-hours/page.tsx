@@ -344,6 +344,9 @@ function OwnerStaffHoursContent() {
           </div>
         )}
 
+        {/* Retention notice */}
+        <p className="text-[11px] text-muted-foreground/50 mb-4 pl-1">{t('ownerStaffHours.retention')}</p>
+
         {loading ? (
           <div className="flex justify-center py-12">
             <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />

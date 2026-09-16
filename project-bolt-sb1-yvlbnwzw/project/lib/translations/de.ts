@@ -2787,6 +2787,11 @@ export default {
   'schedule.breakStart': 'Pausenbeginn',
   'schedule.breakEnd': 'Pausenende',
   'schedule.addBreak': 'Pause hinzufügen',
+  'schedule.viewWeek': 'Woche',
+  'schedule.viewMonth': 'Monat',
+  'schedule.thisMonth': 'Dieser Monat',
+  'schedule.retention': 'Schichtdaten werden für die letzten 2 Jahre gespeichert.',
   'schedule.info': 'Die Wochenansicht zeigt den effektiven Plan für jeden Tag. Dunkelgrün (Änderung) = du hast diesen Tag für diese Woche explizit festgelegt. Hellgrün (Standard) = arbeitet nach dem regulären Plan, keine Änderung. Grau (Änderung) = freier Tag, den du explizit gesetzt hast. Gestrichelt grau (Standard) = freier Tag gemäß regulärem Plan. Klicke auf einen Tag, um den Plan für diese Woche hinzuzufügen oder zu ändern. Für Urlaub oder Krankenstand nutze die Einstellungen (Link unter der Tabelle).',
   'ownerStaffHours.info': 'Hier stellst du den WIEDERKEHRENDEN Wochenplan ein — die Stunden, die ein Mitarbeiter jeden Mo, Di usw. arbeitet. Dies ist eine Vorlage, die jede Woche wiederholt wird. Du kannst auch monatlich unterschiedliche Stunden festlegen.',
+  'ownerStaffHours.retention': 'Mitarbeiterplandaten werden für die letzten 2 Jahre gespeichert.',
 } as const;

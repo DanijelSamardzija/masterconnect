@@ -71,6 +71,25 @@ function isToday(d: Date): boolean {
   return isoDate(d) === isoDate(new Date());
 }
 
+function getMonthWeeks(d: Date): Date[] {
+  const [year, month] = [d.getFullYear(), d.getMonth()];
+  const firstDay = new Date(year, month, 1);
+  const lastDay  = new Date(year, month + 1, 0);
+  const weeks: Date[] = [];
+  let cur = getMondayOf(firstDay);
+  while (cur <= lastDay) {
+    weeks.push(new Date(cur));
+    cur = addDays(cur, 7);
+  }
+  return weeks;
+}
+
+function getMonthDays(d: Date): Date[] {
+  const [year, month] = [d.getFullYear(), d.getMonth()];
+  const count = new Date(year, month + 1, 0).getDate();
+  return Array.from({ length: count }, (_, i) => new Date(year, month, i + 1));
+}
+
 function OwnerScheduleContent() {
   const { t } = useLanguage();
   const { profile } = useAuth();
@@ -79,6 +98,10 @@ function OwnerScheduleContent() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   const [weekStart, setWeekStart] = useState<Date>(() => getMondayOf(new Date()));
+  const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
+  const [monthDate, setMonthDate] = useState<Date>(() => {
+    const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), 1);
+  });
   const [staffRows, setStaffRows] = useState<StaffRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
@@ -95,6 +118,33 @@ function OwnerScheduleContent() {
       p_week_start: isoDate(ws),
     });
     setStaffRows(Array.isArray(data) ? data : []);
+    setLoading(false);
+  }, []);
+
+  const loadMonthShifts = useCallback(async (md: Date) => {
+    setLoading(true);
+    const weeks = getMonthWeeks(md);
+    const results = await Promise.all(
+      weeks.map(ws => (supabase as any).rpc('owner_get_week_shifts', { p_week_start: isoDate(ws) }))
+    );
+    const staffMap = new Map<string, StaffRow>();
+    for (const { data } of results) {
+      if (!Array.isArray(data)) continue;
+      for (const row of data as StaffRow[]) {
+        if (!staffMap.has(row.staff_member_id)) {
+          staffMap.set(row.staff_member_id, { ...row, shifts: [] });
+        }
+        staffMap.get(row.staff_member_id)!.shifts.push(...row.shifts);
+      }
+    }
+    const [year, month] = [md.getFullYear(), md.getMonth()];
+    setStaffRows([...staffMap.values()].map(row => ({
+      ...row,
+      shifts: row.shifts.filter(s => {
+        const d = new Date(s.shift_date + 'T00:00:00');
+        return d.getFullYear() === year && d.getMonth() === month;
+      }),
+    })));
     setLoading(false);
   }, []);
 
@@ -119,17 +169,38 @@ function OwnerScheduleContent() {
     setWeekStart(ws);
     loadShifts(ws);
   }
-
   function nextWeek() {
     const ws = addDays(weekStart, 7);
     setWeekStart(ws);
     loadShifts(ws);
   }
-
   function thisWeek() {
     const ws = getMondayOf(new Date());
     setWeekStart(ws);
     loadShifts(ws);
+  }
+
+  function prevMonth() {
+    const md = new Date(monthDate.getFullYear(), monthDate.getMonth() - 1, 1);
+    setMonthDate(md);
+    loadMonthShifts(md);
+  }
+  function nextMonth() {
+    const md = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 1);
+    setMonthDate(md);
+    loadMonthShifts(md);
+  }
+  function goThisMonth() {
+    const n = new Date();
+    const md = new Date(n.getFullYear(), n.getMonth(), 1);
+    setMonthDate(md);
+    loadMonthShifts(md);
+  }
+
+  function switchView(mode: 'week' | 'month') {
+    setViewMode(mode);
+    if (mode === 'week') loadShifts(weekStart);
+    else loadMonthShifts(monthDate);
   }
 
   function getShift(staffId: string, date: string): ShiftRow | null {
@@ -186,7 +257,8 @@ function OwnerScheduleContent() {
       }
       toast.success(t('schedule.savedSuccess'));
       setEdit(null);
-      await loadShifts(weekStart);
+      if (viewMode === 'month') await loadMonthShifts(monthDate);
+      else await loadShifts(weekStart);
     } catch {
       toast.error(t('schedule.saveError'));
     }
@@ -209,6 +281,11 @@ function OwnerScheduleContent() {
   }
 
   const timeCls = 'border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary w-28';
+
+  const monthDays = viewMode === 'month' ? getMonthDays(monthDate) : [];
+
+  const monthLabel = monthDate.toLocaleDateString('sr-RS', { month: 'long', year: 'numeric' });
+  const monthLabelCap = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
 
   if (!isOwner && !loading) {
     return (
@@ -243,15 +320,17 @@ function OwnerScheduleContent() {
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">{t('schedule.subtitle')}</p>
           </div>
-          <button
-            onClick={handleCopyWeek}
-            disabled={copying}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground border border-border rounded-lg px-2.5 py-1.5 transition-colors disabled:opacity-50"
-            title={t('schedule.copyWeek')}
-          >
-            <Copy className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">{t('schedule.copyWeek')}</span>
-          </button>
+          {viewMode === 'week' && (
+            <button
+              onClick={handleCopyWeek}
+              disabled={copying}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground border border-border rounded-lg px-2.5 py-1.5 transition-colors disabled:opacity-50"
+              title={t('schedule.copyWeek')}
+            >
+              <Copy className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{t('schedule.copyWeek')}</span>
+            </button>
+          )}
         </div>
 
         {/* Info panel */}
@@ -262,32 +341,88 @@ function OwnerScheduleContent() {
           </div>
         )}
 
-        {/* Week navigation */}
-        <div className="flex items-center gap-2 mb-5">
-          <button
-            onClick={prevWeek}
-            className="p-1.5 rounded-lg border border-border hover:bg-accent transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <button
-            onClick={thisWeek}
-            className="text-xs font-medium px-3 py-1.5 rounded-lg border border-border hover:bg-accent transition-colors"
-          >
-            {t('schedule.thisWeek')}
-          </button>
-          <span className="flex-1 text-center text-sm font-medium text-foreground">
-            {weekDays[0].toLocaleDateString('sr-RS', { day: 'numeric', month: 'short' })}
-            {' – '}
-            {weekDays[6].toLocaleDateString('sr-RS', { day: 'numeric', month: 'short', year: 'numeric' })}
-          </span>
-          <button
-            onClick={nextWeek}
-            className="p-1.5 rounded-lg border border-border hover:bg-accent transition-colors"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
+        {/* View toggle + navigation */}
+        <div className="flex items-center gap-2 mb-1">
+          {/* View toggle */}
+          <div className="flex rounded-lg border border-border overflow-hidden shrink-0">
+            <button
+              onClick={() => switchView('week')}
+              className={`px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                viewMode === 'week'
+                  ? 'bg-primary text-white'
+                  : 'bg-background text-muted-foreground hover:bg-accent'
+              }`}
+            >
+              {t('schedule.viewWeek')}
+            </button>
+            <button
+              onClick={() => switchView('month')}
+              className={`px-2.5 py-1.5 text-xs font-medium border-l border-border transition-colors ${
+                viewMode === 'month'
+                  ? 'bg-primary text-white'
+                  : 'bg-background text-muted-foreground hover:bg-accent'
+              }`}
+            >
+              {t('schedule.viewMonth')}
+            </button>
+          </div>
+
+          {/* Navigation */}
+          {viewMode === 'week' ? (
+            <>
+              <button
+                onClick={prevWeek}
+                className="p-1.5 rounded-lg border border-border hover:bg-accent transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={thisWeek}
+                className="text-xs font-medium px-2.5 py-1.5 rounded-lg border border-border hover:bg-accent transition-colors"
+              >
+                {t('schedule.thisWeek')}
+              </button>
+              <span className="flex-1 text-center text-sm font-medium text-foreground">
+                {weekDays[0].toLocaleDateString('sr-RS', { day: 'numeric', month: 'short' })}
+                {' – '}
+                {weekDays[6].toLocaleDateString('sr-RS', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </span>
+              <button
+                onClick={nextWeek}
+                className="p-1.5 rounded-lg border border-border hover:bg-accent transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={prevMonth}
+                className="p-1.5 rounded-lg border border-border hover:bg-accent transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={goThisMonth}
+                className="text-xs font-medium px-2.5 py-1.5 rounded-lg border border-border hover:bg-accent transition-colors"
+              >
+                {t('schedule.thisMonth')}
+              </button>
+              <span className="flex-1 text-center text-sm font-medium text-foreground">
+                {monthLabelCap}
+              </span>
+              <button
+                onClick={nextMonth}
+                className="p-1.5 rounded-lg border border-border hover:bg-accent transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </>
+          )}
         </div>
+
+        {/* Retention notice */}
+        <p className="text-[11px] text-muted-foreground/50 mb-4 pl-1">{t('schedule.retention')}</p>
 
         {loading ? (
           <div className="flex justify-center py-16">
@@ -297,7 +432,8 @@ function OwnerScheduleContent() {
           <div className="text-center py-16">
             <p className="text-muted-foreground text-sm">{t('schedule.noStaff')}</p>
           </div>
-        ) : (
+        ) : viewMode === 'week' ? (
+          /* ── WEEK VIEW ── */
           <div className="overflow-x-auto rounded-xl border border-border">
             <table className="w-full min-w-[640px] border-collapse">
               <thead>
@@ -398,6 +534,105 @@ function OwnerScheduleContent() {
               </tbody>
             </table>
           </div>
+        ) : (
+          /* ── MONTH VIEW ── */
+          <div className="overflow-x-auto rounded-xl border border-border">
+            <table className="border-collapse" style={{ minWidth: `${80 + monthDays.length * 38}px` }}>
+              <thead>
+                <tr className="bg-muted/40">
+                  <th className="sticky left-0 z-10 bg-muted/40 text-left px-3 py-2.5 text-xs font-semibold text-muted-foreground border-b border-border min-w-[80px]">
+                    Radnik
+                  </th>
+                  {monthDays.map((day, i) => {
+                    const today = isToday(day);
+                    const dow = day.getDay();
+                    const isWeekend = dow === 0 || dow === 6;
+                    return (
+                      <th
+                        key={i}
+                        className={`px-0 py-2.5 text-center border-b border-border border-l w-[38px] min-w-[38px] ${
+                          today
+                            ? 'text-primary bg-primary/5'
+                            : isWeekend
+                              ? 'text-muted-foreground/50 bg-muted/20'
+                              : 'text-muted-foreground'
+                        }`}
+                      >
+                        <div className="text-[10px] font-semibold leading-tight">{day.getDate()}</div>
+                        <div className="text-[8px] font-normal leading-tight opacity-70">
+                          {['N', 'P', 'U', 'S', 'Č', 'P', 'S'][dow]}
+                        </div>
+                      </th>
+                    );
+                  })}
+                </tr>
+              </thead>
+              <tbody>
+                {staffRows.map((staff, si) => (
+                  <tr key={staff.staff_member_id} className={si > 0 ? 'border-t border-border' : ''}>
+                    <td className="sticky left-0 z-10 bg-background px-3 py-2 text-xs font-medium text-foreground whitespace-nowrap border-r border-border">
+                      {staff.staff_name}
+                    </td>
+                    {monthDays.map((day, di) => {
+                      const dateStr = isoDate(day);
+                      const shift = getShift(staff.staff_member_id, dateStr);
+                      const today = isToday(day);
+                      const dow = day.getDay();
+                      const isWeekend = dow === 0 || dow === 6;
+
+                      let cellContent: React.ReactNode;
+                      let cellCls = '';
+
+                      if (!shift) {
+                        cellContent = (
+                          <span className="text-[9px] text-muted-foreground/30">—</span>
+                        );
+                        cellCls = isWeekend ? 'bg-muted/10' : (today ? 'bg-primary/3' : '');
+                      } else if (shift.is_off) {
+                        cellContent = (
+                          <span className={`text-[9px] font-medium px-1 py-0.5 rounded ${
+                            shift.is_override ? 'bg-muted text-muted-foreground' : 'text-muted-foreground/40'
+                          }`}>✕</span>
+                        );
+                        cellCls = shift.is_override ? 'bg-muted/20' : (isWeekend ? 'bg-muted/10' : '');
+                      } else {
+                        const isOverride = shift.is_override;
+                        cellContent = (
+                          <div className="flex flex-col items-center leading-tight">
+                            <span className={`text-[9px] font-semibold ${
+                              isOverride ? 'text-green-700 dark:text-green-400' : 'text-green-600/60 dark:text-green-500/60'
+                            }`}>
+                              {shift.start_time?.slice(0, 5)}
+                            </span>
+                            {shift.break_start && (
+                              <span className="text-[7px] text-orange-400">☕</span>
+                            )}
+                            {shift.notes && (
+                              <span className="text-[7px] text-muted-foreground">📝</span>
+                            )}
+                          </div>
+                        );
+                        cellCls = isOverride
+                          ? 'bg-green-50 dark:bg-green-950/20'
+                          : 'bg-green-50/30 dark:bg-green-950/10';
+                      }
+
+                      return (
+                        <td
+                          key={di}
+                          className={`px-0 py-2 text-center border-l border-border cursor-pointer hover:bg-accent/60 transition-colors ${cellCls}`}
+                          style={{ width: '38px' }}
+                          onClick={() => openEdit(staff.staff_member_id, staff.staff_name, dateStr)}
+                        >
+                          {cellContent}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
 
         {/* Legend */}
@@ -421,7 +656,6 @@ function OwnerScheduleContent() {
             </div>
           </div>
         )}
-
 
         {/* Absence shortcut */}
         {!loading && (

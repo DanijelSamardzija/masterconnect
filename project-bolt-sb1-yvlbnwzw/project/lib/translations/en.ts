@@ -2805,6 +2805,11 @@ export default {
   'schedule.breakStart': 'Break start',
   'schedule.breakEnd': 'Break end',
   'schedule.addBreak': 'Add break',
+  'schedule.viewWeek': 'Week',
+  'schedule.viewMonth': 'Month',
+  'schedule.thisMonth': 'This month',
+  'schedule.retention': 'Shift data is kept for the last 2 years.',
   'schedule.info': 'The weekly view shows the effective schedule for each day. Dark green (override) = you explicitly set this day for this week. Light green (Regular) = working per their regular schedule, no override. Solid gray (override) = day off you explicitly set. Dashed gray (Regular) = day off per their regular schedule. Click any day to add or change the schedule for that week. For annual leave or sick leave, use Settings (link below the table).',
   'ownerStaffHours.info': 'Set the RECURRING weekly schedule — the hours a staff member works every Mon, Tue, etc. This is a template that repeats every week. You can also set different hours per month (e.g. summer schedule).',
+  'ownerStaffHours.retention': 'Staff schedule data is kept for the last 2 years.',
 } as const;

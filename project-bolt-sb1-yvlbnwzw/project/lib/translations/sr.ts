@@ -2805,6 +2805,11 @@ export default {
   'schedule.breakStart': 'Početak pauze',
   'schedule.breakEnd': 'Kraj pauze',
   'schedule.addBreak': 'Dodaj pauzu',
+  'schedule.viewWeek': 'Sedmica',
+  'schedule.viewMonth': 'Mesec',
+  'schedule.thisMonth': 'Ovaj mesec',
+  'schedule.retention': 'Podaci o smenama se čuvaju poslednjih 2 godine.',
   'schedule.info': 'Sedmični pregled prikazuje efektivni raspored za svaki dan. Tamno zelena (izmjena) = eksplicitno podesio/la si ovaj dan za tu sedmicu. Svjetlija zelena (Redovni) = radi po stalnom rasporedu, bez izmjene. Sivo (izmjena) = slobodan dan koji si eksplicitno postavio/la. Isprekidano sivo (Redovni) = slobodan dan po stalnom rasporedu. Klikni na bilo koji dan da dodaš ili promijeniš raspored za tu sedmicu. Za godišnji odmor ili bolovanje koristi Podešavanja (link ispod tabele).',
   'ownerStaffHours.info': 'Ovdje postavljaš STALNI sedmični raspored — sate koje radnik radi svaki pon, uto, itd. Ovo je šablon koji se ponavlja svake sedmice. Možeš i postaviti različite sate po mjesecima (npr. ljetni raspored).',
+  'ownerStaffHours.retention': 'Podaci o rasporedu radnika se čuvaju poslednjih 2 godine.',
 } as const;
