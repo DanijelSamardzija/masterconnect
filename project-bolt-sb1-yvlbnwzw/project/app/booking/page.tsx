@@ -134,7 +134,7 @@ export default function BookingPage() {
           {/* My booking / My reservations */}
           <div className="grid grid-cols-2 gap-3">
             <button
-              onClick={() => router.push('/dashboard/business')}
+              onClick={() => router.push('/booking/business')}
               className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-card border border-border hover:border-primary/50 hover:bg-accent transition-colors text-center"
             >
               <div className="p-2 bg-orange-100 dark:bg-orange-950 rounded-xl">
