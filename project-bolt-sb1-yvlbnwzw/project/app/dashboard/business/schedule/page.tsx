@@ -210,8 +210,11 @@ function OwnerScheduleContent() {
   async function navCard(staffId: string, delta: number) {
     const current = cardWeeks[staffId] ?? weekStart;
     const newWeek = addDays(current, delta * 7);
-    if (newWeek.getTime() < bookingStartMonday.getTime()) return;
-    if (addDays(newWeek, 7).getTime() >= maxMonthStart.getTime()) return;
+    const navMin = getMondayOf(new Date(BOOKING_START_YEAR, BOOKING_START_MONTH, 1));
+    const n = new Date();
+    const navMax = new Date(n.getFullYear(), n.getMonth() + 6, 1);
+    if (newWeek.getTime() < navMin.getTime()) return;
+    if (addDays(newWeek, 7).getTime() >= navMax.getTime()) return;
     setCardWeeks(prev => ({ ...prev, [staffId]: newWeek }));
     const { data } = await (supabase as any).rpc('owner_get_week_shifts', { p_week_start: isoDate(newWeek) });
     if (Array.isArray(data)) {
