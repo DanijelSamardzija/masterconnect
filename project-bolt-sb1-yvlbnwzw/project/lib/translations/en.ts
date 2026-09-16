@@ -102,6 +102,7 @@ export default {
   'onboarding.skipButton': 'Skip for now →',
 
   // Navigation
+  'nav.booking': 'Booking',
   'nav.discover': 'Services',
   'nav.jobSeekers': 'Job Seekers',
   'nav.postJob': 'Post a Job',

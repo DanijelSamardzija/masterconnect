@@ -93,6 +93,7 @@ export default {
   'onboarding.completing': 'Enregistrement...',
   'onboarding.skipButton': 'Passer pour l\'instant →',
 
+  'nav.booking': 'Booking',
   'nav.discover': 'Services',
   'nav.jobSeekers': 'Chercheurs d\'emploi',
   'nav.postJob': 'Publier un emploi',

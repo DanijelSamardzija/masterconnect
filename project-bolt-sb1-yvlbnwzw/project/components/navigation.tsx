@@ -37,6 +37,7 @@ import {
   Sun,
   Shield,
   TrendingUp,
+  Calendar,
 } from 'lucide-react';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import dynamic from 'next/dynamic';
@@ -50,6 +51,11 @@ const NotificationsModal = dynamic(
 import { useTheme } from '@/lib/hooks/use-theme';
 import { timeAgo } from '@/lib/utils/date';
 import { translateNotification } from '@/lib/notification-translations';
+
+const BOOKING_ALLOWED_IDS = [
+  '1fa3b3fb-9fcc-43fe-a242-3415d7119a75',
+  '3bddb236-a206-452f-8734-cfab73973161',
+];
 
 export function Navigation() {
   const pathname = usePathname();
@@ -304,6 +310,15 @@ export function Navigation() {
           </Link>
 
           <div className="hidden md:flex items-center gap-1">
+            {user && BOOKING_ALLOWED_IDS.includes(user.id) && (
+              <Link href="/booking">
+                <Button variant="ghost" size="sm" className={desktopNavClass('/booking')}>
+                  <Calendar className="h-4 w-4" />
+                  <span className="hidden lg:inline">{t('nav.booking')}</span>
+                </Button>
+              </Link>
+            )}
+
             <Link href={`/${language}/services`}>
               <Button variant="ghost" size="sm" className={desktopNavClass('/services')}>
                 <Search className="h-4 w-4" />
@@ -597,6 +612,15 @@ export function Navigation() {
                   <Separator />
 
                   <>
+                    {user && BOOKING_ALLOWED_IDS.includes(user.id) && (
+                      <Link href="/booking" onClick={closeMobileMenu}>
+                        <Button variant="ghost" className={mobileNavClass('/booking')}>
+                          <Calendar className="h-4 w-4" />
+                          {t('nav.booking')}
+                        </Button>
+                      </Link>
+                    )}
+
                     <Link href={`/${language}/services`} onClick={closeMobileMenu}>
                       <Button variant="ghost" className={mobileNavClass('/services')}>
                         <Search className="h-4 w-4" />

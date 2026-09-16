@@ -102,6 +102,7 @@ export default {
   'onboarding.skipButton': 'Preskoči za sada →',
 
   // Navigation
+  'nav.booking': 'Booking',
   'nav.discover': 'Usluge',
   'nav.jobSeekers': 'Tražioci Posla',
   'nav.postJob': 'Objavi Posao',
