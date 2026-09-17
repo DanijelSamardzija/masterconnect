@@ -162,45 +162,45 @@ function BusinessContent() {
       <div className="max-w-lg mx-auto px-4 py-6 space-y-3">
 
         {/* Header + nav */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-start gap-2">
           <button
             onClick={() => router.push('/booking')}
-            className="p-2 rounded-xl hover:bg-accent transition-colors text-muted-foreground shrink-0"
+            className="p-2 rounded-xl hover:bg-accent transition-colors text-muted-foreground shrink-0 mt-0.5"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
-          <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide min-w-0">
+          <div className="flex flex-wrap gap-x-1 gap-y-0.5">
             <button
               onClick={() => router.push('/booking/business/bookings')}
-              className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors whitespace-nowrap shrink-0 py-2 px-2 rounded-lg hover:bg-accent"
+              className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors whitespace-nowrap py-2 px-2 rounded-lg hover:bg-accent"
             >
               <Calendar className="h-3.5 w-3.5" />
               Rezervacije
             </button>
             <button
               onClick={() => router.push('/booking/business/schedule')}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0 py-2 px-2 rounded-lg hover:bg-accent"
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap py-2 px-2 rounded-lg hover:bg-accent"
             >
               <Calendar className="h-3.5 w-3.5" />
               {t('schedule.title')}
             </button>
             <button
               onClick={() => router.push('/booking/business/setup')}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0 py-2 px-2 rounded-lg hover:bg-accent"
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap py-2 px-2 rounded-lg hover:bg-accent"
             >
               <Settings className="h-3.5 w-3.5" />
               {t('dashboard.business.activeButton')}
             </button>
             <button
               onClick={() => router.push('/booking/business/absences')}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0 py-2 px-2 rounded-lg hover:bg-accent"
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap py-2 px-2 rounded-lg hover:bg-accent"
             >
               <Calendar className="h-3.5 w-3.5" />
               {t('absences.title')}
             </button>
             <button
               onClick={() => router.push(`/booking/${profile.id}`)}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0 py-2 px-2 rounded-lg hover:bg-accent"
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap py-2 px-2 rounded-lg hover:bg-accent"
             >
               <ExternalLink className="h-3.5 w-3.5" />
               {t('dashboard.services.bookingPage')}
