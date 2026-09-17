@@ -573,7 +573,6 @@ function OwnerScheduleContent() {
                 <Info className="w-4 h-4" />
               </button>
             </div>
-            <p className="text-xs text-muted-foreground mt-0.5">{t('schedule.subtitle')}</p>
           </div>
           <div className="flex items-center gap-1.5">
             {viewMode === 'week' && (
