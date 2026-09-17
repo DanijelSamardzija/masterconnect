@@ -810,8 +810,8 @@ function OwnerScheduleContent() {
                                     </td>
                                   );
                                 }
-                                if (!shift || (shift && !shift.is_override && shift.is_off)) {
-                                  // No override — check standard hours from setup
+                                if (!shift) {
+                                  // No explicit shift — show template from setup
                                   const defaultDay = staffDefaultHours[sa.id]?.[dow];
                                   if (defaultDay && !defaultDay.is_closed) {
                                     cellContent = (
@@ -823,15 +823,6 @@ function OwnerScheduleContent() {
                                       </div>
                                     );
                                     cellCls = today ? 'bg-green-50/40 dark:bg-green-950/10' : 'bg-green-50/20 dark:bg-green-950/5';
-                                  } else if (shift?.is_override) {
-                                    cellContent = (
-                                      <div className="flex flex-col items-center gap-0.5">
-                                        <span className="text-xs font-medium px-1.5 py-0.5 rounded text-muted-foreground bg-muted">
-                                          {t('schedule.dayOff')}
-                                        </span>
-                                      </div>
-                                    );
-                                    cellCls = 'bg-muted/20';
                                   } else {
                                     cellContent = (
                                       <div className="flex flex-col items-center gap-0.5">
@@ -843,20 +834,28 @@ function OwnerScheduleContent() {
                                     );
                                     cellCls = today ? 'bg-primary/3' : '';
                                   }
-                                  cellCls = cellCls || '';
-                                } else {
-                                  const isOverride = shift.is_override;
+                                } else if (shift.is_off) {
+                                  // Explicit off — last write wins, show as day off
                                   cellContent = (
                                     <div className="flex flex-col items-center gap-0.5">
-                                      <span className={`text-xs font-semibold ${isOverride ? 'text-green-700 dark:text-green-400' : 'text-green-600 dark:text-green-500'}`}>{shift.start_time?.slice(0, 5)}</span>
+                                      <span className="text-xs font-medium px-1.5 py-0.5 rounded text-muted-foreground bg-muted">
+                                        {t('schedule.dayOff')}
+                                      </span>
+                                    </div>
+                                  );
+                                  cellCls = 'bg-muted/20';
+                                } else {
+                                  // Explicit working shift
+                                  cellContent = (
+                                    <div className="flex flex-col items-center gap-0.5">
+                                      <span className="text-xs font-semibold text-green-700 dark:text-green-400">{shift.start_time?.slice(0, 5)}</span>
                                       <span className="text-[10px] text-muted-foreground">–</span>
-                                      <span className={`text-xs font-semibold ${isOverride ? 'text-green-700 dark:text-green-400' : 'text-green-600 dark:text-green-500'}`}>{shift.end_time?.slice(0, 5)}</span>
-                                      {!isOverride && <span className="text-[10px] text-muted-foreground/80">{t('schedule.defaultShort')}</span>}
+                                      <span className="text-xs font-semibold text-green-700 dark:text-green-400">{shift.end_time?.slice(0, 5)}</span>
                                       {shift.break_start && shift.break_end && <span className="text-[10px] text-orange-500 font-medium leading-tight mt-0.5">☕ {shift.break_start.slice(0,5)}–{shift.break_end.slice(0,5)}</span>}
                                       {shift.notes && <span className="text-[10px] text-muted-foreground leading-tight" title={shift.notes}>📝</span>}
                                     </div>
                                   );
-                                  cellCls = isOverride ? 'bg-green-50 dark:bg-green-950/20' : 'bg-green-50/40 dark:bg-green-950/10';
+                                  cellCls = 'bg-green-50 dark:bg-green-950/20';
                                 }
                                 return (
                                   <td key={di} className={`px-2 py-3 text-center ${di > 0 ? 'border-l' : ''} border-border cursor-pointer hover:bg-accent/60 transition-colors ${cellCls}`} onClick={() => openEdit(sa.id, sa.name, dateStr)}>
