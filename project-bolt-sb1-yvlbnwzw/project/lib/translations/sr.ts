@@ -2654,6 +2654,8 @@ export default {
   'staffHours.month.10': 'Okt',
   'staffHours.month.11': 'Nov',
   'staffHours.month.12': 'Dec',
+  'staffHours.working': 'Radim',
+  'staffHours.dayOff': 'Slobodan',
   'ownerStaffHours.title': 'Smjene Radnika',
   'ownerStaffHours.subtitle': 'Postavi radno vrijeme za svakog radnika',
   'ownerStaffHours.selectStaff': 'Odaberi radnika',

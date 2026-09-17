@@ -429,7 +429,7 @@ export default function StaffHoursPage() {
                             : 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900'
                         }`}
                       >
-                        {day.is_closed ? t('setup.hours.closed') : t('setup.hours.open')}
+                        {day.is_closed ? t('staffHours.dayOff') : t('staffHours.working')}
                       </button>
 
                       {!day.is_closed && (

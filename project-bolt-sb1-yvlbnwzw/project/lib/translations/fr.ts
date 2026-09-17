@@ -2576,6 +2576,8 @@ export default {
   'staffHours.month.4': 'Avr', 'staffHours.month.5': 'Mai', 'staffHours.month.6': 'Jun',
   'staffHours.month.7': 'Jul', 'staffHours.month.8': 'Aoû', 'staffHours.month.9': 'Sep',
   'staffHours.month.10': 'Oct', 'staffHours.month.11': 'Nov', 'staffHours.month.12': 'Déc',
+  'staffHours.working': 'Je travaille',
+  'staffHours.dayOff': 'Libre',
   'ownerStaffHours.title': 'Horaires du Personnel',
   'ownerStaffHours.subtitle': 'Définissez les horaires de travail de chaque employé',
   'ownerStaffHours.selectStaff': 'Sélectionner un employé',

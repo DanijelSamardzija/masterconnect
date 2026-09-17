@@ -2654,6 +2654,8 @@ export default {
   'staffHours.month.10': 'Oct',
   'staffHours.month.11': 'Nov',
   'staffHours.month.12': 'Dec',
+  'staffHours.working': 'Working',
+  'staffHours.dayOff': 'Day off',
   'ownerStaffHours.title': 'Staff Hours',
   'ownerStaffHours.subtitle': 'Set working hours for each staff member',
   'ownerStaffHours.selectStaff': 'Select staff member',
