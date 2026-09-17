@@ -2472,6 +2472,7 @@ export default {
   'booking.staff.noStaff': 'No hay personal disponible para este servicio.',
   'booking.pickStaff.title': 'Elige un miembro del equipo',
   'booking.pickStaff.noStaff': 'No hay personal disponible para este horario.',
+  'booking.staffCard.bookings': 'Reservas',
   // F12 — Staff dashboard
   'staffDashboard.title': 'Mis Reservas',
   'staffDashboard.empty': 'No hay próximas reservas.',

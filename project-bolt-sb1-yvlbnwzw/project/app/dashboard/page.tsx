@@ -25,7 +25,7 @@ import {
 import {
   Briefcase, MessageSquare, Star, Plus,
   CheckCircle2, Clock, Bell, Trash2, Rss, UserCircle,
-  ChevronRight, AlertCircle, Eye, TrendingUp, Calendar, Coins, ShieldCheck,
+  ChevronRight, AlertCircle, Eye, TrendingUp, Coins, ShieldCheck,
   Search, Wrench, Settings
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -35,7 +35,6 @@ import { ReviewModal } from '@/components/review-modal';
 import { OnboardingModal } from '@/components/onboarding-modal';
 import { toast } from 'sonner';
 import { useLanguage } from '@/lib/contexts/language-context';
-import { isBookingBetaUser } from '@/lib/booking-whitelist';
 import { timeAgo } from '@/lib/utils/date';
 import { translateNotification } from '@/lib/notification-translations';
 
@@ -88,9 +87,6 @@ function DashboardContent() {
   const [creditBalance, setCreditBalance] = useState<number | null>(null);
   const [recentViewers, setRecentViewers] = useState<{ id: string; name: string; avatar_url: string | null; viewed_at: string }[]>([]);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
-  const [isBusinessProfile, setIsBusinessProfile] = useState<boolean | null>(null);
-  const [hasServiceListing, setHasServiceListing] = useState<boolean | null>(null);
-  const [staffBusinessName, setStaffBusinessName] = useState<string | null>(null);
   const [donations, setDonations] = useState<{ id: string; amount: number; anonymous: boolean; sender_name: string | null; sender_avatar: string | null; created_at: string }[]>([]);
   const [donationsOpen, setDonationsOpen] = useState(false);
   const [allReviewsOpen, setAllReviewsOpen] = useState(false);
@@ -104,9 +100,6 @@ function DashboardContent() {
     fetchNotifications();
     if (profile?.account_type === 'customer') fetchPendingReview();
     if (profile?.account_type === 'professional' || (profile as any)?.is_premium) fetchProfileViews();
-    fetchHasServiceListing();
-    fetchIsBusinessProfile();
-    fetchStaffMembership();
     if ((profile as any)?.is_premium) { fetchCreditBalance(); fetchRecentViewers(); fetchDonations(); }
 
     const handleUnreadCountChanged = () => {
@@ -177,41 +170,6 @@ function DashboardContent() {
     if (unreviewed) setPendingReviewPro({ id: unreviewed.id, name: unreviewed.name });
   };
 
-  const fetchIsBusinessProfile = async () => {
-    if (!profile) return;
-    const { data } = await supabase.from('profiles').select('is_business').eq('id', profile.id).single();
-    setIsBusinessProfile(data?.is_business ?? false);
-  };
-
-  const fetchHasServiceListing = async () => {
-    if (!profile) return;
-    const { count } = await supabase
-      .from('posts')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', profile.id)
-      .eq('post_type', 'service_listing')
-      .eq('is_active', true);
-    setHasServiceListing((count ?? 0) > 0);
-  };
-
-  const fetchStaffMembership = async () => {
-    if (!profile) return;
-    const { data: membership } = await (supabase as any)
-      .from('staff_members')
-      .select('business_id, role')
-      .eq('user_id', profile.id)
-      .eq('is_active', true)
-      .in('role', ['worker', 'manager'])
-      .limit(1)
-      .maybeSingle();
-    if (!membership) return;
-    const { data: biz } = await supabase
-      .from('profiles')
-      .select('name')
-      .eq('id', membership.business_id)
-      .single();
-    setStaffBusinessName(biz?.name ?? null);
-  };
 
   const fetchProfileViews = async () => {
     if (!profile) return;
@@ -399,89 +357,6 @@ function DashboardContent() {
         </div>
 
 
-        {/* Staff card — shown when user is a worker/manager in someone else's business */}
-        {staffBusinessName && (
-          <div className="bg-card border border-border rounded-2xl p-4 flex items-center gap-3">
-            <div className="p-2.5 bg-orange-100 dark:bg-orange-950 rounded-xl shrink-0">
-              <Calendar className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground">{staffBusinessName}</p>
-              <p className="text-xs text-muted-foreground mb-2">{t('dashboard.staff.memberDesc')}</p>
-              <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide">
-                <button
-                  onClick={() => router.push('/dashboard/staff/bookings')}
-                  className="flex items-center gap-1 text-xs font-semibold text-orange-500 hover:text-orange-400 transition-colors whitespace-nowrap shrink-0"
-                >
-                  <Calendar className="h-3 w-3" />
-                  Rezervacije
-                </button>
-                <button
-                  onClick={() => router.push('/dashboard/staff/schedule')}
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap shrink-0"
-                >
-                  <Clock className="h-3 w-3" />
-                  {t('schedule.staffView.title')}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Business & Booking CTA — for users with a service listing */}
-        {hasServiceListing && isBusinessProfile !== null && (
-          !isBookingBetaUser(profile?.id) ? (
-            // Non-whitelisted: show beta notice regardless of premium status
-            <div className="bg-card border border-border rounded-2xl p-4 flex items-center gap-3">
-              <div className="p-2.5 bg-blue-100 dark:bg-blue-950 rounded-xl shrink-0">
-                <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <p className="text-sm font-semibold text-foreground">{t('dashboard.business.activeTitle')}</p>
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400">
-                    {t('booking.beta.badge')}
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground truncate">{t('booking.beta.inlineNote')}</p>
-              </div>
-            </div>
-          ) : !isPremium ? (
-            // Whitelisted, no Pro Premium
-            <div className="bg-card border border-blue-200 dark:border-blue-900 rounded-2xl p-4 flex items-center gap-3">
-              <div className="p-2.5 bg-blue-100 dark:bg-blue-950 rounded-xl shrink-0">
-                <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-foreground">{t('dashboard.business.needsPremiumTitle')}</p>
-                <p className="text-xs text-muted-foreground truncate">{t('dashboard.business.needsPremiumMessage')}</p>
-              </div>
-              <button
-                onClick={() => router.push('/profile')}
-                className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 shrink-0"
-              >
-                {t('dashboard.business.needsPremiumButton')} →
-              </button>
-            </div>
-          ) : isBusinessProfile ? null : (
-            // Whitelisted + Premium + no business profile yet
-            <div className="bg-card border border-blue-200 dark:border-blue-900 rounded-2xl p-4 flex items-center gap-3">
-              <div className="p-2.5 bg-blue-100 dark:bg-blue-950 rounded-xl shrink-0">
-                <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-foreground">{t('dashboard.business.ctaTitle')}</p>
-                <p className="text-xs text-muted-foreground truncate">{t('dashboard.business.ctaDesc')}</p>
-              </div>
-              <button
-                onClick={() => router.push('/booking/business/setup')}
-                className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 shrink-0"
-              >
-                {t('dashboard.business.ctaButton')} →
-              </button>
-            </div>
-          )
-        )}
 
 
         {error && (
