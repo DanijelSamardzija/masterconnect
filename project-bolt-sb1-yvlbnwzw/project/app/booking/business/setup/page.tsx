@@ -9,7 +9,7 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { useBookingAccess } from '@/lib/hooks/use-booking-access';
 import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
-import { ChevronRight, Plus, Pencil, X, CheckCircle2, MapPin, ExternalLink, AlertTriangle, Check, Loader2, Info } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Plus, Pencil, X, CheckCircle2, MapPin, ExternalLink, AlertTriangle, Check, Loader2, Info } from 'lucide-react';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
 import { RestaurantTablesTab } from '@/components/setup/RestaurantTablesTab';
 import { MenuTab } from '@/components/setup/MenuTab';
@@ -114,6 +114,25 @@ type StaffResult = {
   city: string | null;
 };
 
+type DaySchedule = {
+  is_closed:   boolean;
+  start_time:  string;
+  end_time:    string;
+  has_break:   boolean;
+  break_start: string;
+  break_end:   string;
+};
+
+type WeekShift = {
+  shift_date:            string;
+  start_time:            string | null;
+  end_time:              string | null;
+  is_off:                boolean;
+  break_start:           string | null;
+  break_end:             string | null;
+  is_template_generated: boolean;
+};
+
 const BOOKING_TYPES = [
   'appointment_service',
   'tradespeople',
@@ -133,9 +152,63 @@ const CURRENCIES = [
 
 const DEFAULT_HOURS: DayHours[] = Array.from({ length: 7 }, (_, i) => ({
   day_of_week: i,
-  is_closed: i === 0 || i === 6, // Sunday + Saturday closed by default
+  is_closed: i === 0 || i === 6,
   periods: [{ sort_order: 0, start_time: '09:00', end_time: '17:00' }],
 }));
+
+// Week-by-week schedule helpers (0=Mon, ..., 6=Sun)
+const STAFF_SCHEDULE_WEEKS = 13;
+const DOW_LABELS = ['setup.hours.day.1','setup.hours.day.2','setup.hours.day.3','setup.hours.day.4','setup.hours.day.5','setup.hours.day.6','setup.hours.day.0'] as const;
+const DEFAULT_DAY_SCHEDULE: DaySchedule = { is_closed: true, start_time: '09:00', end_time: '17:00', has_break: false, break_start: '12:00', break_end: '13:00' };
+
+function getMondayOf(d: Date): Date {
+  const r = new Date(d); r.setHours(0,0,0,0);
+  const day = r.getDay();
+  r.setDate(r.getDate() - (day === 0 ? 6 : day - 1));
+  return r;
+}
+function addDays(d: Date, n: number): Date { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
+function isoDateLocal(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+function formatWeekRangeShort(weekStart: Date): string {
+  const weekEnd = addDays(weekStart, 6);
+  const months = ['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
+  const sm = months[weekStart.getMonth()]; const em = months[weekEnd.getMonth()];
+  if (weekStart.getMonth() === weekEnd.getMonth()) return `${weekStart.getDate()}–${weekEnd.getDate()} ${sm}`;
+  return `${weekStart.getDate()} ${sm} – ${weekEnd.getDate()} ${em}`;
+}
+function getScheduleWeeks(): Date[] {
+  const monday = getMondayOf(new Date());
+  return Array.from({ length: STAFF_SCHEDULE_WEEKS }, (_, i) => addDays(monday, i * 7));
+}
+function emptyWeekSchedule(): Record<number, DaySchedule> {
+  return Object.fromEntries([0,1,2,3,4,5,6].map(d => [d, { ...DEFAULT_DAY_SCHEDULE }]));
+}
+function shiftsToWeekSchedule(weekStart: Date, shifts: WeekShift[]): Record<number, DaySchedule> {
+  const byDate: Record<string, WeekShift> = {};
+  for (const s of shifts) byDate[s.shift_date] = s;
+  return Object.fromEntries([0,1,2,3,4,5,6].map(dow => {
+    const date = isoDateLocal(addDays(weekStart, dow));
+    const s = byDate[date];
+    if (!s) return [dow, { ...DEFAULT_DAY_SCHEDULE }];
+    return [dow, {
+      is_closed:   s.is_off,
+      start_time:  s.start_time?.slice(0,5) ?? '09:00',
+      end_time:    s.end_time?.slice(0,5)   ?? '17:00',
+      has_break:   !!(s.break_start && s.break_end),
+      break_start: s.break_start?.slice(0,5) ?? '12:00',
+      break_end:   s.break_end?.slice(0,5)   ?? '13:00',
+    } satisfies DaySchedule];
+  }));
+}
+function isWeekExplicit(weekStart: Date, shifts: WeekShift[]): boolean {
+  const dates = new Set([0,1,2,3,4,5,6].map(d => isoDateLocal(addDays(weekStart, d))));
+  return shifts.some(s => dates.has(s.shift_date) && !s.is_template_generated);
+}
 
 const TIMEZONE_OPTIONS: { value: string; label: string }[] = [
   // Balkani & Ex-YU
@@ -354,7 +427,9 @@ export default function BusinessSetupPage() {
   const [addingStaffRole, setAddingStaffRole] = useState<'manager' | 'worker'>('worker');
   const [addingStaff, setAddingStaff] = useState(false);
   const [expandedStaffId, setExpandedStaffId] = useState<string | null>(null);
-  const [staffHoursMap, setStaffHoursMap] = useState<Record<string, DayHours[]>>({});
+  const [staffShiftsMap,       setStaffShiftsMap]       = useState<Record<string, WeekShift[]>>({});
+  const [staffWeekIndexMap,    setStaffWeekIndexMap]    = useState<Record<string, number>>({});
+  const [staffScheduleEditMap, setStaffScheduleEditMap] = useState<Record<string, Record<number, DaySchedule>>>({});
   const [staffServicesMap, setStaffServicesMap] = useState<Record<string, string[]>>({});
   const [staffHoursSaving, setStaffHoursSaving] = useState<string | null>(null);
   const [staffServicesSaving, setStaffServicesSaving] = useState<string | null>(null);
@@ -1088,32 +1163,21 @@ export default function BusinessSetupPage() {
   }
 
   async function loadStaffDetails(staffId: string) {
-    if (staffHoursMap[staffId] !== undefined) return;
-    if (!primaryLocId) return;
-    const [hoursRes, svcRes, permRes] = await Promise.all([
-      (supabase as any).rpc('get_staff_opening_hours', { p_staff_member_id: staffId, p_location_id: primaryLocId }),
+    if (staffShiftsMap[staffId] !== undefined) return;
+    const weeks = getScheduleWeeks();
+    const [shiftsRes, svcRes, permRes] = await Promise.all([
+      (supabase as any).rpc('owner_get_staff_shifts_range', {
+        p_staff_member_id: staffId,
+        p_from_date: isoDateLocal(weeks[0]),
+        p_to_date:   isoDateLocal(addDays(weeks[STAFF_SCHEDULE_WEEKS - 1], 6)),
+      }),
       (supabase as any).rpc('get_staff_services', { p_staff_member_id: staffId }),
       supabase.from('staff_members').select('permissions').eq('id', staffId).single(),
     ]);
-    type DBRow = { day_of_week: number; start_time: string; end_time: string; is_closed: boolean; sort_order: number };
-    const storedHours = hoursRes.data as DBRow[] | null;
-    if (storedHours && storedHours.length > 0) {
-      const dayMap = new Map<number, { is_closed: boolean; periods: HourPeriod[] }>();
-      for (const row of storedHours) {
-        if (!dayMap.has(row.day_of_week)) dayMap.set(row.day_of_week, { is_closed: row.is_closed, periods: [] });
-        const day = dayMap.get(row.day_of_week)!;
-        if (!row.is_closed) day.periods.push({ sort_order: row.sort_order, start_time: row.start_time, end_time: row.end_time });
-      }
-      for (const [, day] of dayMap) day.periods.sort((a, b) => a.sort_order - b.sort_order);
-      const loaded: DayHours[] = Array.from({ length: 7 }, (_, i) => {
-        const saved = dayMap.get(i);
-        if (saved) return { day_of_week: i, is_closed: saved.is_closed, periods: saved.periods.length > 0 ? saved.periods : [{ sort_order: 0, start_time: '09:00', end_time: '17:00' }] };
-        return { ...DEFAULT_HOURS[i] };
-      });
-      setStaffHoursMap((prev) => ({ ...prev, [staffId]: loaded }));
-    } else {
-      setStaffHoursMap((prev) => ({ ...prev, [staffId]: DEFAULT_HOURS.map((d) => ({ ...d, periods: [...d.periods] })) }));
-    }
+    const shifts: WeekShift[] = Array.isArray(shiftsRes.data) ? shiftsRes.data : [];
+    setStaffShiftsMap((prev) => ({ ...prev, [staffId]: shifts }));
+    const weekIdx = staffWeekIndexMap[staffId] ?? 0;
+    setStaffScheduleEditMap((prev) => ({ ...prev, [staffId]: shiftsToWeekSchedule(weeks[weekIdx], shifts) }));
     setStaffServicesMap((prev) => ({ ...prev, [staffId]: (svcRes.data as string[]) ?? [] }));
     const rawPerms = (permRes.data as any)?.permissions ?? {};
     setStaffPermissionsMap((prev) => ({
@@ -1142,26 +1206,46 @@ export default function BusinessSetupPage() {
 
   async function handleSaveStaffHours(staffId: string) {
     if (!primaryLocId) return;
-    const staffHours = staffHoursMap[staffId];
-    if (!staffHours) return;
+    const schedule = staffScheduleEditMap[staffId];
+    if (!schedule) return;
     setStaffHoursSaving(staffId);
-    for (const h of staffHours) {
-      if (h.is_closed) {
-        await (supabase as any).rpc('upsert_staff_opening_hours', {
-          p_staff_member_id: staffId, p_location_id: primaryLocId,
-          p_day_of_week: h.day_of_week, p_open_time: '09:00', p_close_time: '17:00', p_is_closed: true, p_sort_order: 0,
-        });
-      } else {
-        for (const period of h.periods) {
-          await (supabase as any).rpc('upsert_staff_opening_hours', {
-            p_staff_member_id: staffId, p_location_id: primaryLocId,
-            p_day_of_week: h.day_of_week, p_open_time: period.start_time, p_close_time: period.end_time, p_is_closed: false, p_sort_order: period.sort_order,
-          });
-        }
-      }
-    }
+    const weeks = getScheduleWeeks();
+    const weekIdx = staffWeekIndexMap[staffId] ?? 0;
+    const weekStart = weeks[weekIdx];
+    const days = [0,1,2,3,4,5,6].map(dow => {
+      const day = schedule[dow];
+      return {
+        day_of_week: dow,
+        start_time:  day.is_closed ? null : day.start_time,
+        end_time:    day.is_closed ? null : day.end_time,
+        is_off:      day.is_closed,
+        break_start: day.is_closed || !day.has_break ? null : day.break_start,
+        break_end:   day.is_closed || !day.has_break ? null : day.break_end,
+      };
+    });
+    const { data } = await (supabase as any).rpc('owner_save_week_schedule', {
+      p_staff_member_id: staffId,
+      p_location_id:     primaryLocId,
+      p_week_start:      isoDateLocal(weekStart),
+      p_days:            days,
+    });
     setStaffHoursSaving(null);
-    toast.success(t('setup.staff.hours.saved'));
+    if ((data as any)?.ok) {
+      toast.success(t('setup.staff.hours.saved'));
+      // Reload shifts so inherited/explicit badges update
+      const reloadWeeks = getScheduleWeeks();
+      const { data: fresh } = await (supabase as any).rpc('owner_get_staff_shifts_range', {
+        p_staff_member_id: staffId,
+        p_from_date: isoDateLocal(reloadWeeks[0]),
+        p_to_date:   isoDateLocal(addDays(reloadWeeks[STAFF_SCHEDULE_WEEKS - 1], 6)),
+      });
+      const freshShifts: WeekShift[] = Array.isArray(fresh) ? fresh : [];
+      setStaffShiftsMap(prev => ({ ...prev, [staffId]: freshShifts }));
+      const wIdx = staffWeekIndexMap[staffId] ?? 0;
+      setStaffScheduleEditMap(prev => ({ ...prev, [staffId]: shiftsToWeekSchedule(reloadWeeks[wIdx], freshShifts) }));
+    } else {
+      toast.error(t('setup.error.saveFailed'));
+    }
   }
 
   async function handleSaveStaffServices(staffId: string) {
@@ -1183,23 +1267,34 @@ export default function BusinessSetupPage() {
     });
   }
 
-  function updateStaffPeriod(staffId: string, day: number, sort_order: number, field: 'start_time' | 'end_time', value: string) {
-    setStaffHoursMap((prev) => ({
+  function updateStaffDay(staffId: string, dow: number, patch: Partial<DaySchedule>) {
+    setStaffScheduleEditMap(prev => ({
       ...prev,
-      [staffId]: (prev[staffId] ?? DEFAULT_HOURS).map((h) => {
-        if (h.day_of_week !== day) return h;
-        return { ...h, periods: h.periods.map((p) => p.sort_order === sort_order ? { ...p, [field]: value } : p) };
-      }),
+      [staffId]: { ...(prev[staffId] ?? emptyWeekSchedule()), [dow]: { ...(prev[staffId]?.[dow] ?? DEFAULT_DAY_SCHEDULE), ...patch } },
     }));
   }
 
-  function toggleStaffDay(staffId: string, day: number) {
-    setStaffHoursMap((prev) => ({
-      ...prev,
-      [staffId]: (prev[staffId] ?? DEFAULT_HOURS).map((h) =>
-        h.day_of_week === day ? { ...h, is_closed: !h.is_closed } : h
-      ),
-    }));
+  function toggleStaffDayOff(staffId: string, dow: number) {
+    const current = staffScheduleEditMap[staffId]?.[dow] ?? DEFAULT_DAY_SCHEDULE;
+    updateStaffDay(staffId, dow, { is_closed: !current.is_closed });
+  }
+
+  function toggleStaffBreak(staffId: string, dow: number) {
+    const current = staffScheduleEditMap[staffId]?.[dow] ?? DEFAULT_DAY_SCHEDULE;
+    updateStaffDay(staffId, dow, current.has_break
+      ? { has_break: false }
+      : { has_break: true, break_start: '12:00', break_end: '13:00' }
+    );
+  }
+
+  function changeStaffWeek(staffId: string, delta: number) {
+    const current = staffWeekIndexMap[staffId] ?? 0;
+    const next = Math.max(0, Math.min(STAFF_SCHEDULE_WEEKS - 1, current + delta));
+    if (next === current) return;
+    setStaffWeekIndexMap(prev => ({ ...prev, [staffId]: next }));
+    const weeks = getScheduleWeeks();
+    const shifts = staffShiftsMap[staffId] ?? [];
+    setStaffScheduleEditMap(prev => ({ ...prev, [staffId]: shiftsToWeekSchedule(weeks[next], shifts) }));
   }
 
   async function handleSaveServiceLocations(svcId: string) {
@@ -2529,67 +2624,110 @@ export default function BusinessSetupPage() {
                           {/* Expanded: staff hours + services */}
                           {expandedStaffId === sm.id && (
                             <div className="border-t border-border bg-card/50 px-4 py-4 flex flex-col gap-4">
-                              {/* Staff hours */}
+                              {/* Staff hours — week-by-week */}
                               <div>
                                 <p className="text-xs font-semibold mb-1">{t('setup.staff.hours.title')}</p>
                                 <p className="text-[11px] text-muted-foreground mb-2">{t('setup.staff.hours.hint')}</p>
-                                {staffHoursMap[sm.id] ? (
-                                  <div className="flex flex-col divide-y divide-border border border-border rounded-xl overflow-hidden mb-2">
-                                    {[...(staffHoursMap[sm.id] ?? [])].sort((a, b) => (a.day_of_week === 0 ? 7 : a.day_of_week) - (b.day_of_week === 0 ? 7 : b.day_of_week)).map((h) => (
-                                      <div key={h.day_of_week} className="px-3 py-2 flex flex-col gap-1.5">
-                                        <div className="flex items-center gap-2">
-                                          <span className="w-20 text-xs font-medium shrink-0">
-                                            {t(`setup.hours.day.${h.day_of_week}` as Parameters<typeof t>[0])}
-                                          </span>
-                                          <button
-                                            onClick={() => toggleStaffDay(sm.id, h.day_of_week)}
-                                            className={`text-[11px] px-2 py-0.5 rounded-full font-medium transition-colors ${
-                                              h.is_closed
-                                                ? 'bg-accent text-muted-foreground'
-                                                : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                            }`}
-                                          >
-                                            {h.is_closed ? t('setup.hours.closed') : t('setup.hours.open')}
-                                          </button>
-                                        </div>
-                                        {!h.is_closed && (
-                                          <div className="flex flex-col gap-1 pl-22">
-                                            {h.periods.map((period) => (
-                                              <div key={period.sort_order} className="flex items-center gap-2 ml-20">
-                                                <input
-                                                  type="time"
-                                                  value={period.start_time}
-                                                  onChange={(e) => updateStaffPeriod(sm.id, h.day_of_week, period.sort_order, 'start_time', e.target.value)}
-                                                  className="border border-border rounded px-2 py-0.5 text-xs bg-background focus:outline-none w-24"
-                                                />
-                                                <span className="text-muted-foreground text-xs">–</span>
-                                                <input
-                                                  type="time"
-                                                  value={period.end_time}
-                                                  onChange={(e) => updateStaffPeriod(sm.id, h.day_of_week, period.sort_order, 'end_time', e.target.value)}
-                                                  className="border border-border rounded px-2 py-0.5 text-xs bg-background focus:outline-none w-24"
-                                                />
-                                              </div>
-                                            ))}
-                                          </div>
-                                        )}
+                                {staffShiftsMap[sm.id] !== undefined ? (() => {
+                                  const weeks = getScheduleWeeks();
+                                  const weekIdx = staffWeekIndexMap[sm.id] ?? 0;
+                                  const weekStart = weeks[weekIdx];
+                                  const shifts = staffShiftsMap[sm.id] ?? [];
+                                  const explicit = isWeekExplicit(weekStart, shifts);
+                                  const schedule = staffScheduleEditMap[sm.id] ?? emptyWeekSchedule();
+                                  const timeCls = "border border-border rounded px-2 py-0.5 text-xs bg-background focus:outline-none w-24";
+                                  return (
+                                    <>
+                                      {/* Week navigator */}
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <button
+                                          onClick={() => changeStaffWeek(sm.id, -1)}
+                                          disabled={weekIdx === 0}
+                                          className="p-1 rounded hover:bg-accent disabled:opacity-30 transition-colors"
+                                        >
+                                          <ChevronLeft className="w-3.5 h-3.5" />
+                                        </button>
+                                        <span className="text-xs font-medium min-w-[90px] text-center">{formatWeekRangeShort(weekStart)}</span>
+                                        <button
+                                          onClick={() => changeStaffWeek(sm.id, 1)}
+                                          disabled={weekIdx === STAFF_SCHEDULE_WEEKS - 1}
+                                          className="p-1 rounded hover:bg-accent disabled:opacity-30 transition-colors"
+                                        >
+                                          <ChevronRight className="w-3.5 h-3.5" />
+                                        </button>
+                                        {explicit
+                                          ? <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{t('ownerStaffHours.explicit')}</span>
+                                          : <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-accent text-muted-foreground font-medium">{t('ownerStaffHours.inherited')}</span>
+                                        }
                                       </div>
-                                    ))}
-                                  </div>
-                                ) : (
+                                      {/* Days */}
+                                      <div className="flex flex-col divide-y divide-border border border-border rounded-xl overflow-hidden mb-2">
+                                        {[0,1,2,3,4,5,6].map(dow => {
+                                          const day = schedule[dow];
+                                          return (
+                                            <div key={dow} className="px-3 py-2 flex flex-col gap-1.5">
+                                              <div className="flex items-center gap-2">
+                                                <span className="w-20 text-xs font-medium shrink-0">
+                                                  {t(DOW_LABELS[dow] as Parameters<typeof t>[0])}
+                                                </span>
+                                                <button
+                                                  onClick={() => toggleStaffDayOff(sm.id, dow)}
+                                                  className={`text-[11px] px-2 py-0.5 rounded-full font-medium transition-colors ${
+                                                    day.is_closed
+                                                      ? 'bg-accent text-muted-foreground'
+                                                      : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                                  }`}
+                                                >
+                                                  {day.is_closed ? t('setup.hours.closed') : t('setup.hours.open')}
+                                                </button>
+                                              </div>
+                                              {!day.is_closed && (
+                                                <div className="flex flex-col gap-1 ml-20">
+                                                  <div className="flex items-center gap-2">
+                                                    <input type="time" value={day.start_time} className={timeCls}
+                                                      onChange={e => updateStaffDay(sm.id, dow, { start_time: e.target.value })} />
+                                                    <span className="text-muted-foreground text-xs">–</span>
+                                                    <input type="time" value={day.end_time} className={timeCls}
+                                                      onChange={e => updateStaffDay(sm.id, dow, { end_time: e.target.value })} />
+                                                  </div>
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => toggleStaffBreak(sm.id, dow)}
+                                                    className="text-[10px] text-muted-foreground hover:text-foreground transition-colors self-start"
+                                                  >
+                                                    {day.has_break ? '− pauza' : '+ pauza'}
+                                                  </button>
+                                                  {day.has_break && (
+                                                    <div className="flex items-center gap-2">
+                                                      <input type="time" value={day.break_start} className={timeCls}
+                                                        onChange={e => updateStaffDay(sm.id, dow, { break_start: e.target.value })} />
+                                                      <span className="text-muted-foreground text-xs">–</span>
+                                                      <input type="time" value={day.break_end} className={timeCls}
+                                                        onChange={e => updateStaffDay(sm.id, dow, { break_end: e.target.value })} />
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              )}
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleSaveStaffHours(sm.id)}
+                                        disabled={staffHoursSaving === sm.id}
+                                        className="text-xs"
+                                      >
+                                        {staffHoursSaving === sm.id ? '...' : t('setup.staff.hours.save')}
+                                      </Button>
+                                    </>
+                                  );
+                                })() : (
                                   <div className="flex justify-center py-2">
                                     <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                                   </div>
                                 )}
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleSaveStaffHours(sm.id)}
-                                  disabled={staffHoursSaving === sm.id || !staffHoursMap[sm.id]}
-                                  className="text-xs"
-                                >
-                                  {staffHoursSaving === sm.id ? '...' : t('setup.staff.hours.save')}
-                                </Button>
                               </div>
 
                               {/* Staff services */}
