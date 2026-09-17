@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { ArrowLeft, ChevronRight, Clock, Users, MapPin, Phone } from 'lucide-react';
+import { ArrowLeft, Clock, Users, MapPin, Phone } from 'lucide-react';
 
 type Business = {
   id: string;
@@ -15,13 +15,6 @@ type Business = {
   live_status: string | null;
   city: string | null;
   category: string | null;
-};
-
-type StaffMember = {
-  id: string;
-  name: string;
-  avatar_url: string | null;
-  role: string;
 };
 
 type Location = {
@@ -59,14 +52,13 @@ export default function BusinessBookingProfilePage() {
   const [business, setBusiness] = useState<Business | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [primaryLocation, setPrimaryLocation] = useState<Location | null>(null);
-  const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!businessId) return;
     (async () => {
       setLoading(true);
-      const [bizRes, svcRes, locRes, smRes] = await Promise.all([
+      const [bizRes, svcRes, locRes] = await Promise.all([
         supabase
           .from('profiles')
           .select('id, name, avatar_url, live_status, city, category')
@@ -87,36 +79,10 @@ export default function BusinessBookingProfilePage() {
           .order('is_primary', { ascending: false })
           .limit(1)
           .maybeSingle(),
-        // Staff members visible to clients
-        supabase
-          .from('staff_members')
-          .select('id, role, user_id')
-          .eq('business_id', businessId)
-          .eq('is_active', true)
-          .in('role', ['owner', 'worker', 'manager']),
       ]);
       setBusiness(bizRes.data ?? null);
       setServices((svcRes.data as Service[]) ?? []);
       setPrimaryLocation((locRes.data as Location) ?? null);
-      // Fetch staff profiles
-      const smRows = smRes.data ?? [];
-      if (smRows.length > 0) {
-        const userIds = smRows.map((s: { user_id: string }) => s.user_id);
-        const { data: profData } = await supabase
-          .from('profiles')
-          .select('id, name, avatar_url')
-          .in('id', userIds);
-        const profMap: Record<string, { name: string; avatar_url: string | null }> = {};
-        for (const p of profData ?? []) profMap[p.id] = p;
-        setStaffMembers(
-          smRows.map((s: { id: string; role: string; user_id: string }) => ({
-            id: s.id,
-            role: s.role,
-            name: profMap[s.user_id]?.name ?? '',
-            avatar_url: profMap[s.user_id]?.avatar_url ?? null,
-          }))
-        );
-      }
       setLoading(false);
     })();
   }, [businessId]);
@@ -258,37 +224,6 @@ export default function BusinessBookingProfilePage() {
           )}
         </div>
 
-        {/* Staff section */}
-        {staffMembers.length > 0 && (
-          <div className="border border-border rounded-xl overflow-hidden mt-4">
-            <div className="px-4 py-3 border-b border-border bg-muted/20">
-              <span className="text-sm font-medium">{t('staffProfile.staff')}</span>
-            </div>
-            <div className="divide-y divide-border">
-              {staffMembers.map((sm) => (
-                <Link
-                  key={sm.id}
-                  href={`/booking/${businessId}/staff/${sm.id}`}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-accent/30 transition-colors"
-                >
-                  <Avatar className="h-8 w-8 shrink-0">
-                    <AvatarImage src={sm.avatar_url ?? undefined} alt={sm.name} />
-                    <AvatarFallback className="text-xs font-semibold">
-                      {sm.name[0]?.toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium truncate">{sm.name}</div>
-                    <div className="text-xs text-muted-foreground capitalize">
-                      {sm.role === 'owner' ? t('setup.staff.owner') : t('setup.staff.worker')}
-                    </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto shrink-0" />
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

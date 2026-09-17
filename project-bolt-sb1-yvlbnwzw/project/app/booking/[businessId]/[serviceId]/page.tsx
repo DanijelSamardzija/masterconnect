@@ -85,6 +85,11 @@ type StaffAbsenceRow = {
   date_to: string;
 };
 
+type StaffShiftDay = {
+  is_off: boolean;
+  off_reason: string | null;
+};
+
 type StaffPickerOption = {
   staff_member_id: string;
   name: string;
@@ -196,6 +201,7 @@ export default function BookingSlotPickerPage() {
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(preselectedStaffId ?? null);
   const [loadingStaff, setLoadingStaff] = useState(false);
   const [breaks, setBreaks] = useState<Record<string, { break_start: string; break_end: string }>>({});
+  const [staffShiftDays, setStaffShiftDays] = useState<Record<string, StaffShiftDay>>({});
 
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -312,6 +318,23 @@ export default function BookingSlotPickerPage() {
     (supabase as any).rpc('public_get_staff_absences', { p_staff_member_id: selectedStaffId })
       .then(({ data }: { data: StaffAbsenceRow[] | null }) => setStaffAbsences(data ?? []));
   }, [selectedStaffId]);
+
+  useEffect(() => {
+    if (!selectedStaffId) { setStaffShiftDays({}); return; }
+    const ws = weekStart(weekDate);
+    const we = weekStart(addDays(weekDate, 6));
+    (supabase as any).rpc('get_staff_schedule_for_client', {
+      p_staff_member_id: selectedStaffId,
+      p_from_date: ws,
+      p_to_date: we,
+    }).then(({ data }: { data: { schedule: { shift_date: string; is_off: boolean; off_reason: string | null }[] } | null }) => {
+      const map: Record<string, StaffShiftDay> = {};
+      if (data?.schedule && Array.isArray(data.schedule)) {
+        data.schedule.forEach(d => { map[d.shift_date] = { is_off: d.is_off, off_reason: d.off_reason }; });
+      }
+      setStaffShiftDays(map);
+    });
+  }, [selectedStaffId, weekDate]);
 
   useEffect(() => {
     if (!selectedStaffId) { setBreaks({}); return; }
@@ -802,10 +825,22 @@ export default function BookingSlotPickerPage() {
                     const dayAbsence = selectedStaffId
                       ? staffAbsences.find(a => a.date_from <= dayKey && a.date_to >= dayKey)
                       : undefined;
-                    if (available.length === 0 && dayAbsence) {
-                      const rKey = `setup.closures.reason.${dayAbsence.reason}` as Parameters<typeof t>[0];
-                      const rLabel = ['vacation','sick_leave','holiday','renovation','other'].includes(dayAbsence.reason)
-                        ? t(rKey) : dayAbsence.reason;
+                    const dayShift = selectedStaffId ? staffShiftDays[dayKey] : undefined;
+                    if (available.length === 0 && (dayShift?.is_off || dayAbsence)) {
+                      let rLabel: string;
+                      if (dayShift?.is_off) {
+                        rLabel = dayShift.off_reason === 'vacation'
+                          ? t('shift.vacation')
+                          : dayShift.off_reason === 'sick_leave'
+                          ? t('shift.sickLeave')
+                          : t('shift.dayOff');
+                      } else if (dayAbsence) {
+                        const rKey = `setup.closures.reason.${dayAbsence.reason}` as Parameters<typeof t>[0];
+                        rLabel = ['vacation','sick_leave','holiday','renovation','other'].includes(dayAbsence.reason)
+                          ? t(rKey) : dayAbsence.reason;
+                      } else {
+                        rLabel = '';
+                      }
                       return [
                         <div key="absence" className="text-[9px] text-center text-muted-foreground leading-tight px-0.5 py-1 rounded bg-muted/50">
                           {rLabel}
