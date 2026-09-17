@@ -123,7 +123,7 @@ export default function StaffHoursPage() {
     (async () => {
       const { data: sm } = await (supabase as any)
         .from('staff_members')
-        .select('id, primary_location_id, permissions, role, accept_bookings, business_id')
+        .select('id, permissions, role, accept_bookings, business_id')
         .eq('user_id', profile.id)
         .eq('is_active', true)
         .in('role', ['worker', 'manager', 'owner'])
@@ -141,18 +141,15 @@ export default function StaffHoursPage() {
       setHasPermission(perm);
       setCanBlockTime(isOwner || !!sm.permissions?.can_block_time);
 
-      let locId: string | null = sm.primary_location_id;
-      if (!locId && isOwner) {
-        const { data: loc } = await (supabase as any)
-          .from('business_locations')
-          .select('id')
-          .eq('business_id', sm.business_id)
-          .eq('is_active', true)
-          .order('is_primary', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        locId = loc?.id ?? null;
-      }
+      // Always use business primary location — consistent with owner's setup pages
+      const { data: locData } = await (supabase as any)
+        .from('business_locations')
+        .select('id')
+        .eq('business_id', sm.business_id)
+        .eq('is_primary', true)
+        .eq('is_active', true)
+        .maybeSingle();
+      const locId: string | null = locData?.id ?? null;
 
       if (!locId) { setLoading(false); return; }
       setLocationId(locId);
