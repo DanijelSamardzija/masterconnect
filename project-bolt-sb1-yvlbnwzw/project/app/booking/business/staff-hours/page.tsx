@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/protected-route';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
-import { ChevronLeft, Clock, Users, X, Info } from 'lucide-react';
+import { ChevronLeft, Users, X, Info, ChevronRight } from 'lucide-react';
 
 type StaffMember = { id: string; name: string; primary_location_id: string | null; accept_bookings: boolean; role: string };
 
@@ -20,8 +20,18 @@ type DaySchedule = {
   break_end:   string;
 };
 
+type WeekShift = {
+  shift_date:             string;
+  start_time:             string | null;
+  end_time:               string | null;
+  is_off:                 boolean;
+  break_start:            string | null;
+  break_end:              string | null;
+  is_template_generated:  boolean;
+};
+
 const DEFAULT_DAY: DaySchedule = {
-  is_closed:   false,
+  is_closed:   true,
   start_time:  '09:00',
   end_time:    '17:00',
   has_break:   false,
@@ -29,6 +39,7 @@ const DEFAULT_DAY: DaySchedule = {
   break_end:   '13:00',
 };
 
+// 0=Mon, 1=Tue, ..., 6=Sun
 const DOW_KEYS = [
   'setup.hours.day.1',
   'setup.hours.day.2',
@@ -39,65 +50,69 @@ const DOW_KEYS = [
   'setup.hours.day.0',
 ] as const;
 
-const DOW_ORDER = [1, 2, 3, 4, 5, 6, 0];
-
-const MONTH_KEYS = [
-  'staffHours.month.0',
-  'staffHours.month.1',
-  'staffHours.month.2',
-  'staffHours.month.3',
-  'staffHours.month.4',
-  'staffHours.month.5',
-  'staffHours.month.6',
-  'staffHours.month.7',
-  'staffHours.month.8',
-  'staffHours.month.9',
-  'staffHours.month.10',
-  'staffHours.month.11',
-  'staffHours.month.12',
-] as const;
-
-function emptySchedule(): Record<number, DaySchedule> {
-  return Object.fromEntries(DOW_ORDER.map((d) => [d, { ...DEFAULT_DAY }]));
+function getMondayOf(d: Date): Date {
+  const r = new Date(d);
+  r.setHours(0, 0, 0, 0);
+  const day = r.getDay();
+  r.setDate(r.getDate() - (day === 0 ? 6 : day - 1));
+  return r;
 }
 
-function parseHours(hours: any[]): Record<number, DaySchedule> {
-  const byDay: Record<number, Record<number, { start_time: string; end_time: string; is_closed: boolean }>> = {};
-  for (const row of hours) {
-    const dow = row.day_of_week;
-    if (!byDay[dow]) byDay[dow] = {};
-    byDay[dow][row.sort_order] = {
-      is_closed:  row.is_closed,
-      start_time: row.start_time?.slice(0, 5) ?? '09:00',
-      end_time:   row.end_time?.slice(0, 5)   ?? '17:00',
-    };
+function addDays(d: Date, n: number): Date {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+}
+
+function isoDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function formatWeekRange(weekStart: Date): string {
+  const weekEnd = addDays(weekStart, 6);
+  const months = ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+  const sm = months[weekStart.getMonth()];
+  const em = months[weekEnd.getMonth()];
+  if (weekStart.getMonth() === weekEnd.getMonth()) {
+    return `${weekStart.getDate()}–${weekEnd.getDate()} ${sm}`;
   }
-  const loaded: Record<number, DaySchedule> = emptySchedule();
-  for (const dow of DOW_ORDER) {
-    const p0 = byDay[dow]?.[0];
-    const p1 = byDay[dow]?.[1];
-    if (!p0) continue;
-    if (p1) {
-      loaded[dow] = {
-        is_closed:   p0.is_closed,
-        start_time:  p0.start_time,
-        break_start: p0.end_time,
-        break_end:   p1.start_time,
-        end_time:    p1.end_time,
-        has_break:   true,
-      };
-    } else {
-      loaded[dow] = {
-        is_closed:   p0.is_closed,
-        start_time:  p0.start_time,
-        end_time:    p0.end_time,
-        has_break:   false,
-        break_start: '12:00',
-        break_end:   '13:00',
-      };
-    }
-  }
-  return loaded;
+  return `${weekStart.getDate()} ${sm} – ${weekEnd.getDate()} ${em}`;
+}
+
+function emptySchedule(): Record<number, DaySchedule> {
+  return Object.fromEntries([0, 1, 2, 3, 4, 5, 6].map(d => [d, { ...DEFAULT_DAY }]));
+}
+
+function shiftsToSchedule(weekStart: Date, shifts: WeekShift[]): Record<number, DaySchedule> {
+  const byDate: Record<string, WeekShift> = {};
+  for (const s of shifts) byDate[s.shift_date] = s;
+
+  return Object.fromEntries(
+    [0, 1, 2, 3, 4, 5, 6].map(dow => {
+      const date = isoDate(addDays(weekStart, dow));
+      const s = byDate[date];
+      if (!s) return [dow, { ...DEFAULT_DAY }];
+      const hasBreak = !!(s.break_start && s.break_end);
+      return [dow, {
+        is_closed:   s.is_off,
+        start_time:  s.start_time?.slice(0, 5) ?? '09:00',
+        end_time:    s.end_time?.slice(0, 5)   ?? '17:00',
+        has_break:   hasBreak,
+        break_start: s.break_start?.slice(0, 5) ?? '12:00',
+        break_end:   s.break_end?.slice(0, 5)   ?? '13:00',
+      } satisfies DaySchedule];
+    })
+  );
+}
+
+function weekIsExplicit(weekStart: Date, shifts: WeekShift[]): boolean {
+  const dates = new Set(
+    [0, 1, 2, 3, 4, 5, 6].map(d => isoDate(addDays(weekStart, d)))
+  );
+  return shifts.some(s => dates.has(s.shift_date) && !s.is_template_generated);
 }
 
 function OwnerStaffHoursContent() {
@@ -107,21 +122,26 @@ function OwnerStaffHoursContent() {
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
-  const [staffList, setStaffList] = useState<StaffMember[]>([]);
-  const [locationId, setLocationId] = useState<string>('');
+  const weeks = useMemo(() => {
+    const monday = getMondayOf(new Date());
+    return Array.from({ length: 13 }, (_, i) => addDays(monday, i * 7));
+  }, []);
+
+  const [staffList,      setStaffList]      = useState<StaffMember[]>([]);
+  const [locationId,     setLocationId]     = useState<string>('');
   const [selectedStaffId, setSelectedStaffId] = useState<string>('');
-  const [selectedMonth, setSelectedMonth] = useState<number>(0);
-  const [schedule, setSchedule] = useState<Record<number, DaySchedule>>(emptySchedule());
-  const [loading, setLoading] = useState(true);
-  const [scheduleLoading, setScheduleLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [isOwner, setIsOwner] = useState(false);
-  const [infoOpen, setInfoOpen] = useState(false);
+  const [selectedWeek,   setSelectedWeek]   = useState<number>(0);
+  const [allShifts,      setAllShifts]      = useState<WeekShift[]>([]);
+  const [schedule,       setSchedule]       = useState<Record<number, DaySchedule>>(emptySchedule());
+  const [loading,        setLoading]        = useState(true);
+  const [shiftsLoading,  setShiftsLoading]  = useState(false);
+  const [saving,         setSaving]         = useState(false);
+  const [isOwner,        setIsOwner]        = useState(false);
+  const [infoOpen,       setInfoOpen]       = useState(false);
 
   useEffect(() => {
     if (!profile) return;
     (async () => {
-      // Check owner/manager role
       const { data: ownerSm } = await (supabase as any)
         .from('staff_members')
         .select('role, business_id')
@@ -134,7 +154,6 @@ function OwnerStaffHoursContent() {
       if (!ownerSm) { setLoading(false); return; }
       setIsOwner(true);
 
-      // Get primary location
       const { data: loc } = await (supabase as any)
         .from('business_locations')
         .select('id')
@@ -146,7 +165,6 @@ function OwnerStaffHoursContent() {
 
       if (loc) setLocationId(loc.id);
 
-      // Get all staff members (including owner themselves)
       const { data: staff } = await (supabase as any)
         .from('staff_members')
         .select('id, primary_location_id, accept_bookings, role, profiles!staff_members_user_id_fkey(name)')
@@ -156,37 +174,38 @@ function OwnerStaffHoursContent() {
 
       if (staff && staff.length > 0) {
         const list = staff.map((s: any) => ({
-          id: s.id,
-          name: s.profiles?.name || '—',
+          id:                  s.id,
+          name:                s.profiles?.name || '—',
           primary_location_id: s.primary_location_id,
-          accept_bookings: s.accept_bookings ?? true,
-          role: s.role,
+          accept_bookings:     s.accept_bookings ?? true,
+          role:                s.role,
         }));
         setStaffList(list);
         setSelectedStaffId(list[0].id);
-        const effectiveLocId = loc?.id || list[0].primary_location_id || '';
-        if (effectiveLocId) {
-          await loadHours(list[0].id, effectiveLocId, 0);
-        }
+        const locId = loc?.id || list[0].primary_location_id || '';
+        if (locId) await loadShifts(list[0].id, locId);
       }
 
       setLoading(false);
     })();
   }, [profile]);
 
-  async function loadHours(smId: string, locId: string, month: number) {
-    setScheduleLoading(true);
-    const { data } = await (supabase as any).rpc('owner_get_staff_hours', {
+  // When week changes, re-derive schedule from allShifts
+  useEffect(() => {
+    setSchedule(shiftsToSchedule(weeks[selectedWeek], allShifts));
+  }, [selectedWeek, allShifts, weeks]);
+
+  async function loadShifts(smId: string, locId: string) {
+    setShiftsLoading(true);
+    const from = isoDate(weeks[0]);
+    const to   = isoDate(addDays(weeks[12], 6));
+    const { data } = await (supabase as any).rpc('owner_get_staff_shifts_range', {
       p_staff_member_id: smId,
-      p_location_id: locId,
-      p_month: month,
+      p_from_date:       from,
+      p_to_date:         to,
     });
-    if (Array.isArray(data) && data.length > 0) {
-      setSchedule(parseHours(data));
-    } else {
-      setSchedule(emptySchedule());
-    }
-    setScheduleLoading(false);
+    setAllShifts(Array.isArray(data) ? data : []);
+    setShiftsLoading(false);
   }
 
   async function handleToggleAcceptBookings(smId: string, current: boolean) {
@@ -204,102 +223,55 @@ function OwnerStaffHoursContent() {
 
   async function handleStaffChange(smId: string) {
     setSelectedStaffId(smId);
-    if (locationId) {
-      await loadHours(smId, locationId, selectedMonth);
-    }
-  }
-
-  async function handleMonthChange(month: number) {
-    setSelectedMonth(month);
+    setSelectedWeek(0);
     const locId = locationId;
-    if (selectedStaffId && locId) {
-      await loadHours(selectedStaffId, locId, month);
-    }
+    if (locId) await loadShifts(smId, locId);
   }
 
   async function handleSave() {
     if (!selectedStaffId || !locationId) return;
-    const locId = locationId;
-
     setSaving(true);
-    let anyError = false;
 
-    for (const dow of DOW_ORDER) {
+    const weekStart = weeks[selectedWeek];
+    const days = [0, 1, 2, 3, 4, 5, 6].map(dow => {
       const day = schedule[dow];
+      return {
+        day_of_week: dow,
+        start_time:  day.is_closed ? null : day.start_time,
+        end_time:    day.is_closed ? null : day.end_time,
+        is_off:      day.is_closed,
+        break_start: day.is_closed || !day.has_break ? null : day.break_start,
+        break_end:   day.is_closed || !day.has_break ? null : day.break_end,
+      };
+    });
 
-      if (day.has_break && !day.is_closed) {
-        const r0 = await (supabase as any).rpc('owner_set_staff_hours', {
-          p_staff_member_id: selectedStaffId,
-          p_location_id: locId,
-          p_day_of_week: dow,
-          p_open_time:   day.start_time,
-          p_close_time:  day.break_start,
-          p_is_closed:   false,
-          p_sort_order:  0,
-          p_month:       selectedMonth,
-        });
-        if (!r0.data?.ok) anyError = true;
-        const r1 = await (supabase as any).rpc('owner_set_staff_hours', {
-          p_staff_member_id: selectedStaffId,
-          p_location_id: locId,
-          p_day_of_week: dow,
-          p_open_time:   day.break_end,
-          p_close_time:  day.end_time,
-          p_is_closed:   false,
-          p_sort_order:  1,
-          p_month:       selectedMonth,
-        });
-        if (!r1.data?.ok) anyError = true;
-      } else {
-        const r0 = await (supabase as any).rpc('owner_set_staff_hours', {
-          p_staff_member_id: selectedStaffId,
-          p_location_id: locId,
-          p_day_of_week: dow,
-          p_open_time:   day.start_time,
-          p_close_time:  day.end_time,
-          p_is_closed:   day.is_closed,
-          p_sort_order:  0,
-          p_month:       selectedMonth,
-        });
-        if (!r0.data?.ok) anyError = true;
-        await (supabase as any).rpc('owner_delete_staff_hour_period', {
-          p_staff_member_id: selectedStaffId,
-          p_location_id: locId,
-          p_day_of_week: dow,
-          p_sort_order:  1,
-          p_month:       selectedMonth,
-        });
-      }
-    }
-
-    // Generate concrete shifts for next 90 days (only for base template, not monthly overrides)
-    if (!anyError && selectedMonth === 0) {
-      await (supabase as any).rpc('owner_generate_shifts_90_days', {
-        p_staff_member_id: selectedStaffId,
-        p_location_id:     locId,
-      });
-    }
+    const { data } = await (supabase as any).rpc('owner_save_week_schedule', {
+      p_staff_member_id: selectedStaffId,
+      p_location_id:     locationId,
+      p_week_start:      isoDate(weekStart),
+      p_days:            days,
+    });
 
     setSaving(false);
-    if (anyError) {
-      toast.error(t('staffHours.saveError'));
-    } else {
+
+    if (data?.ok) {
       toast.success(t('staffHours.saved'));
+      await loadShifts(selectedStaffId, locationId);
+    } else {
+      toast.error(t('staffHours.saveError'));
     }
   }
 
   function updateDay(dow: number, patch: Partial<DaySchedule>) {
-    setSchedule((prev) => ({ ...prev, [dow]: { ...prev[dow], ...patch } }));
+    setSchedule(prev => ({ ...prev, [dow]: { ...prev[dow], ...patch } }));
   }
 
   function toggleBreak(dow: number) {
-    setSchedule((prev) => {
+    setSchedule(prev => {
       const day = prev[dow];
-      if (day.has_break) {
-        return { ...prev, [dow]: { ...day, has_break: false } };
-      } else {
-        return { ...prev, [dow]: { ...day, has_break: true, break_start: '12:00', break_end: '13:00' } };
-      }
+      return day.has_break
+        ? { ...prev, [dow]: { ...day, has_break: false } }
+        : { ...prev, [dow]: { ...day, has_break: true, break_start: '12:00', break_end: '13:00' } };
     });
   }
 
@@ -312,11 +284,14 @@ function OwnerStaffHoursContent() {
   }
 
   const timeCls = "border border-border rounded-lg px-2 py-1 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary w-28";
+  const currentWeekStart = weeks[selectedWeek];
+  const isCurrentWeekExplicit = weekIsExplicit(currentWeekStart, allShifts);
 
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto px-4 py-6">
 
+        {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <button
             onClick={() => router.back()}
@@ -347,9 +322,6 @@ function OwnerStaffHoursContent() {
           </div>
         )}
 
-        {/* Retention notice */}
-        <p className="text-[11px] text-muted-foreground/80 mb-4 pl-1">{t('ownerStaffHours.retention')}</p>
-
         {loading ? (
           <div className="flex justify-center py-12">
             <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -361,8 +333,8 @@ function OwnerStaffHoursContent() {
           </div>
         ) : (
           <>
-            {/* Staff picker */}
-            <div className="mb-4">
+            {/* Staff picker with accept_bookings toggle */}
+            <div className="mb-5">
               <label className="block text-xs text-muted-foreground mb-1.5">{t('ownerStaffHours.selectStaff')}</label>
               <div className="flex flex-col gap-2">
                 {staffList.map(sm => (
@@ -378,14 +350,13 @@ function OwnerStaffHoursContent() {
                     >
                       {sm.name}
                       {sm.role === 'owner' && (
-                        <span className={`ml-1.5 text-[10px] font-normal opacity-70`}>(vlasnik)</span>
+                        <span className="ml-1.5 text-[10px] font-normal opacity-70">(vlasnik)</span>
                       )}
                     </button>
                     <div className="flex items-center gap-1.5 shrink-0">
                       <span className="text-[10px] text-muted-foreground">{t('staffHours.acceptBookings')}</span>
                       <button
                         type="button"
-                        title={t('staffHours.acceptBookings')}
                         onClick={() => handleToggleAcceptBookings(sm.id, sm.accept_bookings)}
                         className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 ${
                           sm.accept_bookings ? 'bg-primary' : 'bg-muted'
@@ -403,49 +374,58 @@ function OwnerStaffHoursContent() {
               </div>
             </div>
 
-            {/* Month selector */}
+            {/* Week selector */}
             <div className="mb-4">
-              <p className="text-xs text-muted-foreground mb-2">{t('staffHours.selectMonth')}</p>
-              <div className="flex gap-1.5 flex-wrap">
-                {MONTH_KEYS.map((key, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => handleMonthChange(idx)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
-                      selectedMonth === idx
-                        ? 'bg-primary text-white'
-                        : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
-                    }`}
-                  >
-                    {t(key)}
-                  </button>
-                ))}
+              <p className="text-xs text-muted-foreground mb-2">{t('ownerStaffHours.selectWeek')}</p>
+              <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
+                {weeks.map((ws, idx) => {
+                  const explicit = weekIsExplicit(ws, allShifts);
+                  const isSelected = selectedWeek === idx;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setSelectedWeek(idx)}
+                      className={`flex-shrink-0 flex flex-col items-center px-2.5 py-1.5 rounded-xl text-[11px] font-medium transition-colors border ${
+                        isSelected
+                          ? 'bg-primary text-white border-primary'
+                          : 'border-border bg-background hover:bg-accent text-foreground'
+                      }`}
+                    >
+                      <span>{idx === 0 ? t('ownerStaffHours.thisWeek') : idx === 1 ? t('ownerStaffHours.nextWeek') : `+${idx}`}</span>
+                      <span className={`text-[9px] mt-0.5 ${isSelected ? 'opacity-80' : explicit ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
+                        {explicit ? t('ownerStaffHours.explicit') : t('ownerStaffHours.inherited')}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
-              {selectedMonth > 0 && (
-                <p className="text-[11px] text-primary mt-1.5">
-                  {t('staffHours.monthOverrideNote')}
-                </p>
-              )}
+              {/* Week date range */}
+              <p className="text-xs text-muted-foreground mt-1.5 pl-0.5">
+                {formatWeekRange(currentWeekStart)}
+                {!isCurrentWeekExplicit && (
+                  <span className="ml-2 text-amber-600 dark:text-amber-400">{t('ownerStaffHours.inheritedNotice')}</span>
+                )}
+              </p>
             </div>
 
-            {scheduleLoading ? (
+            {shiftsLoading ? (
               <div className="flex justify-center py-8">
                 <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               </div>
             ) : (
               <>
+                {/* Mon-Sun grid */}
                 <div className="border border-border rounded-xl overflow-hidden mb-5">
-                  {DOW_ORDER.map((dow, idx) => {
+                  {[0, 1, 2, 3, 4, 5, 6].map((dow, idx) => {
                     const day = schedule[dow];
-                    const labelKey = DOW_KEYS[idx];
                     return (
                       <div
                         key={dow}
                         className={`flex flex-col gap-2 p-4 ${idx > 0 ? 'border-t border-border' : ''}`}
                       >
                         <div className="flex items-center gap-3">
-                          <span className="text-sm font-medium w-28">{t(labelKey)}</span>
+                          <span className="text-sm font-medium w-28">{t(DOW_KEYS[idx])}</span>
                           <button
                             type="button"
                             onClick={() => updateDay(dow, { is_closed: !day.is_closed })}
@@ -465,14 +445,14 @@ function OwnerStaffHoursContent() {
                               <input
                                 type="time"
                                 value={day.start_time}
-                                onChange={(e) => updateDay(dow, { start_time: e.target.value })}
+                                onChange={e => updateDay(dow, { start_time: e.target.value })}
                                 className={timeCls}
                               />
                               <span className="text-muted-foreground text-xs">–</span>
                               <input
                                 type="time"
                                 value={day.end_time}
-                                onChange={(e) => updateDay(dow, { end_time: e.target.value })}
+                                onChange={e => updateDay(dow, { end_time: e.target.value })}
                                 className={timeCls}
                               />
                               {!day.has_break && (
@@ -494,14 +474,14 @@ function OwnerStaffHoursContent() {
                                 <input
                                   type="time"
                                   value={day.break_start}
-                                  onChange={(e) => updateDay(dow, { break_start: e.target.value })}
+                                  onChange={e => updateDay(dow, { break_start: e.target.value })}
                                   className={timeCls}
                                 />
                                 <span className="text-muted-foreground text-xs">–</span>
                                 <input
                                   type="time"
                                   value={day.break_end}
-                                  onChange={(e) => updateDay(dow, { break_end: e.target.value })}
+                                  onChange={e => updateDay(dow, { break_end: e.target.value })}
                                   className={timeCls}
                                 />
                                 <button
@@ -526,7 +506,7 @@ function OwnerStaffHoursContent() {
                   disabled={saving || !selectedStaffId}
                   className="w-full py-3 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-60"
                 >
-                  {saving ? t('staffHours.saving') : t('staffHours.save')}
+                  {saving ? t('staffHours.saving') : t('ownerStaffHours.saveWeek')}
                 </button>
               </>
             )}
