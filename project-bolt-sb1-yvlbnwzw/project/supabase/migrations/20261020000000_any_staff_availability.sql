@@ -1,8 +1,10 @@
 -- get_available_slots_any_staff
 -- Returns the union of available slots across all eligible staff for a service.
 -- A slot appears if at least one eligible staff member is free at that time.
--- Inlines the staff eligibility logic (service assignments + accept_bookings) to
--- avoid the JSONB-return of get_staff_for_service.
+--
+-- NOTE: get_available_slots returns (slot_date DATE, slot_start TIME, slot_end TIME, ...).
+-- We combine slot_date + slot_start with the location timezone to produce TIMESTAMPTZ output
+-- that the booking UI expects.
 CREATE OR REPLACE FUNCTION get_available_slots_any_staff(
   p_business_id   UUID,
   p_location_id   UUID,
@@ -16,6 +18,7 @@ AS $$
 DECLARE
   v_biz_id          UUID;
   v_has_assignments BOOLEAN;
+  v_timezone        TEXT;
 BEGIN
   SELECT sc.business_id INTO v_biz_id
   FROM service_catalog sc
@@ -28,34 +31,53 @@ BEGIN
     SELECT 1 FROM staff_services ss WHERE ss.service_id = p_service_id
   ) INTO v_has_assignments;
 
+  SELECT bl.timezone INTO v_timezone
+  FROM business_locations bl
+  WHERE bl.id = p_location_id
+  LIMIT 1;
+
+  v_timezone := COALESCE(v_timezone, 'UTC');
+
   RETURN QUERY
-  SELECT DISTINCT ON (s.slot_start)
-    s.slot_start, s.slot_end, s.available, s.capacity_remaining
+  SELECT DISTINCT ON (ts)
+    ts                AS slot_start,
+    te                AS slot_end,
+    true::BOOLEAN     AS available,
+    max_cap           AS capacity_remaining
   FROM (
-    SELECT sm.id AS staff_id
-    FROM staff_members sm
-    WHERE sm.business_id    = v_biz_id
-      AND sm.is_active       = true
-      AND sm.accept_bookings = true
-      AND (
-        NOT v_has_assignments
-        OR EXISTS (
-          SELECT 1 FROM staff_services ss
-          WHERE ss.staff_member_id = sm.id AND ss.service_id = p_service_id
+    SELECT
+      (s.slot_date + s.slot_start) AT TIME ZONE v_timezone AS ts,
+      (s.slot_date + s.slot_end)   AT TIME ZONE v_timezone AS te,
+      s.capacity_remaining                                  AS max_cap
+    FROM (
+      SELECT sm.id AS staff_id
+      FROM staff_members sm
+      WHERE sm.business_id    = v_biz_id
+        AND sm.is_active       = true
+        AND sm.accept_bookings = true
+        AND (
+          NOT v_has_assignments
+          OR EXISTS (
+            SELECT 1 FROM staff_services ss
+            WHERE ss.staff_member_id = sm.id AND ss.service_id = p_service_id
+          )
         )
-      )
-  ) eligible
-  CROSS JOIN LATERAL get_available_slots(
-    p_business_id, p_location_id, p_service_id, p_week_start, eligible.staff_id
-  ) AS s
-  WHERE s.available = true
-  ORDER BY s.slot_start;
+    ) eligible
+    CROSS JOIN LATERAL get_available_slots(
+      p_business_id, p_location_id, p_service_id, p_week_start, eligible.staff_id
+    ) AS s
+    WHERE s.capacity_remaining > 0
+  ) raw
+  ORDER BY ts, max_cap DESC;
 END;
 $$;
 
 -- get_staff_available_for_slot
 -- For a specific slot, returns staff who are free and eligible to perform the service.
 -- Used to populate the "choose a staff member" dialog after a client picks a slot in any-staff mode.
+--
+-- NOTE: get_available_slots returns TIME for slot_start (not TIMESTAMPTZ), so we compare
+-- by converting back using the location timezone.
 CREATE OR REPLACE FUNCTION get_staff_available_for_slot(
   p_business_id   UUID,
   p_location_id   UUID,
@@ -71,6 +93,7 @@ AS $$
 DECLARE
   v_biz_id          UUID;
   v_has_assignments BOOLEAN;
+  v_timezone        TEXT;
 BEGIN
   SELECT sc.business_id INTO v_biz_id
   FROM service_catalog sc
@@ -82,6 +105,13 @@ BEGIN
   SELECT EXISTS(
     SELECT 1 FROM staff_services ss WHERE ss.service_id = p_service_id
   ) INTO v_has_assignments;
+
+  SELECT bl.timezone INTO v_timezone
+  FROM business_locations bl
+  WHERE bl.id = p_location_id
+  LIMIT 1;
+
+  v_timezone := COALESCE(v_timezone, 'UTC');
 
   RETURN QUERY
   SELECT sm.id, p.name::TEXT
@@ -102,8 +132,8 @@ BEGIN
       FROM get_available_slots(
         p_business_id, p_location_id, p_service_id, p_week_start, sm.id
       ) AS s
-      WHERE s.slot_start = p_slot_start
-        AND s.available  = true
+      WHERE (s.slot_date + s.slot_start) AT TIME ZONE v_timezone = p_slot_start
+        AND s.capacity_remaining > 0
     )
   ORDER BY p.name;
 END;
