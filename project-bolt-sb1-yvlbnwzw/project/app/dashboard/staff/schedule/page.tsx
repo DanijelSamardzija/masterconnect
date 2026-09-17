@@ -118,7 +118,7 @@ function StaffScheduleContent() {
     (async () => {
       const { data: sm } = await (supabase as any)
         .from('staff_members')
-        .select('id, permissions, primary_location_id, business_id')
+        .select('id, permissions, business_id')
         .eq('user_id', profile.id)
         .eq('is_active', true)
         .maybeSingle();
@@ -127,23 +127,20 @@ function StaffScheduleContent() {
       setHasStaff(true);
       setCanEdit(!!sm.permissions?.can_set_hours);
 
-      // Resolve location ID: prefer staff's own, fall back to business primary location
-      let locationId: string | null = sm.primary_location_id;
-      if (!locationId && sm.business_id) {
-        const { data: loc } = await (supabase as any)
-          .from('locations')
-          .select('id')
-          .eq('business_id', sm.business_id)
-          .eq('is_primary', true)
-          .maybeSingle();
-        locationId = loc?.id ?? null;
-      }
+      // Always use the business's primary location — same as owner's schedule page does
+      const { data: locData } = await (supabase as any)
+        .from('business_locations')
+        .select('id')
+        .eq('business_id', sm.business_id)
+        .eq('is_primary', true)
+        .eq('is_active', true)
+        .maybeSingle();
 
       // Load opening hours template so any owner change is visible here too
-      if (locationId) {
+      if (locData?.id) {
         const { data: hrs } = await (supabase as any).rpc('get_staff_opening_hours', {
           p_staff_member_id: sm.id,
-          p_location_id: locationId,
+          p_location_id: locData.id,
           p_month: 0,
         });
         if (Array.isArray(hrs) && hrs.length > 0) {
