@@ -2862,8 +2862,8 @@ export default function BusinessSetupPage() {
                                 </div>
                               )}
 
-                              {/* Staff permissions */}
-                              {staffPermissionsMap[sm.id] !== undefined && (
+                              {/* Staff permissions — not shown for owner */}
+                              {sm.role !== 'owner' && staffPermissionsMap[sm.id] !== undefined && (
                                 <div>
                                   <p className="text-xs font-semibold mb-1">{t('setup.staff.permissions.title')}</p>
                                   <p className="text-[11px] text-muted-foreground mb-3">{t('setup.staff.permissions.hint')}</p>
