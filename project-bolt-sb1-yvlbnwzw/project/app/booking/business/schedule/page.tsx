@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
-import { ChevronRight, Copy, X, Info, Download } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Copy, X, Info, Download } from 'lucide-react';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
 
 type ShiftRow = {
