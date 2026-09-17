@@ -20,6 +20,14 @@ type ShiftRow = {
   break_end: string | null;
 };
 
+type HourTemplate = {
+  is_closed: boolean;
+  start_time: string;
+  end_time: string;
+  break_start: string | null;
+  break_end: string | null;
+};
+
 type EditState = {
   date: string;
   mode: 'default' | 'working' | 'off';
@@ -87,6 +95,7 @@ function StaffScheduleContent() {
   const [hasStaff, setHasStaff] = useState(false);
   const [edit, setEdit] = useState<EditState | null>(null);
   const [saving, setSaving] = useState(false);
+  const [hoursTemplate, setHoursTemplate] = useState<Record<number, HourTemplate>>({});
 
   const weekDays = DOW_ORDER.map((_, i) => {
     const mon = getMonday(weekDate);
@@ -109,7 +118,7 @@ function StaffScheduleContent() {
     (async () => {
       const { data: sm } = await (supabase as any)
         .from('staff_members')
-        .select('id, permissions')
+        .select('id, permissions, primary_location_id')
         .eq('user_id', profile.id)
         .eq('is_active', true)
         .maybeSingle();
@@ -117,6 +126,39 @@ function StaffScheduleContent() {
       if (!sm) { setLoading(false); return; }
       setHasStaff(true);
       setCanEdit(!!sm.permissions?.can_set_hours);
+
+      // Load opening hours template so any owner change is visible here too
+      if (sm.primary_location_id) {
+        const { data: hrs } = await (supabase as any).rpc('get_staff_opening_hours', {
+          p_staff_member_id: sm.id,
+          p_location_id: sm.primary_location_id,
+          p_month: 0,
+        });
+        if (Array.isArray(hrs) && hrs.length > 0) {
+          const byDay: Record<number, Record<number, { start_time: string; end_time: string; is_closed: boolean }>> = {};
+          for (const row of hrs as any[]) {
+            const dow = row.day_of_week;
+            if (!byDay[dow]) byDay[dow] = {};
+            byDay[dow][row.sort_order] = { start_time: row.start_time?.slice(0, 5) ?? '09:00', end_time: row.end_time?.slice(0, 5) ?? '17:00', is_closed: row.is_closed };
+          }
+          const tpl: Record<number, HourTemplate> = {};
+          for (const [dowStr, periods] of Object.entries(byDay)) {
+            const dow = Number(dowStr);
+            const p0 = periods[0];
+            const p1 = periods[1];
+            if (!p0) continue;
+            tpl[dow] = {
+              is_closed:   p0.is_closed,
+              start_time:  p0.start_time,
+              end_time:    p1 ? p1.end_time : p0.end_time,
+              break_start: p1 ? p0.end_time : null,
+              break_end:   p1 ? p1.start_time : null,
+            };
+          }
+          setHoursTemplate(tpl);
+        }
+      }
+
       await loadShifts(getMonday(new Date()));
       setLoading(false);
     })();
@@ -303,12 +345,33 @@ function StaffScheduleContent() {
                       let cellCls = 'bg-background';
 
                       if (!shift) {
-                        cellCls = 'bg-muted/20';
-                        cellContent = (
-                          <span className="text-[10px] text-muted-foreground/80 leading-tight">
-                            {t('schedule.staffView.regular')}
-                          </span>
-                        );
+                        const tpl = hoursTemplate[day.getDay()];
+                        if (!tpl || tpl.is_closed) {
+                          cellCls = 'bg-muted/30';
+                          cellContent = (
+                            <span className="text-[10px] text-muted-foreground">
+                              {t('staffHours.dayOff')}
+                            </span>
+                          );
+                        } else {
+                          cellCls = 'bg-green-50/60 dark:bg-green-950/10';
+                          cellContent = (
+                            <div className="flex flex-col items-center gap-0.5">
+                              <span className="text-[11px] font-semibold text-green-700 dark:text-green-400 leading-tight">
+                                {tpl.start_time}
+                              </span>
+                              <span className="text-[10px] text-green-700/60 dark:text-green-400/60">–</span>
+                              <span className="text-[11px] font-semibold text-green-700 dark:text-green-400 leading-tight">
+                                {tpl.end_time}
+                              </span>
+                              {tpl.break_start && tpl.break_end && (
+                                <span className="text-[9px] text-orange-500 font-medium mt-0.5 leading-tight">
+                                  ☕ {tpl.break_start}–{tpl.break_end}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        }
                       } else if (shift.is_off) {
                         cellCls = 'bg-muted/50';
                         cellContent = (
