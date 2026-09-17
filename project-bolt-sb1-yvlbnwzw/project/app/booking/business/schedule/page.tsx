@@ -117,7 +117,7 @@ function OwnerScheduleContent() {
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
-  const [weekStart, setWeekStart] = useState<Date>(() => getMondayOf(new Date()));
+  const [weekStart, setWeekStart] = useState<Date>(() => addDays(getMondayOf(new Date()), 7));
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
   const [monthDate, setMonthDate] = useState<Date>(() => {
     const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), 1);
