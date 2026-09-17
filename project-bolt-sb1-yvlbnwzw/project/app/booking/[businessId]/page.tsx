@@ -124,7 +124,7 @@ export default function BusinessBookingProfilePage() {
         </button>
 
         <div className="border border-border rounded-xl overflow-hidden">
-          {/* Avatar + name */}
+          {/* Avatar + name + location + phone */}
           <div className="flex items-center gap-3 px-4 py-3">
             <Avatar className="h-12 w-12 shrink-0">
               <AvatarImage src={business.avatar_url ?? undefined} alt={business.name} />
@@ -132,7 +132,7 @@ export default function BusinessBookingProfilePage() {
                 {business.name[0]?.toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-base font-semibold">{business.name}</h1>
                 {business.live_status && business.live_status !== 'unavailable' && business.live_status !== 'by_schedule' && (
@@ -143,6 +143,26 @@ export default function BusinessBookingProfilePage() {
                   }`}>
                     {t(`live.status.${business.live_status}` as Parameters<typeof t>[0])}
                   </span>
+                )}
+              </div>
+              <div className="flex flex-col gap-0.5 mt-0.5">
+                {primaryLocation && (primaryLocation.address || primaryLocation.city) && (
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <MapPin className="w-3 h-3 shrink-0" />
+                    {[primaryLocation.address, primaryLocation.city, primaryLocation.country].filter(Boolean).join(', ')}
+                  </span>
+                )}
+                {!primaryLocation && business.city && (
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <MapPin className="w-3 h-3 shrink-0" />
+                    {business.city}
+                  </span>
+                )}
+                {primaryLocation?.phone && (
+                  <a href={`tel:${primaryLocation.phone}`} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors">
+                    <Phone className="w-3 h-3 shrink-0" />
+                    {primaryLocation.phone}
+                  </a>
                 )}
               </div>
             </div>
@@ -199,29 +219,6 @@ export default function BusinessBookingProfilePage() {
             </div>
           )}
 
-          {/* Location + phone */}
-          {((primaryLocation && (primaryLocation.address || primaryLocation.city || primaryLocation.phone)) || (!primaryLocation && business.city)) && (
-            <div className="border-t border-border px-4 py-2.5 flex flex-col gap-1.5">
-              {primaryLocation && (primaryLocation.address || primaryLocation.city) && (
-                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <MapPin className="w-3 h-3 shrink-0" />
-                  {[primaryLocation.address, primaryLocation.city, primaryLocation.country].filter(Boolean).join(', ')}
-                </span>
-              )}
-              {primaryLocation?.phone && (
-                <a href={`tel:${primaryLocation.phone}`} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors">
-                  <Phone className="w-3 h-3 shrink-0" />
-                  {primaryLocation.phone}
-                </a>
-              )}
-              {!primaryLocation && business.city && (
-                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <MapPin className="w-3 h-3 shrink-0" />
-                  {business.city}
-                </span>
-              )}
-            </div>
-          )}
         </div>
 
       </div>
