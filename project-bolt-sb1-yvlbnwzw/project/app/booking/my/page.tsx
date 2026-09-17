@@ -217,11 +217,12 @@ export default function MyBookingsPage() {
     setSelectedSlot(null);
     const weekStart = weekMonday(new Date(rescheduleDate + 'T00:00:00'));
     ;(supabase as any).rpc('get_available_slots', {
-      p_business_id:      business_id,
-      p_location_id:      location_id,
-      p_service_id:       service_id,
-      p_week_start:       weekStart.toISOString(),
-      p_staff_member_id:  staff_member_id ?? null,
+      p_business_id:        business_id,
+      p_location_id:        location_id,
+      p_service_id:         service_id,
+      p_week_start:         toDateKey(weekStart),
+      p_staff_member_id:    staff_member_id ?? null,
+      p_exclude_booking_id: rescheduleTarget.id,
     }).then(({ data }: { data: Slot[] | null }) => {
       setSlotsLoading(false);
       const all = (data ?? []) as Slot[];
