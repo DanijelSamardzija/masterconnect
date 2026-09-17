@@ -341,6 +341,7 @@ export default function StaffHoursPage() {
               )}
 
               {/* Week navigation */}
+              <p className="text-[11px] text-muted-foreground mb-1">{t('staffHours.selectMonth')}</p>
               <div className="flex items-center justify-between mb-2">
                 <button
                   onClick={() => setWeek(w => addDays(w, -7))}
