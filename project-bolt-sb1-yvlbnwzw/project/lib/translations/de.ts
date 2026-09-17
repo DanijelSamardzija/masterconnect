@@ -2813,6 +2813,7 @@ export default {
   'schedule.breakEnd': 'Pausenende',
   'schedule.addBreak': 'Pause hinzufügen',
   'schedule.download': 'CSV herunterladen',
+  'schedule.downloadPDF': 'PDF herunterladen',
   'schedule.viewWeek': 'Wöchentlich',
   'schedule.viewMonth': 'Monatlich',
   'schedule.thisMonth': 'Dieser Monat',

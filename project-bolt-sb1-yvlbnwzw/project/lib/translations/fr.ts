@@ -2753,6 +2753,7 @@ export default {
   'schedule.breakEnd': 'Fin de la pause',
   'schedule.addBreak': 'Ajouter une pause',
   'schedule.download': 'Télécharger CSV',
+  'schedule.downloadPDF': 'Télécharger PDF',
   'schedule.viewWeek': 'Hebdomadaire',
   'schedule.viewMonth': 'Mensuel',
   'schedule.thisMonth': 'Ce mois',

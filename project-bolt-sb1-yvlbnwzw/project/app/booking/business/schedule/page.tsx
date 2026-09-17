@@ -32,7 +32,7 @@ type EditState = {
   staffId: string;
   staffName: string;
   date: string;
-  mode: 'default' | 'working' | 'off';
+  mode: 'working' | 'off';
   startTime: string;
   endTime: string;
   notes: string;
@@ -385,7 +385,7 @@ function OwnerScheduleContent() {
 
   function openEdit(staffId: string, staffName: string, date: string) {
     const shift = getShift(staffId, date);
-    let mode: EditState['mode'] = 'default';
+    let mode: EditState['mode'] = 'working';
     let startTime = '09:00';
     let endTime = '17:00';
     let notes = '';
@@ -412,24 +412,17 @@ function OwnerScheduleContent() {
     if (!edit) return;
     setSaving(true);
     try {
-      if (edit.mode === 'default') {
-        await (supabase as any).rpc('owner_delete_shift', {
-          p_staff_member_id: edit.staffId,
-          p_shift_date: edit.date,
-        });
-      } else {
-        const { data } = await (supabase as any).rpc('owner_set_shift', {
-          p_staff_member_id: edit.staffId,
-          p_shift_date:      edit.date,
-          p_start_time:      edit.mode === 'working' ? edit.startTime : null,
-          p_end_time:        edit.mode === 'working' ? edit.endTime   : null,
-          p_is_off:          edit.mode === 'off',
-          p_notes:           edit.notes.trim() || null,
-          p_break_start:     edit.mode === 'working' && edit.hasBreak ? edit.breakStart : null,
-          p_break_end:       edit.mode === 'working' && edit.hasBreak ? edit.breakEnd   : null,
-        });
-        if (data?.ok === false) throw new Error(data.error);
-      }
+      const { data } = await (supabase as any).rpc('owner_set_shift', {
+        p_staff_member_id: edit.staffId,
+        p_shift_date:      edit.date,
+        p_start_time:      edit.mode === 'working' ? edit.startTime : null,
+        p_end_time:        edit.mode === 'working' ? edit.endTime   : null,
+        p_is_off:          edit.mode === 'off',
+        p_notes:           edit.notes.trim() || null,
+        p_break_start:     edit.mode === 'working' && edit.hasBreak ? edit.breakStart : null,
+        p_break_end:       edit.mode === 'working' && edit.hasBreak ? edit.breakEnd   : null,
+      });
+      if (data?.ok === false) throw new Error(data.error);
       toast.success(t('schedule.savedSuccess'));
       const savedStaffId = edit.staffId;
       setEdit(null);
@@ -548,6 +541,60 @@ function OwnerScheduleContent() {
     URL.revokeObjectURL(url);
   }
 
+  function printSchedulePDF() {
+    const days = viewMode === 'week' ? weekDays : monthDays;
+    const title = viewMode === 'week'
+      ? `Raspored: ${isoDate(weekDays[0])} – ${isoDate(weekDays[6])}`
+      : `Raspored: ${SR_MONTHS[monthDate.getMonth()]} ${monthDate.getFullYear()}`;
+
+    const headerCells = ['<th>Radnik</th>', ...days.map(d =>
+      `<th>${d.toLocaleDateString('sr-RS', { weekday: 'short' })}<br><span style="font-weight:400;font-size:10px">${isoDate(d)}</span></th>`
+    )].join('');
+
+    const bodyRows = staffRows.map(staff => {
+      const cells = days.map(day => {
+        const shift = getShift(staff.staff_member_id, isoDate(day));
+        if (!shift) return '<td style="color:#999;font-size:10px">redovni</td>';
+        if (shift.is_off) {
+          const label = shift.off_reason === 'vacation' ? 'Godišnji' : shift.off_reason === 'sick' ? 'Bolovanje' : 'Slobodan';
+          return `<td style="color:#888;font-size:10px">${label}</td>`;
+        }
+        const start = shift.start_time?.slice(0, 5) || '';
+        const end   = shift.end_time?.slice(0, 5)   || '';
+        const brk   = (shift.break_start && shift.break_end)
+          ? `<div style="font-size:9px;color:#999">P: ${shift.break_start.slice(0,5)}–${shift.break_end.slice(0,5)}</div>` : '';
+        const note  = shift.notes
+          ? `<div style="font-size:9px;color:#666;font-style:italic">${shift.notes}</div>` : '';
+        return `<td>${start}–${end}${brk}${note}</td>`;
+      }).join('');
+      return `<tr><td style="font-weight:500">${staff.staff_name}</td>${cells}</tr>`;
+    }).join('');
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>${title}</title>
+<style>
+  body { font-family: Arial, sans-serif; font-size: 11px; margin: 16px; color: #111; }
+  h2 { font-size: 14px; margin-bottom: 10px; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #ccc; padding: 4px 6px; text-align: center; vertical-align: top; }
+  th { background: #f0f0f0; font-size: 10px; }
+  tr:nth-child(even) td { background: #fafafa; }
+  td:first-child { text-align: left; white-space: nowrap; }
+  @media print { @page { size: landscape; margin: 10mm; } }
+</style>
+</head><body>
+<h2>${title}</h2>
+<table><thead><tr>${headerCells}</tr></thead><tbody>${bodyRows}</tbody></table>
+</body></html>`;
+
+    const win = window.open('', '_blank');
+    if (!win) return;
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    setTimeout(() => { win.print(); }, 300);
+  }
+
   if (!isOwner && !loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -578,14 +625,24 @@ function OwnerScheduleContent() {
           </div>
           <div className="flex items-center gap-1.5">
             {!loading && staffRows.length > 0 && (
-              <button
-                onClick={downloadSchedule}
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground border border-border rounded-lg px-2.5 py-1.5 transition-colors"
-                title={t('schedule.download')}
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{t('schedule.download')}</span>
-              </button>
+              <>
+                <button
+                  onClick={downloadSchedule}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground border border-border rounded-lg px-2.5 py-1.5 transition-colors"
+                  title={t('schedule.download')}
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">{t('schedule.download')}</span>
+                </button>
+                <button
+                  onClick={printSchedulePDF}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground border border-border rounded-lg px-2.5 py-1.5 transition-colors"
+                  title={t('schedule.downloadPDF')}
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">{t('schedule.downloadPDF')}</span>
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -975,7 +1032,7 @@ function OwnerScheduleContent() {
 
             {/* Mode selector */}
             <div className="flex gap-2 mb-4">
-              {(['default', 'working', 'off'] as const).map((m) => (
+              {(['working', 'off'] as const).map((m) => (
                 <button
                   key={m}
                   type="button"
@@ -984,27 +1041,14 @@ function OwnerScheduleContent() {
                     edit.mode === m
                       ? m === 'off'
                         ? 'bg-muted text-foreground border-muted'
-                        : m === 'working'
-                          ? 'bg-green-500 text-white border-green-500'
-                          : 'bg-primary text-white border-primary'
+                        : 'bg-green-500 text-white border-green-500'
                       : 'border-border text-muted-foreground hover:bg-accent'
                   }`}
                 >
-                  {m === 'default'
-                    ? t('schedule.defaultSchedule')
-                    : m === 'working'
-                      ? t('schedule.working')
-                      : t('schedule.dayOff')}
+                  {m === 'working' ? t('schedule.working') : t('schedule.dayOff')}
                 </button>
               ))}
             </div>
-
-            {/* Default mode hint */}
-            {edit.mode === 'default' && (
-              <p className="text-xs text-muted-foreground bg-muted/50 rounded-xl px-3 py-2.5 mb-4">
-                {t('schedule.defaultHint')}
-              </p>
-            )}
 
             {/* Time inputs */}
             {edit.mode === 'working' && (

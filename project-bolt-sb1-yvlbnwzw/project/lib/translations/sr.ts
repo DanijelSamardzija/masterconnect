@@ -2831,6 +2831,7 @@ export default {
   'schedule.breakEnd': 'Kraj pauze',
   'schedule.addBreak': 'Dodaj pauzu',
   'schedule.download': 'Preuzmi CSV',
+  'schedule.downloadPDF': 'Preuzmi PDF',
   'schedule.viewWeek': 'Sedmično',
   'schedule.viewMonth': 'Mesečno',
   'schedule.thisMonth': 'Ovaj mesec',
