@@ -951,42 +951,6 @@ function OwnerScheduleContent() {
         )}
 
         {/* Legend */}
-        {!loading && staffAccept.length > 0 && (
-          <div className="flex flex-wrap items-center gap-4 mt-3 px-1">
-            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <span className="w-3 h-3 rounded-sm bg-green-100 dark:bg-green-950/40 border border-green-300 dark:border-green-800 inline-block" />
-              {t('schedule.working')} ({t('schedule.override')})
-            </div>
-            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <span className="w-3 h-3 rounded-sm bg-green-50/60 dark:bg-green-950/10 border border-green-200 dark:border-green-900 inline-block" />
-              {t('schedule.working')} ({t('schedule.defaultShort')})
-            </div>
-            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <span className="w-3 h-3 rounded-sm bg-muted border border-border inline-block" />
-              {t('schedule.dayOff')} ({t('schedule.override')})
-            </div>
-            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <span className="w-3 h-3 rounded-sm bg-muted/30 border border-dashed border-border inline-block" />
-              {t('schedule.dayOff')} ({t('schedule.defaultShort')})
-            </div>
-            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <span className="w-3 h-3 rounded-sm bg-amber-50 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-700 inline-block" />
-              {t('absences.title')}
-            </div>
-          </div>
-        )}
-
-        {/* Absence shortcut */}
-        {!loading && (
-          <div className="mt-4 px-1">
-            <button
-              onClick={() => router.push('/booking/business/absences')}
-              className="text-xs text-muted-foreground hover:text-primary transition-colors"
-            >
-              {t('schedule.absenceLink')}
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Edit modal */}
