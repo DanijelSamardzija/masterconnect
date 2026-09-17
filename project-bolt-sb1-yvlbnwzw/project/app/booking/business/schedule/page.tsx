@@ -130,7 +130,7 @@ function OwnerScheduleContent() {
   const [cardMonths, setCardMonths] = useState<Record<string, Date>>({});
   const [cardMonthShifts, setCardMonthShifts] = useState<Record<string, ShiftRow[]>>({});
   const [isOwner, setIsOwner] = useState(false);
-  const [copying, setCopying] = useState(false);
+  const [copyingMap, setCopyingMap] = useState<Record<string, boolean>>({});
   const [infoOpen, setInfoOpen] = useState(false);
   const [edit, setEdit] = useState<EditState | null>(null);
   const [saving, setSaving] = useState(false);
@@ -456,16 +456,18 @@ function OwnerScheduleContent() {
     setSaving(false);
   }
 
-  async function handleCopyWeek() {
-    setCopying(true);
-    const nextWs = addDays(weekStart, 7);
-    const { data } = await (supabase as any).rpc('owner_copy_week_shifts', {
-      p_from_week_start: isoDate(weekStart),
-      p_to_week_start:   isoDate(nextWs),
+  async function handleCopyStaffWeek(staffId: string, fromWeek: Date) {
+    setCopyingMap(m => ({ ...m, [staffId]: true }));
+    const toWeek = addDays(fromWeek, 7);
+    const { data } = await (supabase as any).rpc('owner_copy_staff_week_shifts', {
+      p_staff_member_id: staffId,
+      p_from_week_start: isoDate(fromWeek),
+      p_to_week_start:   isoDate(toWeek),
     });
-    setCopying(false);
+    setCopyingMap(m => ({ ...m, [staffId]: false }));
     if (data?.ok) {
       toast.success(t('schedule.copyWeekDone'));
+      await loadShifts(addDays(fromWeek, 7));
     } else {
       toast.error(t('schedule.saveError'));
     }
@@ -575,17 +577,6 @@ function OwnerScheduleContent() {
             </div>
           </div>
           <div className="flex items-center gap-1.5">
-            {viewMode === 'week' && (
-              <button
-                onClick={handleCopyWeek}
-                disabled={copying}
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground border border-border rounded-lg px-2.5 py-1.5 transition-colors disabled:opacity-50"
-                title={t('schedule.copyWeek')}
-              >
-                <Copy className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{t('schedule.copyWeek')}</span>
-              </button>
-            )}
             {!loading && staffRows.length > 0 && (
               <button
                 onClick={downloadSchedule}
@@ -729,6 +720,14 @@ function OwnerScheduleContent() {
                         </span>
                         <button onClick={() => navCard(sa.id, 1)} disabled={cardNextDisabled} className="p-1.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground">
                           <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleCopyStaffWeek(sa.id, effectiveWeek)}
+                          disabled={!!copyingMap[sa.id]}
+                          title={t('schedule.copyWeek')}
+                          className="ml-1 flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground border border-border rounded px-1.5 py-0.5 transition-colors disabled:opacity-40"
+                        >
+                          <Copy className="w-3 h-3" />
                         </button>
                       </div>
                     ) : (

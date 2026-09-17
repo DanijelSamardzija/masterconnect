@@ -9,7 +9,7 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { useBookingAccess } from '@/lib/hooks/use-booking-access';
 import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
-import { ChevronRight, ChevronLeft, Plus, Pencil, X, CheckCircle2, MapPin, ExternalLink, AlertTriangle, Check, Loader2, Info } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Plus, Pencil, X, CheckCircle2, MapPin, ExternalLink, AlertTriangle, Check, Loader2, Info, Copy } from 'lucide-react';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
 import { RestaurantTablesTab } from '@/components/setup/RestaurantTablesTab';
 import { MenuTab } from '@/components/setup/MenuTab';
@@ -489,6 +489,7 @@ export default function BusinessSetupPage() {
   const [companyHoursCache,    setCompanyHoursCache]    = useState<DayHours[] | null>(null);
   const [staffServicesMap, setStaffServicesMap] = useState<Record<string, string[]>>({});
   const [staffHoursSaving, setStaffHoursSaving] = useState<string | null>(null);
+  const [staffCopyingMap, setStaffCopyingMap] = useState<Record<string, boolean>>({});
   const [staffServicesSaving, setStaffServicesSaving] = useState<string | null>(null);
   const [cancellingInviteId, setCancellingInviteId] = useState<string | null>(null);
   const [revokingStaffId, setRevokingStaffId] = useState<string | null>(null);
@@ -1320,6 +1321,41 @@ export default function BusinessSetupPage() {
         ? shiftsToWeekScheduleOwner(reloadWeeks[wIdx], freshShifts, companyHoursCache)
         : shiftsToWeekSchedule(reloadWeeks[wIdx], freshShifts);
       setStaffScheduleEditMap(prev => ({ ...prev, [staffId]: refreshedSchedule }));
+    } else {
+      toast.error(t('setup.error.saveFailed'));
+    }
+  }
+
+  async function handleCopyStaffWeek(staffId: string) {
+    const weeks = getScheduleWeeks();
+    const weekIdx = staffWeekIndexMap[staffId] ?? 0;
+    if (weekIdx >= weeks.length - 1) return;
+    const fromWeek = weeks[weekIdx];
+    const toWeek = weeks[weekIdx + 1];
+    setStaffCopyingMap(m => ({ ...m, [staffId]: true }));
+    const { data } = await (supabase as any).rpc('owner_copy_staff_week_shifts', {
+      p_staff_member_id: staffId,
+      p_from_week_start: isoDateLocal(fromWeek),
+      p_to_week_start:   isoDateLocal(toWeek),
+    });
+    setStaffCopyingMap(m => ({ ...m, [staffId]: false }));
+    if ((data as any)?.ok) {
+      toast.success(t('schedule.copyWeekDone'));
+      // Reload shifts so the copied week shows correct data
+      const reloadWeeks = getScheduleWeeks();
+      const { data: fresh } = await (supabase as any).rpc('owner_get_staff_shifts_range', {
+        p_staff_member_id: staffId,
+        p_from_date: isoDateLocal(reloadWeeks[0]),
+        p_to_date:   isoDateLocal(addDays(reloadWeeks[reloadWeeks.length - 1], 6)),
+      });
+      const freshShifts: WeekShift[] = Array.isArray(fresh) ? fresh : [];
+      setStaffShiftsMap(prev => ({ ...prev, [staffId]: freshShifts }));
+      const isOwnerMember = staffMembers.find(sm => sm.id === staffId)?.role === 'owner';
+      const nextSchedule = isOwnerMember && companyHoursCache
+        ? shiftsToWeekScheduleOwner(toWeek, freshShifts, companyHoursCache)
+        : shiftsToWeekSchedule(toWeek, freshShifts);
+      setStaffScheduleEditMap(prev => ({ ...prev, [staffId]: nextSchedule }));
+      setStaffWeekIndexMap(prev => ({ ...prev, [staffId]: weekIdx + 1 }));
     } else {
       toast.error(t('setup.error.saveFailed'));
     }
@@ -2808,15 +2844,30 @@ export default function BusinessSetupPage() {
                                           );
                                         })}
                                       </div>
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => handleSaveStaffHours(sm.id)}
-                                        disabled={staffHoursSaving === sm.id}
-                                        className="text-xs"
-                                      >
-                                        {staffHoursSaving === sm.id ? '...' : t('setup.staff.hours.save')}
-                                      </Button>
+                                      <div className="flex items-center gap-2">
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => handleSaveStaffHours(sm.id)}
+                                          disabled={staffHoursSaving === sm.id}
+                                          className="text-xs"
+                                        >
+                                          {staffHoursSaving === sm.id ? '...' : t('setup.staff.hours.save')}
+                                        </Button>
+                                        {(staffWeekIndexMap[sm.id] ?? 0) < STAFF_SCHEDULE_WEEKS - 1 && (
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => handleCopyStaffWeek(sm.id)}
+                                            disabled={!!staffCopyingMap[sm.id]}
+                                            className="text-xs flex items-center gap-1"
+                                            title={t('schedule.copyWeek')}
+                                          >
+                                            <Copy className="w-3 h-3" />
+                                            {staffCopyingMap[sm.id] ? '...' : t('schedule.copyWeek')}
+                                          </Button>
+                                        )}
+                                      </div>
                                     </>
                                   );
                                 })() : (
