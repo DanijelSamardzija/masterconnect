@@ -367,13 +367,21 @@ function StaffScheduleContent() {
                         cellCls = 'bg-background';
                         cellContent = null;
                       } else if (shift.is_off) {
-                        cellCls = 'bg-muted/50';
+                        const isAbsence = shift.off_reason === 'vacation' || shift.off_reason === 'sick_leave';
+                        cellCls = isAbsence
+                          ? 'bg-amber-50 dark:bg-amber-950/20'
+                          : 'bg-muted/50';
                         const offLabel = shift.off_reason === 'vacation'
                           ? t('shift.vacation')
                           : shift.off_reason === 'sick_leave'
                           ? t('shift.sickLeave')
                           : t('shift.dayOff');
-                        cellContent = (
+                        cellContent = isAbsence ? (
+                          <div className="flex flex-col items-center gap-0.5">
+                            <span className="text-[10px] font-semibold text-amber-700 dark:text-amber-400 text-center leading-tight px-1">{offLabel}</span>
+                            {shift.notes && <span className="text-[9px] text-muted-foreground leading-tight truncate max-w-[60px]">{shift.notes}</span>}
+                          </div>
+                        ) : (
                           <span className="text-[10px] font-medium text-muted-foreground px-1.5 py-0.5 rounded-full bg-muted">
                             {offLabel}
                           </span>
