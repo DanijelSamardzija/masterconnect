@@ -96,7 +96,7 @@ export default function BookingPage() {
       iconBg: 'bg-orange-100 dark:bg-orange-950',
       title: t('booking.hub.cat.termini'),
       desc: t('booking.hub.cat.terminiDesc'),
-      href: '/services',
+      href: '/booking/termini',
     },
     {
       key: 'majstori',
