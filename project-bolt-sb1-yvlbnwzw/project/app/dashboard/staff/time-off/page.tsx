@@ -94,7 +94,10 @@ export default function StaffTimeOffPage() {
     } else {
       if (!endDate) return;
       starts = new Date(startDate + 'T00:00:00').toISOString();
-      ends   = new Date(endDate   + 'T23:59:59').toISOString();
+      // ends_at = midnight of (endDate + 1) in local time, so the last day is fully included
+      const nextDay = new Date(endDate + 'T00:00:00');
+      nextDay.setDate(nextDay.getDate() + 1);
+      ends = nextDay.toISOString();
       if (ends <= starts) {
         toast.error(t('staffTimeOff.errorRange'));
         return;
@@ -273,7 +276,7 @@ export default function StaffTimeOffPage() {
                           {toLocalDateStr(b.starts_at)}
                           {b.reason === 'blocked'
                             ? ` · ${new Date(b.starts_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })} – ${new Date(b.ends_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`
-                            : ` → ${toLocalDateStr(b.ends_at)}`}
+                            : ` → ${toLocalDateStr(new Date(new Date(b.ends_at).getTime() - 1000).toISOString())}`}
                         </p>
                         {b.note && (
                           <p className="text-xs text-muted-foreground mt-1 italic">{b.note}</p>
