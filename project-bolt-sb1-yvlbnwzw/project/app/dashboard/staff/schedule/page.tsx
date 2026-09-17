@@ -195,7 +195,7 @@ function StaffScheduleContent() {
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <button
-            onClick={() => router.push('/dashboard/staff/bookings')}
+            onClick={() => router.back()}
             className="text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
