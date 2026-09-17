@@ -63,7 +63,12 @@ function weekMonday(date: Date): Date {
 function addDays(d: Date, n: number): Date {
   const r = new Date(d); r.setDate(r.getDate() + n); return r;
 }
-function toDateKey(d: Date): string { return d.toISOString().slice(0, 10); }
+function toDateKey(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 
 function formatDt(isoStr: string, locale: string): string {
   return new Intl.DateTimeFormat(locale, {
@@ -189,7 +194,7 @@ export default function MyBookingsPage() {
 
   const openReschedule = (b: Booking) => {
     const d = new Date(b.starts_at);
-    setRescheduleDate(d.toISOString().slice(0, 10));
+    setRescheduleDate(toDateKey(d));
     setRescheduleWeek(weekMonday(d));
     const h = String(d.getHours()).padStart(2, '0');
     const m = String(Math.round(d.getMinutes() / 5) * 5 % 60).padStart(2, '0');
