@@ -54,21 +54,6 @@ function addDays(d: Date, n: number): Date {
   return copy;
 }
 
-const MONTH_KEYS = [
-  'staffHours.month.0',
-  'staffHours.month.1',
-  'staffHours.month.2',
-  'staffHours.month.3',
-  'staffHours.month.4',
-  'staffHours.month.5',
-  'staffHours.month.6',
-  'staffHours.month.7',
-  'staffHours.month.8',
-  'staffHours.month.9',
-  'staffHours.month.10',
-  'staffHours.month.11',
-  'staffHours.month.12',
-] as const;
 
 function emptySchedule(): Record<number, DaySchedule> {
   return Object.fromEntries(DOW_ORDER.map((d) => [d, { ...DEFAULT_DAY }]));
@@ -374,32 +359,6 @@ export default function StaffHoursPage() {
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
-              </div>
-
-              {/* Month selector */}
-              <div className="mb-2">
-                <p className="text-[11px] text-muted-foreground mb-1">{t('staffHours.selectMonth')}</p>
-                <div className="flex gap-1 flex-wrap">
-                  {MONTH_KEYS.map((key, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => handleMonthChange(idx)}
-                      className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition-colors ${
-                        selectedMonth === idx
-                          ? 'bg-primary text-white'
-                          : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
-                      }`}
-                    >
-                      {t(key)}
-                    </button>
-                  ))}
-                </div>
-                {selectedMonth > 0 && (
-                  <p className="text-[11px] text-primary mt-1">
-                    {t('staffHours.monthOverrideNote')}
-                  </p>
-                )}
               </div>
 
               <div className="border border-border rounded-xl overflow-hidden mb-3">
