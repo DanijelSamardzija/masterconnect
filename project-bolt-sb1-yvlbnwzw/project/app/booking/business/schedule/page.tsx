@@ -872,12 +872,13 @@ function OwnerScheduleContent() {
                                   </td>
                                 );
                               } else {
+                                // ── Monthly view ──
                                 if (absence) {
                                   const reasonLabel = t(`setup.closures.reason.${absence.reason}` as Parameters<typeof t>[0]);
                                   cellContent = <span className="text-[9px] font-semibold text-amber-700 dark:text-amber-400 leading-tight px-0.5 text-center">{reasonLabel.slice(0, 3)}</span>;
                                   cellCls = 'bg-amber-50 dark:bg-amber-950/20';
                                   return (
-                                    <td key={di} className={`px-0 py-2 text-center border-l border-border ${cellCls}`} style={{ width: '44px' }} title={reasonLabel}>
+                                    <td key={di} className={`px-0 py-2 text-center border-l border-border ${cellCls}`} style={{ width: '44px' }} title={reasonLabel + (absence.note ? ` — ${absence.note}` : '')}>
                                       {cellContent}
                                     </td>
                                   );
@@ -888,6 +889,7 @@ function OwnerScheduleContent() {
                                     cellContent = (
                                       <div className="flex flex-col items-center leading-tight">
                                         <span className="text-[10px] font-semibold text-green-600 dark:text-green-500">{defaultDay.start_time.slice(0,5)}</span>
+                                        <span className="text-[9px] text-muted-foreground/60">{defaultDay.end_time.slice(0,5)}</span>
                                       </div>
                                     );
                                     cellCls = 'bg-green-50/20 dark:bg-green-950/5';
@@ -896,21 +898,44 @@ function OwnerScheduleContent() {
                                     cellCls = isWeekend ? 'bg-muted/10' : (today ? 'bg-primary/3' : '');
                                   }
                                 } else if (shift.is_off) {
-                                  cellContent = <span className={`text-xs font-medium px-1 py-0.5 rounded ${shift.is_override ? 'bg-muted text-muted-foreground' : 'text-muted-foreground/70'}`}>✕</span>;
-                                  cellCls = shift.is_override ? 'bg-muted/20' : (isWeekend ? 'bg-muted/10' : '');
+                                  const offLabel = shift.off_reason === 'vacation'
+                                    ? t('shift.vacation')
+                                    : shift.off_reason === 'sick_leave'
+                                    ? t('shift.sickLeave')
+                                    : t('shift.dayOff');
+                                  if (shift.off_reason === 'vacation') {
+                                    cellContent = <span className="text-[9px] font-semibold text-blue-600 dark:text-blue-400 leading-tight">{offLabel.slice(0, 3)}</span>;
+                                    cellCls = 'bg-blue-50/40 dark:bg-blue-950/20';
+                                  } else if (shift.off_reason === 'sick_leave') {
+                                    cellContent = <span className="text-[9px] font-semibold text-red-600 dark:text-red-400 leading-tight">{offLabel.slice(0, 3)}</span>;
+                                    cellCls = 'bg-red-50/40 dark:bg-red-950/20';
+                                  } else {
+                                    cellContent = <span className="text-[9px] font-medium text-muted-foreground leading-tight">{offLabel.slice(0, 3)}</span>;
+                                    cellCls = 'bg-muted/20';
+                                  }
                                 } else {
                                   const isOverride = shift.is_override;
                                   cellContent = (
-                                    <div className="flex flex-col items-center leading-tight">
-                                      <span className={`text-xs font-semibold ${isOverride ? 'text-green-700 dark:text-green-400' : 'text-green-600 dark:text-green-500'}`}>{shift.start_time?.slice(0,5)}</span>
-                                      {shift.break_start && <span className="text-[9px] text-orange-400">☕</span>}
-                                      {shift.notes && <span className="text-[9px] text-muted-foreground">📝</span>}
+                                    <div className="flex flex-col items-center leading-tight gap-0">
+                                      <span className={`text-[10px] font-semibold ${isOverride ? 'text-green-700 dark:text-green-400' : 'text-green-600 dark:text-green-500'}`}>{shift.start_time?.slice(0,5)}</span>
+                                      {shift.end_time && <span className="text-[9px] text-muted-foreground/70 leading-none">{shift.end_time.slice(0,5)}</span>}
+                                      {shift.break_start && shift.break_end && <span className="text-[9px] text-orange-400 leading-none mt-0.5">☕ {shift.break_start.slice(0,5)}</span>}
+                                      {shift.notes && <span className="text-[9px] text-muted-foreground leading-none">📝</span>}
                                     </div>
                                   );
                                   cellCls = isOverride ? 'bg-green-50 dark:bg-green-950/20' : 'bg-green-50/30 dark:bg-green-950/10';
                                 }
+                                const cellTitle = shift?.is_off
+                                  ? (shift.off_reason === 'vacation' ? t('shift.vacation') : shift.off_reason === 'sick_leave' ? t('shift.sickLeave') : t('shift.dayOff'))
+                                  : shift
+                                  ? [
+                                      shift.start_time && shift.end_time ? `${shift.start_time.slice(0,5)}–${shift.end_time.slice(0,5)}` : '',
+                                      shift.break_start && shift.break_end ? `☕ ${shift.break_start.slice(0,5)}–${shift.break_end.slice(0,5)}` : '',
+                                      shift.notes || '',
+                                    ].filter(Boolean).join(' | ')
+                                  : undefined;
                                 return (
-                                  <td key={di} className={`px-0 py-2 text-center border-l border-border cursor-pointer hover:bg-accent/60 transition-colors ${cellCls}`} style={{ width: '44px' }} onClick={() => openEdit(sa.id, sa.name, dateStr)}>
+                                  <td key={di} className={`px-0 py-2 text-center border-l border-border cursor-pointer hover:bg-accent/60 transition-colors ${cellCls}`} style={{ width: '44px' }} title={cellTitle} onClick={() => openEdit(sa.id, sa.name, dateStr)}>
                                     {cellContent}
                                   </td>
                                 );
