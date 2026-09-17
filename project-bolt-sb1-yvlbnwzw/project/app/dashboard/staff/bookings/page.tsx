@@ -9,7 +9,7 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
-  Calendar, Clock, ChevronRight, Users, Plus, Ban, Settings, CalendarOff,
+  Calendar, Clock, ChevronRight, Users, Plus, Ban, CalendarOff,
   CheckCircle2, AlertCircle, XCircle
 } from 'lucide-react';
 
@@ -176,15 +176,6 @@ export default function StaffBookingsPage() {
                 >
                   <CalendarOff className="w-3.5 h-3.5" />
                   {t('staffDashboard.timeOff')}
-                </button>
-              )}
-              {permissions.can_set_hours && (
-                <button
-                  onClick={() => router.push('/dashboard/staff/hours')}
-                  className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl border border-border bg-background hover:bg-accent transition-colors"
-                >
-                  <Settings className="w-3.5 h-3.5" />
-                  {t('staffDashboard.myHours')}
                 </button>
               )}
             </div>
