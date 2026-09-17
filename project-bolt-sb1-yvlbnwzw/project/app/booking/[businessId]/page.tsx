@@ -5,8 +5,23 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { useAuth } from '@/lib/contexts/auth-context';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { ArrowLeft, Clock, Users, MapPin, Phone } from 'lucide-react';
+import { ArrowLeft, Clock, Users, MapPin, Phone, UserPlus, UserCheck, Star } from 'lucide-react';
+
+type ReviewItem = {
+  id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+  reviewer_name: string;
+};
+
+type ReviewsData = {
+  avg_rating: number | null;
+  total_count: number;
+  reviews: ReviewItem[];
+};
 
 type Business = {
   id: string;
@@ -48,11 +63,18 @@ export default function BusinessBookingProfilePage() {
   const { businessId } = useParams<{ businessId: string }>();
   const router = useRouter();
   const { t } = useLanguage();
+  const { user } = useAuth();
 
   const [business, setBusiness] = useState<Business | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [primaryLocation, setPrimaryLocation] = useState<Location | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followLoading, setFollowLoading] = useState(false);
+
+  const [reviewsData, setReviewsData] = useState<ReviewsData | null>(null);
 
   useEffect(() => {
     if (!businessId) return;
@@ -84,8 +106,32 @@ export default function BusinessBookingProfilePage() {
       setServices((svcRes.data as Service[]) ?? []);
       setPrimaryLocation((locRes.data as Location) ?? null);
       setLoading(false);
+
+      // Load follow info + reviews in parallel (non-blocking)
+      const [followRes, reviewsRes] = await Promise.all([
+        (supabase as any).rpc('get_business_follow_info', { p_business_id: businessId }),
+        (supabase as any).rpc('get_business_reviews', { p_business_id: businessId, p_limit: 10 }),
+      ]);
+      if (followRes.data) {
+        setIsFollowing(followRes.data.is_following ?? false);
+        setFollowerCount(followRes.data.follower_count ?? 0);
+      }
+      if (reviewsRes.data) {
+        setReviewsData(reviewsRes.data as ReviewsData);
+      }
     })();
   }, [businessId]);
+
+  async function handleFollow() {
+    if (!user) return;
+    setFollowLoading(true);
+    const { data } = await (supabase as any).rpc('toggle_business_follow', { p_business_id: businessId });
+    setFollowLoading(false);
+    if (data?.ok) {
+      setIsFollowing(data.is_following);
+      setFollowerCount(data.follower_count);
+    }
+  }
 
   function formatPrice(svc: Service): string {
     if (svc.price_type === 'negotiable') return t('booking.priceNegotiable');
@@ -135,6 +181,13 @@ export default function BusinessBookingProfilePage() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-base font-semibold">{business.name}</h1>
+                {/* Rating chip */}
+                {reviewsData && reviewsData.total_count > 0 && (
+                  <span className="flex items-center gap-0.5 text-xs text-amber-600 dark:text-amber-400 font-medium">
+                    <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                    {reviewsData.avg_rating} ({reviewsData.total_count})
+                  </span>
+                )}
                 {business.live_status && business.live_status !== 'unavailable' && business.live_status !== 'by_schedule' && (
                   <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                     business.live_status === 'available_now'
@@ -166,7 +219,30 @@ export default function BusinessBookingProfilePage() {
                 )}
               </div>
             </div>
+            {/* Follow button */}
+            {user && (
+              <button
+                onClick={handleFollow}
+                disabled={followLoading}
+                className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
+                  isFollowing
+                    ? 'bg-primary/10 text-primary border-primary/30 hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400'
+                    : 'bg-background text-muted-foreground border-border hover:border-primary hover:text-primary'
+                } disabled:opacity-50`}
+              >
+                {isFollowing
+                  ? <><UserCheck className="w-3.5 h-3.5" />{t('booking.unfollow')}</>
+                  : <><UserPlus className="w-3.5 h-3.5" />{t('booking.follow')}</>
+                }
+              </button>
+            )}
           </div>
+          {/* Follower count */}
+          {followerCount > 0 && (
+            <p className="px-4 pb-2 text-xs text-muted-foreground">
+              {t('booking.followers').replace('{n}', String(followerCount))}
+            </p>
+          )}
 
           {/* Services list */}
           {services.length === 0 ? (
@@ -218,6 +294,35 @@ export default function BusinessBookingProfilePage() {
               })}
             </div>
           )}
+
+          {/* Reviews section */}
+          <div className="border-t border-border px-4 py-4">
+            <h2 className="text-sm font-semibold mb-3">{t('booking.reviews.title')}</h2>
+            {!reviewsData || reviewsData.total_count === 0 ? (
+              <p className="text-xs text-muted-foreground">{t('booking.reviews.noReviews')}</p>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {reviewsData.reviews.map((r) => (
+                  <div key={r.id} className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-0.5">
+                        {[1,2,3,4,5].map(n => (
+                          <Star key={n} className={`w-3 h-3 ${n <= r.rating ? 'fill-amber-400 text-amber-400' : 'text-border'}`} />
+                        ))}
+                      </div>
+                      <span className="text-xs font-medium text-foreground">{r.reviewer_name}</span>
+                      <span className="text-xs text-muted-foreground ml-auto">
+                        {new Date(r.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                    </div>
+                    {r.comment && (
+                      <p className="text-xs text-muted-foreground leading-relaxed">{r.comment}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
         </div>
 

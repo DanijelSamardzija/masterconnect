@@ -93,7 +93,9 @@ export default function MyBookingsPage() {
 
   const [upcoming, setUpcoming] = useState<Booking[]>([]);
   const [past, setPast] = useState<Booking[]>([]);
-  const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming');
+  const [followed, setFollowed] = useState<{ id: string; name: string; avatar_url: string | null; city: string | null }[]>([]);
+  const [followedLoading, setFollowedLoading] = useState(false);
+  const [tab, setTab] = useState<'upcoming' | 'past' | 'following'>('upcoming');
   const [loading, setLoading] = useState(true);
   const [cancelTarget, setCancelTarget] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState('');
@@ -134,6 +136,15 @@ export default function MyBookingsPage() {
       setLoading(false);
     }
     load();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    setFollowedLoading(true);
+    (supabase as any).rpc('get_followed_businesses').then(({ data }: { data: any[] | null }) => {
+      setFollowed((data as any) ?? []);
+      setFollowedLoading(false);
+    });
   }, [user]);
 
   async function handleCancel() {
@@ -251,17 +262,21 @@ export default function MyBookingsPage() {
 
           {/* Tabs */}
           <div className="flex gap-1 mb-6 border-b border-border">
-            {(['upcoming', 'past'] as const).map((tab_) => (
+            {(['upcoming', 'past', 'following'] as const).map((tab_) => (
               <button
                 key={tab_}
                 onClick={() => setTab(tab_)}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
                   tab === tab_
                     ? 'border-primary text-primary'
                     : 'border-transparent text-muted-foreground hover:text-foreground'
                 }`}
               >
-                {t(tab_ === 'upcoming' ? 'booking.upcomingBookings' : 'booking.pastBookings')}
+                {tab_ === 'upcoming'
+                  ? t('booking.upcomingBookings')
+                  : tab_ === 'past'
+                  ? t('booking.pastBookings')
+                  : t('booking.following.title')}
               </button>
             ))}
           </div>
@@ -301,18 +316,53 @@ export default function MyBookingsPage() {
                   </div>
                 ) : (
                   <div className="flex flex-col gap-3">
-                    {past.map((b) => (
-                      <BookingCard
-                        key={b.id}
-                        booking={b}
-                        t={t}
-                        locale={locale}
-                        onReview={b.status === 'completed' && b.business_id ? () => setReviewTarget({
-                          bookingId: b.id,
-                          proId: b.business_id!,
-                          proName: (b.business as any)?.name ?? '',
-                        }) : undefined}
-                      />
+                    {past.map((b) => {
+                      const isPastTime = new Date(b.starts_at) < new Date();
+                      const canReview = b.business_id && (b.status === 'completed' || (b.status === 'confirmed' && isPastTime));
+                      return (
+                        <BookingCard
+                          key={b.id}
+                          booking={b}
+                          t={t}
+                          locale={locale}
+                          onReview={canReview ? () => setReviewTarget({
+                            bookingId: b.id,
+                            proId: b.business_id!,
+                            proName: (b.business as any)?.name ?? '',
+                          }) : undefined}
+                        />
+                      );
+                    })}
+                  </div>
+                )
+              )}
+              {tab === 'following' && (
+                followedLoading ? (
+                  <div className="flex justify-center py-12">
+                    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : followed.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground text-sm">
+                    <Star className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                    {t('booking.following.empty')}
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    {followed.map((biz) => (
+                      <button
+                        key={biz.id}
+                        onClick={() => router.push(`/booking/${biz.id}`)}
+                        className="w-full text-left border border-border rounded-xl p-3 bg-card hover:border-primary/50 hover:bg-accent/30 transition-colors flex items-center gap-3"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-950 flex items-center justify-center shrink-0 text-sm font-bold text-orange-700 dark:text-orange-300">
+                          {(biz.name ?? '?')[0]?.toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{biz.name}</p>
+                          {biz.city && <p className="text-xs text-muted-foreground">{biz.city}</p>}
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+                      </button>
                     ))}
                   </div>
                 )
