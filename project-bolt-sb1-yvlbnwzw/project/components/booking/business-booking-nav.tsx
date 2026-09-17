@@ -23,7 +23,7 @@ export function BusinessBookingNav({ active }: { active?: BusinessBookingTab }) 
   return (
     <div className="flex items-start gap-2 mb-4">
       <button
-        onClick={() => router.push('/booking/business')}
+        onClick={() => router.push(active ? '/booking/business' : '/booking')}
         className="p-2 rounded-xl hover:bg-accent transition-colors text-muted-foreground shrink-0 mt-0.5"
       >
         <ChevronLeft className="h-5 w-5" />
