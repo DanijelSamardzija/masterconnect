@@ -133,7 +133,7 @@ export default function StaffTimeOffPage() {
 
           <div className="flex items-center gap-3 mb-6">
             <button
-              onClick={() => router.push('/dashboard/staff/bookings')}
+              onClick={() => router.push('/dashboard/staff/hours')}
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               <ChevronRight className="w-5 h-5 rotate-180" />
