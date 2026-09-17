@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/protected-route';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
-import { ChevronRight, Clock, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, X } from 'lucide-react';
 
 type DaySchedule = {
   is_closed:   boolean;
@@ -38,6 +38,20 @@ const DOW_KEYS = [
 ] as const;
 
 const DOW_ORDER = [1, 2, 3, 4, 5, 6, 0];
+
+function getMonday(d: Date): Date {
+  const copy = new Date(d);
+  copy.setHours(0, 0, 0, 0);
+  const day = copy.getDay();
+  copy.setDate(copy.getDate() - (day === 0 ? 6 : day - 1));
+  return copy;
+}
+
+function addDays(d: Date, n: number): Date {
+  const copy = new Date(d);
+  copy.setDate(copy.getDate() + n);
+  return copy;
+}
 
 const MONTH_KEYS = [
   'staffHours.month.0',
@@ -99,15 +113,18 @@ function parseHours(hours: any[]): Record<number, DaySchedule> {
 }
 
 export default function StaffHoursPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { profile } = useAuth();
   const router = useRouter();
+  const locale = { sr: 'sr-RS', en: 'en-US', de: 'de-DE', es: 'es-ES', fr: 'fr-FR' }[language] ?? 'en-US';
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   const [staffMemberId, setStaffMemberId] = useState<string | null>(null);
   const [locationId, setLocationId] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<number>(0);
+  const [week, setWeek] = useState<Date>(() => getMonday(new Date()));
+  const weekNavReady = useRef(false);
   const [schedule, setSchedule] = useState<Record<number, DaySchedule>>(emptySchedule());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -180,6 +197,14 @@ export default function StaffHoursPage() {
       await loadHours(staffMemberId, locationId, month);
     }
   }
+
+  // Auto-load month when user navigates to a different week
+  useEffect(() => {
+    if (!weekNavReady.current) { weekNavReady.current = true; return; }
+    const month = week.getMonth() + 1;
+    handleMonthChange(month);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [week]);
 
   async function handleToggleAcceptBookings() {
     if (!staffMemberId) return;
@@ -264,11 +289,11 @@ export default function StaffHoursPage() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-background">
-        <div className="max-w-2xl mx-auto px-4 py-6">
+        <div className="max-w-2xl mx-auto px-4 py-3">
 
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center gap-3 mb-3">
             <button
-              onClick={() => router.push('/dashboard/staff/bookings')}
+              onClick={() => router.back()}
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               <ChevronRight className="w-5 h-5 rotate-180" />
@@ -296,7 +321,7 @@ export default function StaffHoursPage() {
             <>
               {/* Accept bookings toggle */}
               {staffMemberId && (
-                <div className="flex items-center justify-between border border-border rounded-xl px-4 py-3 mb-5">
+                <div className="flex items-center justify-between border border-border rounded-xl px-3 py-2 mb-3">
                   <div>
                     <p className="text-sm font-medium">{t('staffHours.acceptBookings')}</p>
                     {!acceptBookings && (
@@ -320,16 +345,37 @@ export default function StaffHoursPage() {
                 </div>
               )}
 
+              {/* Week navigation */}
+              <div className="flex items-center justify-between mb-2">
+                <button
+                  onClick={() => setWeek(w => addDays(w, -7))}
+                  className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <span className="text-xs font-semibold text-foreground">
+                  {week.toLocaleDateString(locale, { day: 'numeric', month: 'long' })}
+                  {' – '}
+                  {addDays(week, 6).toLocaleDateString(locale, { day: 'numeric', month: 'long' })}
+                </span>
+                <button
+                  onClick={() => setWeek(w => addDays(w, 7))}
+                  className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+
               {/* Month selector */}
-              <div className="mb-4">
-                <p className="text-xs text-muted-foreground mb-2">{t('staffHours.selectMonth')}</p>
-                <div className="flex gap-1.5 flex-wrap">
+              <div className="mb-2">
+                <p className="text-[11px] text-muted-foreground mb-1">{t('staffHours.selectMonth')}</p>
+                <div className="flex gap-1 flex-wrap">
                   {MONTH_KEYS.map((key, idx) => (
                     <button
                       key={idx}
                       type="button"
                       onClick={() => handleMonthChange(idx)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
+                      className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition-colors ${
                         selectedMonth === idx
                           ? 'bg-primary text-white'
                           : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
@@ -340,24 +386,30 @@ export default function StaffHoursPage() {
                   ))}
                 </div>
                 {selectedMonth > 0 && (
-                  <p className="text-[11px] text-primary mt-1.5">
+                  <p className="text-[11px] text-primary mt-1">
                     {t('staffHours.monthOverrideNote')}
                   </p>
                 )}
               </div>
 
-              <div className="border border-border rounded-xl overflow-hidden mb-5">
+              <div className="border border-border rounded-xl overflow-hidden mb-3">
                 {DOW_ORDER.map((dow, idx) => {
                   const day = schedule[dow];
                   const labelKey = DOW_KEYS[idx];
-                  const timeCls = "border border-border rounded-lg px-2 py-1 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary w-28";
+                  const dayDate = addDays(week, idx);
+                  const timeCls = "border border-border rounded-md px-2 py-0.5 text-xs bg-background focus:outline-none focus:ring-1 focus:ring-primary w-24";
                   return (
                     <div
                       key={dow}
-                      className={`flex flex-col gap-2 p-4 ${idx > 0 ? 'border-t border-border' : ''}`}
+                      className={`flex flex-col gap-1 p-2.5 ${idx > 0 ? 'border-t border-border' : ''}`}
                     >
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium w-28">{t(labelKey)}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-28 shrink-0">
+                          <span className="text-xs font-semibold">{t(labelKey)}</span>
+                          <span className="text-[11px] text-muted-foreground ml-1.5">
+                            {String(dayDate.getDate()).padStart(2, '0')}.{String(dayDate.getMonth() + 1).padStart(2, '0')}
+                          </span>
+                        </div>
                         <button
                           type="button"
                           onClick={() => updateDay(dow, { is_closed: !day.is_closed })}
@@ -433,12 +485,12 @@ export default function StaffHoursPage() {
                 })}
               </div>
 
-              <p className="text-xs text-muted-foreground mb-5">{t('staffHours.note')}</p>
+              <p className="text-xs text-muted-foreground mb-2">{t('staffHours.note')}</p>
 
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="w-full py-3 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-60"
+                className="w-full py-2 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-60"
               >
                 {saving ? t('staffHours.saving') : t('staffHours.save')}
               </button>
