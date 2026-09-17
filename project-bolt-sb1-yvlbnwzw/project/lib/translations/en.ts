@@ -2429,6 +2429,8 @@ export default {
   'setup.closures.reason.renovation': 'Renovation',
   'setup.closures.reason.other': 'Other',
   'setup.closures.reason.sick_leave': 'Sick leave',
+  'setup.closures.reason.blocked': 'Blocked slot',
+  'setup.closures.reason.break': 'Break',
 
   // ── Absences page ──────────────────────────────────────────────────────────
   'absences.title': 'Absences',

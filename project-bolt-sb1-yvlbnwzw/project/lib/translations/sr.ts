@@ -2429,6 +2429,8 @@ export default {
   'setup.closures.reason.renovation': 'Renoviranje',
   'setup.closures.reason.other': 'Ne radimo',
   'setup.closures.reason.sick_leave': 'Bolovanje',
+  'setup.closures.reason.blocked': 'Blokada termina',
+  'setup.closures.reason.break': 'Pauza',
 
   // ── Absences page ──────────────────────────────────────────────────────────
   'absences.title': 'Odsustva',

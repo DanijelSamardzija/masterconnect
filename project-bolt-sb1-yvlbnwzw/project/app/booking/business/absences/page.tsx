@@ -195,7 +195,7 @@ export default function AbsencesPage() {
 
   function getReasonLabel(reason: string): string {
     const key = `setup.closures.reason.${reason}` as Parameters<typeof t>[0];
-    return ['vacation','sick_leave','holiday','renovation','other'].includes(reason) ? t(key) : reason;
+    return ['vacation','sick_leave','holiday','renovation','other','blocked','break'].includes(reason) ? t(key) : reason;
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────

@@ -2359,6 +2359,8 @@ export default {
   'setup.closures.reason.renovation': 'Rénovation',
   'setup.closures.reason.other': 'Autre',
   'setup.closures.reason.sick_leave': 'Arrêt maladie',
+  'setup.closures.reason.blocked': 'Créneau bloqué',
+  'setup.closures.reason.break': 'Pause',
 
   // ── Absences page ──────────────────────────────────────────────────────────
   'absences.title': 'Absences',

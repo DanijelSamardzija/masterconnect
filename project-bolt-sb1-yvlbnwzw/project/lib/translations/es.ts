@@ -2352,6 +2352,8 @@ export default {
   'setup.closures.reason.renovation': 'Renovación',
   'setup.closures.reason.other': 'Otro',
   'setup.closures.reason.sick_leave': 'Baja por enfermedad',
+  'setup.closures.reason.blocked': 'Cita bloqueada',
+  'setup.closures.reason.break': 'Descanso',
 
   // ── Absences page ──────────────────────────────────────────────────────────
   'absences.title': 'Ausencias',
