@@ -1782,6 +1782,7 @@ export default {
   'booking.selectService': 'Seleccionar servicio',
   'booking.selectServiceDesc': 'Elige qué servicio deseas reservar',
   'booking.selectSlot': 'Seleccionar horario',
+  'booking.slotsInfo': 'Horarios disponibles — días y horas de trabajo del empleado seleccionado',
   'booking.availableSlots': 'Horarios disponibles',
   'booking.noSlotsThisWeek': 'No hay horarios disponibles esta semana',
   'booking.prevWeek': 'Semana anterior',

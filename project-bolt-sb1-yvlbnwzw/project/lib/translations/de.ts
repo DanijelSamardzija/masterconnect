@@ -1849,6 +1849,7 @@ export default {
   'booking.selectService': 'Dienst auswählen',
   'booking.selectServiceDesc': 'Wählen Sie den Dienst, den Sie buchen möchten',
   'booking.selectSlot': 'Zeitfenster wählen',
+  'booking.slotsInfo': 'Verfügbare Buchungszeiten — Arbeitstage und Arbeitszeiten des gewählten Mitarbeiters',
   'booking.availableSlots': 'Verfügbare Zeitfenster',
   'booking.noSlotsThisWeek': 'Keine verfügbaren Zeitfenster diese Woche',
   'booking.prevWeek': 'Vorherige Woche',

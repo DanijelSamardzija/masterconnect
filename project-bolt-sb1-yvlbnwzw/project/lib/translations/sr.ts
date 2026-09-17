@@ -1859,6 +1859,7 @@ export default {
   'booking.selectService': 'Odaberi uslugu',
   'booking.selectServiceDesc': 'Odaberite koju uslugu želite rezervisati',
   'booking.selectSlot': 'Odaberi termin',
+  'booking.slotsInfo': 'Slobodni termini za rezervaciju — radni dani i dostupno radno vrijeme radnika',
   'booking.availableSlots': 'Slobodni termini',
   'booking.noSlotsThisWeek': 'Nema slobodnih termina ove sedmice',
   'booking.prevWeek': 'Prethodna sedmica',

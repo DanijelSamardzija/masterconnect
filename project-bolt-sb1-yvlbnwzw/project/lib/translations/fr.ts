@@ -1789,6 +1789,7 @@ export default {
   'booking.selectService': 'Choisir un service',
   'booking.selectServiceDesc': 'Sélectionnez le service que vous souhaitez réserver',
   'booking.selectSlot': 'Choisir un créneau',
+  'booking.slotsInfo': 'Créneaux disponibles — jours et heures de travail du membre du personnel sélectionné',
   'booking.availableSlots': 'Créneaux disponibles',
   'booking.noSlotsThisWeek': 'Aucun créneau disponible cette semaine',
   'booking.prevWeek': 'Semaine précédente',

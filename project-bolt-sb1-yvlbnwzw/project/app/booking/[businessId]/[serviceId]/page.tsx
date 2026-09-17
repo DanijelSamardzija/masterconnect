@@ -805,6 +805,10 @@ export default function BookingSlotPickerPage() {
             );
           })()
         ) : (
+          <>
+            <p className="text-xs text-muted-foreground mb-3 text-center leading-snug">
+              {t('booking.slotsInfo')}
+            </p>
           <div className="grid grid-cols-7 gap-1">
             {weekDays.map((day) => {
               const dayKey = new Intl.DateTimeFormat('en-CA', {
@@ -821,7 +825,14 @@ export default function BookingSlotPickerPage() {
                     <div>{day.getDate()}</div>
                   </div>
                   {(() => {
-                    const available = daySlots.filter((s) => s.available);
+                    const dayBreak = breaks[dayKey];
+                    const available = daySlots.filter(s => {
+                      if (!s.available) return false;
+                      if (!dayBreak) return true;
+                      const sStart = slotLocalHHMM(s.slot_start, selectedTimezone);
+                      const sEnd = slotLocalHHMM(s.slot_end, selectedTimezone);
+                      return !(sStart < dayBreak.break_end.slice(0, 5) && sEnd > dayBreak.break_start.slice(0, 5));
+                    });
                     const dayAbsence = selectedStaffId
                       ? staffAbsences.find(a => a.date_from <= dayKey && a.date_to >= dayKey)
                       : undefined;
@@ -847,7 +858,6 @@ export default function BookingSlotPickerPage() {
                         </div>
                       ];
                     }
-                    const dayBreak = breaks[dayKey];
                     let breakInserted = false;
                     return available.map((s) => {
                       const items: React.ReactNode[] = [];
@@ -879,6 +889,7 @@ export default function BookingSlotPickerPage() {
               );
             })}
           </div>
+          </>
         )}
       </div>
 

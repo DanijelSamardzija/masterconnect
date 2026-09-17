@@ -1859,6 +1859,7 @@ export default {
   'booking.selectService': 'Select a service',
   'booking.selectServiceDesc': 'Choose which service you want to book',
   'booking.selectSlot': 'Select a time slot',
+  'booking.slotsInfo': 'Available booking slots — showing working days and hours for the selected staff',
   'booking.availableSlots': 'Available slots',
   'booking.noSlotsThisWeek': 'No available slots this week',
   'booking.prevWeek': 'Previous week',
