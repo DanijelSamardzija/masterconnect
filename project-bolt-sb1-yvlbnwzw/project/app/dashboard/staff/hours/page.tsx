@@ -407,64 +407,50 @@ export default function StaffHoursPage() {
                   const day = schedule[dow];
                   const labelKey = DOW_KEYS[idx];
                   const dayDate = addDays(week, idx);
-                  const timeCls = "border border-border rounded-md px-2 py-0.5 text-xs bg-background focus:outline-none focus:ring-1 focus:ring-primary w-24";
+                  const timeCls = "border border-border rounded-md px-1.5 py-0.5 text-xs bg-background focus:outline-none focus:ring-1 focus:ring-primary w-[4.5rem]";
                   return (
                     <div
                       key={dow}
-                      className={`flex flex-col gap-1 p-2.5 ${idx > 0 ? 'border-t border-border' : ''}`}
+                      className={`flex items-center gap-2 flex-wrap px-2.5 py-1.5 ${idx > 0 ? 'border-t border-border' : ''}`}
                     >
-                      <div className="flex items-center gap-2">
-                        <div className="w-28 shrink-0">
-                          <span className="text-xs font-semibold">{t(labelKey)}</span>
-                          <span className="text-[11px] text-muted-foreground ml-1.5">
-                            {String(dayDate.getDate()).padStart(2, '0')}.{String(dayDate.getMonth() + 1).padStart(2, '0')}
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => updateDay(dow, { is_closed: !day.is_closed })}
-                          className={`text-xs font-semibold px-2.5 py-0.5 rounded-full transition-colors ${
-                            day.is_closed
-                              ? 'bg-muted text-muted-foreground hover:bg-muted/80'
-                              : 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900'
-                          }`}
-                        >
-                          {day.is_closed ? t('setup.hours.closed') : t('setup.hours.open')}
-                        </button>
+                      <div className="w-28 shrink-0">
+                        <span className="text-xs font-semibold">{t(labelKey)}</span>
+                        <span className="text-[11px] text-muted-foreground ml-1.5">
+                          {String(dayDate.getDate()).padStart(2, '0')}.{String(dayDate.getMonth() + 1).padStart(2, '0')}
+                        </span>
                       </div>
 
+                      <button
+                        type="button"
+                        onClick={() => updateDay(dow, { is_closed: !day.is_closed })}
+                        className={`text-xs font-semibold px-2.5 py-0.5 rounded-full transition-colors shrink-0 ${
+                          day.is_closed
+                            ? 'bg-muted text-muted-foreground hover:bg-muted/80'
+                            : 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900'
+                        }`}
+                      >
+                        {day.is_closed ? t('setup.hours.closed') : t('setup.hours.open')}
+                      </button>
+
                       {!day.is_closed && (
-                        <div className="flex flex-col gap-1.5 pl-28">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <input
-                              type="time"
-                              value={day.start_time}
-                              onChange={(e) => updateDay(dow, { start_time: e.target.value })}
-                              className={timeCls}
-                            />
-                            <span className="text-muted-foreground text-xs">–</span>
-                            <input
-                              type="time"
-                              value={day.end_time}
-                              onChange={(e) => updateDay(dow, { end_time: e.target.value })}
-                              className={timeCls}
-                            />
-                            {!day.has_break && (
-                              <button
-                                type="button"
-                                onClick={() => toggleBreak(dow)}
-                                className="text-[11px] font-medium text-primary/70 hover:text-primary transition-colors px-1.5 py-0.5 rounded border border-primary/20 hover:border-primary/50"
-                              >
-                                + {t('bookingSetup.hours.addSecondPeriod')}
-                              </button>
-                            )}
-                          </div>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <input
+                            type="time"
+                            value={day.start_time}
+                            onChange={(e) => updateDay(dow, { start_time: e.target.value })}
+                            className={timeCls}
+                          />
+                          <span className="text-muted-foreground text-xs">–</span>
+                          <input
+                            type="time"
+                            value={day.end_time}
+                            onChange={(e) => updateDay(dow, { end_time: e.target.value })}
+                            className={timeCls}
+                          />
 
                           {day.has_break && (
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-[11px] text-muted-foreground w-12 shrink-0">
-                                {t('bookingSetup.hours.break')}
-                              </span>
+                            <>
+                              <span className="text-[11px] text-muted-foreground/40 mx-0.5">|</span>
                               <input
                                 type="time"
                                 value={day.break_start}
@@ -484,9 +470,18 @@ export default function StaffHoursPage() {
                                 className="text-[11px] font-medium text-destructive/60 hover:text-destructive transition-colors flex items-center gap-0.5"
                               >
                                 <X className="w-3 h-3" />
-                                {t('bookingSetup.hours.removeSecondPeriod')}
                               </button>
-                            </div>
+                            </>
+                          )}
+
+                          {!day.has_break && (
+                            <button
+                              type="button"
+                              onClick={() => toggleBreak(dow)}
+                              className="text-[11px] font-medium text-primary/70 hover:text-primary transition-colors px-1.5 py-0.5 rounded border border-primary/20 hover:border-primary/50"
+                            >
+                              + {t('bookingSetup.hours.addSecondPeriod')}
+                            </button>
                           )}
                         </div>
                       )}
