@@ -272,6 +272,14 @@ function OwnerStaffHoursContent() {
       }
     }
 
+    // Generate concrete shifts for next 90 days (only for base template, not monthly overrides)
+    if (!anyError && selectedMonth === 0) {
+      await (supabase as any).rpc('owner_generate_shifts_90_days', {
+        p_staff_member_id: selectedStaffId,
+        p_location_id:     locId,
+      });
+    }
+
     setSaving(false);
     if (anyError) {
       toast.error(t('staffHours.saveError'));

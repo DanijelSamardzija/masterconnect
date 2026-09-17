@@ -10,7 +10,6 @@ export type StaffBookingTab = 'bookings' | 'schedule' | 'hours';
 const NAV_ITEMS: { tab: StaffBookingTab; href: string; labelKey: string; icon: ReactNode }[] = [
   { tab: 'bookings', href: '/dashboard/staff/bookings', labelKey: 'staffDashboard.title',      icon: <Calendar className="h-3.5 w-3.5" /> },
   { tab: 'schedule', href: '/dashboard/staff/schedule', labelKey: 'schedule.staffView.title',  icon: <Calendar className="h-3.5 w-3.5" /> },
-  { tab: 'hours',    href: '/dashboard/staff/hours',    labelKey: 'staffHours.title',          icon: <Clock className="h-3.5 w-3.5" /> },
 ];
 
 export function StaffBookingNav({ active }: { active?: StaffBookingTab }) {

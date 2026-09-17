@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
-import { ChevronLeft, ChevronRight, X, Info } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Info, CalendarOff } from 'lucide-react';
 import { StaffBookingNav } from '@/components/booking/staff-booking-nav';
 
 type ShiftRow = {
@@ -16,14 +16,6 @@ type ShiftRow = {
   end_time: string | null;
   is_off: boolean;
   notes: string | null;
-  break_start: string | null;
-  break_end: string | null;
-};
-
-type HourTemplate = {
-  is_closed: boolean;
-  start_time: string;
-  end_time: string;
   break_start: string | null;
   break_end: string | null;
 };
@@ -95,7 +87,10 @@ function StaffScheduleContent() {
   const [hasStaff, setHasStaff] = useState(false);
   const [edit, setEdit] = useState<EditState | null>(null);
   const [saving, setSaving] = useState(false);
-  const [hoursTemplate, setHoursTemplate] = useState<Record<number, HourTemplate>>({});
+  const [staffMemberId, setStaffMemberId] = useState<string | null>(null);
+  const [acceptBookings, setAcceptBookings] = useState(true);
+  const [togglingAccept, setTogglingAccept] = useState(false);
+  const [canBlockTime, setCanBlockTime] = useState(false);
 
   const weekDays = DOW_ORDER.map((_, i) => {
     const mon = getMonday(weekDate);
@@ -118,55 +113,17 @@ function StaffScheduleContent() {
     (async () => {
       const { data: sm } = await (supabase as any)
         .from('staff_members')
-        .select('id, permissions, business_id')
+        .select('id, permissions, business_id, role, accept_bookings')
         .eq('user_id', profile.id)
         .eq('is_active', true)
         .maybeSingle();
 
       if (!sm) { setLoading(false); return; }
       setHasStaff(true);
+      setStaffMemberId(sm.id);
       setCanEdit(!!sm.permissions?.can_set_hours);
-
-      // Always use the business's primary location — same as owner's schedule page does
-      const { data: locData } = await (supabase as any)
-        .from('business_locations')
-        .select('id')
-        .eq('business_id', sm.business_id)
-        .eq('is_primary', true)
-        .eq('is_active', true)
-        .maybeSingle();
-
-      // Load opening hours template so any owner change is visible here too
-      if (locData?.id) {
-        const { data: hrs } = await (supabase as any).rpc('get_staff_opening_hours', {
-          p_staff_member_id: sm.id,
-          p_location_id: locData.id,
-          p_month: 0,
-        });
-        if (Array.isArray(hrs) && hrs.length > 0) {
-          const byDay: Record<number, Record<number, { start_time: string; end_time: string; is_closed: boolean }>> = {};
-          for (const row of hrs as any[]) {
-            const dow = row.day_of_week;
-            if (!byDay[dow]) byDay[dow] = {};
-            byDay[dow][row.sort_order] = { start_time: row.start_time?.slice(0, 5) ?? '09:00', end_time: row.end_time?.slice(0, 5) ?? '17:00', is_closed: row.is_closed };
-          }
-          const tpl: Record<number, HourTemplate> = {};
-          for (const [dowStr, periods] of Object.entries(byDay)) {
-            const dow = Number(dowStr);
-            const p0 = periods[0];
-            const p1 = periods[1];
-            if (!p0) continue;
-            tpl[dow] = {
-              is_closed:   p0.is_closed,
-              start_time:  p0.start_time,
-              end_time:    p1 ? p1.end_time : p0.end_time,
-              break_start: p1 ? p0.end_time : null,
-              break_end:   p1 ? p1.start_time : null,
-            };
-          }
-          setHoursTemplate(tpl);
-        }
-      }
+      setAcceptBookings(sm.accept_bookings ?? true);
+      setCanBlockTime(sm.role === 'owner' || !!sm.permissions?.can_block_time);
 
       await loadShifts(getMonday(new Date()));
       setLoading(false);
@@ -184,7 +141,7 @@ function StaffScheduleContent() {
   function openEdit(dateStr: string) {
     if (!canEdit) return;
     const shift = getShift(dateStr);
-    let mode: EditState['mode'] = 'default';
+    let mode: EditState['mode'] = 'working';
     let startTime = '09:00';
     let endTime = '17:00';
     let notes = '';
@@ -205,6 +162,22 @@ function StaffScheduleContent() {
       }
     }
     setEdit({ date: dateStr, mode, startTime, endTime, notes, hasBreak, breakStart, breakEnd });
+  }
+
+  async function handleToggleAcceptBookings() {
+    if (!staffMemberId) return;
+    setTogglingAccept(true);
+    const newVal = !acceptBookings;
+    const { data } = await (supabase as any).rpc('set_accept_bookings', {
+      p_staff_member_id: staffMemberId,
+      p_accept: newVal,
+    });
+    if (data?.ok) {
+      setAcceptBookings(newVal);
+    } else {
+      toast.error('Greška');
+    }
+    setTogglingAccept(false);
   }
 
   async function handleSave() {
@@ -286,6 +259,43 @@ function StaffScheduleContent() {
           </div>
         ) : (
           <>
+            {/* Accept bookings toggle */}
+            {staffMemberId && (
+              <div className="flex items-center justify-between border border-border rounded-xl px-3 py-2 mb-3">
+                <div>
+                  <p className="text-sm font-medium">{t('staffHours.acceptBookings')}</p>
+                  {!acceptBookings && (
+                    <p className="text-xs text-muted-foreground mt-0.5">{t('staffHours.acceptBookingsHint')}</p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  disabled={togglingAccept}
+                  onClick={handleToggleAcceptBookings}
+                  className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200 disabled:opacity-60 ${
+                    acceptBookings ? 'bg-primary' : 'bg-muted'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
+                      acceptBookings ? 'translate-x-5' : 'translate-x-0.5'
+                    }`}
+                  />
+                </button>
+              </div>
+            )}
+
+            {/* Time-off shortcut */}
+            {canBlockTime && (
+              <button
+                onClick={() => router.push('/dashboard/staff/time-off')}
+                className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 mb-3 rounded-xl border border-border bg-background hover:bg-accent transition-colors"
+              >
+                <CalendarOff className="w-3.5 h-3.5" />
+                {t('staffDashboard.timeOff')}
+              </button>
+            )}
+
             {/* Week navigation */}
             <div className="flex items-center justify-between mb-4">
               <button
@@ -354,33 +364,8 @@ function StaffScheduleContent() {
                       let cellCls = 'bg-background';
 
                       if (!shift) {
-                        const tpl = hoursTemplate[day.getDay()];
-                        if (!tpl || tpl.is_closed) {
-                          cellCls = 'bg-muted/30';
-                          cellContent = (
-                            <span className="text-[10px] text-muted-foreground">
-                              {t('staffHours.dayOff')}
-                            </span>
-                          );
-                        } else {
-                          cellCls = 'bg-green-50/60 dark:bg-green-950/10';
-                          cellContent = (
-                            <div className="flex flex-col items-center gap-0.5">
-                              <span className="text-[11px] font-semibold text-green-700 dark:text-green-400 leading-tight">
-                                {tpl.start_time}
-                              </span>
-                              <span className="text-[10px] text-green-700/60 dark:text-green-400/60">–</span>
-                              <span className="text-[11px] font-semibold text-green-700 dark:text-green-400 leading-tight">
-                                {tpl.end_time}
-                              </span>
-                              {tpl.break_start && tpl.break_end && (
-                                <span className="text-[9px] text-orange-500 font-medium mt-0.5 leading-tight">
-                                  ☕ {tpl.break_start}–{tpl.break_end}
-                                </span>
-                              )}
-                            </div>
-                          );
-                        }
+                        cellCls = 'bg-background';
+                        cellContent = null;
                       } else if (shift.is_off) {
                         cellCls = 'bg-muted/50';
                         cellContent = (
@@ -452,7 +437,7 @@ function StaffScheduleContent() {
             </div>
 
             <div className="flex gap-2 mb-4">
-              {(['default', 'working', 'off'] as const).map((m) => (
+              {(['working', 'off'] as const).map((m) => (
                 <button
                   key={m}
                   type="button"
@@ -461,19 +446,26 @@ function StaffScheduleContent() {
                     edit.mode === m
                       ? m === 'off'
                         ? 'bg-muted text-foreground border-muted'
-                        : m === 'working'
-                          ? 'bg-green-500 text-white border-green-500'
-                          : 'bg-primary text-white border-primary'
+                        : 'bg-green-500 text-white border-green-500'
                       : 'border-border text-muted-foreground hover:bg-accent'
                   }`}
                 >
-                  {m === 'default'
-                    ? t('schedule.defaultSchedule')
-                    : m === 'working'
-                      ? t('schedule.working')
-                      : t('schedule.dayOff')}
+                  {m === 'working' ? t('schedule.working') : t('schedule.dayOff')}
                 </button>
               ))}
+              {getShift(edit.date) && (
+                <button
+                  type="button"
+                  onClick={() => setEdit(e => e ? { ...e, mode: 'default' } : e)}
+                  className={`flex-1 text-xs font-medium py-2 rounded-xl border transition-colors ${
+                    edit.mode === 'default'
+                      ? 'bg-destructive/10 text-destructive border-destructive/30'
+                      : 'border-border text-muted-foreground hover:bg-accent'
+                  }`}
+                >
+                  {t('schedule.defaultSchedule')}
+                </button>
+              )}
             </div>
 
             {edit.mode === 'default' && (
