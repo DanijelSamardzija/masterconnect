@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { langToLocale } from '@/lib/utils/locale';
@@ -169,6 +169,8 @@ function bookingErrorKey(errorCode: string): string {
 export default function BookingSlotPickerPage() {
   const { businessId, serviceId } = useParams<{ businessId: string; serviceId: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const preselectedStaffId = searchParams.get('staffId');
   const { t, language } = useLanguage();
   const locale = langToLocale(language);
   const { user } = useAuth();
@@ -191,7 +193,7 @@ export default function BookingSlotPickerPage() {
   const [staffAbsences, setStaffAbsences] = useState<StaffAbsenceRow[]>([]);
 
   const [staffOptions, setStaffOptions] = useState<StaffOption[]>([]);
-  const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null); // null = "any"
+  const [selectedStaffId, setSelectedStaffId] = useState<string | null>(preselectedStaffId ?? null);
   const [loadingStaff, setLoadingStaff] = useState(false);
   const [breaks, setBreaks] = useState<Record<string, { break_start: string; break_end: string }>>({});
 

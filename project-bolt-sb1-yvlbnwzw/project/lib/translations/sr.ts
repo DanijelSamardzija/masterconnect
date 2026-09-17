@@ -2847,4 +2847,9 @@ export default {
   'shift.dayOff': 'Slobodan',
   'shift.vacation': 'Godišnji',
   'shift.sickLeave': 'Bolovanje',
+  // Staff client profile
+  'staffProfile.schedule': 'Raspored',
+  'staffProfile.services': 'Usluge',
+  'staffProfile.noSchedule': 'Raspored još nije postavljen.',
+  'staffProfile.staff': 'Osoblje',
 } as const;

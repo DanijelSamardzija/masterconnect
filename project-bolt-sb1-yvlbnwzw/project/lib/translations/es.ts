@@ -2762,4 +2762,8 @@ export default {
   'shift.dayOff': 'Libre',
   'shift.vacation': 'Vacaciones',
   'shift.sickLeave': 'Baja',
+  'staffProfile.schedule': 'Horario',
+  'staffProfile.services': 'Servicios',
+  'staffProfile.noSchedule': 'Horario aún no establecido.',
+  'staffProfile.staff': 'Personal',
 } as const;
