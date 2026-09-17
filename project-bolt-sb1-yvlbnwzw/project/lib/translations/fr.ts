@@ -2757,7 +2757,7 @@ export default {
   'schedule.viewMonth': 'Mensuel',
   'schedule.thisMonth': 'Ce mois',
   'schedule.retention': 'Les données de quarts sont conservées pour les 2 dernières années.',
-  'schedule.info': 'La vue hebdomadaire affiche le planning effectif pour chaque jour. Vert foncé (modif.) = vous avez explicitement défini ce jour pour cette semaine. Vert clair (Régulier) = travaille selon son planning habituel, sans modification. Gris solide (modif.) = jour de congé que vous avez explicitement défini. Gris pointillé (Régulier) = jour de congé selon le planning habituel. Cliquez sur n\'importe quel jour pour ajouter ou modifier le planning de cette semaine. Pour les congés annuels ou les arrêts maladie, utilisez les Paramètres (lien sous le tableau).',
+  'schedule.info': 'Ici vous définissez le planning de chaque membre du personnel. Cliquez sur n\'importe quel jour pour modifier les heures de travail, ajouter une pause, une note ou marquer un jour de congé. Chaque membre a sa propre carte — les semaines se naviguent indépendamment, et l\'icône de copie transfère la semaine à la suivante. Pour les congés annuels ou arrêts maladie, utilisez Absences (lien dans la navigation ci-dessus).',
   'ownerStaffHours.info': 'Saisissez les horaires de travail semaine par semaine. Si une semaine n\'est pas définie, la dernière semaine saisie est utilisée automatiquement. Le personnel voit les quarts directement dans son planning.',
   'ownerStaffHours.retention': 'Les données de planning du personnel sont conservées pour les 2 dernières années.',
   'ownerStaffHours.selectWeek': 'Semaine :',

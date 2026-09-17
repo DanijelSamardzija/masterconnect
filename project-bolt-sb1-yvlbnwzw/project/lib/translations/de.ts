@@ -2817,7 +2817,7 @@ export default {
   'schedule.viewMonth': 'Monatlich',
   'schedule.thisMonth': 'Dieser Monat',
   'schedule.retention': 'Schichtdaten werden für die letzten 2 Jahre gespeichert.',
-  'schedule.info': 'Die Wochenansicht zeigt den effektiven Plan für jeden Tag. Dunkelgrün (Änderung) = du hast diesen Tag für diese Woche explizit festgelegt. Hellgrün (Standard) = arbeitet nach dem regulären Plan, keine Änderung. Grau (Änderung) = freier Tag, den du explizit gesetzt hast. Gestrichelt grau (Standard) = freier Tag gemäß regulärem Plan. Klicke auf einen Tag, um den Plan für diese Woche hinzuzufügen oder zu ändern. Für Urlaub oder Krankenstand nutze die Einstellungen (Link unter der Tabelle).',
+  'schedule.info': 'Hier legst du den Dienstplan für jeden Mitarbeiter fest. Klicke auf einen beliebigen Tag, um Arbeitszeiten zu ändern, eine Pause oder Notiz hinzuzufügen oder einen freien Tag zu markieren. Jeder Mitarbeiter hat seine eigene Karte — Wochen sind unabhängig navigierbar, das Kopiersymbol überträgt die Woche auf die nächste. Für Urlaub oder Krankheit nutze Abwesenheiten (Link in der Navigation oben).',
   'ownerStaffHours.info': 'Arbeitszeiten Woche für Woche eingeben. Wird eine Woche nicht gesetzt, wird die zuletzt eingegebene Woche verwendet. Mitarbeiter sehen die Schichten direkt in ihrem Dienstplan.',
   'ownerStaffHours.retention': 'Mitarbeiterplandaten werden für die letzten 2 Jahre gespeichert.',
   'ownerStaffHours.selectWeek': 'Woche:',

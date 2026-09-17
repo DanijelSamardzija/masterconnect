@@ -2835,7 +2835,7 @@ export default {
   'schedule.viewMonth': 'Mesečno',
   'schedule.thisMonth': 'Ovaj mesec',
   'schedule.retention': 'Podaci o smenama se čuvaju poslednjih 2 godine.',
-  'schedule.info': 'Sedmični pregled prikazuje efektivni raspored za svaki dan. Tamno zelena (izmjena) = eksplicitno podesio/la si ovaj dan za tu sedmicu. Svjetlija zelena (Redovni) = radi po stalnom rasporedu, bez izmjene. Sivo (izmjena) = slobodan dan koji si eksplicitno postavio/la. Isprekidano sivo (Redovni) = slobodan dan po stalnom rasporedu. Klikni na bilo koji dan da dodaš ili promijeniš raspored za tu sedmicu. Za godišnji odmor ili bolovanje koristi Podešavanja (link ispod tabele).',
+  'schedule.info': 'Ovdje postaviš raspored za svakog radnika. Klikni na bilo koji dan da promijeniš radno vrijeme, dodaš pauzu, napomenu ili označiš slobodan dan. Svaki radnik ima svoju karticu — sedmice se mogu listati nezavisno, a ikonom za kopiranje preneseš sedmicu na sljedeću. Za godišnji odmor ili bolovanje koristi Odsustva (link u navigaciji iznad).',
   'ownerStaffHours.info': 'Unesi radno vreme sedmicu po sedmicu. Ako ne postaviš sedmicu, automatski se koristi posljednja unesena sedmica. Radnik vidi postavljene smene direktno u svom rasporedu.',
   'ownerStaffHours.retention': 'Podaci o rasporedu radnika se čuvaju poslednjih 2 godine.',
   'ownerStaffHours.selectWeek': 'Sedmica:',

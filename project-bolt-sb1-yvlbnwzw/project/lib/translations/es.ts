@@ -2750,7 +2750,7 @@ export default {
   'schedule.viewMonth': 'Mensual',
   'schedule.thisMonth': 'Este mes',
   'schedule.retention': 'Los datos de turnos se conservan durante los últimos 2 años.',
-  'schedule.info': 'La vista semanal muestra el horario efectivo para cada día. Verde oscuro (cambio) = configuraste explícitamente este día para esta semana. Verde claro (Regular) = trabaja según su horario regular, sin cambio. Gris sólido (cambio) = día libre que configuraste explícitamente. Gris discontinuo (Regular) = día libre según el horario regular. Haz clic en cualquier día para agregar o cambiar el horario de esa semana. Para vacaciones anuales o baja por enfermedad, usa Configuración (enlace debajo de la tabla).',
+  'schedule.info': 'Aquí configuras el horario de cada empleado. Haz clic en cualquier día para cambiar el horario de trabajo, añadir un descanso, una nota o marcar un día libre. Cada empleado tiene su propia tarjeta — las semanas se pueden navegar de forma independiente, y el icono de copia traslada la semana a la siguiente. Para vacaciones o baja por enfermedad, usa Ausencias (enlace en la navegación de arriba).',
   'ownerStaffHours.info': 'Ingresa el horario de trabajo semana a semana. Si no se configura una semana, se usa automáticamente la última semana ingresada. El personal ve los turnos directamente en su horario.',
   'ownerStaffHours.retention': 'Los datos del horario del personal se conservan durante los últimos 2 años.',
   'ownerStaffHours.selectWeek': 'Semana:',
