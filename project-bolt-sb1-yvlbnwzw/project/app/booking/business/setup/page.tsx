@@ -210,6 +210,59 @@ function isWeekExplicit(weekStart: Date, shifts: WeekShift[]): boolean {
   return shifts.some(s => dates.has(s.shift_date) && !s.is_template_generated);
 }
 
+// Convert one company DayHours entry to DaySchedule (single slot or two slots → break)
+function companyDayToSchedule(ch: DayHours | undefined): DaySchedule {
+  if (!ch || ch.is_closed || ch.periods.length === 0) return { ...DEFAULT_DAY_SCHEDULE };
+  const sorted = [...ch.periods].sort((a, b) => a.sort_order - b.sort_order);
+  const hasBreak = sorted.length >= 2;
+  return {
+    is_closed:   false,
+    start_time:  sorted[0].start_time,
+    end_time:    sorted[sorted.length - 1].end_time,
+    has_break:   hasBreak,
+    break_start: hasBreak ? sorted[0].end_time   : '12:00',
+    break_end:   hasBreak ? sorted[1].start_time  : '13:00',
+  };
+}
+
+// Build week schedule using company hours as fallback for days without explicit shifts
+function shiftsToWeekScheduleOwner(weekStart: Date, shifts: WeekShift[], companyHours: DayHours[]): Record<number, DaySchedule> {
+  const byDate: Record<string, WeekShift> = {};
+  for (const s of shifts) byDate[s.shift_date] = s;
+  return Object.fromEntries([0,1,2,3,4,5,6].map(dow => {
+    const date = isoDateLocal(addDays(weekStart, dow));
+    const s = byDate[date];
+    if (s) return [dow, {
+      is_closed:   s.is_off,
+      start_time:  s.start_time?.slice(0,5) ?? '09:00',
+      end_time:    s.end_time?.slice(0,5)   ?? '17:00',
+      has_break:   !!(s.break_start && s.break_end),
+      break_start: s.break_start?.slice(0,5) ?? '12:00',
+      break_end:   s.break_end?.slice(0,5)   ?? '13:00',
+    } satisfies DaySchedule];
+    // Fallback: company hours (staff dow 0=Mon → company dow 1; staff dow 6=Sun → company dow 0)
+    const companyDow = dow === 6 ? 0 : dow + 1;
+    return [dow, companyDayToSchedule(companyHours.find(h => h.day_of_week === companyDow))];
+  }));
+}
+
+// Parse raw RPC rows to DayHours[]
+type OpeningHoursRow = { day_of_week: number; start_time: string; end_time: string; is_closed: boolean; sort_order: number };
+function parseOpeningHoursRows(rows: OpeningHoursRow[]): DayHours[] {
+  const dayMap = new Map<number, { is_closed: boolean; periods: HourPeriod[] }>();
+  for (const row of rows) {
+    if (!dayMap.has(row.day_of_week)) dayMap.set(row.day_of_week, { is_closed: row.is_closed, periods: [] });
+    const day = dayMap.get(row.day_of_week)!;
+    if (!row.is_closed) day.periods.push({ sort_order: row.sort_order, start_time: row.start_time, end_time: row.end_time });
+  }
+  for (const [, day] of dayMap) day.periods.sort((a, b) => a.sort_order - b.sort_order);
+  return Array.from({ length: 7 }, (_, i) => {
+    const saved = dayMap.get(i);
+    if (saved) return { day_of_week: i, is_closed: saved.is_closed, periods: saved.periods.length > 0 ? saved.periods : [{ sort_order: 0, start_time: '09:00', end_time: '17:00' }] };
+    return { ...DEFAULT_HOURS[i] };
+  });
+}
+
 const TIMEZONE_OPTIONS: { value: string; label: string }[] = [
   // Balkani & Ex-YU
   { value: 'Europe/Sarajevo',   label: 'Sarajevo (Europe/Sarajevo)' },
@@ -430,6 +483,7 @@ export default function BusinessSetupPage() {
   const [staffShiftsMap,       setStaffShiftsMap]       = useState<Record<string, WeekShift[]>>({});
   const [staffWeekIndexMap,    setStaffWeekIndexMap]    = useState<Record<string, number>>({});
   const [staffScheduleEditMap, setStaffScheduleEditMap] = useState<Record<string, Record<number, DaySchedule>>>({});
+  const [companyHoursCache,    setCompanyHoursCache]    = useState<DayHours[] | null>(null);
   const [staffServicesMap, setStaffServicesMap] = useState<Record<string, string[]>>({});
   const [staffHoursSaving, setStaffHoursSaving] = useState<string | null>(null);
   const [staffServicesSaving, setStaffServicesSaving] = useState<string | null>(null);
@@ -1164,7 +1218,19 @@ export default function BusinessSetupPage() {
 
   async function loadStaffDetails(staffId: string) {
     if (staffShiftsMap[staffId] !== undefined) return;
+    const isOwnerMember = staffMembers.find(sm => sm.id === staffId)?.role === 'owner';
     const weeks = getScheduleWeeks();
+
+    // For the owner: fetch company hours as fallback if not yet cached
+    let locHours: DayHours[] | null = companyHoursCache;
+    if (isOwnerMember && !locHours && primaryLocId) {
+      const { data: hoursData } = await (supabase as any).rpc('get_opening_hours', { p_location_id: primaryLocId });
+      if (Array.isArray(hoursData) && hoursData.length > 0) {
+        locHours = parseOpeningHoursRows(hoursData as OpeningHoursRow[]);
+        setCompanyHoursCache(locHours);
+      }
+    }
+
     const [shiftsRes, svcRes, permRes] = await Promise.all([
       (supabase as any).rpc('owner_get_staff_shifts_range', {
         p_staff_member_id: staffId,
@@ -1177,7 +1243,10 @@ export default function BusinessSetupPage() {
     const shifts: WeekShift[] = Array.isArray(shiftsRes.data) ? shiftsRes.data : [];
     setStaffShiftsMap((prev) => ({ ...prev, [staffId]: shifts }));
     const weekIdx = staffWeekIndexMap[staffId] ?? 0;
-    setStaffScheduleEditMap((prev) => ({ ...prev, [staffId]: shiftsToWeekSchedule(weeks[weekIdx], shifts) }));
+    const initSchedule = isOwnerMember && locHours
+      ? shiftsToWeekScheduleOwner(weeks[weekIdx], shifts, locHours)
+      : shiftsToWeekSchedule(weeks[weekIdx], shifts);
+    setStaffScheduleEditMap((prev) => ({ ...prev, [staffId]: initSchedule }));
     setStaffServicesMap((prev) => ({ ...prev, [staffId]: (svcRes.data as string[]) ?? [] }));
     const rawPerms = (permRes.data as any)?.permissions ?? {};
     setStaffPermissionsMap((prev) => ({
@@ -1242,7 +1311,11 @@ export default function BusinessSetupPage() {
       const freshShifts: WeekShift[] = Array.isArray(fresh) ? fresh : [];
       setStaffShiftsMap(prev => ({ ...prev, [staffId]: freshShifts }));
       const wIdx = staffWeekIndexMap[staffId] ?? 0;
-      setStaffScheduleEditMap(prev => ({ ...prev, [staffId]: shiftsToWeekSchedule(reloadWeeks[wIdx], freshShifts) }));
+      const isOwnerMember = staffMembers.find(sm => sm.id === staffId)?.role === 'owner';
+      const refreshedSchedule = isOwnerMember && companyHoursCache
+        ? shiftsToWeekScheduleOwner(reloadWeeks[wIdx], freshShifts, companyHoursCache)
+        : shiftsToWeekSchedule(reloadWeeks[wIdx], freshShifts);
+      setStaffScheduleEditMap(prev => ({ ...prev, [staffId]: refreshedSchedule }));
     } else {
       toast.error(t('setup.error.saveFailed'));
     }
@@ -1294,7 +1367,11 @@ export default function BusinessSetupPage() {
     setStaffWeekIndexMap(prev => ({ ...prev, [staffId]: next }));
     const weeks = getScheduleWeeks();
     const shifts = staffShiftsMap[staffId] ?? [];
-    setStaffScheduleEditMap(prev => ({ ...prev, [staffId]: shiftsToWeekSchedule(weeks[next], shifts) }));
+    const isOwnerMember = staffMembers.find(sm => sm.id === staffId)?.role === 'owner';
+    const newSchedule = isOwnerMember && companyHoursCache
+      ? shiftsToWeekScheduleOwner(weeks[next], shifts, companyHoursCache)
+      : shiftsToWeekSchedule(weeks[next], shifts);
+    setStaffScheduleEditMap(prev => ({ ...prev, [staffId]: newSchedule }));
   }
 
   async function handleSaveServiceLocations(svcId: string) {
