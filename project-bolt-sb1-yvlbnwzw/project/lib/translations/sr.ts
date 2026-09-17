@@ -2807,6 +2807,7 @@ export default {
   'schedule.shiftEnd': 'Kraj smjene',
   'schedule.notes': 'Napomena',
   'schedule.savedSuccess': 'Smjena sačuvana',
+  'schedule.offReason': 'Razlog',
   'schedule.saveError': 'Greška pri čuvanju',
   'schedule.day.short.1': 'Pon',
   'schedule.day.short.2': 'Uto',

@@ -2722,6 +2722,7 @@ export default {
   'schedule.shiftEnd': 'Fin del turno',
   'schedule.notes': 'Notas',
   'schedule.savedSuccess': 'Turno guardado',
+  'schedule.offReason': 'Motivo',
   'schedule.saveError': 'Error al guardar',
   'schedule.day.short.1': 'Lun',
   'schedule.day.short.2': 'Mar',

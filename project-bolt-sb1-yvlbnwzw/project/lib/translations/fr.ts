@@ -2729,6 +2729,7 @@ export default {
   'schedule.shiftEnd': 'Fin du quart',
   'schedule.notes': 'Notes',
   'schedule.savedSuccess': 'Quart enregistré',
+  'schedule.offReason': 'Raison',
   'schedule.saveError': 'Erreur lors de l\'enregistrement',
   'schedule.day.short.1': 'Lun',
   'schedule.day.short.2': 'Mar',

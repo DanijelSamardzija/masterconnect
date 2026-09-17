@@ -21,9 +21,13 @@ type ShiftRow = {
   break_end: string | null;
 };
 
+type OffReason = 'day_off' | 'vacation' | 'sick_leave';
+const OFF_REASON_CYCLE: OffReason[] = ['day_off', 'vacation', 'sick_leave'];
+
 type EditState = {
   date: string;
   mode: 'default' | 'working' | 'off';
+  offReason: OffReason;
   startTime: string;
   endTime: string;
   notes: string;
@@ -143,6 +147,7 @@ function StaffScheduleContent() {
     if (!canEdit) return;
     const shift = getShift(dateStr);
     let mode: EditState['mode'] = 'working';
+    let offReason: OffReason = 'day_off';
     let startTime = '09:00';
     let endTime = '17:00';
     let notes = '';
@@ -152,6 +157,7 @@ function StaffScheduleContent() {
     if (shift) {
       if (shift.is_off) {
         mode = 'off';
+        offReason = (shift.off_reason as OffReason | null) ?? 'day_off';
       } else {
         mode = 'working';
         startTime  = shift.start_time?.slice(0, 5) ?? '09:00';
@@ -162,7 +168,7 @@ function StaffScheduleContent() {
         breakEnd   = shift.break_end?.slice(0, 5)   ?? '14:00';
       }
     }
-    setEdit({ date: dateStr, mode, startTime, endTime, notes, hasBreak, breakStart, breakEnd });
+    setEdit({ date: dateStr, mode, offReason, startTime, endTime, notes, hasBreak, breakStart, breakEnd });
   }
 
   async function handleToggleAcceptBookings() {
@@ -196,6 +202,7 @@ function StaffScheduleContent() {
           p_start_time:  edit.mode === 'working' ? edit.startTime : null,
           p_end_time:    edit.mode === 'working' ? edit.endTime   : null,
           p_is_off:      edit.mode === 'off',
+          p_off_reason:  edit.mode === 'off' ? edit.offReason : 'day_off',
           p_notes:       edit.notes.trim() || null,
           p_break_start: edit.mode === 'working' && edit.hasBreak ? edit.breakStart : null,
           p_break_end:   edit.mode === 'working' && edit.hasBreak ? edit.breakEnd   : null,
@@ -473,6 +480,33 @@ function StaffScheduleContent() {
                 </button>
               )}
             </div>
+
+            {edit.mode === 'off' && (
+              <div className="flex items-center justify-between bg-muted/40 rounded-xl px-3 py-2.5 mb-4">
+                <span className="text-xs text-muted-foreground">{t('schedule.offReason')}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium">
+                    {edit.offReason === 'vacation'
+                      ? t('shift.vacation')
+                      : edit.offReason === 'sick_leave'
+                      ? t('shift.sickLeave')
+                      : t('shift.dayOff')}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setEdit(e => {
+                      if (!e) return e;
+                      const idx = OFF_REASON_CYCLE.indexOf(e.offReason);
+                      return { ...e, offReason: OFF_REASON_CYCLE[(idx + 1) % OFF_REASON_CYCLE.length] };
+                    })}
+                    className="text-xs px-1.5 py-0.5 rounded bg-background border border-border hover:bg-accent transition-colors"
+                    title="Promijeni razlog"
+                  >
+                    ↻
+                  </button>
+                </div>
+              </div>
+            )}
 
             {edit.mode === 'default' && (
               <p className="text-xs text-muted-foreground bg-muted/50 rounded-xl px-3 py-2.5 mb-4">

@@ -2789,6 +2789,7 @@ export default {
   'schedule.shiftEnd': 'Schichtende',
   'schedule.notes': 'Notizen',
   'schedule.savedSuccess': 'Schicht gespeichert',
+  'schedule.offReason': 'Grund',
   'schedule.saveError': 'Fehler beim Speichern',
   'schedule.day.short.1': 'Mo',
   'schedule.day.short.2': 'Di',

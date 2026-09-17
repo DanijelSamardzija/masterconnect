@@ -2807,6 +2807,7 @@ export default {
   'schedule.shiftEnd': 'Shift end',
   'schedule.notes': 'Notes',
   'schedule.savedSuccess': 'Shift saved',
+  'schedule.offReason': 'Reason',
   'schedule.saveError': 'Error saving shift',
   'schedule.day.short.1': 'Mon',
   'schedule.day.short.2': 'Tue',
