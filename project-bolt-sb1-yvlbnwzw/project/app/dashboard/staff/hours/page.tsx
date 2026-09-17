@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/protected-route';
 import { useAuth } from '@/lib/contexts/auth-context';
@@ -108,9 +108,7 @@ export default function StaffHoursPage() {
 
   const [staffMemberId, setStaffMemberId] = useState<string | null>(null);
   const [locationId, setLocationId] = useState<string | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState<number>(0);
   const [week, setWeek] = useState<Date>(() => getMonday(new Date()));
-  const weekNavReady = useRef(false);
   const [schedule, setSchedule] = useState<Record<number, DaySchedule>>(emptySchedule());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -179,20 +177,6 @@ export default function StaffHoursPage() {
     }
   }
 
-  async function handleMonthChange(month: number) {
-    setSelectedMonth(month);
-    if (staffMemberId && locationId) {
-      await loadHours(staffMemberId, locationId, month);
-    }
-  }
-
-  // Auto-load month when user navigates to a different week
-  useEffect(() => {
-    if (!weekNavReady.current) { weekNavReady.current = true; return; }
-    const month = week.getMonth() + 1;
-    handleMonthChange(month);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [week]);
 
   async function handleToggleAcceptBookings() {
     if (!staffMemberId) return;
@@ -223,30 +207,30 @@ export default function StaffHoursPage() {
         const r0 = await (supabase as any).rpc(
           isOwner ? 'owner_set_staff_hours' : 'set_my_staff_hours',
           isOwner
-            ? { p_staff_member_id: staffMemberId, p_location_id: locationId, p_day_of_week: dow, p_open_time: day.start_time, p_close_time: day.break_start, p_is_closed: false, p_sort_order: 0, p_month: selectedMonth }
-            : { p_location_id: locationId, p_day_of_week: dow, p_open_time: day.start_time, p_close_time: day.break_start, p_is_closed: false, p_sort_order: 0, p_month: selectedMonth }
+            ? { p_staff_member_id: staffMemberId, p_location_id: locationId, p_day_of_week: dow, p_open_time: day.start_time, p_close_time: day.break_start, p_is_closed: false, p_sort_order: 0, p_month: 0 }
+            : { p_location_id: locationId, p_day_of_week: dow, p_open_time: day.start_time, p_close_time: day.break_start, p_is_closed: false, p_sort_order: 0, p_month: 0 }
         );
         if (!r0.data?.ok) anyError = true;
         const r1 = await (supabase as any).rpc(
           isOwner ? 'owner_set_staff_hours' : 'set_my_staff_hours',
           isOwner
-            ? { p_staff_member_id: staffMemberId, p_location_id: locationId, p_day_of_week: dow, p_open_time: day.break_end, p_close_time: day.end_time, p_is_closed: false, p_sort_order: 1, p_month: selectedMonth }
-            : { p_location_id: locationId, p_day_of_week: dow, p_open_time: day.break_end, p_close_time: day.end_time, p_is_closed: false, p_sort_order: 1, p_month: selectedMonth }
+            ? { p_staff_member_id: staffMemberId, p_location_id: locationId, p_day_of_week: dow, p_open_time: day.break_end, p_close_time: day.end_time, p_is_closed: false, p_sort_order: 1, p_month: 0 }
+            : { p_location_id: locationId, p_day_of_week: dow, p_open_time: day.break_end, p_close_time: day.end_time, p_is_closed: false, p_sort_order: 1, p_month: 0 }
         );
         if (!r1.data?.ok) anyError = true;
       } else {
         const r0 = await (supabase as any).rpc(
           isOwner ? 'owner_set_staff_hours' : 'set_my_staff_hours',
           isOwner
-            ? { p_staff_member_id: staffMemberId, p_location_id: locationId, p_day_of_week: dow, p_open_time: day.start_time, p_close_time: day.end_time, p_is_closed: day.is_closed, p_sort_order: 0, p_month: selectedMonth }
-            : { p_location_id: locationId, p_day_of_week: dow, p_open_time: day.start_time, p_close_time: day.end_time, p_is_closed: day.is_closed, p_sort_order: 0, p_month: selectedMonth }
+            ? { p_staff_member_id: staffMemberId, p_location_id: locationId, p_day_of_week: dow, p_open_time: day.start_time, p_close_time: day.end_time, p_is_closed: day.is_closed, p_sort_order: 0, p_month: 0 }
+            : { p_location_id: locationId, p_day_of_week: dow, p_open_time: day.start_time, p_close_time: day.end_time, p_is_closed: day.is_closed, p_sort_order: 0, p_month: 0 }
         );
         if (!r0.data?.ok) anyError = true;
         await (supabase as any).rpc(
           isOwner ? 'owner_delete_staff_hour_period' : 'delete_my_staff_hour_period',
           isOwner
-            ? { p_staff_member_id: staffMemberId, p_location_id: locationId, p_day_of_week: dow, p_sort_order: 1, p_month: selectedMonth }
-            : { p_location_id: locationId, p_day_of_week: dow, p_sort_order: 1, p_month: selectedMonth }
+            ? { p_staff_member_id: staffMemberId, p_location_id: locationId, p_day_of_week: dow, p_sort_order: 1, p_month: 0 }
+            : { p_location_id: locationId, p_day_of_week: dow, p_sort_order: 1, p_month: 0 }
         );
       }
     }
