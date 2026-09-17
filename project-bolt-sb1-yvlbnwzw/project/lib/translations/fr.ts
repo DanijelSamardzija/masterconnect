@@ -2765,4 +2765,8 @@ export default {
   'ownerStaffHours.inherited': 'Hérité',
   'ownerStaffHours.inheritedNotice': '(hérité)',
   'ownerStaffHours.saveWeek': 'Enregistrer la semaine',
+  'shift.working': 'Travaille',
+  'shift.dayOff': 'Libre',
+  'shift.vacation': 'Congés',
+  'shift.sickLeave': 'Maladie',
 } as const;

@@ -2758,4 +2758,8 @@ export default {
   'ownerStaffHours.inherited': 'Heredado',
   'ownerStaffHours.inheritedNotice': '(heredado)',
   'ownerStaffHours.saveWeek': 'Guardar semana',
+  'shift.working': 'Trabaja',
+  'shift.dayOff': 'Libre',
+  'shift.vacation': 'Vacaciones',
+  'shift.sickLeave': 'Baja',
 } as const;

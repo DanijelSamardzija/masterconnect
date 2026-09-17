@@ -2843,4 +2843,8 @@ export default {
   'ownerStaffHours.inherited': 'Naslijeđeno',
   'ownerStaffHours.inheritedNotice': '(naslijeđeno)',
   'ownerStaffHours.saveWeek': 'Sačuvaj sedmicu',
+  'shift.working': 'Radi',
+  'shift.dayOff': 'Slobodan',
+  'shift.vacation': 'Godišnji',
+  'shift.sickLeave': 'Bolovanje',
 } as const;

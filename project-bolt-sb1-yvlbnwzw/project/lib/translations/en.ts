@@ -2843,4 +2843,8 @@ export default {
   'ownerStaffHours.inherited': 'Inherited',
   'ownerStaffHours.inheritedNotice': '(inherited)',
   'ownerStaffHours.saveWeek': 'Save week',
+  'shift.working': 'Working',
+  'shift.dayOff': 'Day off',
+  'shift.vacation': 'Vacation',
+  'shift.sickLeave': 'Sick leave',
 } as const;

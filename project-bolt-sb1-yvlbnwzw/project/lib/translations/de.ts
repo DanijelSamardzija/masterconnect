@@ -2825,4 +2825,8 @@ export default {
   'ownerStaffHours.inherited': 'Übernommen',
   'ownerStaffHours.inheritedNotice': '(übernommen)',
   'ownerStaffHours.saveWeek': 'Woche speichern',
+  'shift.working': 'Arbeitet',
+  'shift.dayOff': 'Frei',
+  'shift.vacation': 'Urlaub',
+  'shift.sickLeave': 'Krank',
 } as const;

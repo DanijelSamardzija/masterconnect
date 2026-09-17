@@ -11,8 +11,12 @@ import { ChevronLeft, Users, X, Info, ChevronRight } from 'lucide-react';
 
 type StaffMember = { id: string; name: string; primary_location_id: string | null; accept_bookings: boolean; role: string };
 
+type OffReason = 'day_off' | 'vacation' | 'sick_leave';
+const OFF_REASON_CYCLE: OffReason[] = ['day_off', 'vacation', 'sick_leave'];
+
 type DaySchedule = {
   is_closed:   boolean;
+  off_reason:  OffReason;
   start_time:  string;
   end_time:    string;
   has_break:   boolean;
@@ -25,6 +29,7 @@ type WeekShift = {
   start_time:             string | null;
   end_time:               string | null;
   is_off:                 boolean;
+  off_reason:             string | null;
   break_start:            string | null;
   break_end:              string | null;
   is_template_generated:  boolean;
@@ -32,6 +37,7 @@ type WeekShift = {
 
 const DEFAULT_DAY: DaySchedule = {
   is_closed:   true,
+  off_reason:  'day_off',
   start_time:  '09:00',
   end_time:    '17:00',
   has_break:   false,
@@ -89,23 +95,20 @@ function emptySchedule(): Record<number, DaySchedule> {
 function shiftsToSchedule(weekStart: Date, shifts: WeekShift[]): Record<number, DaySchedule> {
   const byDate: Record<string, WeekShift> = {};
   for (const s of shifts) byDate[s.shift_date] = s;
-
-  return Object.fromEntries(
-    [0, 1, 2, 3, 4, 5, 6].map(dow => {
-      const date = isoDate(addDays(weekStart, dow));
-      const s = byDate[date];
-      if (!s) return [dow, { ...DEFAULT_DAY }];
-      const hasBreak = !!(s.break_start && s.break_end);
-      return [dow, {
-        is_closed:   s.is_off,
-        start_time:  s.start_time?.slice(0, 5) ?? '09:00',
-        end_time:    s.end_time?.slice(0, 5)   ?? '17:00',
-        has_break:   hasBreak,
-        break_start: s.break_start?.slice(0, 5) ?? '12:00',
-        break_end:   s.break_end?.slice(0, 5)   ?? '13:00',
-      } satisfies DaySchedule];
-    })
-  );
+  return Object.fromEntries([0,1,2,3,4,5,6].map(dow => {
+    const date = isoDate(addDays(weekStart, dow));
+    const s = byDate[date];
+    if (!s) return [dow, { ...DEFAULT_DAY }];
+    return [dow, {
+      is_closed:   s.is_off,
+      off_reason:  (s.off_reason as OffReason | undefined) ?? 'day_off',
+      start_time:  s.start_time?.slice(0,5) ?? '09:00',
+      end_time:    s.end_time?.slice(0,5)   ?? '17:00',
+      has_break:   !!(s.break_start && s.break_end),
+      break_start: s.break_start?.slice(0,5) ?? '12:00',
+      break_end:   s.break_end?.slice(0,5)   ?? '13:00',
+    } satisfies DaySchedule];
+  }));
 }
 
 function weekIsExplicit(weekStart: Date, shifts: WeekShift[]): boolean {
@@ -233,13 +236,14 @@ function OwnerStaffHoursContent() {
     setSaving(true);
 
     const weekStart = weeks[selectedWeek];
-    const days = [0, 1, 2, 3, 4, 5, 6].map(dow => {
+    const days = [0,1,2,3,4,5,6].map(dow => {
       const day = schedule[dow];
       return {
         day_of_week: dow,
         start_time:  day.is_closed ? null : day.start_time,
         end_time:    day.is_closed ? null : day.end_time,
         is_off:      day.is_closed,
+        off_reason:  day.is_closed ? day.off_reason : null,
         break_start: day.is_closed || !day.has_break ? null : day.break_start,
         break_end:   day.is_closed || !day.has_break ? null : day.break_end,
       };
@@ -417,83 +421,59 @@ function OwnerStaffHoursContent() {
               <>
                 {/* Mon-Sun grid */}
                 <div className="border border-border rounded-xl overflow-hidden mb-5">
-                  {[0, 1, 2, 3, 4, 5, 6].map((dow, idx) => {
+                  {[0,1,2,3,4,5,6].map((dow, idx) => {
                     const day = schedule[dow];
+                    const offLabel = t(`shift.${day.off_reason === 'vacation' ? 'vacation' : day.off_reason === 'sick_leave' ? 'sickLeave' : 'dayOff'}` as Parameters<typeof t>[0]);
                     return (
-                      <div
-                        key={dow}
-                        className={`flex flex-col gap-2 p-4 ${idx > 0 ? 'border-t border-border' : ''}`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="text-sm font-medium w-28">{t(DOW_KEYS[idx])}</span>
+                      <div key={dow} className={`flex flex-col gap-1 px-3 py-2 ${idx > 0 ? 'border-t border-border' : ''}`}>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium w-20 text-muted-foreground shrink-0">{t(DOW_KEYS[idx])}</span>
                           <button
                             type="button"
-                            onClick={() => updateDay(dow, { is_closed: !day.is_closed })}
-                            className={`text-xs font-semibold px-2.5 py-0.5 rounded-full transition-colors ${
+                            onClick={() => updateDay(dow, { is_closed: !day.is_closed, off_reason: 'day_off' })}
+                            className={`text-[11px] font-semibold px-2 py-0.5 rounded-full transition-colors shrink-0 ${
                               day.is_closed
                                 ? 'bg-muted text-muted-foreground hover:bg-muted/80'
                                 : 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900'
                             }`}
                           >
-                            {day.is_closed ? t('setup.hours.closed') : t('setup.hours.open')}
+                            {day.is_closed ? offLabel : t('shift.working')}
                           </button>
+                          {day.is_closed && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const idx2 = OFF_REASON_CYCLE.indexOf(day.off_reason);
+                                updateDay(dow, { off_reason: OFF_REASON_CYCLE[(idx2 + 1) % OFF_REASON_CYCLE.length] });
+                              }}
+                              className="text-[9px] px-1.5 py-0.5 rounded border border-border text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                              ↻
+                            </button>
+                          )}
+                          {!day.is_closed && (
+                            <div className="flex items-center gap-1.5 ml-auto">
+                              <input type="time" value={day.start_time}
+                                onChange={e => updateDay(dow, { start_time: e.target.value })} className={timeCls} />
+                              <span className="text-muted-foreground text-[10px]">–</span>
+                              <input type="time" value={day.end_time}
+                                onChange={e => updateDay(dow, { end_time: e.target.value })} className={timeCls} />
+                              <button type="button" onClick={() => toggleBreak(dow)}
+                                className="text-[9px] text-muted-foreground hover:text-foreground transition-colors px-1 shrink-0">
+                                {day.has_break ? '−P' : '+P'}
+                              </button>
+                            </div>
+                          )}
                         </div>
 
-                        {!day.is_closed && (
-                          <div className="flex flex-col gap-1.5 pl-4">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <input
-                                type="time"
-                                value={day.start_time}
-                                onChange={e => updateDay(dow, { start_time: e.target.value })}
-                                className={timeCls}
-                              />
-                              <span className="text-muted-foreground text-xs">–</span>
-                              <input
-                                type="time"
-                                value={day.end_time}
-                                onChange={e => updateDay(dow, { end_time: e.target.value })}
-                                className={timeCls}
-                              />
-                              {!day.has_break && (
-                                <button
-                                  type="button"
-                                  onClick={() => toggleBreak(dow)}
-                                  className="text-xs font-medium text-primary/70 hover:text-primary transition-colors px-2 py-1 rounded border border-primary/20 hover:border-primary/50"
-                                >
-                                  + {t('bookingSetup.hours.addSecondPeriod')}
-                                </button>
-                              )}
-                            </div>
-
-                            {day.has_break && (
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-xs text-muted-foreground shrink-0">
-                                  {t('bookingSetup.hours.break')}
-                                </span>
-                                <input
-                                  type="time"
-                                  value={day.break_start}
-                                  onChange={e => updateDay(dow, { break_start: e.target.value })}
-                                  className={timeCls}
-                                />
-                                <span className="text-muted-foreground text-xs">–</span>
-                                <input
-                                  type="time"
-                                  value={day.break_end}
-                                  onChange={e => updateDay(dow, { break_end: e.target.value })}
-                                  className={timeCls}
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => toggleBreak(dow)}
-                                  className="text-xs font-medium text-destructive/70 hover:text-destructive transition-colors flex items-center gap-1 px-2 py-1 rounded hover:bg-destructive/10"
-                                >
-                                  <X className="w-3 h-3" />
-                                  {t('bookingSetup.hours.removeSecondPeriod')}
-                                </button>
-                              </div>
-                            )}
+                        {!day.is_closed && day.has_break && (
+                          <div className="flex items-center gap-1.5 ml-20">
+                            <span className="text-[9px] text-muted-foreground shrink-0">{t('bookingSetup.hours.break')}</span>
+                            <input type="time" value={day.break_start}
+                              onChange={e => updateDay(dow, { break_start: e.target.value })} className={timeCls} />
+                            <span className="text-muted-foreground text-[10px]">–</span>
+                            <input type="time" value={day.break_end}
+                              onChange={e => updateDay(dow, { break_end: e.target.value })} className={timeCls} />
                           </div>
                         )}
                       </div>

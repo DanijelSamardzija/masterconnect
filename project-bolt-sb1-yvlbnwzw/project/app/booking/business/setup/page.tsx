@@ -114,8 +114,12 @@ type StaffResult = {
   city: string | null;
 };
 
+type OffReason = 'day_off' | 'vacation' | 'sick_leave';
+const OFF_REASON_CYCLE: OffReason[] = ['day_off', 'vacation', 'sick_leave'];
+
 type DaySchedule = {
   is_closed:   boolean;
+  off_reason:  OffReason;
   start_time:  string;
   end_time:    string;
   has_break:   boolean;
@@ -128,6 +132,7 @@ type WeekShift = {
   start_time:            string | null;
   end_time:              string | null;
   is_off:                boolean;
+  off_reason:            string | null;
   break_start:           string | null;
   break_end:             string | null;
   is_template_generated: boolean;
@@ -159,7 +164,7 @@ const DEFAULT_HOURS: DayHours[] = Array.from({ length: 7 }, (_, i) => ({
 // Week-by-week schedule helpers (0=Mon, ..., 6=Sun)
 const STAFF_SCHEDULE_WEEKS = 13;
 const DOW_LABELS = ['setup.hours.day.1','setup.hours.day.2','setup.hours.day.3','setup.hours.day.4','setup.hours.day.5','setup.hours.day.6','setup.hours.day.0'] as const;
-const DEFAULT_DAY_SCHEDULE: DaySchedule = { is_closed: true, start_time: '09:00', end_time: '17:00', has_break: false, break_start: '12:00', break_end: '13:00' };
+const DEFAULT_DAY_SCHEDULE: DaySchedule = { is_closed: true, off_reason: 'day_off', start_time: '09:00', end_time: '17:00', has_break: false, break_start: '12:00', break_end: '13:00' };
 
 function getMondayOf(d: Date): Date {
   const r = new Date(d); r.setHours(0,0,0,0);
@@ -188,21 +193,25 @@ function getScheduleWeeks(): Date[] {
 function emptyWeekSchedule(): Record<number, DaySchedule> {
   return Object.fromEntries([0,1,2,3,4,5,6].map(d => [d, { ...DEFAULT_DAY_SCHEDULE }]));
 }
+function shiftToSchedule(s: WeekShift): DaySchedule {
+  return {
+    is_closed:   s.is_off,
+    off_reason:  (s.off_reason as OffReason | undefined) ?? 'day_off',
+    start_time:  s.start_time?.slice(0,5) ?? '09:00',
+    end_time:    s.end_time?.slice(0,5)   ?? '17:00',
+    has_break:   !!(s.break_start && s.break_end),
+    break_start: s.break_start?.slice(0,5) ?? '12:00',
+    break_end:   s.break_end?.slice(0,5)   ?? '13:00',
+  };
+}
+
 function shiftsToWeekSchedule(weekStart: Date, shifts: WeekShift[]): Record<number, DaySchedule> {
   const byDate: Record<string, WeekShift> = {};
   for (const s of shifts) byDate[s.shift_date] = s;
   return Object.fromEntries([0,1,2,3,4,5,6].map(dow => {
     const date = isoDateLocal(addDays(weekStart, dow));
     const s = byDate[date];
-    if (!s) return [dow, { ...DEFAULT_DAY_SCHEDULE }];
-    return [dow, {
-      is_closed:   s.is_off,
-      start_time:  s.start_time?.slice(0,5) ?? '09:00',
-      end_time:    s.end_time?.slice(0,5)   ?? '17:00',
-      has_break:   !!(s.break_start && s.break_end),
-      break_start: s.break_start?.slice(0,5) ?? '12:00',
-      break_end:   s.break_end?.slice(0,5)   ?? '13:00',
-    } satisfies DaySchedule];
+    return [dow, s ? shiftToSchedule(s) : { ...DEFAULT_DAY_SCHEDULE }];
   }));
 }
 function isWeekExplicit(weekStart: Date, shifts: WeekShift[]): boolean {
@@ -217,11 +226,12 @@ function companyDayToSchedule(ch: DayHours | undefined): DaySchedule {
   const hasBreak = sorted.length >= 2;
   return {
     is_closed:   false,
+    off_reason:  'day_off',
     start_time:  sorted[0].start_time,
     end_time:    sorted[sorted.length - 1].end_time,
     has_break:   hasBreak,
-    break_start: hasBreak ? sorted[0].end_time   : '12:00',
-    break_end:   hasBreak ? sorted[1].start_time  : '13:00',
+    break_start: hasBreak ? sorted[0].end_time  : '12:00',
+    break_end:   hasBreak ? sorted[1].start_time : '13:00',
   };
 }
 
@@ -232,14 +242,7 @@ function shiftsToWeekScheduleOwner(weekStart: Date, shifts: WeekShift[], company
   return Object.fromEntries([0,1,2,3,4,5,6].map(dow => {
     const date = isoDateLocal(addDays(weekStart, dow));
     const s = byDate[date];
-    if (s) return [dow, {
-      is_closed:   s.is_off,
-      start_time:  s.start_time?.slice(0,5) ?? '09:00',
-      end_time:    s.end_time?.slice(0,5)   ?? '17:00',
-      has_break:   !!(s.break_start && s.break_end),
-      break_start: s.break_start?.slice(0,5) ?? '12:00',
-      break_end:   s.break_end?.slice(0,5)   ?? '13:00',
-    } satisfies DaySchedule];
+    if (s) return [dow, shiftToSchedule(s)];
     // Fallback: company hours (staff dow 0=Mon → company dow 1; staff dow 6=Sun → company dow 0)
     const companyDow = dow === 6 ? 0 : dow + 1;
     return [dow, companyDayToSchedule(companyHours.find(h => h.day_of_week === companyDow))];
@@ -1288,6 +1291,7 @@ export default function BusinessSetupPage() {
         start_time:  day.is_closed ? null : day.start_time,
         end_time:    day.is_closed ? null : day.end_time,
         is_off:      day.is_closed,
+        off_reason:  day.is_closed ? day.off_reason : null,
         break_start: day.is_closed || !day.has_break ? null : day.break_start,
         break_end:   day.is_closed || !day.has_break ? null : day.break_end,
       };
@@ -1349,7 +1353,14 @@ export default function BusinessSetupPage() {
 
   function toggleStaffDayOff(staffId: string, dow: number) {
     const current = staffScheduleEditMap[staffId]?.[dow] ?? DEFAULT_DAY_SCHEDULE;
-    updateStaffDay(staffId, dow, { is_closed: !current.is_closed });
+    updateStaffDay(staffId, dow, { is_closed: !current.is_closed, off_reason: 'day_off' });
+  }
+
+  function cycleStaffOffReason(staffId: string, dow: number) {
+    const current = staffScheduleEditMap[staffId]?.[dow] ?? DEFAULT_DAY_SCHEDULE;
+    const idx = OFF_REASON_CYCLE.indexOf(current.off_reason);
+    const next = OFF_REASON_CYCLE[(idx + 1) % OFF_REASON_CYCLE.length];
+    updateStaffDay(staffId, dow, { off_reason: next });
   }
 
   function toggleStaffBreak(staffId: string, dow: number) {
@@ -2741,48 +2752,56 @@ export default function BusinessSetupPage() {
                                       <div className="flex flex-col divide-y divide-border border border-border rounded-xl overflow-hidden mb-2">
                                         {[0,1,2,3,4,5,6].map(dow => {
                                           const day = schedule[dow];
+                                          const offLabel = t(`shift.${day.off_reason === 'vacation' ? 'vacation' : day.off_reason === 'sick_leave' ? 'sickLeave' : 'dayOff'}` as Parameters<typeof t>[0]);
                                           return (
-                                            <div key={dow} className="px-3 py-2 flex flex-col gap-1.5">
-                                              <div className="flex items-center gap-2">
-                                                <span className="w-20 text-xs font-medium shrink-0">
+                                            <div key={dow} className="px-2 py-1.5 flex flex-col gap-1">
+                                              <div className="flex items-center gap-1.5">
+                                                <span className="w-16 text-[11px] font-medium shrink-0 text-muted-foreground">
                                                   {t(DOW_LABELS[dow] as Parameters<typeof t>[0])}
                                                 </span>
                                                 <button
                                                   onClick={() => toggleStaffDayOff(sm.id, dow)}
-                                                  className={`text-[11px] px-2 py-0.5 rounded-full font-medium transition-colors ${
+                                                  className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium transition-colors shrink-0 ${
                                                     day.is_closed
                                                       ? 'bg-accent text-muted-foreground'
                                                       : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                                                   }`}
                                                 >
-                                                  {day.is_closed ? t('setup.hours.closed') : t('setup.hours.open')}
+                                                  {day.is_closed ? offLabel : t('shift.working')}
                                                 </button>
-                                              </div>
-                                              {!day.is_closed && (
-                                                <div className="flex flex-col gap-1 ml-20">
-                                                  <div className="flex items-center gap-2">
+                                                {day.is_closed && (
+                                                  <button
+                                                    onClick={() => cycleStaffOffReason(sm.id, dow)}
+                                                    className="text-[9px] px-1.5 py-0.5 rounded border border-border text-muted-foreground hover:text-foreground transition-colors"
+                                                  >
+                                                    ↻
+                                                  </button>
+                                                )}
+                                                {!day.is_closed && (
+                                                  <div className="flex items-center gap-1 ml-auto">
                                                     <input type="time" value={day.start_time} className={timeCls}
                                                       onChange={e => updateStaffDay(sm.id, dow, { start_time: e.target.value })} />
-                                                    <span className="text-muted-foreground text-xs">–</span>
+                                                    <span className="text-muted-foreground text-[10px]">–</span>
                                                     <input type="time" value={day.end_time} className={timeCls}
                                                       onChange={e => updateStaffDay(sm.id, dow, { end_time: e.target.value })} />
+                                                    <button
+                                                      type="button"
+                                                      onClick={() => toggleStaffBreak(sm.id, dow)}
+                                                      className="text-[9px] text-muted-foreground hover:text-foreground transition-colors ml-1 shrink-0"
+                                                    >
+                                                      {day.has_break ? '−P' : '+P'}
+                                                    </button>
                                                   </div>
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => toggleStaffBreak(sm.id, dow)}
-                                                    className="text-[10px] text-muted-foreground hover:text-foreground transition-colors self-start"
-                                                  >
-                                                    {day.has_break ? '− pauza' : '+ pauza'}
-                                                  </button>
-                                                  {day.has_break && (
-                                                    <div className="flex items-center gap-2">
-                                                      <input type="time" value={day.break_start} className={timeCls}
-                                                        onChange={e => updateStaffDay(sm.id, dow, { break_start: e.target.value })} />
-                                                      <span className="text-muted-foreground text-xs">–</span>
-                                                      <input type="time" value={day.break_end} className={timeCls}
-                                                        onChange={e => updateStaffDay(sm.id, dow, { break_end: e.target.value })} />
-                                                    </div>
-                                                  )}
+                                                )}
+                                              </div>
+                                              {!day.is_closed && day.has_break && (
+                                                <div className="flex items-center gap-1 ml-16">
+                                                  <span className="text-[9px] text-muted-foreground shrink-0">pauza</span>
+                                                  <input type="time" value={day.break_start} className={timeCls}
+                                                    onChange={e => updateStaffDay(sm.id, dow, { break_start: e.target.value })} />
+                                                  <span className="text-muted-foreground text-[10px]">–</span>
+                                                  <input type="time" value={day.break_end} className={timeCls}
+                                                    onChange={e => updateStaffDay(sm.id, dow, { break_end: e.target.value })} />
                                                 </div>
                                               )}
                                             </div>
