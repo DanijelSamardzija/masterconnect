@@ -16,6 +16,7 @@ type ShiftRow = {
   start_time: string | null;
   end_time: string | null;
   is_off: boolean;
+  off_reason: string | null;
   notes: string | null;
   break_start: string | null;
   break_end: string | null;
@@ -838,11 +839,16 @@ function OwnerScheduleContent() {
                                     cellCls = today ? 'bg-primary/3' : '';
                                   }
                                 } else if (shift.is_off) {
-                                  // Explicit off — last write wins, show as day off
+                                  // Explicit off — show the specific off reason
+                                  const offLabel = shift.off_reason === 'vacation'
+                                    ? t('shift.vacation')
+                                    : shift.off_reason === 'sick_leave'
+                                    ? t('shift.sickLeave')
+                                    : t('shift.dayOff');
                                   cellContent = (
                                     <div className="flex flex-col items-center gap-0.5">
                                       <span className="text-xs font-medium px-1.5 py-0.5 rounded text-muted-foreground bg-muted">
-                                        {t('schedule.dayOff')}
+                                        {offLabel}
                                       </span>
                                     </div>
                                   );

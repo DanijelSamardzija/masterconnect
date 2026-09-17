@@ -15,6 +15,7 @@ type ShiftRow = {
   start_time: string | null;
   end_time: string | null;
   is_off: boolean;
+  off_reason: string | null;
   notes: string | null;
   break_start: string | null;
   break_end: string | null;
@@ -368,9 +369,14 @@ function StaffScheduleContent() {
                         cellContent = null;
                       } else if (shift.is_off) {
                         cellCls = 'bg-muted/50';
+                        const offLabel = shift.off_reason === 'vacation'
+                          ? t('shift.vacation')
+                          : shift.off_reason === 'sick_leave'
+                          ? t('shift.sickLeave')
+                          : t('shift.dayOff');
                         cellContent = (
                           <span className="text-[10px] font-medium text-muted-foreground px-1.5 py-0.5 rounded-full bg-muted">
-                            {t('schedule.staffView.dayOff')}
+                            {offLabel}
                           </span>
                         );
                       } else {
