@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
-  ChevronRight, Calendar, Users, CheckCircle2, XCircle,
+  ChevronLeft, ChevronRight, Calendar, Users, CheckCircle2, XCircle,
   Clock, AlertCircle, Plus, Trash2
 } from 'lucide-react';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
