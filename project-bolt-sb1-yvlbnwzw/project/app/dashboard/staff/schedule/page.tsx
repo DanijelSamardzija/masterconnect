@@ -111,6 +111,7 @@ function StaffScheduleContent() {
       p_to_date:   to,
     });
     setShifts(Array.isArray(data) ? data : []);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -129,11 +130,9 @@ function StaffScheduleContent() {
       setCanEdit(!!sm.permissions?.can_set_hours);
       setAcceptBookings(sm.accept_bookings ?? true);
       setCanBlockTime(sm.role === 'owner' || !!sm.permissions?.can_block_time);
-
-      await loadShifts(getMonday(new Date()));
-      setLoading(false);
+      // shifts are loaded by the weekDate/hasStaff effect below (avoids race condition)
     })();
-  }, [profile, loadShifts]);
+  }, [profile]);
 
   useEffect(() => {
     if (hasStaff) loadShifts(weekDate);
