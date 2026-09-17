@@ -2729,6 +2729,7 @@ export default {
   'dashboard.services.analytics.group.served': 'Primio',
   'dashboard.services.analytics.group.no_show': 'Nije se pojavio',
   // Owner bookings management page
+  'ownerBookings.navLabel': 'Rezervacije',
   'ownerBookings.title': 'Sve Rezervacije',
   'ownerBookings.subtitle': 'Pregled i upravljanje svim terminima',
   'ownerBookings.filter.upcoming': 'Nadolazeće',

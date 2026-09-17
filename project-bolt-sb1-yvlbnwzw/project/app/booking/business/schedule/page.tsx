@@ -7,7 +7,8 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
-import { ChevronLeft, ChevronRight, Copy, X, Info, Download } from 'lucide-react';
+import { ChevronRight, Copy, X, Info, Download } from 'lucide-react';
+import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
 
 type ShiftRow = {
   shift_date: string;
@@ -553,14 +554,10 @@ function OwnerScheduleContent() {
     <div className="min-h-screen bg-background">
       <div className="max-w-5xl mx-auto px-4 py-6">
 
+        <BusinessBookingNav active="schedule" />
+
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <button
-            onClick={() => router.back()}
-            className="p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground shrink-0"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
           <div className="flex-1">
             <div className="flex items-center gap-1.5">
               <h1 className="text-xl font-semibold">{t('schedule.title')}</h1>

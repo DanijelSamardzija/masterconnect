@@ -10,6 +10,7 @@ import { useBookingAccess } from '@/lib/hooks/use-booking-access';
 import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
 import { ChevronRight, Plus, Pencil, X, CheckCircle2, MapPin, ExternalLink, AlertTriangle, Check, Loader2, Info } from 'lucide-react';
+import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
 import { RestaurantTablesTab } from '@/components/setup/RestaurantTablesTab';
 import { MenuTab } from '@/components/setup/MenuTab';
 import { DeliverySettingsTab } from '@/components/setup/DeliverySettingsTab';
@@ -1281,14 +1282,10 @@ export default function BusinessSetupPage() {
       <div className="min-h-screen bg-background">
         <div className="max-w-2xl mx-auto px-4 py-6">
 
+          <BusinessBookingNav active="setup" />
+
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">
-            <button
-              onClick={() => router.push('/booking/business')}
-              className="p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground shrink-0"
-            >
-              <ChevronRight className="w-5 h-5 rotate-180" />
-            </button>
             <h1 className="text-xl font-semibold flex-1">{t('setup.title')}</h1>
             {isBusinessActive && (
               <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400 font-medium">

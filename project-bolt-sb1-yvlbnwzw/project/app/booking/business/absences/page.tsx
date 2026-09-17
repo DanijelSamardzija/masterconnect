@@ -7,7 +7,8 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { ProtectedRoute } from '@/components/protected-route';
 import { toast } from 'sonner';
-import { ChevronLeft, AlertTriangle, X, Check, Loader2 } from 'lucide-react';
+import { AlertTriangle, X, Check, Loader2 } from 'lucide-react';
+import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
 
 type BusinessClosure = {
   id: string;
@@ -204,14 +205,10 @@ export default function AbsencesPage() {
       <div className="min-h-screen bg-background">
         <div className="max-w-lg mx-auto px-4 py-6">
 
+          <BusinessBookingNav active="absences" />
+
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">
-            <button
-              onClick={() => router.back()}
-              className="p-2 rounded-xl hover:bg-accent transition-colors text-muted-foreground"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
             <h1 className="text-lg font-semibold">{t('absences.title')}</h1>
           </div>
 

@@ -9,9 +9,10 @@ import { toast } from 'sonner';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
-  ChevronLeft, ChevronRight, Calendar, Users, CheckCircle2, XCircle,
+  ChevronRight, Calendar, Users, CheckCircle2, XCircle,
   Clock, AlertCircle, Plus, Trash2
 } from 'lucide-react';
+import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
 
 type Booking = {
   id: string;
@@ -414,14 +415,10 @@ function OwnerBookingsContent() {
     <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-5">
 
+        <BusinessBookingNav active="bookings" />
+
         {/* Header */}
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.back()}
-            className="p-2 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
           <div className="flex-1">
             <h1 className="text-xl font-bold text-foreground">{t('ownerBookings.title')}</h1>
             <p className="text-xs text-muted-foreground">{t('ownerBookings.subtitle')}</p>
