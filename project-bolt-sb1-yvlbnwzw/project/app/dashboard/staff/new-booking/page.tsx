@@ -48,6 +48,7 @@ export default function StaffNewBookingPage() {
   const [loading, setLoading] = useState(true);
   const [businessId, setBusinessId] = useState('');
   const [locationId, setLocationId] = useState('');
+  const [staffMemberId, setStaffMemberId] = useState('');
 
   const [serviceId, setServiceId] = useState('');
   const [week, setWeek] = useState<Date>(weekMonday(new Date()));
@@ -80,6 +81,7 @@ export default function StaffNewBookingPage() {
 
       setHasPermission(true);
       setBusinessId(sm.business_id);
+      setStaffMemberId(sm.id);
 
       // If no primary_location_id on staff member, fall back to business primary location
       if (sm.primary_location_id) {
@@ -111,23 +113,24 @@ export default function StaffNewBookingPage() {
   }, [profile]);
 
   const fetchSlots = useCallback(async () => {
-    if (!businessId || !locationId || !serviceId) return;
+    if (!businessId || !locationId || !serviceId || !staffMemberId) return;
     setSlotsLoading(true);
     setSlots([]);
     setSlotStart('');
     const { data } = await (supabase as any).rpc('get_available_slots', {
-      p_business_id: businessId,
-      p_location_id: locationId,
-      p_service_id:  serviceId,
-      p_week_start:  toDateKey(week),
+      p_business_id:      businessId,
+      p_location_id:      locationId,
+      p_service_id:       serviceId,
+      p_week_start:       toDateKey(week),
+      p_staff_member_id:  staffMemberId,
     });
     setSlots(data || []);
     setSlotsLoading(false);
-  }, [businessId, locationId, serviceId, week]);
+  }, [businessId, locationId, serviceId, staffMemberId, week]);
 
   useEffect(() => {
-    if (hasPermission && businessId && locationId && serviceId) fetchSlots();
-  }, [hasPermission, businessId, locationId, serviceId, week, fetchSlots]);
+    if (hasPermission && businessId && locationId && serviceId && staffMemberId) fetchSlots();
+  }, [hasPermission, businessId, locationId, serviceId, staffMemberId, week, fetchSlots]);
 
   async function handleSubmit() {
     if (!serviceId || !slotStart || !guestName.trim()) return;
