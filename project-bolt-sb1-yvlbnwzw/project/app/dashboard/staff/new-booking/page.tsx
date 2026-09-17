@@ -32,7 +32,10 @@ function addDays(d: Date, n: number): Date {
   return r;
 }
 function toDateKey(d: Date): string {
-  return d.toISOString().slice(0, 10);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 export default function StaffNewBookingPage() {
@@ -156,7 +159,7 @@ export default function StaffNewBookingPage() {
   // Group available slots by day key
   const slotsByDay: Record<string, Slot[]> = {};
   for (const s of slots) {
-    const key = s.slot_start.slice(0, 10);
+    const key = toDateKey(new Date(s.slot_start));
     if (!slotsByDay[key]) slotsByDay[key] = [];
     if (s.available) slotsByDay[key].push(s);
   }
