@@ -28,6 +28,9 @@ import { ReviewModal } from '@/components/review-modal';
 type Booking = {
   id: string;
   service_name_snapshot: string | null;
+  service_id: string | null;
+  staff_member_id: string | null;
+  location_id: string | null;
   starts_at: string;
   ends_at: string;
   status: string;
@@ -37,6 +40,8 @@ type Booking = {
   business: { name: string; id?: string } | null;
   location: { name: string } | null;
 };
+
+type Slot = { slot_start: string; slot_end: string; available: boolean };
 
 function StatusBadge({ status, t }: { status: string; t: (k: string) => string }) {
   const map: Record<string, string> = {
@@ -96,10 +101,12 @@ export default function MyBookingsPage() {
   const [reviewTarget, setReviewTarget] = useState<{ bookingId: string; proId: string; proName: string } | null>(null);
   const [rescheduleTarget, setRescheduleTarget] = useState<Booking | null>(null);
   const [rescheduleDate, setRescheduleDate] = useState('');
-  const [rescheduleTime, setRescheduleTime] = useState('');
   const [rescheduleWeek, setRescheduleWeek] = useState<Date>(weekMonday(new Date()));
   const [rescheduleReason, setRescheduleReason] = useState('');
   const [rescheduling, setRescheduling] = useState(false);
+  const [slots, setSlots] = useState<Slot[]>([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -109,14 +116,14 @@ export default function MyBookingsPage() {
       const [upRes, pastRes] = await Promise.all([
         supabase
           .from('bookings')
-          .select('id, service_name_snapshot, starts_at, ends_at, status, party_size, notes, business_id, business:business_id(name), location:location_id(name)')
+          .select('id, service_name_snapshot, service_id, staff_member_id, location_id, starts_at, ends_at, status, party_size, notes, business_id, business:business_id(name), location:location_id(name)')
           .eq('client_id', user!.id)
           .not('status', 'in', '(cancelled,completed,no_show)')
           .gte('starts_at', now)
           .order('starts_at'),
         supabase
           .from('bookings')
-          .select('id, service_name_snapshot, starts_at, ends_at, status, party_size, notes, business_id, business:business_id(name), location:location_id(name)')
+          .select('id, service_name_snapshot, service_id, staff_member_id, location_id, starts_at, ends_at, status, party_size, notes, business_id, business:business_id(name), location:location_id(name)')
           .eq('client_id', user!.id)
           .or(`status.in.(cancelled,completed,no_show),starts_at.lt.${now}`)
           .order('starts_at', { ascending: false })
@@ -154,12 +161,11 @@ export default function MyBookingsPage() {
   }
 
   async function handleReschedule() {
-    if (!rescheduleTarget || !rescheduleDate || !rescheduleTime) return;
+    if (!rescheduleTarget || !selectedSlot) return;
     setRescheduling(true);
-    const isoStr = new Date(`${rescheduleDate}T${rescheduleTime}`).toISOString();
     const { data } = await (supabase as any).rpc('client_reschedule_booking', {
       p_booking_id:    rescheduleTarget.id,
-      p_new_starts_at: isoStr,
+      p_new_starts_at: selectedSlot,
       p_reason:        rescheduleReason.trim() || null,
     });
     setRescheduling(false);
@@ -179,9 +185,11 @@ export default function MyBookingsPage() {
     }).catch(() => {});
     setRescheduleTarget(null);
     setRescheduleReason('');
+    setSelectedSlot(null);
+    setSlots([]);
     setUpcoming(prev => prev.map(b =>
       b.id === rescheduleTarget.id
-        ? { ...b, starts_at: isoStr }
+        ? { ...b, starts_at: selectedSlot }
         : b
     ));
   }
@@ -196,11 +204,30 @@ export default function MyBookingsPage() {
     const d = new Date(b.starts_at);
     setRescheduleDate(toDateKey(d));
     setRescheduleWeek(weekMonday(d));
-    const h = String(d.getHours()).padStart(2, '0');
-    const m = String(Math.round(d.getMinutes() / 5) * 5 % 60).padStart(2, '0');
-    setRescheduleTime(`${h}:${m}`);
+    setSelectedSlot(null);
+    setSlots([]);
     setRescheduleTarget(b);
   };
+
+  useEffect(() => {
+    if (!rescheduleTarget || !rescheduleDate) { setSlots([]); return; }
+    const { business_id, location_id, service_id, staff_member_id } = rescheduleTarget;
+    if (!business_id || !location_id || !service_id) { setSlots([]); return; }
+    setSlotsLoading(true);
+    setSelectedSlot(null);
+    const weekStart = weekMonday(new Date(rescheduleDate + 'T00:00:00'));
+    ;(supabase as any).rpc('get_available_slots', {
+      p_business_id:      business_id,
+      p_location_id:      location_id,
+      p_service_id:       service_id,
+      p_week_start:       weekStart.toISOString(),
+      p_staff_member_id:  staff_member_id ?? null,
+    }).then(({ data }: { data: Slot[] | null }) => {
+      setSlotsLoading(false);
+      const all = (data ?? []) as Slot[];
+      setSlots(all.filter(s => toDateKey(new Date(s.slot_start)) === rescheduleDate && s.available));
+    });
+  }, [rescheduleDate, rescheduleTarget]);
 
   if (!authLoading && !hasAccess) {
     return (
@@ -358,27 +385,33 @@ export default function MyBookingsPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-medium text-muted-foreground">{t('booking.rescheduleModal.timeLabel')}</label>
-                <div className="flex items-center gap-2">
-                  <select
-                    value={(rescheduleTime || '09:00').split(':')[0]}
-                    onChange={e => setRescheduleTime(`${e.target.value}:${(rescheduleTime || '09:00').split(':')[1]}`)}
-                    className="flex-1 border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    {Array.from({ length: 18 }, (_, i) => String(i + 6).padStart(2, '0')).map(h => (
-                      <option key={h} value={h}>{h}</option>
-                    ))}
-                  </select>
-                  <span className="text-muted-foreground font-bold text-lg">:</span>
-                  <select
-                    value={(rescheduleTime || '09:00').split(':')[1]}
-                    onChange={e => setRescheduleTime(`${(rescheduleTime || '09:00').split(':')[0]}:${e.target.value}`)}
-                    className="flex-1 border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    {['00','05','10','15','20','25','30','35','40','45','50','55'].map(m => (
-                      <option key={m} value={m}>{m}</option>
-                    ))}
-                  </select>
-                </div>
+                {slotsLoading ? (
+                  <div className="flex justify-center py-4">
+                    <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : slots.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-3">{rescheduleDate ? t('booking.rescheduleModal.noSlots') : ''}</p>
+                ) : (
+                  <div className="grid grid-cols-3 gap-1.5 max-h-40 overflow-y-auto">
+                    {slots.map(s => {
+                      const timeStr = new Date(s.slot_start).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+                      const isSelected = selectedSlot === s.slot_start;
+                      return (
+                        <button
+                          key={s.slot_start}
+                          onClick={() => setSelectedSlot(s.slot_start)}
+                          className={`py-2 rounded-lg text-xs font-semibold transition-colors ${
+                            isSelected
+                              ? 'bg-primary text-white'
+                              : 'bg-muted text-foreground hover:bg-primary/10'
+                          }`}
+                        >
+                          {timeStr}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">
@@ -398,7 +431,7 @@ export default function MyBookingsPage() {
                 >
                   {t('block.cancel')}
                 </button>
-                <button onClick={handleReschedule} disabled={rescheduling || !rescheduleDate || !rescheduleTime}
+                <button onClick={handleReschedule} disabled={rescheduling || !rescheduleDate || !selectedSlot}
                   className="flex-1 bg-primary hover:bg-primary/90 disabled:opacity-50 text-white rounded-lg py-2.5 text-sm font-semibold transition-colors"
                 >
                   {rescheduling ? '...' : t('booking.rescheduleModal.confirm')}

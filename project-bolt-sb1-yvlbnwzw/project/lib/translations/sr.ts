@@ -1938,6 +1938,7 @@ export default {
   'booking.rescheduleError.conflict': 'Odabrani termin nije slobodan',
   'booking.rescheduleError.tooSoon': 'Vremenski period je prekratak',
   'booking.bookNow': 'Rezerviši odmah',
+  'booking.rescheduleModal.noSlots': 'Nema slobodnih termina za ovaj dan',
   'booking.rescheduleModal.reasonLabel': 'Razlog (neobavezno)',
   'booking.rescheduleModal.reasonPlaceholder': 'Npr. ne mogu u to vrijeme...',
   'booking.testPhase': 'Test · Faza razvoja',

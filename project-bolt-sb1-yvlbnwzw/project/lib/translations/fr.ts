@@ -1868,6 +1868,7 @@ export default {
   'booking.rescheduleError.conflict': "Ce créneau n'est pas disponible",
   'booking.rescheduleError.tooSoon': 'Délai de préavis insuffisant',
   'booking.bookNow': 'Réserver maintenant',
+  'booking.rescheduleModal.noSlots': 'Aucun créneau disponible pour ce jour',
   'booking.rescheduleModal.reasonLabel': 'Raison (facultatif)',
   'booking.rescheduleModal.reasonPlaceholder': 'Ex. Je ne suis pas disponible à cette heure...',
   'booking.testPhase': 'Test · Phase de développement',

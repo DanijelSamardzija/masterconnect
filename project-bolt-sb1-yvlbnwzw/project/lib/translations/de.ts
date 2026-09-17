@@ -1928,6 +1928,7 @@ export default {
   'booking.rescheduleError.conflict': 'Dieser Termin ist nicht verfügbar',
   'booking.rescheduleError.tooSoon': 'Zu wenig Vorlaufzeit',
   'booking.bookNow': 'Jetzt buchen',
+  'booking.rescheduleModal.noSlots': 'Keine freien Termine für diesen Tag',
   'booking.rescheduleModal.reasonLabel': 'Grund (optional)',
   'booking.rescheduleModal.reasonPlaceholder': 'Z. B. Ich kann zu dem Zeitpunkt nicht...',
   'booking.testPhase': 'Test · Entwicklungsphase',

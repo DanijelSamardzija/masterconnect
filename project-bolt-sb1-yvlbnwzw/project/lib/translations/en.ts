@@ -1938,6 +1938,7 @@ export default {
   'booking.rescheduleError.conflict': 'That time slot is not available',
   'booking.rescheduleError.tooSoon': 'Not enough notice time',
   'booking.bookNow': 'Book now',
+  'booking.rescheduleModal.noSlots': 'No available slots for this day',
   'booking.rescheduleModal.reasonLabel': 'Reason (optional)',
   'booking.rescheduleModal.reasonPlaceholder': 'E.g. I cannot make it at that time...',
   'booking.testPhase': 'Test · Development phase',
