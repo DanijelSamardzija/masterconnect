@@ -26,7 +26,7 @@ const OFF_REASON_CYCLE: OffReason[] = ['day_off', 'vacation', 'sick_leave'];
 
 type EditState = {
   date: string;
-  mode: 'default' | 'working' | 'off';
+  mode: 'working' | 'off';
   offReason: OffReason;
   startTime: string;
   endTime: string;
@@ -190,13 +190,7 @@ function StaffScheduleContent() {
     if (!edit) return;
     setSaving(true);
     try {
-      if (edit.mode === 'default') {
-        const { data } = await (supabase as any).rpc('staff_delete_my_shift', {
-          p_shift_date: edit.date,
-        });
-        if (data?.ok === false) throw new Error(data.error);
-      } else {
-        const { data } = await (supabase as any).rpc('staff_set_my_shift', {
+      const { data } = await (supabase as any).rpc('staff_set_my_shift', {
           p_shift_date:  edit.date,
           p_start_time:  edit.mode === 'working' ? edit.startTime : null,
           p_end_time:    edit.mode === 'working' ? edit.endTime   : null,
@@ -206,8 +200,7 @@ function StaffScheduleContent() {
           p_break_start: edit.mode === 'working' && edit.hasBreak ? edit.breakStart : null,
           p_break_end:   edit.mode === 'working' && edit.hasBreak ? edit.breakEnd   : null,
         });
-        if (data?.ok === false) throw new Error(data.error);
-      }
+      if (data?.ok === false) throw new Error(data.error);
       toast.success(t('schedule.savedSuccess'));
       setEdit(null);
       await loadShifts(weekDate);
@@ -465,19 +458,6 @@ function StaffScheduleContent() {
                   {m === 'working' ? t('schedule.working') : t('schedule.dayOff')}
                 </button>
               ))}
-              {getShift(edit.date) && (
-                <button
-                  type="button"
-                  onClick={() => setEdit(e => e ? { ...e, mode: 'default' } : e)}
-                  className={`flex-1 text-xs font-medium py-2 rounded-xl border transition-colors ${
-                    edit.mode === 'default'
-                      ? 'bg-destructive/10 text-destructive border-destructive/30'
-                      : 'border-border text-muted-foreground hover:bg-accent'
-                  }`}
-                >
-                  {t('schedule.defaultSchedule')}
-                </button>
-              )}
             </div>
 
             {edit.mode === 'off' && (
@@ -505,12 +485,6 @@ function StaffScheduleContent() {
                   </button>
                 </div>
               </div>
-            )}
-
-            {edit.mode === 'default' && (
-              <p className="text-xs text-muted-foreground bg-muted/50 rounded-xl px-3 py-2.5 mb-4">
-                {t('schedule.defaultHint')}
-              </p>
             )}
 
             {edit.mode === 'working' && (
