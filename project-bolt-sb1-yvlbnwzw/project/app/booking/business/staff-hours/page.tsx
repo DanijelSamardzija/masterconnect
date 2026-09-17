@@ -204,27 +204,22 @@ function OwnerStaffHoursContent() {
 
   async function handleStaffChange(smId: string) {
     setSelectedStaffId(smId);
-    const sm = staffList.find(s => s.id === smId);
-    const locId = sm?.primary_location_id || locationId;
-    if (locId) {
-      await loadHours(smId, locId, selectedMonth);
+    if (locationId) {
+      await loadHours(smId, locationId, selectedMonth);
     }
   }
 
   async function handleMonthChange(month: number) {
     setSelectedMonth(month);
-    const sm = staffList.find(s => s.id === selectedStaffId);
-    const locId = sm?.primary_location_id || locationId;
+    const locId = locationId;
     if (selectedStaffId && locId) {
       await loadHours(selectedStaffId, locId, month);
     }
   }
 
   async function handleSave() {
-    if (!selectedStaffId) return;
-    const sm = staffList.find(s => s.id === selectedStaffId);
-    const locId = sm?.primary_location_id || locationId;
-    if (!locId) return;
+    if (!selectedStaffId || !locationId) return;
+    const locId = locationId;
 
     setSaving(true);
     let anyError = false;
