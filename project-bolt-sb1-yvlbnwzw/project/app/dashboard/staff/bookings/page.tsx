@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { StaffBookingNav } from '@/components/booking/staff-booking-nav';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
-  Calendar, Clock, Users, Plus, Ban, CalendarOff,
+  Calendar, Clock, Users, Plus, Ban,
   CheckCircle2, AlertCircle, XCircle
 } from 'lucide-react';
 
@@ -34,7 +34,7 @@ type Permissions = {
   can_set_hours: boolean;
   can_create_bookings: boolean;
   can_cancel_bookings: boolean;
-  can_block_time: boolean;
+
 };
 
 type ActiveFilter = 'upcoming' | 'pending' | 'all' | 'past';
@@ -43,7 +43,7 @@ const DEFAULT_PERMS: Permissions = {
   can_set_hours: false,
   can_create_bookings: false,
   can_cancel_bookings: false,
-  can_block_time: false,
+
 };
 
 export default function StaffBookingsPage() {
@@ -79,7 +79,6 @@ export default function StaffBookingsPage() {
           can_set_hours:       !!data.permissions.can_set_hours,
           can_create_bookings: !!data.permissions.can_create_bookings,
           can_cancel_bookings: !!data.permissions.can_cancel_bookings,
-          can_block_time:      !!data.permissions.can_block_time,
         });
       }
     })();
@@ -134,7 +133,7 @@ export default function StaffBookingsPage() {
     setCancelId(null);
   };
 
-  const hasAnyAction = permissions.can_create_bookings || permissions.can_block_time || permissions.can_set_hours;
+  const hasAnyAction = permissions.can_create_bookings;
 
   const emptyMsg =
     activeFilter === 'upcoming' ? t('staffDashboard.empty') :
@@ -164,15 +163,6 @@ export default function StaffBookingsPage() {
                 >
                   <Plus className="w-3.5 h-3.5" />
                   {t('staffDashboard.newBooking')}
-                </button>
-              )}
-              {permissions.can_block_time && (
-                <button
-                  onClick={() => router.push('/dashboard/staff/time-off')}
-                  className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl border border-border bg-background hover:bg-accent transition-colors"
-                >
-                  <CalendarOff className="w-3.5 h-3.5" />
-                  {t('staffDashboard.timeOff')}
                 </button>
               )}
             </div>

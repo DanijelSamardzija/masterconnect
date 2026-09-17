@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
-import { ChevronLeft, ChevronRight, Clock, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, X, CalendarOff } from 'lucide-react';
 import { StaffBookingNav } from '@/components/booking/staff-booking-nav';
 
 type DaySchedule = {
@@ -133,6 +133,7 @@ export default function StaffHoursPage() {
   const [myRole, setMyRole] = useState<string>('');
   const [acceptBookings, setAcceptBookings] = useState(true);
   const [togglingAccept, setTogglingAccept] = useState(false);
+  const [canBlockTime, setCanBlockTime] = useState(false);
 
   useEffect(() => {
     if (!profile) return;
@@ -155,6 +156,7 @@ export default function StaffHoursPage() {
       const isOwner = sm.role === 'owner';
       const perm = isOwner || !!sm.permissions?.can_set_hours;
       setHasPermission(perm);
+      setCanBlockTime(isOwner || !!sm.permissions?.can_block_time);
 
       let locId: string | null = sm.primary_location_id;
       if (!locId && isOwner) {
@@ -340,6 +342,17 @@ export default function StaffHoursPage() {
                     />
                   </button>
                 </div>
+              )}
+
+              {/* Time-off shortcut */}
+              {canBlockTime && (
+                <button
+                  onClick={() => router.push('/dashboard/staff/time-off')}
+                  className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 mb-3 rounded-xl border border-border bg-background hover:bg-accent transition-colors"
+                >
+                  <CalendarOff className="w-3.5 h-3.5" />
+                  {t('staffDashboard.timeOff')}
+                </button>
               )}
 
               {/* Week navigation */}
