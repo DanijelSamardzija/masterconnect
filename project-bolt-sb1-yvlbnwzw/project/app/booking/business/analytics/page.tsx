@@ -91,7 +91,7 @@ function fmtMoney(n: number): string {
 
 function AnalyticsPageInner() {
   const { t } = useLanguage();
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
 
   const [period, setPeriod]         = useState<Period>('month');
   const [customFrom, setCustomFrom] = useState(isoDate(new Date()));
@@ -105,15 +105,16 @@ function AnalyticsPageInner() {
   const [loading, setLoading]       = useState(false);
 
   // Load locations + staff list — scoped to caller's business
+  const userId = user?.id ?? profile?.id;
   useEffect(() => {
-    if (!profile?.id) return;
+    if (!userId) return;
     let cancelled = false;
 
     (async () => {
       const { data: me } = await supabase
         .from('staff_members')
         .select('business_id')
-        .eq('user_id', profile.id)
+        .eq('user_id', userId)
         .eq('is_active', true)
         .in('role', ['owner', 'manager'])
         .maybeSingle();
@@ -148,7 +149,7 @@ function AnalyticsPageInner() {
     })();
 
     return () => { cancelled = true; };
-  }, [profile?.id]);
+  }, [userId]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -167,7 +168,8 @@ function AnalyticsPageInner() {
     setData(result as AnalyticsResult);
   }, [period, customFrom, customTo, locationId, staffId]);
 
-  useEffect(() => { load(); }, [load]);
+  // Fire on mount and whenever filters change
+  useEffect(() => { if (userId) load(); }, [userId, load]);
 
   // ── Derived data ──────────────────────────────────────────────────────────
 

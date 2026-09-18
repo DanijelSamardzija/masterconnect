@@ -66,17 +66,31 @@ function fmtMoney(n: number): string {
 
 export function MyAnalyticsView({ nav }: { nav: ReactNode }) {
   const { t } = useLanguage();
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
 
-  const [period, setPeriod]         = useState<Period>('month');
+  // Persist period across page refreshes
+  const [period, setPeriod] = useState<Period>(() => {
+    try { return (localStorage.getItem('myAnalyticsPeriod') as Period) || 'month'; } catch { return 'month'; }
+  });
   const [customFrom, setCustomFrom] = useState(isoDate(new Date()));
   const [customTo, setCustomTo]     = useState(isoDate(new Date()));
   const [locationId, setLocationId] = useState<string>('');
   const [data, setData]             = useState<MyAnalyticsResult | null>(null);
   const [loading, setLoading]       = useState(false);
+  const [rpcError, setRpcError]     = useState<string | null>(null);
+
+  const handlePeriod = (p: Period) => {
+    setPeriod(p);
+    try { localStorage.setItem('myAnalyticsPeriod', p); } catch {}
+  };
+
+  // Use user?.id (available immediately from localStorage) as trigger,
+  // falling back to profile?.id if user context loads later
+  const userId = user?.id ?? profile?.id;
 
   const load = useCallback(async () => {
     setLoading(true);
+    setRpcError(null);
     const { from, to } = getPeriodRange(period, customFrom, customTo);
     const { data: result, error } = await (supabase.rpc as Function)('get_my_analytics', {
       p_date_from:   from,
@@ -84,11 +98,12 @@ export function MyAnalyticsView({ nav }: { nav: ReactNode }) {
       p_location_id: locationId || null,
     });
     setLoading(false);
-    if (error || !result) { setData(null); return; }
+    if (error) { setRpcError(error.message); setData(null); return; }
+    if (!result || result.ok === false) { setData(null); return; }
     setData(result as MyAnalyticsResult);
   }, [period, customFrom, customTo, locationId]);
 
-  useEffect(() => { if (profile?.id) load(); }, [profile?.id, load]);
+  useEffect(() => { if (userId) load(); }, [userId, load]);
 
   const PERIODS: { key: Period; label: string }[] = [
     { key: 'today',  label: t('bookingAnalytics.filter.today')  },
@@ -105,6 +120,12 @@ export function MyAnalyticsView({ nav }: { nav: ReactNode }) {
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
       {nav}
+
+      {rpcError && (
+        <div className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl px-3 py-2">
+          {rpcError}
+        </div>
+      )}
 
       {/* Header */}
       <div className="flex items-center gap-2.5">
@@ -123,7 +144,7 @@ export function MyAnalyticsView({ nav }: { nav: ReactNode }) {
       <div className="space-y-2.5">
         <div className="flex flex-wrap gap-1.5">
           {PERIODS.map(p => (
-            <button key={p.key} onClick={() => setPeriod(p.key)}
+            <button key={p.key} onClick={() => handlePeriod(p.key)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 period === p.key
                   ? 'bg-primary text-primary-foreground'
