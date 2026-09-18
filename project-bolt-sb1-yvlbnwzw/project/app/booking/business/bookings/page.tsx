@@ -81,7 +81,7 @@ function OwnerBookingsContent() {
   const [isOwner, setIsOwner]     = useState<boolean | null>(null);
   const [staffMemberId, setStaffMemberId] = useState<string | null>(null);
   const [staffBizId, setStaffBizId]       = useState<string | null>(null);
-  const [staffPerms, setStaffPerms]       = useState<{ can_cancel_bookings: boolean; can_reschedule_bookings: boolean }>({ can_cancel_bookings: false, can_reschedule_bookings: false });
+  const [staffPerms, setStaffPerms]       = useState<{ can_cancel_bookings: boolean; can_reschedule_bookings: boolean; can_complete_bookings: boolean }>({ can_cancel_bookings: false, can_reschedule_bookings: false, can_complete_bookings: false });
   const [staffBookings, setStaffBookings] = useState<Booking[]>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
@@ -169,6 +169,7 @@ function OwnerBookingsContent() {
       setStaffPerms({
         can_cancel_bookings:     !!p.can_cancel_bookings,
         can_reschedule_bookings: !!p.can_reschedule_bookings,
+        can_complete_bookings:   !!p.can_complete_bookings,
       });
     }
     setIsOwner(false);
@@ -301,6 +302,27 @@ function OwnerBookingsContent() {
     setCancelOpen(false);
     setCancelBookingId(null);
     setCancelReason('');
+  };
+
+  const handleComplete = async (bookingId: string, status: 'completed' | 'no_show') => {
+    setActionLoading(bookingId + '-' + status);
+    const { data, error } = await (supabase as any).rpc('complete_booking', {
+      p_booking_id: bookingId,
+      p_status: status,
+    });
+    setActionLoading(null);
+    if (error || data?.ok === false) {
+      const key = data?.error === 'booking_not_started' ? 'ownerBookings.completeHint' : 'ownerBookings.completeHint';
+      toast.error(data?.error === 'not_authorized' ? 'Nemaš dozvolu za ovu akciju' : 'Greška');
+      return;
+    }
+    const label = status === 'completed' ? t('ownerBookings.markComplete') : t('ownerBookings.markNoShow');
+    toast.success(label);
+    if (isOwner) {
+      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b));
+    } else {
+      setStaffBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b));
+    }
   };
 
   const handleDelete = async () => {
@@ -471,6 +493,15 @@ function OwnerBookingsContent() {
             <p className="text-xs text-muted-foreground">{t('ownerBookings.staffView.subtitle')}</p>
           </div>
 
+          {staffPerms.can_complete_bookings && (
+            <div className="flex items-start gap-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-3 py-2.5">
+              <CheckCircle2 className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <p className="text-[11px] text-amber-700 dark:text-amber-300 leading-relaxed">
+                {t('ownerBookings.completeHint')}
+              </p>
+            </div>
+          )}
+
           {loading ? (
             <div className="flex justify-center py-12">
               <div className="h-7 w-7 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
@@ -520,8 +551,8 @@ function OwnerBookingsContent() {
                       </div>
                     )}
                     {b.notes?.trim() && <p className="text-xs text-muted-foreground/70 italic">{b.notes}</p>}
-                    {isActive && (staffPerms.can_reschedule_bookings || staffPerms.can_cancel_bookings) && (
-                      <div className="flex items-center gap-2 pt-1 border-t border-border">
+                    {isActive && (staffPerms.can_reschedule_bookings || staffPerms.can_cancel_bookings || staffPerms.can_complete_bookings) && (
+                      <div className="flex items-center gap-2 pt-1 border-t border-border flex-wrap">
                         {!isPast && staffPerms.can_reschedule_bookings && (
                           <button onClick={() => openReschedule(b)} disabled={!!actionLoading}
                             className="flex items-center justify-center gap-1.5 bg-muted hover:bg-muted/80 disabled:opacity-50 text-foreground rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
@@ -537,6 +568,22 @@ function OwnerBookingsContent() {
                             <XCircle className="h-3.5 w-3.5" />
                             {t('ownerBookings.cancel')}
                           </button>
+                        )}
+                        {isPast && staffPerms.can_complete_bookings && (
+                          <>
+                            <button onClick={() => handleComplete(b.id, 'completed')} disabled={!!actionLoading}
+                              className="flex items-center justify-center gap-1.5 bg-green-100 hover:bg-green-200 dark:bg-green-950 dark:hover:bg-green-900 disabled:opacity-50 text-green-700 dark:text-green-400 rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              {actionLoading === b.id + '-completed' ? '...' : t('ownerBookings.markComplete')}
+                            </button>
+                            <button onClick={() => handleComplete(b.id, 'no_show')} disabled={!!actionLoading}
+                              className="flex items-center justify-center gap-1.5 bg-orange-100 hover:bg-orange-200 dark:bg-orange-950 dark:hover:bg-orange-900 disabled:opacity-50 text-orange-700 dark:text-orange-400 rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
+                            >
+                              <XCircle className="h-3.5 w-3.5" />
+                              {actionLoading === b.id + '-no_show' ? '...' : t('ownerBookings.markNoShow')}
+                            </button>
+                          </>
                         )}
                       </div>
                     )}
@@ -672,6 +719,14 @@ function OwnerBookingsContent() {
             <Plus className="h-4 w-4" />
             {t('ownerBookings.add.button')}
           </button>
+        </div>
+
+        {/* Analytics hint */}
+        <div className="flex items-start gap-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-3 py-2.5">
+          <CheckCircle2 className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <p className="text-[11px] text-amber-700 dark:text-amber-300 leading-relaxed">
+            {t('ownerBookings.completeHint')}
+          </p>
         </div>
 
         {/* Filter tabs */}
@@ -815,6 +870,22 @@ function OwnerBookingsContent() {
                           <XCircle className="h-3.5 w-3.5" />
                           {t('ownerBookings.cancel')}
                         </button>
+                      )}
+                      {isPast && (
+                        <>
+                          <button onClick={() => handleComplete(b.id, 'completed')} disabled={!!actionLoading}
+                            className="flex items-center justify-center gap-1.5 bg-green-100 hover:bg-green-200 dark:bg-green-950 dark:hover:bg-green-900 disabled:opacity-50 text-green-700 dark:text-green-400 rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
+                          >
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            {actionLoading === b.id + '-completed' ? '...' : t('ownerBookings.markComplete')}
+                          </button>
+                          <button onClick={() => handleComplete(b.id, 'no_show')} disabled={!!actionLoading}
+                            className="flex items-center justify-center gap-1.5 bg-orange-100 hover:bg-orange-200 dark:bg-orange-950 dark:hover:bg-orange-900 disabled:opacity-50 text-orange-700 dark:text-orange-400 rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
+                          >
+                            <XCircle className="h-3.5 w-3.5" />
+                            {actionLoading === b.id + '-no_show' ? '...' : t('ownerBookings.markNoShow')}
+                          </button>
+                        </>
                       )}
                     </div>
                   )}

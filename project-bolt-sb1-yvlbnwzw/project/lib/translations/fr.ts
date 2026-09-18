@@ -2503,6 +2503,7 @@ export default {
   'setup.staff.permissions.cancelBookings': 'Peut annuler des réservations',
   'setup.staff.permissions.blockTime': 'Peut bloquer son propre temps (congés, maladie)',
   'setup.staff.permissions.rescheduleBookings': 'Peut reprogrammer les rendez-vous clients',
+  'setup.staff.permissions.completeBookings': 'Peut marquer un rendez-vous comme Effectué / Absent',
   'setup.staff.permissions.save': 'Enregistrer les autorisations',
   'setup.staff.permissions.saved': 'Autorisations enregistrées',
   'setup.staff.noLocation': 'Vous devez ajouter un lieu avant d\'ajouter du personnel.',
@@ -2758,6 +2759,10 @@ export default {
   'ownerBookings.rescheduleError.tooSoon': 'La date est dans le passé',
   'ownerBookings.clientHistory': 'Historique client',
   'ownerBookings.clientHistoryEmpty': 'Aucun rendez-vous précédent pour ce client.',
+  'ownerBookings.markComplete': 'Effectué',
+  'ownerBookings.markNoShow': 'Absent',
+  'ownerBookings.completeHint': 'Une fois le rendez-vous terminé, marquez-le comme Effectué pour que le service et le chiffre d\'affaires apparaissent dans les Analyses.',
+  'ownerBookings.noShowHint': 'Si le client ne s\'est pas présenté, marquez Absent — cette réservation ne sera pas comptée dans le chiffre d\'affaires.',
 
   // Shift schedule
   'schedule.title': 'Planning des équipes',

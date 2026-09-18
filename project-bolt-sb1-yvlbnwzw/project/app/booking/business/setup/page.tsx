@@ -1347,6 +1347,7 @@ export default function BusinessSetupPage() {
         can_cancel_bookings:      !!rawPerms.can_cancel_bookings,
         can_block_time:           !!rawPerms.can_block_time,
         can_reschedule_bookings:  !!rawPerms.can_reschedule_bookings,
+        can_complete_bookings:    !!rawPerms.can_complete_bookings,
       },
     }));
   }
@@ -3214,6 +3215,7 @@ export default function BusinessSetupPage() {
                                       { key: 'can_create_bookings',     label: t('setup.staff.permissions.createBookings') },
                                       { key: 'can_cancel_bookings',     label: t('setup.staff.permissions.cancelBookings') },
                                       { key: 'can_reschedule_bookings', label: t('setup.staff.permissions.rescheduleBookings') },
+                                      { key: 'can_complete_bookings',   label: t('setup.staff.permissions.completeBookings') },
                                       { key: 'can_block_time',          label: t('setup.staff.permissions.blockTime') },
                                     ] as const).map(({ key, label }) => {
                                       const enabled = staffPermissionsMap[sm.id]?.[key] ?? false;

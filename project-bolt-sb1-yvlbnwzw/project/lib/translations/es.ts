@@ -2496,6 +2496,7 @@ export default {
   'setup.staff.permissions.cancelBookings': 'Puede cancelar reservas',
   'setup.staff.permissions.blockTime': 'Puede bloquear su propio tiempo (vacaciones, baja)',
   'setup.staff.permissions.rescheduleBookings': 'Puede reprogramar citas de clientes',
+  'setup.staff.permissions.completeBookings': 'Puede marcar reserva como Realizada / No presentado',
   'setup.staff.permissions.save': 'Guardar permisos',
   'setup.staff.permissions.saved': 'Permisos guardados',
   'setup.staff.noLocation': 'Debes añadir una ubicación antes de añadir personal.',
@@ -2751,6 +2752,10 @@ export default {
   'ownerBookings.rescheduleError.tooSoon': 'La fecha está en el pasado',
   'ownerBookings.clientHistory': 'Historial del cliente',
   'ownerBookings.clientHistoryEmpty': 'No hay citas anteriores para este cliente.',
+  'ownerBookings.markComplete': 'Realizado',
+  'ownerBookings.markNoShow': 'No presentado',
+  'ownerBookings.completeHint': 'Una vez finalizada la cita, márcala como Realizada para que el servicio e ingreso aparezcan en Análisis.',
+  'ownerBookings.noShowHint': 'Si el cliente no se presentó, marca como No presentado — esa cita no contará en los ingresos.',
 
   // Shift schedule
   'schedule.title': 'Horario de turnos',

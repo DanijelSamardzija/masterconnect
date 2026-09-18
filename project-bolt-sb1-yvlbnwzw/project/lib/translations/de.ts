@@ -2568,6 +2568,7 @@ export default {
   'setup.staff.permissions.cancelBookings': 'Kann Buchungen stornieren',
   'setup.staff.permissions.blockTime': 'Kann eigene Zeit blockieren (Urlaub, Krankenstand)',
   'setup.staff.permissions.rescheduleBookings': 'Kann Kundentermine verschieben',
+  'setup.staff.permissions.completeBookings': 'Kann Termin als Erledigt / Nicht erschienen markieren',
   'setup.staff.permissions.save': 'Berechtigungen speichern',
   'setup.staff.permissions.saved': 'Berechtigungen gespeichert',
   'setup.staff.noLocation': 'Sie müssen einen Standort hinzufügen, bevor Sie Personal hinzufügen.',
@@ -2823,6 +2824,10 @@ export default {
   'ownerBookings.rescheduleError.tooSoon': 'Datum liegt in der Vergangenheit',
   'ownerBookings.clientHistory': 'Kundenverlauf',
   'ownerBookings.clientHistoryEmpty': 'Keine früheren Termine für diesen Kunden.',
+  'ownerBookings.markComplete': 'Erledigt',
+  'ownerBookings.markNoShow': 'Nicht erschienen',
+  'ownerBookings.completeHint': 'Markieren Sie den Termin nach Abschluss als Erledigt, damit der Umsatz in der Analyse erscheint.',
+  'ownerBookings.noShowHint': 'Falls der Kunde nicht erschienen ist, als Nicht erschienen markieren — zählt nicht zum Umsatz.',
 
   // Shift schedule
   'schedule.title': 'Schichtplan',

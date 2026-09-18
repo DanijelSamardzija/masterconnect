@@ -2578,6 +2578,7 @@ export default {
   'setup.staff.permissions.cancelBookings': 'Can cancel bookings',
   'setup.staff.permissions.blockTime': 'Can block own time (vacation, sick leave)',
   'setup.staff.permissions.rescheduleBookings': 'Can reschedule client bookings',
+  'setup.staff.permissions.completeBookings': 'Can mark booking as Done / No-show',
   'setup.staff.permissions.save': 'Save permissions',
   'setup.staff.permissions.saved': 'Permissions saved',
   'setup.staff.noLocation': 'You must add a location before adding staff.',
@@ -2841,6 +2842,10 @@ export default {
   'ownerBookings.rescheduleError.tooSoon': 'Date is in the past',
   'ownerBookings.clientHistory': 'Client history',
   'ownerBookings.clientHistoryEmpty': 'No previous bookings for this client.',
+  'ownerBookings.markComplete': 'Done',
+  'ownerBookings.markNoShow': 'No-show',
+  'ownerBookings.completeHint': 'Once the appointment is over, mark it as Done so the service and revenue appear in Analytics.',
+  'ownerBookings.noShowHint': 'If the client did not show up, mark as No-show — that booking will not count toward revenue.',
 
   // Shift schedule
   'schedule.title': 'Shift Schedule',

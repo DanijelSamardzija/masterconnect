@@ -2578,6 +2578,7 @@ export default {
   'setup.staff.permissions.cancelBookings': 'Može otkazati rezervaciju',
   'setup.staff.permissions.blockTime': 'Može blokirati vlastito vrijme (godišnji, bolovanje)',
   'setup.staff.permissions.rescheduleBookings': 'Može pomjerati termine klijenata',
+  'setup.staff.permissions.completeBookings': 'Može označiti termin kao Završeno / Nije se pojavio',
   'setup.staff.permissions.save': 'Sačuvaj dozvole',
   'setup.staff.permissions.saved': 'Dozvole sačuvane',
   'setup.staff.noLocation': 'Morate dodati lokaciju prije dodavanja osoblja.',
@@ -2841,6 +2842,10 @@ export default {
   'ownerBookings.rescheduleError.tooSoon': 'Datum je u prošlosti',
   'ownerBookings.clientHistory': 'Historija klijenta',
   'ownerBookings.clientHistoryEmpty': 'Nema prethodnih termina.',
+  'ownerBookings.markComplete': 'Završeno',
+  'ownerBookings.markNoShow': 'Nije se pojavio',
+  'ownerBookings.completeHint': 'Kada termin prođe, označite ga kao Završeno da bi se usluga i prihod prikazali u Analitici.',
+  'ownerBookings.noShowHint': 'Ako se klijent nije pojavio, označite Nije se pojavio — taj termin se neće računati u prihod.',
 
   // Shift schedule
   'schedule.title': 'Raspored smjena',
