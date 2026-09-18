@@ -158,7 +158,8 @@ function OwnerBookingsContent() {
     if (!isOwner || !profile) return;
     if (!isPremium || !isBookingBetaUser(profile.id)) return;
     fetchServiceStats(selectedLocId || undefined);
-  }, [isOwner, selectedLocId, profile, isPremium, fetchServiceStats]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOwner, selectedLocId, profile, isPremium]);
 
   useEffect(() => {
     if (staffMemberId && staffBizId) fetchStaffBookings();
