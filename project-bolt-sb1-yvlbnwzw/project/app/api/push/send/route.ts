@@ -87,6 +87,7 @@ async function processPush(body: any) {
   else if (meta?.job_id) url = `/jobs/${meta.job_id}`;
   else if (meta?.follower_id) url = `/profile/${meta.follower_id}`;
   else if (meta?.reviewer_id) url = '/dashboard';
+  else if (meta?.booking_id) url = action_type === 'booking_created' ? '/dashboard' : '/booking/my';
 
   let actorAvatar: string | null = null;
   if (meta?.follower_id) {
