@@ -1358,7 +1358,9 @@ export default function BusinessSetupPage() {
   }
 
   async function handleSaveStaffHours(staffId: string) {
-    if (!primaryLocId) return;
+    const staffMember = staffMembers.find(sm => sm.id === staffId);
+    const locId = staffMember?.primary_location_id ?? primaryLocId;
+    if (!locId) return;
     const schedule = staffScheduleEditMap[staffId];
     if (!schedule) return;
     setStaffHoursSaving(staffId);
@@ -1379,7 +1381,7 @@ export default function BusinessSetupPage() {
     });
     const { data } = await (supabase as any).rpc('owner_save_week_schedule', {
       p_staff_member_id: staffId,
-      p_location_id:     primaryLocId,
+      p_location_id:     locId,
       p_week_start:      isoDateLocal(weekStart),
       p_days:            days,
     });

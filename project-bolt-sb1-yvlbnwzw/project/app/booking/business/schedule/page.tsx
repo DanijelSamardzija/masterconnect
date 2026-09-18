@@ -225,13 +225,13 @@ function OwnerScheduleContent() {
         }));
         setStaffAccept(members);
 
-        if (locData?.id) {
+        if (primaryLoc?.id) {
           type HourDBRow = { day_of_week: number; start_time: string; end_time: string; is_closed: boolean; sort_order: number };
           const hoursResults = await Promise.all(
             members.map(m =>
               (supabase as any).rpc('get_staff_opening_hours', {
                 p_staff_member_id: m.id,
-                p_location_id: locData.id,
+                p_location_id: m.location_id ?? primaryLoc.id,
               })
             )
           );
