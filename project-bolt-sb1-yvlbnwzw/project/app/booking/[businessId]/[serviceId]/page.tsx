@@ -638,7 +638,15 @@ export default function BookingSlotPickerPage() {
                   <p className="text-sm font-medium">{loc.name}</p>
                   {(loc.address || loc.city) && (
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {[loc.address, loc.city, loc.country].filter(Boolean).join(', ')}
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([loc.address, loc.city, loc.country].filter(Boolean).join(', '))}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={e => e.stopPropagation()}
+                        className="hover:underline hover:text-primary transition-colors"
+                      >
+                        {[loc.address, loc.city, loc.country].filter(Boolean).join(', ')}
+                      </a>
                     </p>
                   )}
                 </button>
@@ -910,7 +918,20 @@ export default function BookingSlotPickerPage() {
               {selectedLocation && (
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <MapPin className="h-3.5 w-3.5 shrink-0" />
-                  <span>{[selectedLocation.name, [selectedLocation.address, selectedLocation.city].filter(Boolean).join(', ')].filter(Boolean).join(' · ')}</span>
+                  <span>{selectedLocation.name}</span>
+                  {(selectedLocation.address || selectedLocation.city) && (
+                    <>
+                      <span>·</span>
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([selectedLocation.address, selectedLocation.city].filter(Boolean).join(', '))}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:underline hover:text-primary transition-colors"
+                      >
+                        {[selectedLocation.address, selectedLocation.city].filter(Boolean).join(', ')}
+                      </a>
+                    </>
+                  )}
                 </div>
               )}
 

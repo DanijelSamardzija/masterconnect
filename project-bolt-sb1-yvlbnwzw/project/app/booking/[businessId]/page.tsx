@@ -202,7 +202,16 @@ export default function BusinessBookingProfilePage() {
                   locations.map((loc) => (
                     <span key={loc.id} className="flex items-center gap-1 text-xs text-muted-foreground">
                       <MapPin className="w-3 h-3 shrink-0" />
-                      {[loc.address, loc.city, loc.country].filter(Boolean).join(', ')}
+                      {[loc.address, loc.city, loc.country].filter(Boolean).length > 0 ? (
+                        <a
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([loc.address, loc.city, loc.country].filter(Boolean).join(', '))}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline hover:text-primary transition-colors"
+                        >
+                          {[loc.address, loc.city, loc.country].filter(Boolean).join(', ')}
+                        </a>
+                      ) : null}
                       {loc.phone && (
                         <>
                           <span className="mx-0.5">·</span>

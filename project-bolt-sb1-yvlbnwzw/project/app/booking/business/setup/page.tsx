@@ -2477,7 +2477,14 @@ export default function BusinessSetupPage() {
                           </p>
                         )}
                         {loc.address && (
-                          <p className="text-xs text-muted-foreground">{loc.address}</p>
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([loc.address, loc.city, loc.country].filter(Boolean).join(', '))}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors"
+                          >
+                            {loc.address}
+                          </a>
                         )}
                       </div>
                       <div className="flex gap-1 shrink-0 flex-col items-end">
