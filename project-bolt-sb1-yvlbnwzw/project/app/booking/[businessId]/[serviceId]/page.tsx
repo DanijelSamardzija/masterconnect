@@ -857,6 +857,44 @@ export default function BookingSlotPickerPage() {
                 const isSelected = selectedDayKey === dayKey;
                 const hasSlots = availableCount > 0;
                 const shortDay = new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(day);
+
+                // Determine user-visible reason when no slots available
+                let unavailLabel: string | null = null;
+                let unavailIsRed = false;
+                if (!hasSlots && !isPast) {
+                  const dayClosure = closures.find(c => c.date_from <= dayKey && c.date_to >= dayKey);
+                  if (dayClosure) {
+                    unavailLabel = t('booking.dayClosed');
+                    unavailIsRed = true;
+                  } else if (selectedStaffId) {
+                    const dayAbsence = staffAbsences.find(a => a.date_from <= dayKey && a.date_to >= dayKey);
+                    const dayShift = staffShiftDays[dayKey];
+                    if (dayAbsence) {
+                      unavailLabel = dayAbsence.reason === 'vacation' ? t('shift.vacation')
+                        : dayAbsence.reason === 'sick_leave' ? t('shift.sickLeave')
+                        : t('booking.staffUnavailable');
+                    } else if (dayShift?.is_off) {
+                      unavailLabel = dayShift.off_reason === 'vacation' ? t('shift.vacation')
+                        : dayShift.off_reason === 'sick_leave' ? t('shift.sickLeave')
+                        : t('shift.dayOff');
+                    } else {
+                      const dow = day.getDay();
+                      const ohForDay = openingHours.filter(oh => oh.day_of_week === dow);
+                      if (ohForDay.length > 0 && ohForDay.every(oh => oh.is_closed)) {
+                        unavailLabel = t('booking.dayClosed');
+                        unavailIsRed = true;
+                      }
+                    }
+                  } else {
+                    const dow = day.getDay();
+                    const ohForDay = openingHours.filter(oh => oh.day_of_week === dow);
+                    if (ohForDay.length > 0 && ohForDay.every(oh => oh.is_closed)) {
+                      unavailLabel = t('booking.dayClosed');
+                      unavailIsRed = true;
+                    }
+                  }
+                }
+
                 return (
                   <button
                     key={dayKey}
@@ -869,8 +907,10 @@ export default function BookingSlotPickerPage() {
                         : hasSlots
                           ? 'border-border hover:border-primary/60 hover:bg-accent'
                           : isPast
-                            ? 'border-border/40 opacity-30 cursor-not-allowed'
-                            : 'border-border opacity-40 cursor-not-allowed'
+                            ? 'border-border/40 opacity-25 cursor-not-allowed'
+                            : unavailLabel
+                              ? 'border-border/50 opacity-70 cursor-not-allowed'
+                              : 'border-border opacity-35 cursor-not-allowed'
                     }`}
                   >
                     <span className={`text-[10px] font-medium uppercase tracking-wide ${isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
@@ -880,6 +920,10 @@ export default function BookingSlotPickerPage() {
                     {hasSlots ? (
                       <span className={`text-[10px] font-medium mt-1 ${isSelected ? 'text-primary-foreground/70' : 'text-primary'}`}>
                         {availableCount}
+                      </span>
+                    ) : unavailLabel ? (
+                      <span className={`text-[9px] font-medium mt-1 leading-tight text-center w-full px-0.5 ${unavailIsRed ? 'text-red-500' : 'text-orange-500'}`}>
+                        {unavailLabel}
                       </span>
                     ) : (
                       <span className="text-[10px] mt-1 opacity-0">·</span>

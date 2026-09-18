@@ -1894,6 +1894,8 @@ export default {
   'booking.slotsInfo': 'Available booking slots — showing working days and hours for the selected staff',
   'booking.availableSlots': 'Available slots',
   'booking.noSlotsThisWeek': 'No available slots this week',
+  'booking.dayClosed': 'Closed',
+  'booking.staffUnavailable': 'Unavailable',
   'booking.prevWeek': 'Previous week',
   'booking.nextWeek': 'Next week',
   'booking.confirm': 'Confirm booking',

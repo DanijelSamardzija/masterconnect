@@ -1884,6 +1884,8 @@ export default {
   'booking.slotsInfo': 'Verfügbare Buchungszeiten — Arbeitstage und Arbeitszeiten des gewählten Mitarbeiters',
   'booking.availableSlots': 'Verfügbare Zeitfenster',
   'booking.noSlotsThisWeek': 'Keine verfügbaren Zeitfenster diese Woche',
+  'booking.dayClosed': 'Geschlossen',
+  'booking.staffUnavailable': 'Nicht verfügbar',
   'booking.prevWeek': 'Vorherige Woche',
   'booking.nextWeek': 'Nächste Woche',
   'booking.confirm': 'Buchung bestätigen',

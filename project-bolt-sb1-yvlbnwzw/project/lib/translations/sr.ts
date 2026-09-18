@@ -1894,6 +1894,8 @@ export default {
   'booking.slotsInfo': 'Slobodni termini za rezervaciju — radni dani i dostupno radno vrijeme radnika',
   'booking.availableSlots': 'Slobodni termini',
   'booking.noSlotsThisWeek': 'Nema slobodnih termina ove sedmice',
+  'booking.dayClosed': 'Zatvoreno',
+  'booking.staffUnavailable': 'Nedostupno',
   'booking.prevWeek': 'Prethodna sedmica',
   'booking.nextWeek': 'Sljedeća sedmica',
   'booking.confirm': 'Potvrdi rezervaciju',

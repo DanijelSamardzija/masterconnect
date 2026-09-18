@@ -1812,6 +1812,8 @@ export default {
   'booking.slotsInfo': 'Horarios disponibles — días y horas de trabajo del empleado seleccionado',
   'booking.availableSlots': 'Horarios disponibles',
   'booking.noSlotsThisWeek': 'No hay horarios disponibles esta semana',
+  'booking.dayClosed': 'Cerrado',
+  'booking.staffUnavailable': 'No disponible',
   'booking.prevWeek': 'Semana anterior',
   'booking.nextWeek': 'Semana siguiente',
   'booking.confirm': 'Confirmar reserva',

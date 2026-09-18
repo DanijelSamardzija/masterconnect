@@ -1819,6 +1819,8 @@ export default {
   'booking.slotsInfo': 'Créneaux disponibles — jours et heures de travail du membre du personnel sélectionné',
   'booking.availableSlots': 'Créneaux disponibles',
   'booking.noSlotsThisWeek': 'Aucun créneau disponible cette semaine',
+  'booking.dayClosed': 'Fermé',
+  'booking.staffUnavailable': 'Indisponible',
   'booking.prevWeek': 'Semaine précédente',
   'booking.nextWeek': 'Semaine suivante',
   'booking.confirm': 'Confirmer la réservation',
