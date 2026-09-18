@@ -5,10 +5,7 @@ import { ProtectedRoute } from '@/components/protected-route';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
-import {
-  BarChart3, ChevronDown, ChevronUp, MapPin, User, TrendingUp,
-  CheckCircle2, AlertCircle, XCircle, Calendar,
-} from 'lucide-react';
+import { BarChart3, MapPin, User } from 'lucide-react';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -31,20 +28,13 @@ type StaffRow = {
   revenue: number;
 };
 
-type ServiceRow = {
-  service_id: string;
-  service_name: string;
-  completed: number;
-  no_shows: number;
-  revenue: number;
-};
-
 type StaffServiceRow = {
   staff_member_id: string | null;
   staff_name: string;
   service_id: string;
   service_name: string;
   completed: number;
+  avg_price: number;
   revenue: number;
 };
 
@@ -53,7 +43,7 @@ type AnalyticsResult = {
   error?: string;
   summary: Summary;
   by_staff: StaffRow[];
-  by_service: ServiceRow[];
+  by_service: unknown[];
   staff_service_breakdown: StaffServiceRow[];
 };
 
@@ -85,16 +75,16 @@ function getPeriodRange(period: Period, customFrom: string, customTo: string): {
     return { from: isoDate(from), to: isoDate(to) };
   }
   if (period === 'year') {
-    return {
-      from: `${today.getFullYear()}-01-01`,
-      to:   `${today.getFullYear()}-12-31`,
-    };
+    return { from: `${today.getFullYear()}-01-01`, to: `${today.getFullYear()}-12-31` };
   }
   return { from: customFrom, to: customTo };
 }
 
-function fmt(n: number): string {
-  return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+// Format currency — no trailing zeros for whole numbers
+function fmtMoney(n: number): string {
+  return n % 1 === 0
+    ? `€ ${n.toLocaleString()}`
+    : `€ ${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 // ── Main component ─────────────────────────────────────────────────────────
@@ -103,29 +93,23 @@ function AnalyticsPageInner() {
   const { t } = useLanguage();
   const { profile } = useAuth();
 
-  // Filter state
   const [period, setPeriod]         = useState<Period>('month');
   const [customFrom, setCustomFrom] = useState(isoDate(new Date()));
   const [customTo, setCustomTo]     = useState(isoDate(new Date()));
   const [locationId, setLocationId] = useState<string>('');
   const [staffId, setStaffId]       = useState<string>('');
 
-  // Data state
   const [locations, setLocations]   = useState<Location[]>([]);
   const [staffList, setStaffList]   = useState<{ id: string; name: string }[]>([]);
   const [data, setData]             = useState<AnalyticsResult | null>(null);
   const [loading, setLoading]       = useState(false);
 
-  // UI state
-  const [expandedStaff, setExpandedStaff] = useState<Set<string>>(new Set());
-
-  // Load locations + staff list once (scoped to caller's business via staff_members)
+  // Load locations + staff list — scoped to caller's business
   useEffect(() => {
     if (!profile?.id) return;
     let cancelled = false;
 
     (async () => {
-      // Get business_id for the logged-in user
       const { data: me } = await supabase
         .from('staff_members')
         .select('business_id')
@@ -179,45 +163,33 @@ function AnalyticsPageInner() {
     });
 
     setLoading(false);
-    if (error) {
-      setData(null);
-      return;
-    }
+    if (error || !result) { setData(null); return; }
     setData(result as AnalyticsResult);
   }, [period, customFrom, customTo, locationId, staffId]);
 
   useEffect(() => { load(); }, [load]);
 
-  const toggleStaff = (id: string) => {
-    setExpandedStaff(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
+  // ── Derived data ──────────────────────────────────────────────────────────
 
-  // ── Render ───────────────────────────────────────────────────────────────
+  const summary  = data?.summary;
+  const byStaff  = data?.by_staff ?? [];
+  const svcBrk   = data?.staff_service_breakdown ?? [];
 
-  const PERIODS: { key: Period; label: string }[] = [
-    { key: 'today', label: t('bookingAnalytics.filter.today') },
-    { key: 'week',  label: t('bookingAnalytics.filter.week')  },
-    { key: 'month', label: t('bookingAnalytics.filter.month') },
-    { key: 'year',  label: t('bookingAnalytics.filter.year')  },
-    { key: 'custom',label: t('bookingAnalytics.filter.custom')},
-  ];
-
-  const summary = data?.summary;
-  const byStaff = data?.by_staff ?? [];
-  const bySvc   = data?.by_service ?? [];
-  const svcBrk  = data?.staff_service_breakdown ?? [];
-
+  // Group service rows by staff key
   const staffSvcMap = svcBrk.reduce<Record<string, StaffServiceRow[]>>((acc, row) => {
     const key = row.staff_member_id ?? '__none__';
     if (!acc[key]) acc[key] = [];
     acc[key].push(row);
     return acc;
   }, {});
+
+  const PERIODS: { key: Period; label: string }[] = [
+    { key: 'today',  label: t('bookingAnalytics.filter.today')  },
+    { key: 'week',   label: t('bookingAnalytics.filter.week')   },
+    { key: 'month',  label: t('bookingAnalytics.filter.month')  },
+    { key: 'year',   label: t('bookingAnalytics.filter.year')   },
+    { key: 'custom', label: t('bookingAnalytics.filter.custom') },
+  ];
 
   if (data?.ok === false && data?.error === 'not_authorized') {
     return (
@@ -228,7 +200,7 @@ function AnalyticsPageInner() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+    <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
       <BusinessBookingNav active="analytics" />
 
       {/* Header */}
@@ -244,8 +216,8 @@ function AnalyticsPageInner() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="space-y-3">
+      {/* ── Filters ────────────────────────────────────────────────────────── */}
+      <div className="space-y-2.5">
         {/* Period buttons */}
         <div className="flex flex-wrap gap-1.5">
           {PERIODS.map(p => (
@@ -266,271 +238,157 @@ function AnalyticsPageInner() {
         {/* Custom date range */}
         {period === 'custom' && (
           <div className="flex items-center gap-2 flex-wrap">
-            <label className="text-xs text-muted-foreground">{t('bookingAnalytics.dateFrom')}</label>
-            <input
-              type="date"
-              value={customFrom}
-              onChange={e => setCustomFrom(e.target.value)}
-              className="text-xs border border-border rounded-lg px-2 py-1.5 bg-background text-foreground"
-            />
-            <label className="text-xs text-muted-foreground">{t('bookingAnalytics.dateTo')}</label>
-            <input
-              type="date"
-              value={customTo}
-              min={customFrom}
-              onChange={e => setCustomTo(e.target.value)}
-              className="text-xs border border-border rounded-lg px-2 py-1.5 bg-background text-foreground"
-            />
+            <span className="text-xs text-muted-foreground">{t('bookingAnalytics.dateFrom')}</span>
+            <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)}
+              className="text-xs border border-border rounded-lg px-2 py-1.5 bg-background text-foreground" />
+            <span className="text-xs text-muted-foreground">{t('bookingAnalytics.dateTo')}</span>
+            <input type="date" value={customTo} min={customFrom} onChange={e => setCustomTo(e.target.value)}
+              className="text-xs border border-border rounded-lg px-2 py-1.5 bg-background text-foreground" />
           </div>
         )}
 
         {/* Location + Staff dropdowns */}
-        <div className="flex gap-2 flex-wrap">
-          {locations.length > 1 && (
-            <div className="flex items-center gap-1.5 bg-muted rounded-lg px-2 py-1.5">
-              <MapPin className="h-3 w-3 text-muted-foreground shrink-0" />
-              <select
-                value={locationId}
-                onChange={e => setLocationId(e.target.value)}
-                className="text-xs bg-transparent text-foreground outline-none"
-              >
-                <option value="">{t('bookingAnalytics.allLocations')}</option>
-                {locations.map(l => (
-                  <option key={l.id} value={l.id}>{l.name}</option>
-                ))}
-              </select>
-            </div>
-          )}
-          {staffList.length > 1 && (
-            <div className="flex items-center gap-1.5 bg-muted rounded-lg px-2 py-1.5">
-              <User className="h-3 w-3 text-muted-foreground shrink-0" />
-              <select
-                value={staffId}
-                onChange={e => setStaffId(e.target.value)}
-                className="text-xs bg-transparent text-foreground outline-none"
-              >
-                <option value="">{t('bookingAnalytics.allStaff')}</option>
-                {staffList.map(s => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-            </div>
-          )}
-        </div>
+        {(locations.length > 1 || staffList.length > 1) && (
+          <div className="flex gap-2 flex-wrap">
+            {locations.length > 1 && (
+              <div className="flex items-center gap-1.5 bg-muted rounded-lg px-2.5 py-1.5">
+                <MapPin className="h-3 w-3 text-muted-foreground shrink-0" />
+                <select value={locationId} onChange={e => setLocationId(e.target.value)}
+                  className="text-xs bg-transparent text-foreground outline-none">
+                  <option value="">{t('bookingAnalytics.allLocations')}</option>
+                  {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+                </select>
+              </div>
+            )}
+            {staffList.length > 1 && (
+              <div className="flex items-center gap-1.5 bg-muted rounded-lg px-2.5 py-1.5">
+                <User className="h-3 w-3 text-muted-foreground shrink-0" />
+                <select value={staffId} onChange={e => setStaffId(e.target.value)}
+                  className="text-xs bg-transparent text-foreground outline-none">
+                  <option value="">{t('bookingAnalytics.allStaff')}</option>
+                  {staffList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Loading state */}
+      {/* ── Loading ────────────────────────────────────────────────────────── */}
       {loading && (
-        <div className="text-center text-sm text-muted-foreground py-8">
+        <div className="text-center text-sm text-muted-foreground py-10">
           {t('bookingAnalytics.loading')}
         </div>
       )}
 
-      {/* Content */}
+      {/* ── Content ────────────────────────────────────────────────────────── */}
       {!loading && summary && (
         <>
-          {/* Summary cards — 2 per row on mobile, 4 on desktop */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <SummaryCard
-              icon={<Calendar className="h-4 w-4 text-muted-foreground" />}
-              label={t('bookingAnalytics.summary.reservations')}
-              value={summary.total_bookings.toString()}
-            />
-            <SummaryCard
-              icon={<CheckCircle2 className="h-4 w-4 text-green-500" />}
-              label={t('bookingAnalytics.summary.completed')}
-              value={summary.completed.toString()}
-              accent="green"
-            />
-            <SummaryCard
-              icon={<TrendingUp className="h-4 w-4 text-primary" />}
-              label={t('bookingAnalytics.summary.revenue')}
-              value={`€${fmt(summary.revenue)}`}
-              accent="primary"
-            />
-            <SummaryCard
-              icon={<AlertCircle className="h-4 w-4 text-orange-500" />}
-              label={t('bookingAnalytics.summary.noShows')}
-              value={summary.no_shows.toString()}
-              accent="orange"
-            />
-          </div>
-
           {/* Empty state */}
-          {summary.total_bookings === 0 && (
-            <div className="text-center text-sm text-muted-foreground py-4 border border-dashed border-border rounded-2xl">
+          {summary.completed === 0 && (
+            <div className="text-center text-sm text-muted-foreground py-6 border border-dashed border-border rounded-2xl">
               {t('bookingAnalytics.empty')}
             </div>
           )}
 
-          {summary.total_bookings > 0 && (
-            <>
-              {/* By Staff — accordion */}
-              {byStaff.length > 0 && (
-                <section className="space-y-2">
-                  <h2 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    {t('bookingAnalytics.byStaff')}
-                  </h2>
+          {summary.completed > 0 && (
+            <div className="space-y-4">
+              {/* ── Per-staff cards ──────────────────────────────────────── */}
+              {byStaff.filter(s => s.completed > 0).map(staffRow => {
+                const key      = staffRow.staff_member_id ?? '__none__';
+                const services = staffSvcMap[key] ?? [];
 
-                  {/* Desktop: table header */}
-                  <div className="hidden sm:grid grid-cols-[1fr_80px_80px_100px_40px] gap-2 px-3 pb-1 text-[10px] text-muted-foreground font-medium uppercase tracking-wide">
-                    <span>{t('bookingAnalytics.allStaff').replace('Svi ', '').replace('All ', '')}</span>
-                    <span className="text-right">{t('bookingAnalytics.summary.completed')}</span>
-                    <span className="text-right">{t('bookingAnalytics.summary.noShows')}</span>
-                    <span className="text-right">{t('bookingAnalytics.summary.revenue')}</span>
-                    <span />
+                return (
+                  <div key={key} className="border border-border rounded-2xl overflow-hidden bg-card">
+                    {/* Staff name header */}
+                    <div className="px-4 py-3 border-b border-border bg-muted/40">
+                      <p className="text-sm font-semibold text-foreground">
+                        {staffRow.staff_name || t('bookingAnalytics.staffNoName')}
+                      </p>
+                    </div>
+
+                    {/* Service table */}
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="border-b border-border/60">
+                            <th className="text-left text-muted-foreground font-medium px-4 py-2">
+                              {t('bookingAnalytics.col.service')}
+                            </th>
+                            <th className="text-right text-muted-foreground font-medium px-3 py-2 whitespace-nowrap">
+                              {t('bookingAnalytics.col.count')}
+                            </th>
+                            <th className="text-right text-muted-foreground font-medium px-3 py-2 whitespace-nowrap">
+                              {t('bookingAnalytics.col.price')}
+                            </th>
+                            <th className="text-right text-muted-foreground font-medium px-4 py-2 whitespace-nowrap">
+                              {t('bookingAnalytics.col.total')}
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/40">
+                          {services.map(svc => (
+                            <tr key={svc.service_id || svc.service_name} className="hover:bg-muted/20 transition-colors">
+                              <td className="px-4 py-2.5 text-foreground">{svc.service_name}</td>
+                              <td className="px-3 py-2.5 text-right tabular-nums text-foreground font-medium">
+                                {svc.completed}
+                              </td>
+                              <td className="px-3 py-2.5 text-right tabular-nums text-muted-foreground whitespace-nowrap">
+                                {fmtMoney(svc.avg_price)}
+                              </td>
+                              <td className="px-4 py-2.5 text-right tabular-nums text-foreground font-semibold whitespace-nowrap">
+                                {fmtMoney(svc.revenue)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        {/* Staff total row */}
+                        <tfoot>
+                          <tr className="border-t border-border bg-muted/30">
+                            <td className="px-4 py-2.5 text-xs font-semibold text-foreground">
+                              {t('bookingAnalytics.staffTotal')}
+                            </td>
+                            <td className="px-3 py-2.5 text-right tabular-nums text-foreground font-semibold">
+                              {staffRow.completed}
+                            </td>
+                            <td className="px-3 py-2.5" />
+                            <td className="px-4 py-2.5 text-right tabular-nums text-primary font-bold text-sm whitespace-nowrap">
+                              {fmtMoney(staffRow.revenue)}
+                            </td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
                   </div>
+                );
+              })}
 
-                  <div className="space-y-1.5">
-                    {byStaff.map(s => {
-                      const key = s.staff_member_id ?? '__none__';
-                      const isExpanded = expandedStaff.has(key);
-                      const services = staffSvcMap[key] ?? [];
-
-                      return (
-                        <div key={key} className="border border-border rounded-2xl overflow-hidden bg-background">
-                          {/* Staff row */}
-                          <button
-                            onClick={() => services.length > 0 && toggleStaff(key)}
-                            className={`w-full text-left ${services.length > 0 ? 'cursor-pointer hover:bg-accent/50' : 'cursor-default'} transition-colors`}
-                          >
-                            {/* Mobile layout */}
-                            <div className="sm:hidden flex items-start justify-between px-3 pt-3 pb-2">
-                              <div>
-                                <p className="text-sm font-medium text-foreground">
-                                  {s.staff_name || t('bookingAnalytics.staffNoName')}
-                                </p>
-                                <div className="flex gap-3 mt-1">
-                                  <span className="text-xs text-green-600 font-medium">
-                                    ✓ {s.completed}
-                                  </span>
-                                  {s.no_shows > 0 && (
-                                    <span className="text-xs text-orange-500">
-                                      ✗ {s.no_shows}
-                                    </span>
-                                  )}
-                                  <span className="text-xs font-semibold text-foreground">
-                                    €{fmt(s.revenue)}
-                                  </span>
-                                </div>
-                              </div>
-                              {services.length > 0 && (
-                                <div className="text-muted-foreground pt-0.5">
-                                  {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Desktop layout */}
-                            <div className="hidden sm:grid grid-cols-[1fr_80px_80px_100px_40px] gap-2 items-center px-3 py-2.5">
-                              <span className="text-sm font-medium text-foreground truncate">
-                                {s.staff_name || t('bookingAnalytics.staffNoName')}
-                              </span>
-                              <span className="text-sm text-right text-green-600 font-medium">{s.completed}</span>
-                              <span className="text-sm text-right text-orange-500">{s.no_shows || '—'}</span>
-                              <span className="text-sm text-right font-semibold text-foreground">€{fmt(s.revenue)}</span>
-                              <span className="flex justify-end text-muted-foreground">
-                                {services.length > 0 && (
-                                  isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
-                                )}
-                              </span>
-                            </div>
-                          </button>
-
-                          {/* Service breakdown — expanded */}
-                          {isExpanded && services.length > 0 && (
-                            <div className="border-t border-border bg-muted/30 divide-y divide-border/50">
-                              {services.map(svc => (
-                                <div key={svc.service_id || svc.service_name} className="flex items-center justify-between px-4 py-2">
-                                  <span className="text-xs text-foreground">{svc.service_name}</span>
-                                  <div className="flex items-center gap-4">
-                                    <span className="text-xs text-green-600 font-medium">×{svc.completed}</span>
-                                    <span className="text-xs font-medium text-foreground w-20 text-right">€{fmt(svc.revenue)}</span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+              {/* ── Grand total ──────────────────────────────────────────── */}
+              <div className="border border-primary/30 rounded-2xl overflow-hidden bg-primary/5">
+                <div className="px-4 py-3 flex items-center justify-between gap-4">
+                  <span className="text-xs font-bold text-foreground uppercase tracking-wide">
+                    {t('bookingAnalytics.grandTotal')}
+                  </span>
+                  <div className="flex items-center gap-4 shrink-0">
+                    <span className="text-xs text-muted-foreground tabular-nums">
+                      {summary.completed}&nbsp;×
+                    </span>
+                    <span className="text-base font-bold text-primary tabular-nums">
+                      {fmtMoney(summary.revenue)}
+                    </span>
                   </div>
-                </section>
-              )}
-
-              {/* By Service */}
-              {bySvc.length > 0 && (
-                <section className="space-y-2">
-                  <h2 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                    <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-                    {t('bookingAnalytics.byService')}
-                  </h2>
-
-                  {/* Desktop header */}
-                  <div className="hidden sm:grid grid-cols-[1fr_80px_80px_100px] gap-2 px-3 pb-1 text-[10px] text-muted-foreground font-medium uppercase tracking-wide">
-                    <span>{t('bookingAnalytics.services')}</span>
-                    <span className="text-right">{t('bookingAnalytics.summary.completed')}</span>
-                    <span className="text-right">{t('bookingAnalytics.summary.noShows')}</span>
-                    <span className="text-right">{t('bookingAnalytics.summary.revenue')}</span>
+                </div>
+                {/* No-show note — small, secondary */}
+                {summary.no_shows > 0 && (
+                  <div className="px-4 pb-2.5 text-[11px] text-muted-foreground">
+                    {summary.no_shows} {t('bookingAnalytics.noShowsNote')}
                   </div>
-
-                  <div className="border border-border rounded-2xl overflow-hidden bg-background divide-y divide-border/50">
-                    {bySvc.map(svc => (
-                      <div key={svc.service_id || svc.service_name}>
-                        {/* Mobile */}
-                        <div className="sm:hidden flex items-start justify-between px-3 py-2.5">
-                          <p className="text-sm text-foreground flex-1 pr-2">{svc.service_name}</p>
-                          <div className="text-right shrink-0">
-                            <p className="text-sm font-semibold text-foreground">€{fmt(svc.revenue)}</p>
-                            <p className="text-[11px] text-muted-foreground">
-                              ✓{svc.completed}{svc.no_shows > 0 ? ` · ✗${svc.no_shows}` : ''}
-                            </p>
-                          </div>
-                        </div>
-                        {/* Desktop */}
-                        <div className="hidden sm:grid grid-cols-[1fr_80px_80px_100px] gap-2 items-center px-3 py-2.5">
-                          <span className="text-sm text-foreground truncate">{svc.service_name}</span>
-                          <span className="text-sm text-right text-green-600 font-medium">{svc.completed}</span>
-                          <span className="text-sm text-right text-orange-500">{svc.no_shows || '—'}</span>
-                          <span className="text-sm text-right font-semibold text-foreground">€{fmt(svc.revenue)}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
-            </>
+                )}
+              </div>
+            </div>
           )}
         </>
       )}
-    </div>
-  );
-}
-
-// ── Summary card ───────────────────────────────────────────────────────────
-
-function SummaryCard({
-  icon, label, value, accent,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  accent?: 'green' | 'primary' | 'orange';
-}) {
-  const valueClass =
-    accent === 'green'   ? 'text-green-600' :
-    accent === 'primary' ? 'text-primary'   :
-    accent === 'orange'  ? 'text-orange-500':
-    'text-foreground';
-
-  return (
-    <div className="border border-border rounded-2xl p-3 bg-background flex flex-col gap-1.5">
-      <div className="flex items-center gap-1.5">
-        {icon}
-        <span className="text-[11px] text-muted-foreground font-medium leading-none">{label}</span>
-      </div>
-      <p className={`text-xl font-bold ${valueClass} leading-none tabular-nums`}>{value}</p>
     </div>
   );
 }
