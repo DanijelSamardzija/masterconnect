@@ -463,6 +463,7 @@ export default function BusinessSetupPage() {
 
   // ── Hours state ────────────────────────────────────────────────────────────
   const [primaryLocId, setPrimaryLocId] = useState<string | null>(null);
+  const [hoursLocId, setHoursLocId]     = useState<string | null>(null);
   const [hours, setHours] = useState<DayHours[]>(DEFAULT_HOURS);
   const [deletedPeriods, setDeletedPeriods] = useState<Array<{ day_of_week: number; sort_order: number }>>([]);
   const [hoursLoading, setHoursLoading] = useState(initialTab === 'hours');
@@ -708,6 +709,7 @@ export default function BusinessSetupPage() {
           .single();
         if (locData?.id) {
           setPrimaryLocId(locData.id);
+          setHoursLocId(locData.id);
           await Promise.all([loadHours(locData.id), loadClosures(locData.id)]);
         } else {
           setHoursLoading(false);
@@ -995,13 +997,13 @@ export default function BusinessSetupPage() {
   }
 
   async function handleSaveHours() {
-    if (!primaryLocId) { toast.error(t('setup.error.saveFailed')); return; }
+    if (!hoursLocId) { toast.error(t('setup.error.saveFailed')); return; }
     setHoursSaving(true);
 
     // Delete removed extra periods first
     for (const dp of deletedPeriods) {
       const { data } = await (supabase as any).rpc('delete_opening_hour_period', {
-        p_location_id: primaryLocId,
+        p_location_id: hoursLocId,
         p_day_of_week: dp.day_of_week,
         p_sort_order: dp.sort_order,
       });
@@ -1017,7 +1019,7 @@ export default function BusinessSetupPage() {
     for (const h of hours) {
       if (h.is_closed) {
         const { data } = await (supabase as any).rpc('upsert_opening_hours', {
-          p_location_id: primaryLocId,
+          p_location_id: hoursLocId,
           p_day_of_week: h.day_of_week,
           p_open_time: '09:00',
           p_close_time: '17:00',
@@ -1033,7 +1035,7 @@ export default function BusinessSetupPage() {
       } else {
         for (const period of h.periods) {
           const { data } = await (supabase as any).rpc('upsert_opening_hours', {
-            p_location_id: primaryLocId,
+            p_location_id: hoursLocId,
             p_day_of_week: h.day_of_week,
             p_open_time: period.start_time,
             p_close_time: period.end_time,
@@ -1070,7 +1072,7 @@ export default function BusinessSetupPage() {
   }
 
   async function handleSaveClosure(force = false) {
-    if (!primaryLocId || !closureFrom || !closureTo) return;
+    if (!hoursLocId || !closureFrom || !closureTo) return;
     if (closureTo < closureFrom) {
       toast.error(t('setup.closures.from') + ' > ' + t('setup.closures.to'));
       return;
@@ -1078,7 +1080,7 @@ export default function BusinessSetupPage() {
     setClosureSaving(true);
     setClosureWarning(null);
     const { data } = await (supabase as any).rpc('create_business_closure', {
-      p_location_id: primaryLocId,
+      p_location_id: hoursLocId,
       p_date_from: closureFrom,
       p_date_to: closureTo,
       p_reason: closureReason,
@@ -1097,7 +1099,7 @@ export default function BusinessSetupPage() {
     }
     toast.success(t('setup.closures.saved'));
     closeClosureForm();
-    loadClosures(primaryLocId);
+    loadClosures(hoursLocId);
   }
 
   async function handleDeleteClosure(id: string) {
@@ -1109,7 +1111,7 @@ export default function BusinessSetupPage() {
     const result = data as { ok: boolean } | null;
     if (!result?.ok) { toast.error(t('setup.error.saveFailed')); return; }
     toast.success(t('setup.closures.deleted'));
-    if (primaryLocId) loadClosures(primaryLocId);
+    if (hoursLocId) loadClosures(hoursLocId);
   }
 
   // ── Location form helpers ──────────────────────────────────────────────────
@@ -2205,11 +2207,36 @@ export default function BusinessSetupPage() {
                 </div>
               </div>
 
+              {/* Location selector — only when business has multiple locations */}
+              {locations.filter(l => l.is_active).length > 1 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {locations.filter(l => l.is_active).map(loc => (
+                    <button
+                      key={loc.id}
+                      onClick={async () => {
+                        if (loc.id === hoursLocId) return;
+                        setHoursLocId(loc.id);
+                        setHoursLoading(true);
+                        await Promise.all([loadHours(loc.id), loadClosures(loc.id)]);
+                      }}
+                      className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                        hoursLocId === loc.id
+                          ? 'border-primary bg-primary/10 text-primary font-semibold'
+                          : 'border-border text-muted-foreground hover:border-primary/50 hover:text-foreground'
+                      }`}
+                    >
+                      <MapPin className="w-3 h-3 shrink-0" />
+                      {loc.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {hoursLoading ? (
                 <div className="flex justify-center py-8">
                   <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                 </div>
-              ) : !primaryLocId ? (
+              ) : !hoursLocId ? (
                 <p className="text-sm text-muted-foreground border border-border rounded-lg p-4 bg-accent/40">
                   {t('setup.profile.inactive')}
                 </p>
