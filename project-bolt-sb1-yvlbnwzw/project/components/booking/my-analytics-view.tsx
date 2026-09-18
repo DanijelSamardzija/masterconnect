@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
-import { BarChart3, MapPin } from 'lucide-react';
+import { BarChart3, MapPin, Download } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -117,6 +117,60 @@ export function MyAnalyticsView({ nav }: { nav: ReactNode }) {
   const summary   = data?.summary;
   const services  = data?.by_service ?? [];
 
+  function downloadCSV() {
+    if (!summary) return;
+    const { from, to } = getPeriodRange(period, customFrom, customTo);
+    const bom = '﻿';
+    const header = 'Usluga,Broj termina,Prosj. cijena (EUR),Ukupno (EUR)';
+    const rows = services.map(svc =>
+      `"${svc.service_name}",${svc.completed},${Number(svc.avg_price).toFixed(2)},${Number(svc.revenue).toFixed(2)}`
+    );
+    rows.push(`"UKUPNO",${summary.completed},,${Number(summary.revenue).toFixed(2)}`);
+    const csv = bom + [header, ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `moja-analitika-${from}_${to}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function printAnalyticsPDF() {
+    if (!summary) return;
+    const { from, to } = getPeriodRange(period, customFrom, customTo);
+    const title = `Moja analitika: ${from} – ${to}`;
+    const serviceRows = services.map(svc =>
+      `<tr><td>${svc.service_name}</td><td>${svc.completed}</td><td>€ ${Number(svc.avg_price).toFixed(2)}</td><td>€ ${Number(svc.revenue).toFixed(2)}</td></tr>`
+    ).join('');
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title>
+<style>
+  body{font-family:Arial,sans-serif;font-size:11px;margin:16px;color:#111}
+  h2{font-size:14px;margin-bottom:12px}
+  table{border-collapse:collapse;width:100%;margin-bottom:8px}
+  th,td{border:1px solid #ccc;padding:4px 8px;text-align:right}
+  th{background:#f0f0f0;font-size:10px}
+  th:first-child,td:first-child{text-align:left}
+  tfoot td{background:#f5f5f5;font-weight:bold}
+  .grand{border-top:2px solid #333;margin-top:16px;padding-top:8px;font-weight:bold;font-size:12px}
+  @media print{@page{margin:10mm}}
+</style></head><body>
+<h2>${title}</h2>
+<table>
+  <thead><tr><th>Usluga</th><th>Broj</th><th>Prosj. cijena</th><th>Ukupno</th></tr></thead>
+  <tbody>${serviceRows}</tbody>
+  <tfoot><tr><td>Ukupno</td><td>${summary.completed}</td><td></td><td>€ ${Number(summary.revenue).toFixed(2)}</td></tr></tfoot>
+</table>
+<div class="grand">Ukupno: ${summary.completed} termina &nbsp;·&nbsp; € ${Number(summary.revenue).toFixed(2)}</div>
+</body></html>`;
+    const win = window.open('', '_blank');
+    if (!win) return;
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    setTimeout(() => { win.print(); win.close(); }, 300);
+  }
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
       {nav}
@@ -129,15 +183,35 @@ export function MyAnalyticsView({ nav }: { nav: ReactNode }) {
 
       {/* Header */}
       <div className="flex items-center gap-2.5">
-        <div className="p-2 rounded-xl bg-primary/10">
+        <div className="p-2 rounded-xl bg-primary/10 shrink-0">
           <BarChart3 className="h-5 w-5 text-primary" />
         </div>
-        <div>
+        <div className="flex-1 min-w-0">
           <h1 className="text-base font-semibold text-foreground leading-tight">
             {t('myAnalytics.title')}
           </h1>
           <p className="text-xs text-muted-foreground">{t('myAnalytics.subtitle')}</p>
         </div>
+        {summary && summary.completed > 0 && (
+          <div className="flex gap-1.5 shrink-0">
+            <button
+              onClick={downloadCSV}
+              title={t('schedule.download')}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-border text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            >
+              <Download className="h-3.5 w-3.5" />
+              <span>CSV</span>
+            </button>
+            <button
+              onClick={printAnalyticsPDF}
+              title={t('schedule.downloadPDF')}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-border text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            >
+              <Download className="h-3.5 w-3.5" />
+              <span>PDF</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Filters */}
