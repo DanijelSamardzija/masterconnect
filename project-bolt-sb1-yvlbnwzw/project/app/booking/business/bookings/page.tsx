@@ -75,6 +75,10 @@ function OwnerBookingsContent() {
   });
   const [staffFilter, setStaffFilter] = useState<string>('all');
   const [isOwner, setIsOwner]     = useState<boolean | null>(null);
+  const [staffMemberId, setStaffMemberId] = useState<string | null>(null);
+  const [staffBizId, setStaffBizId]       = useState<string | null>(null);
+  const [staffPerms, setStaffPerms]       = useState<{ can_cancel_bookings: boolean; can_reschedule_bookings: boolean }>({ can_cancel_bookings: false, can_reschedule_bookings: false });
+  const [staffBookings, setStaffBookings] = useState<Booking[]>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   // Reassign modal
@@ -130,6 +134,10 @@ function OwnerBookingsContent() {
     if (isOwner) fetchBookings();
   }, [isOwner, filter, staffFilter]);
 
+  useEffect(() => {
+    if (staffMemberId && staffBizId) fetchStaffBookings();
+  }, [staffMemberId, staffBizId]);
+
   // Fetch slots whenever week, service, or staff changes (and modal is open)
   useEffect(() => {
     if (addOpen && addServiceId && locationId) fetchSlots();
@@ -137,12 +145,29 @@ function OwnerBookingsContent() {
 
   const checkOwnerRole = async () => {
     if (!profile) return;
-    const { data } = await (supabase as any)
+    const { data: ownerData } = await (supabase as any)
       .from('staff_members').select('role')
       .eq('business_id', profile.id).eq('user_id', profile.id)
       .eq('is_active', true).in('role', ['owner', 'manager'])
       .limit(1).maybeSingle();
-    setIsOwner(!!data);
+    if (ownerData) { setIsOwner(true); return; }
+
+    // Not owner — check if staff member of another business
+    const { data: smData } = await (supabase as any)
+      .from('staff_members').select('id, business_id, permissions')
+      .eq('user_id', profile.id).eq('is_active', true)
+      .not('role', 'in', '("owner","manager")')
+      .limit(1).maybeSingle();
+    if (smData) {
+      const p = smData.permissions ?? {};
+      setStaffMemberId(smData.id);
+      setStaffBizId(smData.business_id);
+      setStaffPerms({
+        can_cancel_bookings:     !!p.can_cancel_bookings,
+        can_reschedule_bookings: !!p.can_reschedule_bookings,
+      });
+    }
+    setIsOwner(false);
   };
 
   const fetchStaff = async () => {
@@ -169,6 +194,27 @@ function OwnerBookingsContent() {
       .eq('business_id', profile.id).eq('is_active', true)
       .order('is_primary', { ascending: false }).limit(1).maybeSingle();
     if (data) setLocationId(data.id);
+  };
+
+  const fetchStaffBookings = async () => {
+    if (!staffMemberId || !staffBizId) return;
+    setLoading(true);
+    const { data } = await (supabase as any)
+      .from('bookings')
+      .select('id, starts_at, ends_at, service_name_snapshot, status, staff_member_id, notes, client_id, guest_name, guest_phone, profiles!bookings_client_id_fkey(name, phone)')
+      .eq('business_id', staffBizId)
+      .eq('staff_member_id', staffMemberId)
+      .gte('starts_at', new Date().toISOString())
+      .in('status', ['pending', 'confirmed'])
+      .order('starts_at', { ascending: true })
+      .limit(50);
+    setStaffBookings((data || []).map((b: any) => ({
+      ...b,
+      client_id:    b.client_id    ?? null,
+      client_name:  b.profiles?.name  ?? null,
+      client_phone: b.profiles?.phone ?? null,
+    })));
+    setLoading(false);
   };
 
   const fetchBookings = async () => {
@@ -226,7 +272,8 @@ function OwnerBookingsContent() {
   const handleCancel = async () => {
     if (!cancelBookingId) return;
     setActionLoading(cancelBookingId + '-cancel');
-    const { data, error } = await (supabase as any).rpc('owner_cancel_booking', {
+    const rpc = isOwner ? 'owner_cancel_booking' : 'staff_cancel_booking';
+    const { data, error } = await (supabase as any).rpc(rpc, {
       p_booking_id: cancelBookingId,
       p_reason: cancelReason.trim() || null,
     });
@@ -238,7 +285,11 @@ function OwnerBookingsContent() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ type: 'cancellation', booking_id: cancelBookingId }),
     }).catch(() => {});
-    setBookings(prev => prev.filter(b => b.id !== cancelBookingId));
+    if (isOwner) {
+      setBookings(prev => prev.filter(b => b.id !== cancelBookingId));
+    } else {
+      setStaffBookings(prev => prev.filter(b => b.id !== cancelBookingId));
+    }
     setCancelOpen(false);
     setCancelBookingId(null);
     setCancelReason('');
@@ -294,7 +345,8 @@ function OwnerBookingsContent() {
     if (!rescheduleBookingId || !rescheduleDate || !rescheduleTime) return;
     setRescheduleLoading(true);
     const isoStr = new Date(`${rescheduleDate}T${rescheduleTime}`).toISOString();
-    const { data, error } = await (supabase as any).rpc('owner_reschedule_booking', {
+    const rpc = isOwner ? 'owner_reschedule_booking' : 'staff_reschedule_booking';
+    const { data, error } = await (supabase as any).rpc(rpc, {
       p_booking_id:    rescheduleBookingId,
       p_new_starts_at: isoStr,
     });
@@ -314,7 +366,7 @@ function OwnerBookingsContent() {
     }).catch(() => {});
     setRescheduleOpen(false);
     setRescheduleBookingId(null);
-    fetchBookings();
+    if (isOwner) fetchBookings(); else fetchStaffBookings();
   };
 
   const openHistory = async (clientId: string, clientName: string) => {
@@ -392,10 +444,189 @@ function OwnerBookingsContent() {
     cancelled: { label: t('ownerBookings.status.cancelled'), cls: 'bg-muted text-muted-foreground', icon: <XCircle className="h-3 w-3" /> },
   };
 
-  if (isOwner === false) {
+  if (isOwner === false && !staffMemberId) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <p className="text-sm text-muted-foreground">{t('ownerBookings.noPermission')}</p>
+      </div>
+    );
+  }
+
+  // Staff view (non-owner staff member with bookings assigned to them)
+  if (isOwner === false && staffMemberId) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="max-w-2xl mx-auto px-4 py-8 space-y-5">
+          <BusinessBookingNav active="bookings" />
+          <div>
+            <h1 className="text-xl font-bold text-foreground">{t('ownerBookings.staffView.title')}</h1>
+            <p className="text-xs text-muted-foreground">{t('ownerBookings.staffView.subtitle')}</p>
+          </div>
+
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <div className="h-7 w-7 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
+            </div>
+          ) : staffBookings.length === 0 ? (
+            <div className="bg-card border border-border rounded-2xl px-5 py-12 text-center">
+              <Calendar className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-40" />
+              <p className="text-sm text-muted-foreground">{t('ownerBookings.staffView.empty')}</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {staffBookings.map(b => {
+                const sc = statusConfig[b.status] ?? { label: b.status, cls: 'bg-muted text-muted-foreground', icon: null };
+                const isPast   = new Date(b.starts_at) < new Date();
+                const isActive = ['pending', 'confirmed'].includes(b.status);
+                const client   = b.client_name || b.guest_name;
+                return (
+                  <div key={b.id} className="bg-card border border-border rounded-2xl p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">
+                          {new Date(b.starts_at).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(b.starts_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
+                          {' – '}
+                          {new Date(b.ends_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                      <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full shrink-0 ${sc.cls}`}>
+                        {sc.icon} {sc.label}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span className="font-medium text-foreground truncate">{b.service_name_snapshot}</span>
+                    </div>
+                    {client && (
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Users className="h-3 w-3 shrink-0" />
+                        <span className="font-medium text-foreground">{client}</span>
+                        {(b.client_phone || b.guest_phone) && (
+                          <span>· {b.client_phone || b.guest_phone}</span>
+                        )}
+                      </div>
+                    )}
+                    {b.notes?.trim() && <p className="text-xs text-muted-foreground/70 italic">{b.notes}</p>}
+                    {isActive && (staffPerms.can_reschedule_bookings || staffPerms.can_cancel_bookings) && (
+                      <div className="flex items-center gap-2 pt-1 border-t border-border">
+                        {!isPast && staffPerms.can_reschedule_bookings && (
+                          <button onClick={() => openReschedule(b)} disabled={!!actionLoading}
+                            className="flex items-center justify-center gap-1.5 bg-muted hover:bg-muted/80 disabled:opacity-50 text-foreground rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
+                          >
+                            <Clock className="h-3.5 w-3.5" />
+                            {t('ownerBookings.reschedule')}
+                          </button>
+                        )}
+                        {!isPast && staffPerms.can_cancel_bookings && (
+                          <button onClick={() => openCancelModal(b.id)} disabled={!!actionLoading}
+                            className="flex items-center justify-center gap-1.5 bg-red-100 hover:bg-red-200 dark:bg-red-950 dark:hover:bg-red-900 disabled:opacity-50 text-red-600 dark:text-red-400 rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
+                          >
+                            <XCircle className="h-3.5 w-3.5" />
+                            {t('ownerBookings.cancel')}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Reschedule modal (reused) */}
+        <Dialog open={rescheduleOpen} onOpenChange={o => { if (!o) { setRescheduleOpen(false); setRescheduleBookingId(null); } }}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-orange-500" />
+                {t('ownerBookings.rescheduleModal.title')}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-1">
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">{t('ownerBookings.rescheduleModal.dateLabel')}</label>
+                <div className="flex items-center justify-between mb-1">
+                  <button onClick={() => setRescheduleWeek(w => addDays(w, -7))} className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground"><ChevronLeft className="h-4 w-4" /></button>
+                  <span className="text-xs font-semibold text-foreground">
+                    {rescheduleWeek.toLocaleDateString(locale, { day: 'numeric', month: 'long' })}
+                    {' – '}
+                    {addDays(rescheduleWeek, 6).toLocaleDateString(locale, { day: 'numeric', month: 'long' })}
+                  </span>
+                  <button onClick={() => setRescheduleWeek(w => addDays(w, 7))} className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground"><ChevronRight className="h-4 w-4" /></button>
+                </div>
+                <div className="grid grid-cols-7 gap-1">
+                  {Array.from({ length: 7 }, (_, i) => addDays(rescheduleWeek, i)).map(day => {
+                    const key = toDateKey(day);
+                    const isSelected = rescheduleDate === key;
+                    const isToday = toDateKey(new Date()) === key;
+                    const isPastDay = day < new Date(new Date().toDateString());
+                    return (
+                      <button key={key} onClick={() => !isPastDay && setRescheduleDate(key)} disabled={isPastDay}
+                        className={`flex flex-col items-center py-1.5 rounded-lg text-[10px] font-semibold transition-colors ${isSelected ? 'bg-orange-500 text-white' : isPastDay ? 'bg-muted/40 text-muted-foreground/60 cursor-default' : 'bg-muted text-foreground hover:bg-orange-100 dark:hover:bg-orange-950'}`}
+                      >
+                        <span>{day.toLocaleDateString(locale, { weekday: 'short' }).replace(/\.$/, '')}</span>
+                        <span className={`text-xs font-bold ${isToday && !isSelected ? 'text-orange-500' : ''}`}>{day.getDate()}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">{t('ownerBookings.rescheduleModal.timeLabel')}</label>
+                <div className="flex items-center gap-2">
+                  <select value={(rescheduleTime || '09:00').split(':')[0]} onChange={e => setRescheduleTime(`${e.target.value}:${(rescheduleTime || '09:00').split(':')[1]}`)} className="flex-1 border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    {Array.from({ length: 18 }, (_, i) => String(i + 6).padStart(2, '0')).map(h => <option key={h} value={h}>{h}</option>)}
+                  </select>
+                  <span className="text-muted-foreground font-bold text-lg">:</span>
+                  <select value={(rescheduleTime || '09:00').split(':')[1]} onChange={e => setRescheduleTime(`${(rescheduleTime || '09:00').split(':')[0]}:${e.target.value}`)} className="flex-1 border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    {['00','05','10','15','20','25','30','35','40','45','50','55'].map(m => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                </div>
+              </div>
+              <button onClick={handleReschedule} disabled={rescheduleLoading || !rescheduleDate || !rescheduleTime}
+                className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-40 text-white rounded-xl py-2.5 text-sm font-semibold transition-colors"
+              >
+                {rescheduleLoading ? '...' : t('ownerBookings.rescheduleModal.confirm')}
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Cancel modal (reused) */}
+        <Dialog open={cancelOpen} onOpenChange={o => { if (!o) { setCancelOpen(false); setCancelBookingId(null); } }}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <XCircle className="h-4 w-4 text-red-500" />
+                {t('ownerBookings.cancelModal.title')}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-1">
+              <textarea
+                value={cancelReason}
+                onChange={e => setCancelReason(e.target.value)}
+                placeholder={t('ownerBookings.cancelModal.reasonPlaceholder')}
+                rows={3}
+                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+              />
+              <div className="flex gap-2">
+                <button onClick={() => { setCancelOpen(false); setCancelBookingId(null); }}
+                  className="flex-1 border border-border rounded-xl py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors"
+                >
+                  {t('ownerBookings.cancelModal.back')}
+                </button>
+                <button onClick={handleCancel} disabled={!!actionLoading}
+                  className="flex-1 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white rounded-xl py-2.5 text-sm font-semibold transition-colors"
+                >
+                  {actionLoading ? '...' : t('ownerBookings.cancelModal.confirm')}
+                </button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }

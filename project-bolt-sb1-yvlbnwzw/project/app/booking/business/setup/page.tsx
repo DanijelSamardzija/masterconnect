@@ -1256,10 +1256,11 @@ export default function BusinessSetupPage() {
     setStaffPermissionsMap((prev) => ({
       ...prev,
       [staffId]: {
-        can_set_hours:       !!rawPerms.can_set_hours,
-        can_create_bookings: !!rawPerms.can_create_bookings,
-        can_cancel_bookings: !!rawPerms.can_cancel_bookings,
-        can_block_time:      !!rawPerms.can_block_time,
+        can_set_hours:            !!rawPerms.can_set_hours,
+        can_create_bookings:      !!rawPerms.can_create_bookings,
+        can_cancel_bookings:      !!rawPerms.can_cancel_bookings,
+        can_block_time:           !!rawPerms.can_block_time,
+        can_reschedule_bookings:  !!rawPerms.can_reschedule_bookings,
       },
     }));
   }
@@ -2920,10 +2921,11 @@ export default function BusinessSetupPage() {
                                   <p className="text-[11px] text-muted-foreground mb-3">{t('setup.staff.permissions.hint')}</p>
                                   <div className="flex flex-col gap-2 mb-3">
                                     {([
-                                      { key: 'can_set_hours',       label: t('setup.staff.permissions.setHours') },
-                                      { key: 'can_create_bookings', label: t('setup.staff.permissions.createBookings') },
-                                      { key: 'can_cancel_bookings', label: t('setup.staff.permissions.cancelBookings') },
-                                      { key: 'can_block_time',      label: t('setup.staff.permissions.blockTime') },
+                                      { key: 'can_set_hours',           label: t('setup.staff.permissions.setHours') },
+                                      { key: 'can_create_bookings',     label: t('setup.staff.permissions.createBookings') },
+                                      { key: 'can_cancel_bookings',     label: t('setup.staff.permissions.cancelBookings') },
+                                      { key: 'can_reschedule_bookings', label: t('setup.staff.permissions.rescheduleBookings') },
+                                      { key: 'can_block_time',          label: t('setup.staff.permissions.blockTime') },
                                     ] as const).map(({ key, label }) => {
                                       const enabled = staffPermissionsMap[sm.id]?.[key] ?? false;
                                       return (
