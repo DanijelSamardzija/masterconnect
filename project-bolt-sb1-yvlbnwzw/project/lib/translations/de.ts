@@ -2532,6 +2532,7 @@ export default {
   'setup.tab.staff': 'Personal',
   'setup.staff.heading': 'Personal',
   'setup.staff.desc': 'Mitarbeiter und Zeitpläne verwalten',
+  'setup.staff.descMultiLoc': 'Mitarbeiter, ihre Standorte und Zeitpläne verwalten',
   'setup.staff.empty': 'Noch keine Mitarbeiter hinzugefügt.',
   'setup.staff.role.owner': 'Inhaber',
   'setup.staff.role.manager': 'Manager',

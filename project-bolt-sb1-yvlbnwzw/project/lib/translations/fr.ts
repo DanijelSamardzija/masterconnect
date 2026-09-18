@@ -2467,6 +2467,7 @@ export default {
   'setup.tab.staff': 'Personnel',
   'setup.staff.heading': 'Personnel',
   'setup.staff.desc': 'Gérer les employés et leurs horaires',
+  'setup.staff.descMultiLoc': 'Gérer les employés, leurs sites et horaires',
   'setup.staff.empty': 'Aucun membre du personnel ajouté.',
   'setup.staff.role.owner': 'Propriétaire',
   'setup.staff.role.manager': 'Manager',

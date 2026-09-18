@@ -2542,6 +2542,7 @@ export default {
   'setup.tab.staff': 'Osoblje',
   'setup.staff.heading': 'Osoblje',
   'setup.staff.desc': 'Upravljajte radnicima i njihovim rasporedom',
+  'setup.staff.descMultiLoc': 'Upravljajte radnicima i njihovim lokacijama i rasporedom',
   'setup.staff.empty': 'Nema dodanih radnika.',
   'setup.staff.role.owner': 'Vlasnik',
   'setup.staff.role.manager': 'Menadžer',

@@ -2542,6 +2542,7 @@ export default {
   'setup.tab.staff': 'Staff',
   'setup.staff.heading': 'Staff',
   'setup.staff.desc': 'Manage workers and their schedules',
+  'setup.staff.descMultiLoc': 'Manage workers, their locations and schedules',
   'setup.staff.empty': 'No staff members added yet.',
   'setup.staff.role.owner': 'Owner',
   'setup.staff.role.manager': 'Manager',

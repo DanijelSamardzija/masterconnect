@@ -2787,7 +2787,11 @@ export default function BusinessSetupPage() {
             <div className="flex flex-col gap-4">
               <div>
                 <h2 className="font-semibold">{t('setup.staff.heading')}</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">{t('setup.staff.desc')}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {locations.filter(l => l.is_active).length > 1
+                    ? t('setup.staff.descMultiLoc')
+                    : t('setup.staff.desc')}
+                </p>
               </div>
 
               {!isBusinessActive ? (
