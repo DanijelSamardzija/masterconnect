@@ -2,14 +2,15 @@
 
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/language-context';
-import { Calendar, Clock, ChevronLeft } from 'lucide-react';
+import { Calendar, BarChart3, ChevronLeft } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-export type StaffBookingTab = 'bookings' | 'schedule';
+export type StaffBookingTab = 'bookings' | 'schedule' | 'my-analytics';
 
 const NAV_ITEMS: { tab: StaffBookingTab; href: string; labelKey: string; icon: ReactNode }[] = [
-  { tab: 'bookings', href: '/dashboard/staff/bookings', labelKey: 'staffDashboard.title',      icon: <Calendar className="h-3.5 w-3.5" /> },
-  { tab: 'schedule', href: '/dashboard/staff/schedule', labelKey: 'schedule.staffView.title',  icon: <Calendar className="h-3.5 w-3.5" /> },
+  { tab: 'bookings',     href: '/dashboard/staff/bookings',      labelKey: 'staffDashboard.title',     icon: <Calendar  className="h-3.5 w-3.5" /> },
+  { tab: 'schedule',     href: '/dashboard/staff/schedule',      labelKey: 'schedule.staffView.title', icon: <Calendar  className="h-3.5 w-3.5" /> },
+  { tab: 'my-analytics', href: '/dashboard/staff/my-analytics',  labelKey: 'myAnalytics.navLabel',     icon: <BarChart3 className="h-3.5 w-3.5" /> },
 ];
 
 export function StaffBookingNav({ active }: { active?: StaffBookingTab }) {

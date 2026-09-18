@@ -2,13 +2,13 @@
 
 import { ProtectedRoute } from '@/components/protected-route';
 import { MyAnalyticsView } from '@/components/booking/my-analytics-view';
-import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
+import { StaffBookingNav } from '@/components/booking/staff-booking-nav';
 
 function MyAnalyticsInner() {
-  return <MyAnalyticsView nav={<BusinessBookingNav active="my-analytics" />} />;
+  return <MyAnalyticsView nav={<StaffBookingNav active="my-analytics" />} />;
 }
 
-export default function MyAnalyticsPage() {
+export default function StaffMyAnalyticsPage() {
   return (
     <ProtectedRoute>
       <MyAnalyticsInner />
