@@ -1,11 +1,10 @@
 -- ==========================================================================
--- Analytics: filter staff by primary_location_id when p_location_id is given
+-- Analytics: filter staff cards by primary_location_id when p_location_id given
 --
--- Before: by_staff and staff_service_breakdown filtered only by b.location_id
---         (where the booking happened), so staff from other locations could
---         appear if they had a booking at that location.
--- After:  when p_location_id is given, also require sm.primary_location_id = p_location_id
---         so analytics respects the staff assignment, not just booking location.
+-- Summary/by_service: filter by b.location_id (bookings AT that location)
+-- By_staff/breakdown: filter by sm.primary_location_id (staff ASSIGNED there)
+--   so staff appear under their assigned location regardless of booking location_id.
+--   Danijel's booking with location_id=NULL still counts if he is assigned to Berbera.
 -- ==========================================================================
 
 CREATE OR REPLACE FUNCTION public.get_booking_analytics(
@@ -63,7 +62,7 @@ BEGIN
     v_to := ((p_date_to + 1)::TEXT || ' 00:00:00')::TIMESTAMP AT TIME ZONE v_tz;
   END IF;
 
-  -- Summary: filter bookings by location (booking location, not staff assignment)
+  -- Summary: all bookings AT that location (by booking location_id)
   SELECT jsonb_build_object(
     'total_bookings', COUNT(*),
     'completed',      COUNT(*) FILTER (WHERE b.status = 'completed'),
@@ -84,8 +83,9 @@ BEGIN
     AND  (p_staff_id IS NULL    OR b.staff_member_id  = p_staff_id)
     AND  (p_service_id IS NULL  OR b.service_id       = p_service_id);
 
-  -- By staff: filter by BOTH booking location AND staff assignment location
-  -- so only staff assigned to the selected location appear in the cards.
+  -- By staff: show staff ASSIGNED to the selected location (primary_location_id),
+  -- counting all their bookings regardless of booking location_id.
+  -- This way staff appear under their assignment even if booking location is NULL.
   SELECT COALESCE(jsonb_agg(row_data ORDER BY (row_data->>'revenue')::numeric DESC), '[]'::jsonb)
   INTO   v_by_staff
   FROM (
@@ -101,11 +101,10 @@ BEGIN
                          ), 0)
     ) AS row_data
     FROM   bookings b
-    LEFT   JOIN staff_members sm ON sm.id  = b.staff_member_id
+    JOIN   staff_members sm ON sm.id  = b.staff_member_id
     LEFT   JOIN profiles p        ON p.id   = sm.user_id
     LEFT   JOIN service_catalog sc ON sc.id = b.service_id
     WHERE  b.business_id  = v_biz_id
-      AND  (p_location_id IS NULL OR b.location_id          = p_location_id)
       AND  (p_location_id IS NULL OR sm.primary_location_id = p_location_id)
       AND  (v_from IS NULL        OR b.starts_at            >= v_from)
       AND  (v_to   IS NULL        OR b.starts_at            <  v_to)
@@ -114,7 +113,7 @@ BEGIN
     GROUP  BY b.staff_member_id
   ) sub;
 
-  -- By service total
+  -- By service total: bookings AT that location
   SELECT COALESCE(jsonb_agg(row_data ORDER BY (row_data->>'revenue')::numeric DESC), '[]'::jsonb)
   INTO   v_by_svc
   FROM (
@@ -140,7 +139,7 @@ BEGIN
     GROUP  BY b.service_id
   ) sub;
 
-  -- Staff × Service breakdown: also filter by staff assignment location
+  -- Staff × Service breakdown: staff ASSIGNED to that location, all their bookings
   SELECT COALESCE(jsonb_agg(row_data ORDER BY row_data->>'staff_name', (row_data->>'revenue')::numeric DESC), '[]'::jsonb)
   INTO   v_svc_brk
   FROM (
@@ -154,12 +153,11 @@ BEGIN
       'revenue',         ROUND(SUM(COALESCE(b.price_snapshot, sc.price, 0) * b.party_size), 2)
     ) AS row_data
     FROM   bookings b
-    LEFT   JOIN staff_members sm ON sm.id  = b.staff_member_id
+    JOIN   staff_members sm ON sm.id  = b.staff_member_id
     LEFT   JOIN profiles p        ON p.id   = sm.user_id
     LEFT   JOIN service_catalog sc ON sc.id = b.service_id
     WHERE  b.business_id   = v_biz_id
       AND  b.status        = 'completed'
-      AND  (p_location_id IS NULL OR b.location_id          = p_location_id)
       AND  (p_location_id IS NULL OR sm.primary_location_id = p_location_id)
       AND  (v_from IS NULL        OR b.starts_at            >= v_from)
       AND  (v_to   IS NULL        OR b.starts_at            <  v_to)
