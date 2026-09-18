@@ -6,14 +6,15 @@ import { Calendar, Settings, ExternalLink, ChevronLeft, BarChart3 } from 'lucide
 import { useAuth } from '@/lib/contexts/auth-context';
 import type { ReactNode } from 'react';
 
-export type BusinessBookingTab = 'bookings' | 'schedule' | 'analytics' | 'setup' | 'absences';
+export type BusinessBookingTab = 'bookings' | 'schedule' | 'my-analytics' | 'analytics' | 'setup' | 'absences';
 
 const NAV_ITEMS: { tab: BusinessBookingTab; href: string; labelKey: string; icon: ReactNode }[] = [
-  { tab: 'bookings',  href: '/booking/business/bookings',   labelKey: 'ownerBookings.navLabel',           icon: <Calendar   className="h-3.5 w-3.5" /> },
-  { tab: 'schedule',  href: '/booking/business/schedule',   labelKey: 'schedule.title',                   icon: <Calendar   className="h-3.5 w-3.5" /> },
-  { tab: 'analytics', href: '/booking/business/analytics',  labelKey: 'bookingAnalytics.navLabel',        icon: <BarChart3  className="h-3.5 w-3.5" /> },
-  { tab: 'setup',     href: '/booking/business/setup',      labelKey: 'dashboard.business.activeButton',  icon: <Settings  className="h-3.5 w-3.5" /> },
-  { tab: 'absences',  href: '/booking/business/absences',   labelKey: 'absences.title',                   icon: <Calendar   className="h-3.5 w-3.5" /> },
+  { tab: 'bookings',     href: '/booking/business/bookings',      labelKey: 'ownerBookings.navLabel',           icon: <Calendar  className="h-3.5 w-3.5" /> },
+  { tab: 'schedule',     href: '/booking/business/schedule',      labelKey: 'schedule.title',                   icon: <Calendar  className="h-3.5 w-3.5" /> },
+  { tab: 'my-analytics', href: '/booking/business/my-analytics',  labelKey: 'myAnalytics.navLabel',             icon: <BarChart3 className="h-3.5 w-3.5" /> },
+  { tab: 'analytics',    href: '/booking/business/analytics',     labelKey: 'bookingAnalytics.navLabel',        icon: <BarChart3 className="h-3.5 w-3.5" /> },
+  { tab: 'setup',        href: '/booking/business/setup',         labelKey: 'dashboard.business.activeButton',  icon: <Settings  className="h-3.5 w-3.5" /> },
+  { tab: 'absences',     href: '/booking/business/absences',      labelKey: 'absences.title',                   icon: <Calendar  className="h-3.5 w-3.5" /> },
 ];
 
 export function BusinessBookingNav({ active }: { active?: BusinessBookingTab }) {

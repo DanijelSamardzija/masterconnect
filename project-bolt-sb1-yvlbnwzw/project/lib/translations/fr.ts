@@ -2867,4 +2867,7 @@ export default {
   'bookingAnalytics.staffTotal': 'Total',
   'bookingAnalytics.grandTotal': 'TOTAL DE LA PÉRIODE',
   'bookingAnalytics.noShowsNote': 'non-présentations non incluses dans les revenus',
+  'myAnalytics.navLabel': 'Mes analyses',
+  'myAnalytics.title': 'Mes analyses',
+  'myAnalytics.subtitle': 'Aperçu de vos services effectués',
 } as const;

@@ -2932,4 +2932,7 @@ export default {
   'bookingAnalytics.staffTotal': 'Gesamt',
   'bookingAnalytics.grandTotal': 'GESAMT FÜR ZEITRAUM',
   'bookingAnalytics.noShowsNote': 'Nichterscheinen nicht im Umsatz',
+  'myAnalytics.navLabel': 'Meine Analytik',
+  'myAnalytics.title': 'Meine Analytik',
+  'myAnalytics.subtitle': 'Übersicht Ihrer abgeschlossenen Dienste',
 } as const;

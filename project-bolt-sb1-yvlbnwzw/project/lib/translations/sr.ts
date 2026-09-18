@@ -2951,4 +2951,7 @@ export default {
   'bookingAnalytics.staffTotal': 'Ukupno',
   'bookingAnalytics.grandTotal': 'UKUPNO ZA PERIOD',
   'bookingAnalytics.noShowsNote': 'izostanaka nije uračunato u prihod',
+  'myAnalytics.navLabel': 'Moja analitika',
+  'myAnalytics.title': 'Moja analitika',
+  'myAnalytics.subtitle': 'Pregled vaših završenih usluga',
 } as const;

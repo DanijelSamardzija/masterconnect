@@ -2950,4 +2950,7 @@ export default {
   'bookingAnalytics.staffTotal': 'Total',
   'bookingAnalytics.grandTotal': 'TOTAL FOR PERIOD',
   'bookingAnalytics.noShowsNote': 'no-shows not counted in revenue',
+  'myAnalytics.navLabel': 'My Analytics',
+  'myAnalytics.title': 'My Analytics',
+  'myAnalytics.subtitle': 'Overview of your completed services',
 } as const;
