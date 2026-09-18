@@ -1098,12 +1098,12 @@ function OwnerScheduleContent() {
                   key={m}
                   type="button"
                   onClick={() => { setEdit(e => e ? { ...e, mode: m } : e); if (m !== 'off') setShiftConflictCount(null); }}
-                  className={`flex-1 text-xs font-medium py-2 rounded-xl border transition-colors ${
+                  className={`flex-1 text-xs font-semibold py-2 rounded-xl border transition-colors ${
                     edit.mode === m
                       ? m === 'off'
-                        ? 'bg-muted text-foreground border-muted'
+                        ? 'bg-orange-500 text-white border-orange-500'
                         : 'bg-green-500 text-white border-green-500'
-                      : 'border-border text-muted-foreground hover:bg-accent'
+                      : 'bg-background border-border text-muted-foreground hover:bg-accent hover:text-foreground'
                   }`}
                 >
                   {m === 'working' ? t('schedule.working') : t('schedule.dayOff')}
