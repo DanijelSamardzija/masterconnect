@@ -33,6 +33,7 @@ type EditState = {
   staffName: string;
   date: string;
   mode: 'working' | 'off';
+  offReason: string;
   startTime: string;
   endTime: string;
   notes: string;
@@ -400,9 +401,11 @@ function OwnerScheduleContent() {
     let hasBreak = false;
     let breakStart = '13:00';
     let breakEnd = '14:00';
+    let offReason = 'day_off';
     if (shift) {
       if (shift.is_off) {
         mode = 'off';
+        offReason = shift.off_reason ?? 'day_off';
       } else {
         mode = 'working';
         startTime  = shift.start_time?.slice(0, 5) ?? '09:00';
@@ -413,7 +416,7 @@ function OwnerScheduleContent() {
         breakEnd   = shift.break_end?.slice(0, 5)   ?? '14:00';
       }
     }
-    setEdit({ staffId, staffName, date, mode, startTime, endTime, notes, hasBreak, breakStart, breakEnd });
+    setEdit({ staffId, staffName, date, mode, offReason, startTime, endTime, notes, hasBreak, breakStart, breakEnd });
   }
 
   async function handleSave(force = false) {
@@ -445,6 +448,7 @@ function OwnerScheduleContent() {
         p_start_time:      edit.mode === 'working' ? edit.startTime : null,
         p_end_time:        edit.mode === 'working' ? edit.endTime   : null,
         p_is_off:          edit.mode === 'off',
+        p_off_reason:      edit.mode === 'off' ? edit.offReason : null,
         p_notes:           edit.notes.trim() || null,
         p_break_start:     edit.mode === 'working' && edit.hasBreak ? edit.breakStart : null,
         p_break_end:       edit.mode === 'working' && edit.hasBreak ? edit.breakEnd   : null,
@@ -1097,7 +1101,7 @@ function OwnerScheduleContent() {
                 <button
                   key={m}
                   type="button"
-                  onClick={() => { setEdit(e => e ? { ...e, mode: m } : e); if (m !== 'off') setShiftConflictCount(null); }}
+                  onClick={() => { setEdit(e => e ? { ...e, mode: m, ...(m === 'off' && !e.offReason ? { offReason: 'day_off' } : {}) } : e); if (m !== 'off') setShiftConflictCount(null); }}
                   className={`flex-1 text-xs font-semibold py-2 rounded-xl border transition-colors ${
                     edit.mode === m
                       ? m === 'off'
@@ -1110,6 +1114,37 @@ function OwnerScheduleContent() {
                 </button>
               ))}
             </div>
+
+            {/* Off-day reason selector */}
+            {edit.mode === 'off' && (
+              <div className="mb-4">
+                <label className="text-[10px] text-muted-foreground block mb-1.5">{t('schedule.offReason')}</label>
+                <div className="flex gap-2">
+                  {(['day_off', 'vacation', 'sick_leave'] as const).map((r) => {
+                    const label = r === 'vacation' ? t('shift.vacation') : r === 'sick_leave' ? t('shift.sickLeave') : t('shift.dayOff');
+                    const active = edit.offReason === r;
+                    return (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => setEdit(ev => ev ? { ...ev, offReason: r } : ev)}
+                        className={`flex-1 text-xs font-medium py-1.5 rounded-lg border transition-colors ${
+                          active
+                            ? r === 'vacation'
+                              ? 'bg-blue-500 text-white border-blue-500'
+                              : r === 'sick_leave'
+                              ? 'bg-red-500 text-white border-red-500'
+                              : 'bg-muted text-foreground border-border'
+                            : 'border-dashed border-border text-muted-foreground hover:bg-accent hover:text-foreground'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Time inputs */}
             {edit.mode === 'working' && (
