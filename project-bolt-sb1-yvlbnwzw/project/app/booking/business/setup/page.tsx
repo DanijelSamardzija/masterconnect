@@ -1364,12 +1364,12 @@ export default function BusinessSetupPage() {
     toast.success(t('setup.staff.permissions.saved'));
   }
 
-  async function handleSaveStaffHours(staffId: string) {
+  async function handleSaveStaffHours(staffId: string): Promise<boolean> {
     const staffMember = staffMembers.find(sm => sm.id === staffId);
     const locId = staffMember?.primary_location_id ?? primaryLocId;
-    if (!locId) return;
+    if (!locId) return false;
     const schedule = staffScheduleEditMap[staffId];
-    if (!schedule) return;
+    if (!schedule) return false;
     setStaffHoursSaving(staffId);
     const weeks = getScheduleWeeks();
     const weekIdx = staffWeekIndexMap[staffId] ?? 0;
@@ -1410,12 +1410,18 @@ export default function BusinessSetupPage() {
         ? shiftsToWeekScheduleOwner(reloadWeeks[wIdx], freshShifts, companyHoursCache)
         : shiftsToWeekSchedule(reloadWeeks[wIdx], freshShifts);
       setStaffScheduleEditMap(prev => ({ ...prev, [staffId]: refreshedSchedule }));
+      return true;
     } else {
       toast.error(t('setup.error.saveFailed'));
+      return false;
     }
   }
 
   async function handleCopyStaffWeek(staffId: string) {
+    // Save current week first so the DB reflects the UI before copying
+    const saved = await handleSaveStaffHours(staffId);
+    if (!saved) return;
+
     const weeks = getScheduleWeeks();
     const weekIdx = staffWeekIndexMap[staffId] ?? 0;
     if (weekIdx >= weeks.length - 1) return;
