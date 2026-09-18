@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
-import { ChevronLeft, ChevronRight, Copy, X, Info, Download } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Copy, X, Info, Download, AlertTriangle } from 'lucide-react';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
 
 type ShiftRow = {
@@ -134,6 +134,7 @@ function OwnerScheduleContent() {
   const [infoOpen, setInfoOpen] = useState(false);
   const [edit, setEdit] = useState<EditState | null>(null);
   const [saving, setSaving] = useState(false);
+  const [shiftConflictCount, setShiftConflictCount] = useState<number | null>(null);
   const [absences, setAbsences] = useState<AbsenceRow[]>([]);
   const [primaryLocId, setPrimaryLocId] = useState<string | null>(null);
   // staffId → day_of_week(0=Sun..6=Sat) → { is_closed, start_time, end_time }
@@ -408,8 +409,27 @@ function OwnerScheduleContent() {
     setEdit({ staffId, staffName, date, mode, startTime, endTime, notes, hasBreak, breakStart, breakEnd });
   }
 
-  async function handleSave() {
+  async function handleSave(force = false) {
     if (!edit) return;
+
+    // When marking as off, check for existing bookings on that day
+    if (edit.mode === 'off' && !force) {
+      const d = new Date(edit.date + 'T00:00:00');
+      const nextD = new Date(d);
+      nextD.setDate(nextD.getDate() + 1);
+      const { count } = await (supabase as any)
+        .from('bookings')
+        .select('id', { count: 'exact', head: true })
+        .eq('staff_member_id', edit.staffId)
+        .in('status', ['pending', 'confirmed'])
+        .gte('starts_at', d.toISOString())
+        .lt('starts_at', nextD.toISOString());
+      if ((count ?? 0) > 0) {
+        setShiftConflictCount(count as number);
+        return;
+      }
+    }
+    setShiftConflictCount(null);
     setSaving(true);
     try {
       const { data } = await (supabase as any).rpc('owner_set_shift', {
@@ -1013,7 +1033,7 @@ function OwnerScheduleContent() {
       {edit && (
         <div
           className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm"
-          onClick={(e) => { if (e.target === e.currentTarget) setEdit(null); }}
+          onClick={(e) => { if (e.target === e.currentTarget) { setEdit(null); setShiftConflictCount(null); } }}
         >
           <div className="bg-background border border-border rounded-t-2xl sm:rounded-2xl p-5 w-full sm:max-w-sm shadow-xl">
             <div className="flex items-center justify-between mb-4">
@@ -1025,7 +1045,7 @@ function OwnerScheduleContent() {
                   })}
                 </p>
               </div>
-              <button onClick={() => setEdit(null)} className="text-muted-foreground hover:text-foreground">
+              <button onClick={() => { setEdit(null); setShiftConflictCount(null); }} className="text-muted-foreground hover:text-foreground">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1036,7 +1056,7 @@ function OwnerScheduleContent() {
                 <button
                   key={m}
                   type="button"
-                  onClick={() => setEdit(e => e ? { ...e, mode: m } : e)}
+                  onClick={() => { setEdit(e => e ? { ...e, mode: m } : e); if (m !== 'off') setShiftConflictCount(null); }}
                   className={`flex-1 text-xs font-medium py-2 rounded-xl border transition-colors ${
                     edit.mode === m
                       ? m === 'off'
@@ -1122,13 +1142,44 @@ function OwnerScheduleContent() {
               </div>
             )}
 
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="w-full py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-60"
-            >
-              {saving ? '...' : t('schedule.save')}
-            </button>
+            {/* Booking conflict warning */}
+            {edit.mode === 'off' && shiftConflictCount !== null && (
+              <div className="flex flex-col gap-2 p-3 mb-3 rounded-xl border border-orange-300 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-700">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-orange-600 dark:text-orange-400 shrink-0 mt-0.5" />
+                  <p className="text-xs text-orange-800 dark:text-orange-300 leading-relaxed">
+                    {t('absences.staff.hasBookings').replace('{n}', String(shiftConflictCount))}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShiftConflictCount(null)}
+                    className="flex-1 text-xs py-1.5 px-3 rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {t('setup.closures.cancel')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSave(true)}
+                    disabled={saving}
+                    className="flex-1 text-xs py-1.5 px-3 rounded-lg bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-50 transition-colors"
+                  >
+                    {saving ? '...' : t('absences.staff.saveAnyway')}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {shiftConflictCount === null && (
+              <button
+                onClick={() => handleSave()}
+                disabled={saving}
+                className="w-full py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-60"
+              >
+                {saving ? '...' : t('schedule.save')}
+              </button>
+            )}
           </div>
         </div>
       )}

@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { ProtectedRoute } from '@/components/protected-route';
 import { toast } from 'sonner';
-import { AlertTriangle, X, Check, Loader2 } from 'lucide-react';
+import { AlertTriangle, X, Check, Loader2, MapPin } from 'lucide-react';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
 
 type BusinessClosure = {
@@ -52,7 +52,9 @@ export default function AbsencesPage() {
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
-  const [primaryLocId, setPrimaryLocId] = useState<string | null>(null);
+  const [locations, setLocations] = useState<{ id: string; name: string; city: string | null }[]>([]);
+  const [closureLocId, setClosureLocId] = useState<string>('');
+  const [staffAbsLocId, setStaffAbsLocId] = useState<string>('');  // any location of the business, for loading all staff absences
   const [callerRole, setCallerRole] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'firm' | 'staff'>('firm');
 
@@ -92,18 +94,27 @@ export default function AbsencesPage() {
     if (!user) return;
     (async () => {
       setLoading(true);
-      const [locRes, staffRes] = await Promise.all([
-        supabase.from('business_locations').select('id').eq('business_id', user.id).eq('is_primary', true).maybeSingle(),
+      const [locsRes, staffRes] = await Promise.all([
+        supabase.from('business_locations')
+          .select('id, name, city, is_primary')
+          .eq('business_id', user.id)
+          .eq('is_active', true)
+          .order('is_primary', { ascending: false }),
         (supabase as any).rpc('get_my_staff', { p_business_id: user.id }),
       ]);
-      const locId = (locRes.data as { id: string } | null)?.id ?? null;
-      setPrimaryLocId(locId);
+      const locs = (locsRes.data as { id: string; name: string; city: string | null; is_primary: boolean }[]) ?? [];
+      setLocations(locs);
+      const primaryId = locs.find(l => l.is_primary)?.id ?? locs[0]?.id ?? null;
+      if (primaryId) {
+        setClosureLocId(primaryId);
+        setStaffAbsLocId(primaryId);
+      }
       const allStaff: StaffMember[] = ((staffRes.data as StaffMember[]) ?? []);
       const self = allStaff.find((sm) => sm.user_id === user.id);
       setCallerRole(self?.role ?? 'owner');
       setStaffMembers(allStaff.filter((sm) => sm.is_active));
-      if (locId) {
-        await Promise.all([loadClosures(locId), loadAbsences(locId)]);
+      if (primaryId) {
+        await Promise.all([loadClosures(primaryId), loadAbsences(primaryId)]);
       }
       setLoading(false);
     })();
@@ -112,7 +123,7 @@ export default function AbsencesPage() {
   // ── Firma closure handlers ─────────────────────────────────────────────────
 
   async function handleSaveClosure(force = false) {
-    if (!primaryLocId || !closureFrom || !closureTo) return;
+    if (!closureLocId || !closureFrom || !closureTo) return;
     if (closureTo < closureFrom) {
       toast.error(t('setup.closures.from') + ' > ' + t('setup.closures.to'));
       return;
@@ -120,7 +131,7 @@ export default function AbsencesPage() {
     setClosureSaving(true);
     setClosureWarning(null);
     const { data } = await (supabase as any).rpc('create_business_closure', {
-      p_location_id: primaryLocId,
+      p_location_id: closureLocId,
       p_date_from: closureFrom,
       p_date_to: closureTo,
       p_reason: closureReason,
@@ -139,7 +150,7 @@ export default function AbsencesPage() {
     }
     toast.success(t('setup.closures.saved'));
     setClosureFrom(''); setClosureTo(''); setClosureReason('vacation'); setClosureNote('');
-    loadClosures(primaryLocId);
+    loadClosures(closureLocId);
   }
 
   async function handleDeleteClosure(id: string) {
@@ -148,7 +159,13 @@ export default function AbsencesPage() {
     setDeletingClosureId(null);
     if (!(data as { ok: boolean } | null)?.ok) { toast.error(t('setup.error.saveFailed')); return; }
     toast.success(t('setup.closures.deleted'));
-    if (primaryLocId) loadClosures(primaryLocId);
+    if (closureLocId) loadClosures(closureLocId);
+  }
+
+  async function handleSelectClosureLoc(locId: string) {
+    setClosureLocId(locId);
+    setClosureWarning(null);
+    loadClosures(locId);
   }
 
   // ── Staff absence handlers ─────────────────────────────────────────────────
@@ -181,7 +198,7 @@ export default function AbsencesPage() {
     }
     toast.success(t('absences.staff.saved'));
     setAbsenceStaffId(''); setAbsenceFrom(''); setAbsenceTo(''); setAbsenceReason('vacation'); setAbsenceNote('');
-    if (primaryLocId) loadAbsences(primaryLocId);
+    if (staffAbsLocId) loadAbsences(staffAbsLocId);
   }
 
   async function handleDeleteAbsence(id: string) {
@@ -190,7 +207,7 @@ export default function AbsencesPage() {
     setDeletingAbsenceId(null);
     if (!(data as { ok: boolean } | null)?.ok) { toast.error(t('setup.error.saveFailed')); return; }
     toast.success(t('absences.staff.deleted'));
-    if (primaryLocId) loadAbsences(primaryLocId);
+    if (staffAbsLocId) loadAbsences(staffAbsLocId);
   }
 
   function getReasonLabel(reason: string): string {
@@ -238,7 +255,28 @@ export default function AbsencesPage() {
               {/* ── Firma tab ─────────────────────────────────────────────── */}
               {activeTab === 'firm' && (
                 <div className="flex flex-col gap-4">
-                  <h2 className="font-semibold text-sm">{t('setup.closures.heading')}</h2>
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <h2 className="font-semibold text-sm">{t('setup.closures.heading')}</h2>
+                    {locations.length > 1 && (
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                        {locations.map(loc => (
+                          <button
+                            key={loc.id}
+                            type="button"
+                            onClick={() => handleSelectClosureLoc(loc.id)}
+                            className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                              closureLocId === loc.id
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'border-border text-muted-foreground hover:border-primary'
+                            }`}
+                          >
+                            {loc.name}{loc.city ? ` · ${loc.city}` : ''}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
 
                   {/* Closure list */}
                   {closures.length > 0 ? (
