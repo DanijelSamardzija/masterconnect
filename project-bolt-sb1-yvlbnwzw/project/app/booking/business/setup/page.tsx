@@ -412,6 +412,10 @@ export default function BusinessSetupPage() {
     quiet_enabled: boolean;
     quiet_from: string;
     quiet_to: string;
+    notify_new_booking: boolean;
+    notify_staff_booking: boolean;
+    notify_cancellation: boolean;
+    notify_reschedule: boolean;
   };
   const [notifPrefs, setNotifPrefs] = useState<NotifPrefs>({
     push_enabled: true,
@@ -419,6 +423,10 @@ export default function BusinessSetupPage() {
     quiet_enabled: false,
     quiet_from: '22:00',
     quiet_to: '07:00',
+    notify_new_booking: true,
+    notify_staff_booking: true,
+    notify_cancellation: true,
+    notify_reschedule: true,
   });
   const [notifPrefsSaving, setNotifPrefsSaving] = useState(false);
 
@@ -535,11 +543,15 @@ export default function BusinessSetupPage() {
         setBizCategory(notifRes.data?.booking_category ?? '');
         const prefs = notifRes.data?.notification_prefs ?? {};
         setNotifPrefs({
-          push_enabled:  prefs.push_enabled  !== false,
-          email_enabled: prefs.email_enabled !== false,
-          quiet_enabled: prefs.quiet_enabled === true,
-          quiet_from:    prefs.quiet_from ?? '22:00',
-          quiet_to:      prefs.quiet_to   ?? '07:00',
+          push_enabled:         prefs.push_enabled         !== false,
+          email_enabled:        prefs.email_enabled        !== false,
+          quiet_enabled:        prefs.quiet_enabled        === true,
+          quiet_from:           prefs.quiet_from           ?? '22:00',
+          quiet_to:             prefs.quiet_to             ?? '07:00',
+          notify_new_booking:   prefs.notify_new_booking   !== false,
+          notify_staff_booking: prefs.notify_staff_booking !== false,
+          notify_cancellation:  prefs.notify_cancellation  !== false,
+          notify_reschedule:    prefs.notify_reschedule    !== false,
         });
       }
       // Load saved timezone from primary location; fall back to browser timezone for new users
@@ -736,12 +748,16 @@ export default function BusinessSetupPage() {
     setNotifPrefsSaving(true);
     const { data } = await (supabase as any).rpc('update_notification_prefs', {
       p_prefs: {
-        push_enabled:  notifPrefs.push_enabled,
-        email_enabled: notifPrefs.email_enabled,
-        quiet_enabled: notifPrefs.quiet_enabled,
-        quiet_from:    notifPrefs.quiet_from,
-        quiet_to:      notifPrefs.quiet_to,
-        quiet_tz:      timezone || 'Europe/Sarajevo',
+        push_enabled:         notifPrefs.push_enabled,
+        email_enabled:        notifPrefs.email_enabled,
+        quiet_enabled:        notifPrefs.quiet_enabled,
+        quiet_from:           notifPrefs.quiet_from,
+        quiet_to:             notifPrefs.quiet_to,
+        quiet_tz:             timezone || 'Europe/Sarajevo',
+        notify_new_booking:   notifPrefs.notify_new_booking,
+        notify_staff_booking: notifPrefs.notify_staff_booking,
+        notify_cancellation:  notifPrefs.notify_cancellation,
+        notify_reschedule:    notifPrefs.notify_reschedule,
       },
     });
     setNotifPrefsSaving(false);
@@ -1765,6 +1781,38 @@ export default function BusinessSetupPage() {
                         </div>
                       </div>
                     )}
+
+                    {/* Booking event types */}
+                    <div className="border-t border-border pt-3 mt-1 flex flex-col gap-2">
+                      <div>
+                        <p className="text-xs font-semibold">{t('notifPrefs.events')}</p>
+                        <p className="text-[11px] text-muted-foreground">{t('notifPrefs.eventsDesc')}</p>
+                      </div>
+                      {([
+                        { key: 'notify_new_booking',   label: t('notifPrefs.newBooking'),   desc: t('notifPrefs.newBookingDesc') },
+                        { key: 'notify_staff_booking',  label: t('notifPrefs.staffBooking'),  desc: t('notifPrefs.staffBookingDesc') },
+                        { key: 'notify_cancellation',  label: t('notifPrefs.cancellation'),  desc: t('notifPrefs.cancellationDesc') },
+                        { key: 'notify_reschedule',    label: t('notifPrefs.reschedule'),    desc: t('notifPrefs.rescheduleDesc') },
+                      ] as const).map(({ key, label, desc }) => (
+                        <div key={key} className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-xs font-medium">{label}</p>
+                            <p className="text-[11px] text-muted-foreground leading-tight">{desc}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setNotifPrefs(p => ({ ...p, [key]: !p[key] }))}
+                            className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 mt-0.5 ${
+                              notifPrefs[key] ? 'bg-primary' : 'bg-muted'
+                            }`}
+                          >
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
+                              notifPrefs[key] ? 'translate-x-4' : 'translate-x-0.5'
+                            }`} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
 
                     <Button
                       onClick={handleSaveNotifPrefs}
