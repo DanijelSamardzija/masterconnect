@@ -519,6 +519,7 @@ export default function BusinessSetupPage() {
   const [cancellingInviteId, setCancellingInviteId] = useState<string | null>(null);
   const [revokingStaffId, setRevokingStaffId] = useState<string | null>(null);
   const [confirmingRevokeId, setConfirmingRevokeId] = useState<string | null>(null);
+  const [savingLocStaffId, setSavingLocStaffId] = useState<string | null>(null);
   const [staffPermissionsMap, setStaffPermissionsMap] = useState<Record<string, Record<string, boolean>>>({});
   const [permSaving, setPermSaving] = useState<string | null>(null);
   // Service-location assignment state
@@ -1279,6 +1280,21 @@ export default function BusinessSetupPage() {
     if (!result?.ok) { toast.error(t('setup.error.saveFailed')); return; }
     toast.success(t('setup.staff.revoked'));
     loadStaff();
+  }
+
+  async function handleSetStaffLocation(staffMemberId: string, locationId: string | null) {
+    setSavingLocStaffId(staffMemberId);
+    const { data } = await (supabase as any).rpc('set_staff_primary_location', {
+      p_staff_member_id: staffMemberId,
+      p_location_id: locationId || null,
+    });
+    setSavingLocStaffId(null);
+    if (!(data as { ok: boolean } | null)?.ok) { toast.error(t('setup.error.saveFailed')); return; }
+    setStaffMembers(prev => prev.map(sm =>
+      sm.id === staffMemberId
+        ? { ...sm, primary_location_id: locationId, primary_location_name: locations.find(l => l.id === locationId)?.name ?? null }
+        : sm
+    ));
   }
 
   async function loadStaffDetails(staffId: string) {
@@ -2899,8 +2915,22 @@ export default function BusinessSetupPage() {
                                 </span>
                               </div>
                               <p className="text-xs text-muted-foreground mt-0.5">{sm.email}</p>
-                              {sm.primary_location_name && (
-                                <p className="text-xs text-muted-foreground">{sm.primary_location_name}</p>
+                              {locations.length > 1 && (
+                                <div className="flex items-center gap-1.5 mt-1">
+                                  <MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
+                                  <select
+                                    value={sm.primary_location_id ?? ''}
+                                    disabled={savingLocStaffId === sm.id}
+                                    onChange={(e) => handleSetStaffLocation(sm.id, e.target.value || null)}
+                                    className="text-xs border border-border rounded-md px-1.5 py-0.5 bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
+                                  >
+                                    <option value="">{t('setup.staff.locationAny')}</option>
+                                    {locations.map(loc => (
+                                      <option key={loc.id} value={loc.id}>{loc.name}{loc.city ? ` — ${loc.city}` : ''}</option>
+                                    ))}
+                                  </select>
+                                  {savingLocStaffId === sm.id && <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />}
+                                </div>
                               )}
                             </div>
                             <div className="flex flex-col items-end gap-1">

@@ -61,6 +61,7 @@ type StaffOption = {
   user_id: string;
   name: string;
   role: string;
+  location_name: string | null;
 };
 
 type OpeningHourRow = {
@@ -622,15 +623,27 @@ export default function BookingSlotPickerPage() {
         {locations.length > 1 && (
           <div className="mb-5">
             <label className="block text-sm font-medium mb-1.5">{t('booking.location')}</label>
-            <select
-              value={selectedLocationId}
-              onChange={(e) => onLocationChange(e.target.value)}
-              className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-            >
+            <div className="flex flex-col gap-2">
               {locations.map((loc) => (
-                <option key={loc.id} value={loc.id}>{loc.name}</option>
+                <button
+                  key={loc.id}
+                  type="button"
+                  onClick={() => onLocationChange(loc.id)}
+                  className={`w-full text-left px-3 py-2.5 rounded-xl border transition-colors ${
+                    selectedLocationId === loc.id
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <p className="text-sm font-medium">{loc.name}</p>
+                  {(loc.address || loc.city) && (
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {[loc.address, loc.city, loc.country].filter(Boolean).join(', ')}
+                    </p>
+                  )}
+                </button>
               ))}
-            </select>
+            </div>
           </div>
         )}
 
@@ -662,6 +675,11 @@ export default function BookingSlotPickerPage() {
                   }`}
                 >
                   {s.name}
+                  {locations.length > 1 && s.location_name && (
+                    <span className={`ml-1 text-[11px] font-normal ${selectedStaffId === s.staff_member_id ? 'text-primary-foreground/70' : 'text-muted-foreground/70'}`}>
+                      ({s.location_name})
+                    </span>
+                  )}
                 </button>
               ))}
             </div>

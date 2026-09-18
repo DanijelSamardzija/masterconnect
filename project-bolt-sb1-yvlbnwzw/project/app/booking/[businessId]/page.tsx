@@ -67,7 +67,7 @@ export default function BusinessBookingProfilePage() {
 
   const [business, setBusiness] = useState<Business | null>(null);
   const [services, setServices] = useState<Service[]>([]);
-  const [primaryLocation, setPrimaryLocation] = useState<Location | null>(null);
+  const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [isFollowing, setIsFollowing] = useState(false);
@@ -99,13 +99,11 @@ export default function BusinessBookingProfilePage() {
           .select('id, name, address, city, country, phone, is_primary')
           .eq('business_id', businessId)
           .eq('is_active', true)
-          .order('is_primary', { ascending: false })
-          .limit(1)
-          .maybeSingle(),
+          .order('is_primary', { ascending: false }),
       ]);
       setBusiness(bizRes.data ?? null);
       setServices((svcRes.data as Service[]) ?? []);
-      setPrimaryLocation((locRes.data as Location) ?? null);
+      setLocations((locRes.data as Location[]) ?? []);
       setLoading(false);
 
       // Load follow info + reviews in parallel (non-blocking)
@@ -200,24 +198,27 @@ export default function BusinessBookingProfilePage() {
                 )}
               </div>
               <div className="flex flex-col gap-0.5 mt-0.5">
-                {primaryLocation && (primaryLocation.address || primaryLocation.city) && (
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <MapPin className="w-3 h-3 shrink-0" />
-                    {[primaryLocation.address, primaryLocation.city, primaryLocation.country].filter(Boolean).join(', ')}
-                  </span>
-                )}
-                {!primaryLocation && business.city && (
+                {locations.length > 0 ? (
+                  locations.map((loc) => (
+                    <span key={loc.id} className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <MapPin className="w-3 h-3 shrink-0" />
+                      {[loc.address, loc.city, loc.country].filter(Boolean).join(', ')}
+                      {loc.phone && (
+                        <>
+                          <span className="mx-0.5">·</span>
+                          <a href={`tel:${loc.phone}`} className="hover:text-primary transition-colors">
+                            {loc.phone}
+                          </a>
+                        </>
+                      )}
+                    </span>
+                  ))
+                ) : business.city ? (
                   <span className="flex items-center gap-1 text-xs text-muted-foreground">
                     <MapPin className="w-3 h-3 shrink-0" />
                     {business.city}
                   </span>
-                )}
-                {primaryLocation?.phone && (
-                  <a href={`tel:${primaryLocation.phone}`} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors">
-                    <Phone className="w-3 h-3 shrink-0" />
-                    {primaryLocation.phone}
-                  </a>
-                )}
+                ) : null}
               </div>
             </div>
             {/* Follow button */}

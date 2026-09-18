@@ -10,7 +10,7 @@ import { isBookingBetaUser } from '@/lib/booking-whitelist';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import {
-  Calendar, Clock, Copy, Users, Info,
+  Calendar, Clock, Copy, Users, Info, MapPin,
 } from 'lucide-react';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
 
@@ -57,11 +57,15 @@ function BusinessContent() {
   const [analyticsBookings, setAnalyticsBookings] = useState<any[]>([]);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [isBusinessProfile, setIsBusinessProfile] = useState<boolean | null>(null);
+  const [dashLocations, setDashLocations] = useState<{ id: string; name: string; city: string | null }[]>([]);
+  const [selectedDashLocId, setSelectedDashLocId] = useState<string>('');
 
   const isPremium = (profile as any)?.is_premium === true;
 
-  const fetchBusinessServices = useCallback(async () => {
-    const { data, error } = await (supabase as any).rpc('get_business_service_stats');
+  const fetchBusinessServices = useCallback(async (locId?: string) => {
+    const { data, error } = await (supabase as any).rpc('get_business_service_stats_by_location', {
+      p_location_id: locId || null,
+    });
     if (!error && Array.isArray(data)) setBusinessServices(data);
     setBusinessServicesLoaded(true);
   }, []);
@@ -113,6 +117,14 @@ function BusinessContent() {
       fetchBusinessServices();
       fetchBusinessStaff();
       fetchUpcomingBookings();
+      // Load locations for analytics filter
+      supabase
+        .from('business_locations')
+        .select('id, name, city')
+        .eq('business_id', profile.id)
+        .eq('is_active', true)
+        .order('is_primary', { ascending: false })
+        .then(({ data }) => { if (data) setDashLocations(data as any); });
     }
   }, [profile, isPremium, fetchIsBusinessProfile, fetchBusinessServices, fetchBusinessStaff, fetchUpcomingBookings]);
 
@@ -181,6 +193,32 @@ function BusinessContent() {
         {/* Services */}
         {canViewBusiness && businessServicesLoaded && (
           <div className="space-y-3">
+            {dashLocations.length > 1 && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                <div className="flex gap-1.5 flex-wrap">
+                  <button
+                    onClick={() => { setSelectedDashLocId(''); fetchBusinessServices(); }}
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                      !selectedDashLocId ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:border-primary'
+                    }`}
+                  >
+                    {t('booking.allLocations')}
+                  </button>
+                  {dashLocations.map(loc => (
+                    <button
+                      key={loc.id}
+                      onClick={() => { setSelectedDashLocId(loc.id); fetchBusinessServices(loc.id); }}
+                      className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                        selectedDashLocId === loc.id ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:border-primary'
+                      }`}
+                    >
+                      {loc.name}{loc.city ? ` · ${loc.city}` : ''}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             {businessServices.length === 0 ? (
               <div className="bg-card border border-border rounded-xl px-5 py-8 text-center">
                 <Calendar className="h-8 w-8 mx-auto mb-2 text-muted-foreground opacity-40" />
