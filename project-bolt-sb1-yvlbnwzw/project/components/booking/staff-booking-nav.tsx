@@ -5,7 +5,7 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { Calendar, Clock, ChevronLeft } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-export type StaffBookingTab = 'bookings' | 'schedule' | 'hours';
+export type StaffBookingTab = 'bookings' | 'schedule';
 
 const NAV_ITEMS: { tab: StaffBookingTab; href: string; labelKey: string; icon: ReactNode }[] = [
   { tab: 'bookings', href: '/dashboard/staff/bookings', labelKey: 'staffDashboard.title',      icon: <Calendar className="h-3.5 w-3.5" /> },

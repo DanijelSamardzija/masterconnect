@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
 import { ChevronRight, CalendarOff, Trash2 } from 'lucide-react';
+import { StaffBookingNav } from '@/components/booking/staff-booking-nav';
 
 type TimeBlock = {
   id: string;
@@ -134,13 +135,9 @@ export default function StaffTimeOffPage() {
       <div className="min-h-screen bg-background">
         <div className="max-w-2xl mx-auto px-4 py-6">
 
+          <StaffBookingNav active="schedule" />
+
           <div className="flex items-center gap-3 mb-6">
-            <button
-              onClick={() => router.push('/dashboard/staff/schedule')}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ChevronRight className="w-5 h-5 rotate-180" />
-            </button>
             <div className="flex-1">
               <h1 className="text-xl font-semibold">{t('staffTimeOff.title')}</h1>
               <p className="text-xs text-muted-foreground mt-0.5">{t('staffTimeOff.subtitle')}</p>
