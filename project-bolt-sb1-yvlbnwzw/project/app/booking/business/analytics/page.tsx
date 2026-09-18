@@ -100,9 +100,13 @@ function AnalyticsPageInner() {
   const [staffId, setStaffId]       = useState<string>('');
 
   const [locations, setLocations]   = useState<Location[]>([]);
-  const [staffList, setStaffList]   = useState<{ id: string; name: string }[]>([]);
+  const [allStaff, setAllStaff]     = useState<{ id: string; name: string; locationId: string | null }[]>([]);
   const [data, setData]             = useState<AnalyticsResult | null>(null);
   const [loading, setLoading]       = useState(false);
+
+  const staffList = locationId
+    ? allStaff.filter(s => s.locationId === locationId)
+    : allStaff;
 
   // Load locations + staff list — scoped to caller's business
   const userId = user?.id ?? profile?.id;
@@ -130,7 +134,7 @@ function AnalyticsPageInner() {
           .order('name'),
         supabase
           .from('staff_members')
-          .select('id, profiles!staff_members_user_id_fkey(name)')
+          .select('id, primary_location_id, profiles!staff_members_user_id_fkey(name)')
           .eq('business_id', me.business_id)
           .eq('is_active', true)
           .order('id'),
@@ -139,10 +143,11 @@ function AnalyticsPageInner() {
       if (cancelled) return;
       if (locs) setLocations(locs);
       if (sm) {
-        setStaffList(
-          (sm as { id: string; profiles: { name: string } | null }[]).map(s => ({
+        setAllStaff(
+          (sm as { id: string; primary_location_id: string | null; profiles: { name: string } | null }[]).map(s => ({
             id: s.id,
             name: s.profiles?.name ?? '—',
+            locationId: s.primary_location_id ?? null,
           }))
         );
       }
@@ -255,7 +260,7 @@ function AnalyticsPageInner() {
             {locations.length > 1 && (
               <div className="flex items-center gap-1.5 bg-muted rounded-lg px-2.5 py-1.5">
                 <MapPin className="h-3 w-3 text-muted-foreground shrink-0" />
-                <select value={locationId} onChange={e => setLocationId(e.target.value)}
+                <select value={locationId} onChange={e => { setLocationId(e.target.value); setStaffId(''); }}
                   className="text-xs bg-transparent text-foreground outline-none">
                   <option value="">{t('bookingAnalytics.allLocations')}</option>
                   {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
