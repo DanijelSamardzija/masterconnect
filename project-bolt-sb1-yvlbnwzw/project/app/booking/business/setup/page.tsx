@@ -1530,8 +1530,8 @@ export default function BusinessSetupPage() {
     if (bizCategory === 'restaurant') {
       base.push(
         { key: 'tables',    label: t('restaurant.setup.tab') },
-        { key: 'hours',     label: t('setup.tab.hours') },
         { key: 'locations', label: t('setup.tab.locations') },
+        { key: 'hours',     label: t('setup.tab.hours') },
         { key: 'staff',     label: t('setup.tab.staff') },
         notifTab,
         { key: 'rules',     label: t('setup.tab.rules') },
@@ -1547,8 +1547,8 @@ export default function BusinessSetupPage() {
     } else if (bizCategory === 'tradespeople') {
       base.push(
         { key: 'trade_services', label: t('trade.setup.tab') },
-        { key: 'hours',          label: t('setup.tab.hours') },
         { key: 'locations',      label: t('setup.tab.locations') },
+        { key: 'hours',          label: t('setup.tab.hours') },
         { key: 'staff',          label: t('setup.tab.staff') },
         notifTab,
         { key: 'rules',          label: t('setup.tab.rules') },
@@ -1564,8 +1564,8 @@ export default function BusinessSetupPage() {
       // Default: appointment (frizeri, doktori...) or no category
       base.push(
         { key: 'services',  label: t('setup.tab.services') },
-        { key: 'hours',     label: t('setup.tab.hours') },
         { key: 'locations', label: t('setup.tab.locations') },
+        { key: 'hours',     label: t('setup.tab.hours') },
         { key: 'staff',     label: t('setup.tab.staff') },
         notifTab,
         { key: 'rules',     label: t('setup.tab.rules') },
