@@ -335,103 +335,6 @@ function StaffScheduleContent() {
               </div>
             )}
 
-            {/* Notification preferences */}
-            <div className="border border-border rounded-xl px-3 py-2.5 flex flex-col gap-2 mb-3">
-              <div>
-                <p className="text-xs font-semibold">{t('notifPrefs.title')}</p>
-                <p className="text-[11px] text-muted-foreground">{t('notifPrefs.desc')}</p>
-              </div>
-
-              {/* Push toggle */}
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-medium">{t('notifPrefs.push')}</p>
-                  <p className="text-[11px] text-muted-foreground leading-tight">{t('notifPrefs.pushDesc')}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setNotifPrefs(p => ({ ...p, push_enabled: !p.push_enabled }))}
-                  className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 ${
-                    notifPrefs.push_enabled ? 'bg-primary' : 'bg-muted'
-                  }`}
-                >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
-                    notifPrefs.push_enabled ? 'translate-x-4' : 'translate-x-0.5'
-                  }`} />
-                </button>
-              </div>
-
-              {/* Email toggle */}
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-medium">{t('notifPrefs.email')}</p>
-                  <p className="text-[11px] text-muted-foreground leading-tight">{t('notifPrefs.emailDesc')}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setNotifPrefs(p => ({ ...p, email_enabled: !p.email_enabled }))}
-                  className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 ${
-                    notifPrefs.email_enabled ? 'bg-primary' : 'bg-muted'
-                  }`}
-                >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
-                    notifPrefs.email_enabled ? 'translate-x-4' : 'translate-x-0.5'
-                  }`} />
-                </button>
-              </div>
-
-              {/* Quiet hours toggle */}
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-medium">{t('notifPrefs.quiet')}</p>
-                  <p className="text-[11px] text-muted-foreground leading-tight">{t('notifPrefs.quietDesc')}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setNotifPrefs(p => ({ ...p, quiet_enabled: !p.quiet_enabled }))}
-                  className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 ${
-                    notifPrefs.quiet_enabled ? 'bg-primary' : 'bg-muted'
-                  }`}
-                >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
-                    notifPrefs.quiet_enabled ? 'translate-x-4' : 'translate-x-0.5'
-                  }`} />
-                </button>
-              </div>
-
-              {notifPrefs.quiet_enabled && (
-                <div className="flex gap-3">
-                  <div className="flex items-center gap-1.5">
-                    <label className="text-[11px] text-muted-foreground">{t('notifPrefs.quietFrom')}</label>
-                    <input
-                      type="time"
-                      value={notifPrefs.quiet_from}
-                      onChange={e => setNotifPrefs(p => ({ ...p, quiet_from: e.target.value }))}
-                      className="border border-border rounded-lg px-2 py-1 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <label className="text-[11px] text-muted-foreground">{t('notifPrefs.quietTo')}</label>
-                    <input
-                      type="time"
-                      value={notifPrefs.quiet_to}
-                      onChange={e => setNotifPrefs(p => ({ ...p, quiet_to: e.target.value }))}
-                      className="border border-border rounded-lg px-2 py-1 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                  </div>
-                </div>
-              )}
-
-              <button
-                type="button"
-                onClick={handleSaveNotifPrefs}
-                disabled={notifPrefsSaving}
-                className="self-start text-xs font-medium px-2.5 py-1 rounded-lg border border-border bg-background hover:bg-accent transition-colors disabled:opacity-60"
-              >
-                {notifPrefsSaving ? '...' : t('notifPrefs.save')}
-              </button>
-            </div>
-
             {/* Time-off shortcut */}
             {canBlockTime && (
               <button
@@ -573,6 +476,103 @@ function StaffScheduleContent() {
                   </tr>
                 </tbody>
               </table>
+            </div>
+
+            {/* Notification preferences */}
+            <div className="border border-border rounded-xl px-3 py-2.5 flex flex-col gap-2 mt-3">
+              <div>
+                <p className="text-xs font-semibold">{t('notifPrefs.title')}</p>
+                <p className="text-[11px] text-muted-foreground">{t('notifPrefs.desc')}</p>
+              </div>
+
+              {/* Push toggle */}
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-medium">{t('notifPrefs.push')}</p>
+                  <p className="text-[11px] text-muted-foreground leading-tight">{t('notifPrefs.pushDesc')}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setNotifPrefs(p => ({ ...p, push_enabled: !p.push_enabled }))}
+                  className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 ${
+                    notifPrefs.push_enabled ? 'bg-primary' : 'bg-muted'
+                  }`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
+                    notifPrefs.push_enabled ? 'translate-x-4' : 'translate-x-0.5'
+                  }`} />
+                </button>
+              </div>
+
+              {/* Email toggle */}
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-medium">{t('notifPrefs.email')}</p>
+                  <p className="text-[11px] text-muted-foreground leading-tight">{t('notifPrefs.emailDesc')}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setNotifPrefs(p => ({ ...p, email_enabled: !p.email_enabled }))}
+                  className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 ${
+                    notifPrefs.email_enabled ? 'bg-primary' : 'bg-muted'
+                  }`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
+                    notifPrefs.email_enabled ? 'translate-x-4' : 'translate-x-0.5'
+                  }`} />
+                </button>
+              </div>
+
+              {/* Quiet hours toggle */}
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-medium">{t('notifPrefs.quiet')}</p>
+                  <p className="text-[11px] text-muted-foreground leading-tight">{t('notifPrefs.quietDesc')}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setNotifPrefs(p => ({ ...p, quiet_enabled: !p.quiet_enabled }))}
+                  className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 ${
+                    notifPrefs.quiet_enabled ? 'bg-primary' : 'bg-muted'
+                  }`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
+                    notifPrefs.quiet_enabled ? 'translate-x-4' : 'translate-x-0.5'
+                  }`} />
+                </button>
+              </div>
+
+              {notifPrefs.quiet_enabled && (
+                <div className="flex gap-3">
+                  <div className="flex items-center gap-1.5">
+                    <label className="text-[11px] text-muted-foreground">{t('notifPrefs.quietFrom')}</label>
+                    <input
+                      type="time"
+                      value={notifPrefs.quiet_from}
+                      onChange={e => setNotifPrefs(p => ({ ...p, quiet_from: e.target.value }))}
+                      className="border border-border rounded-lg px-2 py-1 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <label className="text-[11px] text-muted-foreground">{t('notifPrefs.quietTo')}</label>
+                    <input
+                      type="time"
+                      value={notifPrefs.quiet_to}
+                      onChange={e => setNotifPrefs(p => ({ ...p, quiet_to: e.target.value }))}
+                      className="border border-border rounded-lg px-2 py-1 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={handleSaveNotifPrefs}
+                disabled={notifPrefsSaving}
+                className="self-start text-xs font-medium px-2.5 py-1 rounded-lg border border-border bg-background hover:bg-accent transition-colors disabled:opacity-60"
+              >
+                {notifPrefsSaving ? '...' : t('notifPrefs.save')}
+              </button>
             </div>
           </>
         )}
