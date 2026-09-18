@@ -2696,6 +2696,8 @@ export default {
   'dashboard.services.analytics.group.no_show': 'No se presentó',
   // Owner bookings management page
   'ownerBookings.navLabel': 'Reservas',
+  'ownerBookings.services.sectionTitle': 'Servicios',
+  'ownerBookings.services.completed': 'Completado',
   'ownerBookings.title': 'Todas las Reservas',
   'ownerBookings.subtitle': 'Ver y gestionar todas las citas',
   'ownerBookings.filter.upcoming': 'Próximas',

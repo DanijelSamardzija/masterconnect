@@ -2786,6 +2786,8 @@ export default {
   'dashboard.services.analytics.group.no_show': 'No show',
   // Owner bookings management page
   'ownerBookings.navLabel': 'Bookings',
+  'ownerBookings.services.sectionTitle': 'Services',
+  'ownerBookings.services.completed': 'Completed',
   'ownerBookings.title': 'All Bookings',
   'ownerBookings.subtitle': 'View and manage all appointments',
   'ownerBookings.filter.upcoming': 'Upcoming',

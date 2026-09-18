@@ -2703,6 +2703,8 @@ export default {
   'dashboard.services.analytics.group.no_show': 'Absent',
   // Owner bookings management page
   'ownerBookings.navLabel': 'Réservations',
+  'ownerBookings.services.sectionTitle': 'Services',
+  'ownerBookings.services.completed': 'Terminé',
   'ownerBookings.title': 'Toutes les Réservations',
   'ownerBookings.subtitle': 'Voir et gérer tous les rendez-vous',
   'ownerBookings.filter.upcoming': 'À venir',

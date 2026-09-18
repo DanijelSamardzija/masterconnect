@@ -10,8 +10,9 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   ChevronLeft, ChevronRight, Calendar, Users, CheckCircle2, XCircle,
-  Clock, AlertCircle, Plus, Trash2, MapPin
+  Clock, AlertCircle, Plus, Trash2, MapPin, Copy,
 } from 'lucide-react';
+import { isBookingBetaUser } from '@/lib/booking-whitelist';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
 
 type Booking = {
@@ -32,6 +33,17 @@ type Booking = {
 };
 
 type HistoryBooking = { id: string; starts_at: string; service_name_snapshot: string; status: string };
+
+type ServiceStat = {
+  id: string;
+  name: string;
+  duration_minutes: number;
+  price: number | null;
+  price_type: string | null;
+  upcoming_count: number;
+  pending_count: number;
+  completed_count: number;
+};
 
 type StaffMember = { id: string; name: string };
 type Service     = { id: string; name: string; duration_minutes: number };
@@ -63,12 +75,16 @@ function OwnerBookingsContent() {
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
+  const isPremium = (profile as any)?.is_premium === true;
+
   const [bookings, setBookings]   = useState<Booking[]>([]);
   const [staff, setStaff]         = useState<StaffMember[]>([]);
   const [services, setServices]   = useState<Service[]>([]);
   const [locationId, setLocationId]   = useState<string>('');
-  const [locations, setLocations]     = useState<{ id: string; name: string }[]>([]);
-  const [locFilter, setLocFilter]     = useState<string>('all');
+  const [locations, setLocations]     = useState<{ id: string; name: string; city?: string | null }[]>([]);
+  const [selectedLocId, setSelectedLocId] = useState<string>('');
+  const [serviceStats, setServiceStats]   = useState<ServiceStat[]>([]);
+  const [serviceStatsLoaded, setServiceStatsLoaded] = useState(false);
   const [loading, setLoading]     = useState(true);
   const [filter, setFilter]       = useState<Filter>(() => {
     try {
@@ -136,16 +152,23 @@ function OwnerBookingsContent() {
 
   useEffect(() => {
     if (isOwner) fetchBookings();
-  }, [isOwner, filter, staffFilter, locFilter]);
+  }, [isOwner, filter, staffFilter, selectedLocId]);
+
+  useEffect(() => {
+    if (!isOwner || !profile) return;
+    if (!isPremium || !isBookingBetaUser(profile.id)) return;
+    fetchServiceStats(selectedLocId || undefined);
+  }, [isOwner, selectedLocId, profile, isPremium, fetchServiceStats]);
 
   useEffect(() => {
     if (staffMemberId && staffBizId) fetchStaffBookings();
   }, [staffMemberId, staffBizId]);
 
-  // Fetch slots whenever week, service, or staff changes (and modal is open)
+  // Fetch slots whenever week, service, location, or modal-open changes
   useEffect(() => {
-    if (addOpen && addServiceId && locationId) fetchSlots();
-  }, [addOpen, addServiceId, addWeek, locationId]);
+    const slotLocId = selectedLocId || locationId;
+    if (addOpen && addServiceId && slotLocId) fetchSlots();
+  }, [addOpen, addServiceId, addWeek, locationId, selectedLocId]);
 
   const checkOwnerRole = async () => {
     if (!profile) return;
@@ -195,12 +218,12 @@ function OwnerBookingsContent() {
   const fetchLocation = async () => {
     if (!profile) return;
     const { data } = await (supabase as any)
-      .from('business_locations').select('id, name')
+      .from('business_locations').select('id, name, city')
       .eq('business_id', profile.id).eq('is_active', true)
       .order('is_primary', { ascending: false });
     if (data?.length) {
       setLocationId(data[0].id);
-      setLocations(data.map((l: any) => ({ id: l.id, name: l.name })));
+      setLocations(data.map((l: any) => ({ id: l.id, name: l.name, city: l.city ?? null })));
     }
   };
 
@@ -237,7 +260,7 @@ function OwnerBookingsContent() {
     else if (filter === 'pending')
       query = query.eq('status', 'pending');
     if (staffFilter !== 'all') query = query.eq('staff_member_id', staffFilter);
-    if (locFilter !== 'all') query = query.eq('location_id', locFilter);
+    if (selectedLocId) query = query.eq('location_id', selectedLocId);
     const { data } = await query.order('starts_at', { ascending: filter !== 'all' }).limit(50);
     setBookings((data || []).map((b: any) => ({
       ...b,
@@ -248,20 +271,31 @@ function OwnerBookingsContent() {
     setLoading(false);
   };
 
+  const fetchServiceStats = useCallback(async (locId?: string) => {
+    if (!profile) return;
+    setServiceStatsLoaded(false);
+    const { data } = await (supabase as any).rpc('get_business_service_stats_by_location', {
+      p_location_id: locId || null,
+    });
+    if (Array.isArray(data)) setServiceStats(data);
+    setServiceStatsLoaded(true);
+  }, [profile]);
+
   const fetchSlots = useCallback(async () => {
-    if (!profile || !addServiceId || !locationId) return;
+    const slotLocId = selectedLocId || locationId;
+    if (!profile || !addServiceId || !slotLocId) return;
     setAddSlotsLoading(true);
     setAddSlots([]);
     setAddSlotStart('');
     const { data } = await (supabase as any).rpc('get_available_slots', {
       p_business_id: profile.id,
-      p_location_id: locationId,
+      p_location_id: slotLocId,
       p_service_id:  addServiceId,
       p_week_start:  toDateKey(addWeek),
     });
     setAddSlots(data || []);
     setAddSlotsLoading(false);
-  }, [profile, addServiceId, locationId, addWeek]);
+  }, [profile, addServiceId, locationId, selectedLocId, addWeek]);
 
   const handleConfirm = async (bookingId: string) => {
     setActionLoading(bookingId + '-confirm');
@@ -721,6 +755,83 @@ function OwnerBookingsContent() {
           </button>
         </div>
 
+        {/* Location pills — shared filter for stats + booking list */}
+        {locations.length > 1 && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+            <div className="flex gap-1.5 flex-wrap">
+              <button
+                onClick={() => setSelectedLocId('')}
+                className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                  !selectedLocId
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'border-border text-muted-foreground hover:border-primary hover:text-foreground'
+                }`}
+              >
+                {t('ownerBookings.filterLoc.all')}
+              </button>
+              {locations.map(loc => (
+                <button
+                  key={loc.id}
+                  onClick={() => setSelectedLocId(loc.id)}
+                  className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                    selectedLocId === loc.id
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'border-border text-muted-foreground hover:border-primary hover:text-foreground'
+                  }`}
+                >
+                  {loc.name}{loc.city ? ` · ${loc.city}` : ''}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Service stats — compact grid (premium + beta users only) */}
+        {isPremium && isBookingBetaUser(profile.id) && serviceStatsLoaded && serviceStats.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-0.5">
+              {t('ownerBookings.services.sectionTitle')}
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {serviceStats.map(svc => (
+                <div key={svc.id} className="bg-card border border-border rounded-xl p-3">
+                  <div className="flex items-start justify-between gap-1 mb-2.5">
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-foreground truncate leading-tight">{svc.name}</p>
+                      <p className="text-[10px] text-muted-foreground">{svc.duration_minutes} {t('dashboard.services.min')}</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(`https://gigzone.app/booking/${profile.id}/${svc.id}`);
+                        toast.success(t('dashboard.services.linkCopied'));
+                      }}
+                      className="p-1 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                      title={t('dashboard.services.copyLink')}
+                    >
+                      <Copy className="h-3 w-3" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1 text-center">
+                    <div>
+                      <p className="text-sm font-bold text-blue-600 dark:text-blue-400">{svc.upcoming_count}</p>
+                      <p className="text-[9px] text-muted-foreground leading-tight">{t('dashboard.services.upcoming')}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-yellow-600 dark:text-yellow-400">{svc.pending_count}</p>
+                      <p className="text-[9px] text-muted-foreground leading-tight">{t('dashboard.services.pending')}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-foreground">{svc.completed_count}</p>
+                      <p className="text-[9px] text-muted-foreground leading-tight">{t('ownerBookings.services.completed')}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Analytics hint */}
         <div className="flex items-start gap-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-3 py-2.5">
           <CheckCircle2 className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
@@ -743,19 +854,6 @@ function OwnerBookingsContent() {
             </button>
           ))}
         </div>
-
-        {/* Location filter */}
-        {locations.length > 1 && (
-          <div className="flex items-center gap-2">
-            <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-            <select value={locFilter} onChange={e => setLocFilter(e.target.value)}
-              className="flex-1 border border-border rounded-xl px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
-            >
-              <option value="all">{t('ownerBookings.filterLoc.all')}</option>
-              {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-            </select>
-          </div>
-        )}
 
         {/* Staff filter */}
         {staff.length > 1 && (
