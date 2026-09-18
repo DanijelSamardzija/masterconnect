@@ -11,7 +11,7 @@ type BizCard = {
   id: string;
   name: string;
   avatar_url: string | null;
-  city: string | null;
+  cities: string[];
   services: { name: string }[];
 };
 
@@ -42,14 +42,19 @@ export default function TerminiPage() {
           .eq('is_business', true),
         supabase
           .from('business_locations')
-          .select('business_id, city')
+          .select('business_id, city, is_primary')
           .in('business_id', bizIds)
-          .eq('is_active', true)
-          .eq('is_primary', true),
+          .eq('is_active', true),
       ]);
 
-      const locCity: Record<string, string | null> = {};
-      (locs ?? []).forEach((l: any) => { locCity[l.business_id] = l.city; });
+      // Collect all cities per business, primary first
+      const locCities: Record<string, string[]> = {};
+      [...(locs ?? [])].sort((a: any, b: any) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0))
+        .forEach((l: any) => {
+          if (!l.city) return;
+          if (!locCities[l.business_id]) locCities[l.business_id] = [];
+          if (!locCities[l.business_id].includes(l.city)) locCities[l.business_id].push(l.city);
+        });
 
       const svcsByBiz: Record<string, { name: string }[]> = {};
       (svcs as any[]).forEach((s: any) => {
@@ -58,13 +63,10 @@ export default function TerminiPage() {
       });
 
       setBusinesses(
-        (profiles ?? []).map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          avatar_url: p.avatar_url,
-          city: locCity[p.id] ?? p.city ?? null,
-          services: svcsByBiz[p.id] ?? [],
-        }))
+        (profiles ?? []).map((p: any) => {
+          const cities = locCities[p.id] ?? (p.city ? [p.city] : []);
+          return { id: p.id, name: p.name, avatar_url: p.avatar_url, cities, services: svcsByBiz[p.id] ?? [] };
+        })
       );
       setLoading(false);
     })();
@@ -75,7 +77,7 @@ export default function TerminiPage() {
     if (!q) return businesses;
     return businesses.filter(b =>
       b.name.toLowerCase().includes(q) ||
-      (b.city ?? '').toLowerCase().includes(q) ||
+      b.cities.some(c => c.toLowerCase().includes(q)) ||
       b.services.some(s => s.name.toLowerCase().includes(q))
     );
   }, [businesses, search]);
@@ -131,10 +133,11 @@ export default function TerminiPage() {
 
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm text-foreground truncate">{biz.name}</p>
-                  {biz.city && (
+                  {biz.cities.length > 0 && (
                     <p className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                       <MapPin className="w-3 h-3 shrink-0" />
-                      {biz.city}
+                      {biz.cities.slice(0, 3).join(' · ')}
+                      {biz.cities.length > 3 && ` +${biz.cities.length - 3}`}
                     </p>
                   )}
                   {biz.services.length > 0 && (
