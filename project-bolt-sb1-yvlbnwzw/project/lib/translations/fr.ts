@@ -2414,6 +2414,7 @@ export default {
   'absences.staff.selectPlaceholder': 'Sélectionner un employé...',
   'absences.booking.onLeave': 'En congé',
   'setup.locations.heading': 'Adresses',
+  'setup.locations.hint': 'Chaque adresse peut avoir ses propres horaires, personnel et fuseau horaire.',
   'setup.locations.empty': 'Aucune adresse configurée.',
   'setup.locations.add': 'Ajouter une adresse',
   'setup.locations.primary': 'Principale',

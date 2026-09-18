@@ -2313,7 +2313,10 @@ export default function BusinessSetupPage() {
           {activeTab === 'locations' && (
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
-                <h2 className="font-semibold">{t('setup.locations.heading')}</h2>
+                <div>
+                  <h2 className="font-semibold">{t('setup.locations.heading')}</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">{t('setup.locations.hint')}</p>
+                </div>
                 {isBusinessActive && (
                   <Button size="sm" variant="outline" onClick={openAddLoc}>
                     <Plus className="w-3.5 h-3.5 mr-1" />

@@ -2407,6 +2407,7 @@ export default {
   'absences.staff.selectPlaceholder': 'Seleccionar empleado...',
   'absences.booking.onLeave': 'De ausencia',
   'setup.locations.heading': 'Ubicaciones',
+  'setup.locations.hint': 'Cada ubicación puede tener su propio horario, personal y zona horaria.',
   'setup.locations.empty': 'No hay ubicaciones configuradas.',
   'setup.locations.add': 'Agregar ubicación',
   'setup.locations.primary': 'Principal',

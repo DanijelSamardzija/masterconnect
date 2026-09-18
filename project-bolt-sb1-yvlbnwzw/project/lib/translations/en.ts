@@ -2489,6 +2489,7 @@ export default {
   'absences.staff.selectPlaceholder': 'Select staff member...',
   'absences.booking.onLeave': 'On leave',
   'setup.locations.heading': 'Locations',
+  'setup.locations.hint': 'Each location can have its own opening hours, staff, and timezone.',
   'setup.locations.empty': 'No locations configured.',
   'setup.locations.add': 'Add Location',
   'setup.locations.primary': 'Primary',

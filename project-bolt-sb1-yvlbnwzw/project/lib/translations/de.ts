@@ -2479,6 +2479,7 @@ export default {
   'absences.staff.selectPlaceholder': 'Mitarbeiter auswählen...',
   'absences.booking.onLeave': 'Abwesend',
   'setup.locations.heading': 'Standorte',
+  'setup.locations.hint': 'Jeder Standort kann eigene Öffnungszeiten, Mitarbeiter und Zeitzone haben.',
   'setup.locations.empty': 'Keine Standorte konfiguriert.',
   'setup.locations.add': 'Standort hinzufügen',
   'setup.locations.primary': 'Primär',

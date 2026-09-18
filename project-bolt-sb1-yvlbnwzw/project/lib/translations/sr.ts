@@ -2489,6 +2489,7 @@ export default {
   'absences.staff.selectPlaceholder': 'Odaberi radnika...',
   'absences.booking.onLeave': 'Na odsustvu',
   'setup.locations.heading': 'Lokacije',
+  'setup.locations.hint': 'Svaka lokacija može imati vlastito radno vrijeme, osoblje i timezone.',
   'setup.locations.empty': 'Nema konfiguriranih lokacija.',
   'setup.locations.add': 'Dodaj lokaciju',
   'setup.locations.primary': 'Primarna',
