@@ -488,10 +488,10 @@ function OwnerBookingsContent() {
                 const isActive = ['pending', 'confirmed'].includes(b.status);
                 const client   = b.client_name || b.guest_name;
                 return (
-                  <div key={b.id} className="bg-card border border-border rounded-2xl p-4 space-y-3">
+                  <div key={b.id} className={`border rounded-2xl p-4 space-y-3 ${isPast ? 'bg-muted/40 border-border/50' : 'bg-card border-border'}`}>
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-sm font-semibold text-foreground">
+                        <p className={`text-sm font-semibold ${isPast ? 'text-muted-foreground' : 'text-foreground'}`}>
                           {new Date(b.starts_at).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
                         </p>
                         <p className="text-xs text-muted-foreground">
@@ -732,10 +732,10 @@ function OwnerBookingsContent() {
               const isDeletable = ['completed', 'cancelled'].includes(b.status);
               const client   = clientLabel(b);
               return (
-                <div key={b.id} className="bg-card border border-border rounded-2xl p-4 space-y-3">
+                <div key={b.id} className={`border rounded-2xl p-4 space-y-3 ${isPast ? 'bg-muted/40 border-border/50' : 'bg-card border-border'}`}>
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <p className="text-sm font-semibold text-foreground">
+                      <p className={`text-sm font-semibold ${isPast ? 'text-muted-foreground' : 'text-foreground'}`}>
                         {new Date(b.starts_at).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
                       </p>
                       <p className="text-xs text-muted-foreground">
