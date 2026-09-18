@@ -220,6 +220,7 @@ export default function BookingSlotPickerPage() {
   const [loadingStaffPicker, setLoadingStaffPicker] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(() => startOfDay(new Date()));
+  const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
 
   useEffect(() => {
     if (!businessId || !serviceId) return;
@@ -314,6 +315,29 @@ export default function BookingSlotPickerPage() {
       loadSlots();
     }
   }, [loadingMeta, selectedLocationId, weekDate, loadSlots]);
+
+  // Auto-select first day with available slots after slots load or week changes
+  useEffect(() => {
+    if (loadingSlots) return;
+    const tz = selectedTimezone || 'UTC';
+    const monday = getMonday(weekDate);
+    for (let i = 0; i < 7; i++) {
+      const day = addDays(monday, i);
+      const dk = new Intl.DateTimeFormat('en-CA', {
+        timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
+      }).format(day);
+      if (slots.some(s => {
+        const slotDk = new Intl.DateTimeFormat('en-CA', {
+          timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
+        }).format(new Date(s.slot_start));
+        return slotDk === dk && s.available;
+      })) {
+        setSelectedDayKey(dk);
+        return;
+      }
+    }
+    setSelectedDayKey(null);
+  }, [slots, loadingSlots, weekDate, selectedTimezone]);
 
   useEffect(() => {
     if (!selectedStaffId) { setStaffAbsences([]); return; }
@@ -813,89 +837,133 @@ export default function BookingSlotPickerPage() {
           })()
         ) : (
           <>
-            <p className="text-xs text-muted-foreground mb-3 text-center leading-snug">
-              {t('booking.slotsInfo')}
-            </p>
-          <div className="grid grid-cols-7 gap-1">
-            {weekDays.map((day) => {
-              const dayKey = new Intl.DateTimeFormat('en-CA', {
-                timeZone: selectedTimezone,
-                year: 'numeric', month: '2-digit', day: '2-digit',
-              }).format(day);
-              const daySlots = slotsByDay[dayKey] ?? [];
-              const dayLabel = DAYS[day.getDay()];
-              const isPast = weekStart(day) < todayStr;
-              return (
-                <div key={dayKey} className="flex flex-col gap-1">
-                  <div className={`text-center text-xs font-medium pb-1 ${isPast ? 'text-muted-foreground/60' : 'text-muted-foreground'}`}>
-                    <div>{dayLabel}</div>
-                    <div>{day.getDate()}</div>
+            {/* Day selector row */}
+            <div className="flex gap-2 overflow-x-auto pb-1 mb-4 -mx-1 px-1" style={{ scrollbarWidth: 'none' }}>
+              {weekDays.map((day) => {
+                const dayKey = new Intl.DateTimeFormat('en-CA', {
+                  timeZone: selectedTimezone,
+                  year: 'numeric', month: '2-digit', day: '2-digit',
+                }).format(day);
+                const daySlots = slotsByDay[dayKey] ?? [];
+                const dayBreak = breaks[dayKey];
+                const availableCount = daySlots.filter(s => {
+                  if (!s.available) return false;
+                  if (!dayBreak) return true;
+                  const sStart = slotLocalHHMM(s.slot_start, selectedTimezone);
+                  const sEnd = slotLocalHHMM(s.slot_end, selectedTimezone);
+                  return !(sStart < dayBreak.break_end.slice(0, 5) && sEnd > dayBreak.break_start.slice(0, 5));
+                }).length;
+                const isPast = weekStart(day) < todayStr;
+                const isSelected = selectedDayKey === dayKey;
+                const hasSlots = availableCount > 0;
+                const shortDay = new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(day);
+                return (
+                  <button
+                    key={dayKey}
+                    type="button"
+                    onClick={() => hasSlots && setSelectedDayKey(dayKey)}
+                    disabled={!hasSlots}
+                    className={`flex flex-col items-center shrink-0 w-14 py-2.5 rounded-xl border transition-colors ${
+                      isSelected
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : hasSlots
+                          ? 'border-border hover:border-primary/60 hover:bg-accent'
+                          : isPast
+                            ? 'border-border/40 opacity-30 cursor-not-allowed'
+                            : 'border-border opacity-40 cursor-not-allowed'
+                    }`}
+                  >
+                    <span className={`text-[10px] font-medium uppercase tracking-wide ${isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                      {shortDay}
+                    </span>
+                    <span className="text-lg font-bold leading-tight mt-0.5">{day.getDate()}</span>
+                    {hasSlots ? (
+                      <span className={`text-[10px] font-medium mt-1 ${isSelected ? 'text-primary-foreground/70' : 'text-primary'}`}>
+                        {availableCount}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] mt-1 opacity-0">·</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Slots for selected day */}
+            {selectedDayKey && (() => {
+              const daySlots = slotsByDay[selectedDayKey] ?? [];
+              const dayBreak = breaks[selectedDayKey];
+              const dayAbsence = selectedStaffId
+                ? staffAbsences.find(a => a.date_from <= selectedDayKey && a.date_to >= selectedDayKey)
+                : undefined;
+              const dayShift = selectedStaffId ? staffShiftDays[selectedDayKey] : undefined;
+              const available = daySlots.filter(s => {
+                if (!s.available) return false;
+                if (!dayBreak) return true;
+                const sStart = slotLocalHHMM(s.slot_start, selectedTimezone);
+                const sEnd = slotLocalHHMM(s.slot_end, selectedTimezone);
+                return !(sStart < dayBreak.break_end.slice(0, 5) && sEnd > dayBreak.break_start.slice(0, 5));
+              });
+
+              if (available.length === 0) {
+                let rLabel = '';
+                if (dayShift?.is_off) {
+                  rLabel = dayShift.off_reason === 'vacation'
+                    ? t('shift.vacation')
+                    : dayShift.off_reason === 'sick_leave'
+                    ? t('shift.sickLeave')
+                    : t('shift.dayOff');
+                } else if (dayAbsence) {
+                  const rKey = `setup.closures.reason.${dayAbsence.reason}` as Parameters<typeof t>[0];
+                  rLabel = ['vacation','sick_leave','holiday','renovation','other'].includes(dayAbsence.reason)
+                    ? t(rKey) : dayAbsence.reason;
+                }
+                return (
+                  <div className="text-center py-8 text-muted-foreground text-sm">
+                    {rLabel || t('booking.noSlotsThisWeek')}
                   </div>
-                  {(() => {
-                    const dayBreak = breaks[dayKey];
-                    const available = daySlots.filter(s => {
-                      if (!s.available) return false;
-                      if (!dayBreak) return true;
-                      const sStart = slotLocalHHMM(s.slot_start, selectedTimezone);
-                      const sEnd = slotLocalHHMM(s.slot_end, selectedTimezone);
-                      return !(sStart < dayBreak.break_end.slice(0, 5) && sEnd > dayBreak.break_start.slice(0, 5));
-                    });
-                    const dayAbsence = selectedStaffId
-                      ? staffAbsences.find(a => a.date_from <= dayKey && a.date_to >= dayKey)
-                      : undefined;
-                    const dayShift = selectedStaffId ? staffShiftDays[dayKey] : undefined;
-                    if (available.length === 0 && (dayShift?.is_off || dayAbsence)) {
-                      let rLabel: string;
-                      if (dayShift?.is_off) {
-                        rLabel = dayShift.off_reason === 'vacation'
-                          ? t('shift.vacation')
-                          : dayShift.off_reason === 'sick_leave'
-                          ? t('shift.sickLeave')
-                          : t('shift.dayOff');
-                      } else if (dayAbsence) {
-                        const rKey = `setup.closures.reason.${dayAbsence.reason}` as Parameters<typeof t>[0];
-                        rLabel = ['vacation','sick_leave','holiday','renovation','other'].includes(dayAbsence.reason)
-                          ? t(rKey) : dayAbsence.reason;
-                      } else {
-                        rLabel = '';
-                      }
-                      return [
-                        <div key="absence" className="text-[9px] text-center text-muted-foreground leading-tight px-0.5 py-1 rounded bg-muted/50">
-                          {rLabel}
-                        </div>
-                      ];
-                    }
-                    let breakInserted = false;
-                    return available.map((s) => {
-                      const items: React.ReactNode[] = [];
-                      if (dayBreak && !breakInserted) {
-                        const slotHHMM = slotLocalHHMM(s.slot_start, selectedTimezone);
-                        if (slotHHMM >= dayBreak.break_end.slice(0, 5)) {
-                          breakInserted = true;
-                          items.push(
-                            <div key="pausa" className="text-center text-[9px] text-orange-500 font-medium py-0.5 px-1 bg-orange-50 dark:bg-orange-950/20 rounded border border-orange-200 dark:border-orange-800/40">
-                              {t('schedule.break')}<br />{dayBreak.break_start.slice(0, 5)}–{dayBreak.break_end.slice(0, 5)}
-                            </div>
-                          );
-                        }
-                      }
-                      items.push(
-                        <button
-                          key={s.slot_start}
-                          onClick={() => handleSlotClick(s)}
-                          disabled={!hasAccess && !authLoading}
-                          className="text-xs py-1.5 px-0.5 rounded-md bg-primary/10 hover:bg-primary/20 text-primary font-medium transition-colors text-center w-full disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                          {formatTime(s.slot_start, selectedTimezone)}
-                        </button>
-                      );
-                      return items;
-                    });
-                  })()}
+                );
+              }
+
+              const breakStart = dayBreak?.break_start.slice(0, 5);
+              const breakEnd = dayBreak?.break_end.slice(0, 5);
+              const beforeBreak = dayBreak ? available.filter(s => slotLocalHHMM(s.slot_start, selectedTimezone) < breakStart!) : available;
+              const afterBreak = dayBreak ? available.filter(s => slotLocalHHMM(s.slot_start, selectedTimezone) >= breakEnd!) : [];
+
+              return (
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  {beforeBreak.map(s => (
+                    <button
+                      key={s.slot_start}
+                      onClick={() => handleSlotClick(s)}
+                      disabled={!hasAccess && !authLoading}
+                      className="py-3 rounded-xl bg-primary/10 hover:bg-primary/20 active:bg-primary/30 text-primary text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {formatTime(s.slot_start, selectedTimezone)}
+                    </button>
+                  ))}
+                  {dayBreak && afterBreak.length > 0 && (
+                    <div className="col-span-3 sm:col-span-4 flex items-center gap-2 py-1">
+                      <div className="flex-1 h-px bg-border" />
+                      <span className="text-[11px] text-orange-500 font-medium whitespace-nowrap">
+                        {t('schedule.break')} {breakStart}–{breakEnd}
+                      </span>
+                      <div className="flex-1 h-px bg-border" />
+                    </div>
+                  )}
+                  {afterBreak.map(s => (
+                    <button
+                      key={s.slot_start}
+                      onClick={() => handleSlotClick(s)}
+                      disabled={!hasAccess && !authLoading}
+                      className="py-3 rounded-xl bg-primary/10 hover:bg-primary/20 active:bg-primary/30 text-primary text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {formatTime(s.slot_start, selectedTimezone)}
+                    </button>
+                  ))}
                 </div>
               );
-            })}
-          </div>
+            })()}
           </>
         )}
       </div>
