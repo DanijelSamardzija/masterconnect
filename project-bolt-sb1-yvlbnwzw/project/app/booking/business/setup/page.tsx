@@ -527,7 +527,6 @@ export default function BusinessSetupPage() {
   const [serviceLocMap, setServiceLocMap] = useState<Record<string, string[]>>({});
   const [serviceLocSaving, setServiceLocSaving] = useState<string | null>(null);
   const [deletingSvcId, setDeletingSvcId] = useState<string | null>(null);
-  const [showBookingGuide, setShowBookingGuide] = useState(false);
 
   // ── Load profile on mount ──────────────────────────────────────────────────
   useEffect(() => {
@@ -1756,10 +1755,10 @@ export default function BusinessSetupPage() {
                 <p className="text-xs text-muted-foreground mt-1">{t('setup.services.tabIntroDesc')}</p>
               </div>
 
-              {/* How-it-works guide */}
+              {/* How-it-works guide — links to dedicated guide page */}
               <button
                 type="button"
-                onClick={() => setShowBookingGuide(true)}
+                onClick={() => router.push('/booking/business/guide?type=termini')}
                 className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/40 px-4 py-3 flex items-center justify-between gap-2 text-left hover:border-blue-400 dark:hover:border-blue-600 transition-colors w-full"
               >
                 <div className="flex items-center gap-2">
@@ -1772,142 +1771,6 @@ export default function BusinessSetupPage() {
                   {t('setup.services.guide.readMore')}
                 </span>
               </button>
-
-              {/* Booking guide modal */}
-              {showBookingGuide && (
-                <div
-                  className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
-                  onClick={() => setShowBookingGuide(false)}
-                >
-                  <div className="absolute inset-0 bg-black/50" />
-                  <div
-                    className="relative bg-background rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[90dvh] overflow-y-auto shadow-2xl"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {/* Modal header */}
-                    <div className="sticky top-0 bg-background border-b border-border flex items-center justify-between px-5 py-4 rounded-t-2xl sm:rounded-t-2xl z-10">
-                      <div className="flex items-center gap-2">
-                        <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
-                        <h2 className="text-base font-semibold">{t('setup.guide.modal.title')}</h2>
-                      </div>
-                      <button
-                        onClick={() => setShowBookingGuide(false)}
-                        className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-accent transition-colors"
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
-
-                    <div className="px-5 py-5 flex flex-col gap-6">
-
-                      {/* 1. Kreiranje usluge */}
-                      <section>
-                        <h3 className="text-sm font-semibold mb-1 flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center shrink-0">1</span>
-                          {t('setup.guide.modal.service.title')}
-                        </h3>
-                        <p className="text-xs text-muted-foreground mb-3 pl-8">
-                          {t('setup.guide.modal.service.intro')}
-                        </p>
-                        <ul className="flex flex-col gap-2 pl-8">
-                          {(['1','2','3','4','5','6'] as const).map((n) => (
-                            <li key={n} className="flex items-start gap-2 text-sm text-muted-foreground">
-                              <span className="text-primary mt-0.5 shrink-0">•</span>
-                              {t(`setup.guide.modal.service.${n}` as Parameters<typeof t>[0])}
-                            </li>
-                          ))}
-                        </ul>
-                      </section>
-
-                      <div className="border-t border-border" />
-
-                      {/* 2. Ostala podešavanja */}
-                      <section>
-                        <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center shrink-0">2</span>
-                          {t('setup.guide.modal.setup.title')}
-                        </h3>
-                        <ul className="flex flex-col gap-2 pl-8">
-                          {(['1','2','3','4'] as const).map((n) => (
-                            <li key={n} className="flex items-start gap-2 text-sm text-muted-foreground">
-                              <span className="text-primary mt-0.5 shrink-0">•</span>
-                              {t(`setup.guide.modal.setup.${n}` as Parameters<typeof t>[0])}
-                            </li>
-                          ))}
-                        </ul>
-                      </section>
-
-                      <div className="border-t border-border" />
-
-                      {/* 3. Tok rezervacije */}
-                      <section>
-                        <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center shrink-0">3</span>
-                          {t('setup.guide.modal.flow.title')}
-                        </h3>
-                        <ol className="flex flex-col gap-2 pl-8">
-                          {(['1','2','3'] as const).map((n, i) => (
-                            <li key={n} className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                              <span className="shrink-0 w-5 h-5 rounded-full bg-muted text-foreground text-xs font-bold flex items-center justify-center mt-0.5">{i+1}</span>
-                              {t(`setup.guide.modal.flow.${n}` as Parameters<typeof t>[0])}
-                            </li>
-                          ))}
-                        </ol>
-                      </section>
-
-                      <div className="border-t border-border" />
-
-                      {/* 4. Šta može vlasnik */}
-                      <section>
-                        <h3 className="text-sm font-semibold mb-3 text-foreground">
-                          {t('setup.guide.modal.owner.title')}
-                        </h3>
-                        <ul className="flex flex-col gap-1.5">
-                          {(['1','2','3','4','5','6','7'] as const).map((n) => (
-                            <li key={n} className="flex items-start gap-2 text-sm text-muted-foreground">
-                              <span className="text-green-600 dark:text-green-400 mt-0.5 shrink-0 font-bold">✓</span>
-                              {t(`setup.guide.modal.owner.${n}` as Parameters<typeof t>[0])}
-                            </li>
-                          ))}
-                        </ul>
-                      </section>
-
-                      {/* 5. Šta može radnik */}
-                      <section>
-                        <h3 className="text-sm font-semibold mb-3 text-foreground">
-                          {t('setup.guide.modal.staff.title')}
-                        </h3>
-                        <ul className="flex flex-col gap-1.5">
-                          {(['1','2','3','4','5'] as const).map((n) => (
-                            <li key={n} className="flex items-start gap-2 text-sm text-muted-foreground">
-                              <span className="text-blue-600 dark:text-blue-400 mt-0.5 shrink-0 font-bold">→</span>
-                              {t(`setup.guide.modal.staff.${n}` as Parameters<typeof t>[0])}
-                            </li>
-                          ))}
-                        </ul>
-                      </section>
-
-                      {/* 6. Šta može klijent */}
-                      <section className="rounded-xl bg-muted/40 border border-border p-4">
-                        <h3 className="text-sm font-semibold mb-3 text-foreground">
-                          {t('setup.guide.modal.client.title')}
-                        </h3>
-                        <ul className="flex flex-col gap-1.5">
-                          {(['1','2','3'] as const).map((n) => (
-                            <li key={n} className="flex items-start gap-2 text-sm text-muted-foreground">
-                              <span className={`mt-0.5 shrink-0 font-bold ${n === '3' ? 'text-orange-500' : 'text-green-600 dark:text-green-400'}`}>
-                                {n === '3' ? '✗' : '✓'}
-                              </span>
-                              {t(`setup.guide.modal.client.${n}` as Parameters<typeof t>[0])}
-                            </li>
-                          ))}
-                        </ul>
-                      </section>
-
-                    </div>
-                  </div>
-                </div>
-              )}
 
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-muted-foreground">{t('setup.services.heading')}</span>
