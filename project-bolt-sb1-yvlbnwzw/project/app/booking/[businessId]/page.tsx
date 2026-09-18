@@ -161,7 +161,7 @@ export default function BusinessBookingProfilePage() {
     <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto px-4 py-6">
         <button
-          onClick={() => router.push('/booking')}
+          onClick={() => router.push('/booking/termini')}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-sm mb-6 transition-colors py-2"
         >
           <ArrowLeft className="w-4 h-4" />
