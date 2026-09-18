@@ -8,13 +8,16 @@ const SPANISH = ['Spain','España','Mexico','México','Argentina','Colombia','Ch
 const FRENCH  = ['France','Belgium','Belgique','Canada','Luxembourg'];
 
 type Lang = 'sr' | 'de' | 'en' | 'es' | 'fr';
-type EmailType = 'confirmation' | 'cancellation' | 'reschedule';
+// confirmation / cancellation / reschedule = client emails
+// new_booking  = business owner/staff email when new booking arrives
+// reminder     = client reminder email (called from cron)
+type EmailType = 'confirmation' | 'cancellation' | 'reschedule' | 'new_booking' | 'reminder';
 
-function getLang(country: string): Lang {
-  if (BALKAN.includes(country))  return 'sr';
-  if (GERMAN.includes(country))  return 'de';
-  if (SPANISH.includes(country)) return 'es';
-  if (FRENCH.includes(country))  return 'fr';
+function getLang(country: string | null | undefined): Lang {
+  if (BALKAN.includes(country ?? ''))  return 'sr';
+  if (GERMAN.includes(country ?? ''))  return 'de';
+  if (SPANISH.includes(country ?? '')) return 'es';
+  if (FRENCH.includes(country ?? ''))  return 'fr';
   return 'en';
 }
 
@@ -26,10 +29,11 @@ function fmtDt(iso: string, tz: string, lang: Lang): string {
   }).format(new Date(iso));
 }
 
-function content(type: EmailType, lang: Lang, p: {
-  firstName: string; service: string; business: string; dt: string;
-}) {
-  const map: Record<Lang, Record<EmailType, {subject:string;title:string;body:string;dateLabel:string;cta:string;footer:string}>> = {
+type ContentParams = { firstName: string; service: string; business: string; dt: string; clientName?: string };
+type ContentResult = { subject: string; title: string; body: string; dateLabel: string; cta: string; footer: string };
+
+function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
+  const map: Record<Lang, Record<EmailType, ContentResult>> = {
     sr: {
       confirmation: {
         subject: `Rezervacija potvrđena — ${p.service}`,
@@ -54,6 +58,22 @@ function content(type: EmailType, lang: Lang, p: {
         dateLabel: 'Novi termin',
         cta: 'Pregledaj rezervacije',
         footer: 'Ako imaš pitanja, slobodno nas kontaktuj.',
+      },
+      new_booking: {
+        subject: `Nova rezervacija — ${p.service}`,
+        title: 'Nova rezervacija 📅',
+        body: `<strong>${p.clientName ?? 'Klijent'}</strong> je zakazao/la termin za <strong>${p.service}</strong>.`,
+        dateLabel: 'Termin',
+        cta: 'Pregledaj termine',
+        footer: 'Prijavite se na GigZone da vidite detalje i upravljate rezervacijama.',
+      },
+      reminder: {
+        subject: `Podsjetnik — termin sutra: ${p.service}`,
+        title: 'Termin sutra ⏰',
+        body: `Podsjećamo te da imaš termin za <strong>${p.service}</strong> kod <strong>${p.business}</strong>.`,
+        dateLabel: 'Termin',
+        cta: 'Pregledaj rezervacije',
+        footer: 'Ako nisi u mogućnosti doći, otkaži termin u aplikaciji.',
       },
     },
     en: {
@@ -81,6 +101,22 @@ function content(type: EmailType, lang: Lang, p: {
         cta: 'View bookings',
         footer: 'If you have any questions, feel free to contact us.',
       },
+      new_booking: {
+        subject: `New booking — ${p.service}`,
+        title: 'New booking 📅',
+        body: `<strong>${p.clientName ?? 'A client'}</strong> has booked <strong>${p.service}</strong>.`,
+        dateLabel: 'Appointment',
+        cta: 'View bookings',
+        footer: 'Log in to GigZone to view details and manage your bookings.',
+      },
+      reminder: {
+        subject: `Reminder — appointment tomorrow: ${p.service}`,
+        title: 'Appointment tomorrow ⏰',
+        body: `This is a reminder that you have an appointment for <strong>${p.service}</strong> at <strong>${p.business}</strong>.`,
+        dateLabel: 'Appointment',
+        cta: 'View bookings',
+        footer: "If you can't make it, please cancel in the app.",
+      },
     },
     de: {
       confirmation: {
@@ -106,6 +142,22 @@ function content(type: EmailType, lang: Lang, p: {
         dateLabel: 'Neuer Termin',
         cta: 'Buchungen ansehen',
         footer: 'Bei Fragen stehen wir gerne zur Verfügung.',
+      },
+      new_booking: {
+        subject: `Neue Buchung — ${p.service}`,
+        title: 'Neue Buchung 📅',
+        body: `<strong>${p.clientName ?? 'Ein Kunde'}</strong> hat einen Termin für <strong>${p.service}</strong> gebucht.`,
+        dateLabel: 'Termin',
+        cta: 'Buchungen ansehen',
+        footer: 'Melde dich bei GigZone an, um Details zu sehen und Buchungen zu verwalten.',
+      },
+      reminder: {
+        subject: `Erinnerung — Termin morgen: ${p.service}`,
+        title: 'Termin morgen ⏰',
+        body: `Erinnerung: Du hast morgen einen Termin für <strong>${p.service}</strong> bei <strong>${p.business}</strong>.`,
+        dateLabel: 'Termin',
+        cta: 'Buchungen ansehen',
+        footer: 'Falls du nicht kommen kannst, storniere bitte in der App.',
       },
     },
     es: {
@@ -133,6 +185,22 @@ function content(type: EmailType, lang: Lang, p: {
         cta: 'Ver mis reservas',
         footer: 'Si tienes alguna pregunta, no dudes en contactarnos.',
       },
+      new_booking: {
+        subject: `Nueva reserva — ${p.service}`,
+        title: 'Nueva reserva 📅',
+        body: `<strong>${p.clientName ?? 'Un cliente'}</strong> ha reservado <strong>${p.service}</strong>.`,
+        dateLabel: 'Cita',
+        cta: 'Ver reservas',
+        footer: 'Inicia sesión en GigZone para ver los detalles y gestionar tus reservas.',
+      },
+      reminder: {
+        subject: `Recordatorio — cita mañana: ${p.service}`,
+        title: 'Cita mañana ⏰',
+        body: `Recordatorio: tienes una cita para <strong>${p.service}</strong> en <strong>${p.business}</strong>.`,
+        dateLabel: 'Cita',
+        cta: 'Ver mis reservas',
+        footer: 'Si no puedes asistir, por favor cancela en la aplicación.',
+      },
     },
     fr: {
       confirmation: {
@@ -157,7 +225,23 @@ function content(type: EmailType, lang: Lang, p: {
         body: `Votre réservation pour <strong>${p.service}</strong> chez <strong>${p.business}</strong> a été déplacée.`,
         dateLabel: 'Nouveau rendez-vous',
         cta: 'Voir mes réservations',
-        footer: 'Pour toute question, n\'hésitez pas à nous contacter.',
+        footer: "Pour toute question, n'hésitez pas à nous contacter.",
+      },
+      new_booking: {
+        subject: `Nouvelle réservation — ${p.service}`,
+        title: 'Nouvelle réservation 📅',
+        body: `<strong>${p.clientName ?? 'Un client'}</strong> a réservé <strong>${p.service}</strong>.`,
+        dateLabel: 'Rendez-vous',
+        cta: 'Voir les réservations',
+        footer: 'Connectez-vous à GigZone pour voir les détails et gérer vos réservations.',
+      },
+      reminder: {
+        subject: `Rappel — rendez-vous demain : ${p.service}`,
+        title: 'Rendez-vous demain ⏰',
+        body: `Rappel : vous avez un rendez-vous pour <strong>${p.service}</strong> chez <strong>${p.business}</strong>.`,
+        dateLabel: 'Rendez-vous',
+        cta: 'Voir mes réservations',
+        footer: "Si vous ne pouvez pas venir, veuillez annuler dans l'application.",
       },
     },
   };
@@ -165,7 +249,7 @@ function content(type: EmailType, lang: Lang, p: {
   return map[lang][type];
 }
 
-function buildHtml(c: ReturnType<typeof content>, firstName: string, dt: string): string {
+function buildHtml(c: ContentResult, firstName: string, dt: string): string {
   return `
     <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1a1a1a">
       <div style="text-align:center;padding:32px 0 16px">
@@ -206,7 +290,7 @@ export async function POST(request: NextRequest) {
     const bookingId: string = body.booking_id;
 
     if (!type || !bookingId) return NextResponse.json({ ok: true });
-    if (!['confirmation', 'cancellation', 'reschedule'].includes(type)) return NextResponse.json({ ok: true });
+    if (!['confirmation', 'cancellation', 'reschedule', 'reminder'].includes(type)) return NextResponse.json({ ok: true });
     if (!process.env.BREVO_API_KEY) return NextResponse.json({ ok: true });
 
     const db = createClient(
@@ -216,7 +300,7 @@ export async function POST(request: NextRequest) {
 
     const { data: booking } = await db
       .from('bookings')
-      .select('starts_at, service_name_snapshot, client_id, business_id, location_id')
+      .select('starts_at, service_name_snapshot, client_id, business_id, location_id, staff_member_id')
       .eq('id', bookingId)
       .maybeSingle();
 
@@ -224,28 +308,69 @@ export async function POST(request: NextRequest) {
 
     const [clientRes, bizRes, locRes] = await Promise.all([
       db.from('profiles').select('name, email, country').eq('id', booking.client_id).maybeSingle(),
-      db.from('profiles').select('name').eq('id', booking.business_id).maybeSingle(),
+      db.from('profiles').select('name, email, country').eq('id', booking.business_id).maybeSingle(),
       db.from('business_locations').select('timezone').eq('id', booking.location_id).maybeSingle(),
     ]);
 
     const clientProfile = clientRes.data;
+    const bizProfile    = bizRes.data;
     if (!clientProfile?.email) return NextResponse.json({ ok: true });
 
-    const lang      = getLang(clientProfile.country ?? '');
-    const firstName = clientProfile.name?.split(' ')[0] || 'there';
     const tz        = locRes.data?.timezone ?? 'UTC';
-    const dt        = fmtDt(booking.starts_at, tz, lang);
     const service   = booking.service_name_snapshot ?? '';
-    const business  = bizRes.data?.name ?? '';
+    const business  = bizProfile?.name ?? '';
+    const dt        = fmtDt(booking.starts_at, tz, getLang(clientProfile.country));
 
-    const c = content(type, lang, { firstName, service, business, dt });
+    // ── Email to client ────────────────────────────────────────────────────────
+    const clientLang      = getLang(clientProfile.country);
+    const clientFirstName = clientProfile.name?.split(' ')[0] || 'there';
+    const clientContent   = content(type, clientLang, { firstName: clientFirstName, service, business, dt });
 
     await sendEmail({
       to: clientProfile.email,
-      subject: c.subject,
+      subject: clientContent.subject,
       replyTo: 'support@gigzone.app',
-      html: buildHtml(c, firstName, dt),
+      html: buildHtml(clientContent, clientFirstName, dt),
     });
+
+    // ── Email to business owner + assigned staff (only for new booking) ────────
+    if (type === 'confirmation') {
+      const clientName = clientProfile.name ?? 'Klijent';
+
+      // Collect unique recipient emails: owner + assigned staff
+      const recipientIds = new Set<string>([booking.business_id]);
+      if (booking.staff_member_id) {
+        const { data: sm } = await db
+          .from('staff_members')
+          .select('user_id')
+          .eq('id', booking.staff_member_id)
+          .maybeSingle();
+        if (sm?.user_id && sm.user_id !== booking.business_id) {
+          recipientIds.add(sm.user_id);
+        }
+      }
+
+      for (const recipientId of recipientIds) {
+        const { data: recipientProfile } = await db
+          .from('profiles')
+          .select('name, email, country')
+          .eq('id', recipientId)
+          .maybeSingle();
+        if (!recipientProfile?.email) continue;
+
+        const rLang      = getLang(recipientProfile.country);
+        const rFirstName = recipientProfile.name?.split(' ')[0] || 'there';
+        const rDt        = fmtDt(booking.starts_at, tz, rLang);
+        const rContent   = content('new_booking', rLang, { firstName: rFirstName, service, business, dt: rDt, clientName });
+
+        await sendEmail({
+          to: recipientProfile.email,
+          subject: rContent.subject,
+          replyTo: 'support@gigzone.app',
+          html: buildHtml(rContent, rFirstName, rDt),
+        });
+      }
+    }
 
     return NextResponse.json({ ok: true });
   } catch (err) {
