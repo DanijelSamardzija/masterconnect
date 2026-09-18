@@ -10,7 +10,7 @@ import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
-type Period = 'today' | 'week' | 'month' | 'year' | 'custom';
+type Period = 'today' | 'week' | 'month' | 'year' | 'last_year' | 'custom';
 
 type Summary = {
   total_bookings: number;
@@ -76,6 +76,10 @@ function getPeriodRange(period: Period, customFrom: string, customTo: string): {
   }
   if (period === 'year') {
     return { from: `${today.getFullYear()}-01-01`, to: `${today.getFullYear()}-12-31` };
+  }
+  if (period === 'last_year') {
+    const y = today.getFullYear() - 1;
+    return { from: `${y}-01-01`, to: `${y}-12-31` };
   }
   return { from: customFrom, to: customTo };
 }
@@ -191,11 +195,12 @@ function AnalyticsPageInner() {
   }, {});
 
   const PERIODS: { key: Period; label: string }[] = [
-    { key: 'today',  label: t('bookingAnalytics.filter.today')  },
-    { key: 'week',   label: t('bookingAnalytics.filter.week')   },
-    { key: 'month',  label: t('bookingAnalytics.filter.month')  },
-    { key: 'year',   label: t('bookingAnalytics.filter.year')   },
-    { key: 'custom', label: t('bookingAnalytics.filter.custom') },
+    { key: 'today',     label: t('bookingAnalytics.filter.today')     },
+    { key: 'week',      label: t('bookingAnalytics.filter.week')      },
+    { key: 'month',     label: t('bookingAnalytics.filter.month')     },
+    { key: 'year',      label: t('bookingAnalytics.filter.year')      },
+    { key: 'last_year', label: t('bookingAnalytics.filter.last_year') },
+    { key: 'custom',    label: t('bookingAnalytics.filter.custom')    },
   ];
 
   function downloadCSV() {

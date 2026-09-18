@@ -2927,6 +2927,7 @@ export default {
   'bookingAnalytics.filter.week': 'Ova sedmica',
   'bookingAnalytics.filter.month': 'Ovaj mjesec',
   'bookingAnalytics.filter.year': 'Ova godina',
+  'bookingAnalytics.filter.last_year': 'Prošla godina',
   'bookingAnalytics.filter.custom': 'Prilagođeno',
   'bookingAnalytics.allLocations': 'Sve lokacije',
   'bookingAnalytics.allStaff': 'Svi radnici',

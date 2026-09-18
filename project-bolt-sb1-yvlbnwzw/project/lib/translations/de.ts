@@ -2908,6 +2908,7 @@ export default {
   'bookingAnalytics.filter.week': 'Diese Woche',
   'bookingAnalytics.filter.month': 'Diesen Monat',
   'bookingAnalytics.filter.year': 'Dieses Jahr',
+  'bookingAnalytics.filter.last_year': 'Letztes Jahr',
   'bookingAnalytics.filter.custom': 'Benutzerdefiniert',
   'bookingAnalytics.allLocations': 'Alle Standorte',
   'bookingAnalytics.allStaff': 'Alle Mitarbeiter',

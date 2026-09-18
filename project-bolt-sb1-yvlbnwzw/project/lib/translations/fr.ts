@@ -2843,6 +2843,7 @@ export default {
   'bookingAnalytics.filter.week': 'Cette semaine',
   'bookingAnalytics.filter.month': 'Ce mois',
   'bookingAnalytics.filter.year': 'Cette année',
+  'bookingAnalytics.filter.last_year': 'Année passée',
   'bookingAnalytics.filter.custom': 'Personnalisé',
   'bookingAnalytics.allLocations': 'Tous les lieux',
   'bookingAnalytics.allStaff': 'Tout le personnel',

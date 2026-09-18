@@ -2836,6 +2836,7 @@ export default {
   'bookingAnalytics.filter.week': 'Esta semana',
   'bookingAnalytics.filter.month': 'Este mes',
   'bookingAnalytics.filter.year': 'Este año',
+  'bookingAnalytics.filter.last_year': 'Año pasado',
   'bookingAnalytics.filter.custom': 'Personalizado',
   'bookingAnalytics.allLocations': 'Todas las ubicaciones',
   'bookingAnalytics.allStaff': 'Todo el personal',
