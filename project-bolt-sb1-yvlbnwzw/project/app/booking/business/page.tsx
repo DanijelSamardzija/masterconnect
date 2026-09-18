@@ -80,9 +80,9 @@ function BusinessContent() {
     if (data) setBusinessStaff(data.map((s: any) => ({ id: s.id, name: s.profiles?.name || '—' })));
   }, [profile]);
 
-  const fetchUpcomingBookings = useCallback(async () => {
+  const fetchUpcomingBookings = useCallback(async (locId?: string) => {
     if (!profile) return;
-    const { data } = await (supabase as any)
+    let q = (supabase as any)
       .from('bookings')
       .select('id, starts_at, service_name_snapshot, staff_member_id, notes, guest_name, guest_phone, profiles!bookings_client_id_fkey(name, phone)')
       .eq('business_id', profile.id)
@@ -90,6 +90,8 @@ function BusinessContent() {
       .in('status', ['pending', 'confirmed'])
       .order('starts_at', { ascending: true })
       .limit(4);
+    if (locId) q = q.eq('location_id', locId);
+    const { data } = await q;
     if (data) setUpcomingBookings(data.map((b: any) => ({
       id: b.id,
       starts_at: b.starts_at,
@@ -199,7 +201,7 @@ function BusinessContent() {
                 <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                 <div className="flex gap-1.5 flex-wrap">
                   <button
-                    onClick={() => { setSelectedDashLocId(''); fetchBusinessServices(); }}
+                    onClick={() => { setSelectedDashLocId(''); fetchBusinessServices(); fetchUpcomingBookings(); }}
                     className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
                       !selectedDashLocId ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:border-primary'
                     }`}
@@ -209,7 +211,7 @@ function BusinessContent() {
                   {dashLocations.map(loc => (
                     <button
                       key={loc.id}
-                      onClick={() => { setSelectedDashLocId(loc.id); fetchBusinessServices(loc.id); }}
+                      onClick={() => { setSelectedDashLocId(loc.id); fetchBusinessServices(loc.id); fetchUpcomingBookings(loc.id); }}
                       className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
                         selectedDashLocId === loc.id ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:border-primary'
                       }`}

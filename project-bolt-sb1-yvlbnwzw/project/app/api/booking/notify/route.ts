@@ -30,7 +30,7 @@ function fmtDt(iso: string, tz: string, lang: Lang): string {
 }
 
 type ContentParams = { firstName: string; service: string; business: string; dt: string; clientName?: string };
-type ContentResult = { subject: string; title: string; body: string; dateLabel: string; cta: string; footer: string };
+type ContentResult = { subject: string; title: string; body: string; dateLabel: string; locationLabel: string; cta: string; footer: string };
 
 function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
   const map: Record<Lang, Record<EmailType, ContentResult>> = {
@@ -40,6 +40,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Rezervacija kreirana ✅',
         body: `Tvoja rezervacija za <strong>${p.service}</strong> kod <strong>${p.business}</strong> je uspješno kreirana.`,
         dateLabel: 'Termin',
+        locationLabel: 'Lokacija',
         cta: 'Pregledaj rezervacije',
         footer: 'Za izmjene ili otkazivanje, posjeti GigZone.',
       },
@@ -48,6 +49,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Rezervacija otkazana',
         body: `Tvoja rezervacija za <strong>${p.service}</strong> kod <strong>${p.business}</strong> je otkazana.`,
         dateLabel: 'Otkazani termin',
+        locationLabel: 'Lokacija',
         cta: 'Zakaži novi termin',
         footer: 'Žao nam je! Slobodno zakaži novi termin kada ti odgovara.',
       },
@@ -56,6 +58,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Termin premješten 🗓️',
         body: `Tvoja rezervacija za <strong>${p.service}</strong> kod <strong>${p.business}</strong> je premještena.`,
         dateLabel: 'Novi termin',
+        locationLabel: 'Lokacija',
         cta: 'Pregledaj rezervacije',
         footer: 'Ako imaš pitanja, slobodno nas kontaktuj.',
       },
@@ -64,6 +67,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Nova rezervacija 📅',
         body: `<strong>${p.clientName ?? 'Klijent'}</strong> je zakazao/la termin za <strong>${p.service}</strong>.`,
         dateLabel: 'Termin',
+        locationLabel: 'Lokacija',
         cta: 'Pregledaj termine',
         footer: 'Prijavite se na GigZone da vidite detalje i upravljate rezervacijama.',
       },
@@ -72,6 +76,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Termin sutra ⏰',
         body: `Podsjećamo te da imaš termin za <strong>${p.service}</strong> kod <strong>${p.business}</strong>.`,
         dateLabel: 'Termin',
+        locationLabel: 'Lokacija',
         cta: 'Pregledaj rezervacije',
         footer: 'Ako nisi u mogućnosti doći, otkaži termin u aplikaciji.',
       },
@@ -82,6 +87,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Booking confirmed ✅',
         body: `Your booking for <strong>${p.service}</strong> at <strong>${p.business}</strong> has been created.`,
         dateLabel: 'Appointment',
+        locationLabel: 'Location',
         cta: 'View bookings',
         footer: 'To change or cancel, visit GigZone.',
       },
@@ -90,6 +96,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Booking cancelled',
         body: `Your booking for <strong>${p.service}</strong> at <strong>${p.business}</strong> has been cancelled.`,
         dateLabel: 'Cancelled appointment',
+        locationLabel: 'Location',
         cta: 'Book again',
         footer: "We're sorry! Feel free to book a new appointment at any time.",
       },
@@ -98,6 +105,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Appointment rescheduled 🗓️',
         body: `Your booking for <strong>${p.service}</strong> at <strong>${p.business}</strong> has been moved.`,
         dateLabel: 'New appointment',
+        locationLabel: 'Location',
         cta: 'View bookings',
         footer: 'If you have any questions, feel free to contact us.',
       },
@@ -106,6 +114,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'New booking 📅',
         body: `<strong>${p.clientName ?? 'A client'}</strong> has booked <strong>${p.service}</strong>.`,
         dateLabel: 'Appointment',
+        locationLabel: 'Location',
         cta: 'View bookings',
         footer: 'Log in to GigZone to view details and manage your bookings.',
       },
@@ -114,6 +123,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Appointment tomorrow ⏰',
         body: `This is a reminder that you have an appointment for <strong>${p.service}</strong> at <strong>${p.business}</strong>.`,
         dateLabel: 'Appointment',
+        locationLabel: 'Location',
         cta: 'View bookings',
         footer: "If you can't make it, please cancel in the app.",
       },
@@ -124,6 +134,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Buchung bestätigt ✅',
         body: `Deine Buchung für <strong>${p.service}</strong> bei <strong>${p.business}</strong> wurde erfolgreich erstellt.`,
         dateLabel: 'Termin',
+        locationLabel: 'Standort',
         cta: 'Buchungen ansehen',
         footer: 'Zum Ändern oder Stornieren besuche GigZone.',
       },
@@ -132,6 +143,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Buchung storniert',
         body: `Deine Buchung für <strong>${p.service}</strong> bei <strong>${p.business}</strong> wurde storniert.`,
         dateLabel: 'Stornierter Termin',
+        locationLabel: 'Standort',
         cta: 'Neu buchen',
         footer: 'Es tut uns leid! Du kannst jederzeit einen neuen Termin buchen.',
       },
@@ -140,6 +152,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Termin verschoben 🗓️',
         body: `Deine Buchung für <strong>${p.service}</strong> bei <strong>${p.business}</strong> wurde verschoben.`,
         dateLabel: 'Neuer Termin',
+        locationLabel: 'Standort',
         cta: 'Buchungen ansehen',
         footer: 'Bei Fragen stehen wir gerne zur Verfügung.',
       },
@@ -148,6 +161,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Neue Buchung 📅',
         body: `<strong>${p.clientName ?? 'Ein Kunde'}</strong> hat einen Termin für <strong>${p.service}</strong> gebucht.`,
         dateLabel: 'Termin',
+        locationLabel: 'Standort',
         cta: 'Buchungen ansehen',
         footer: 'Melde dich bei GigZone an, um Details zu sehen und Buchungen zu verwalten.',
       },
@@ -156,6 +170,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Termin morgen ⏰',
         body: `Erinnerung: Du hast morgen einen Termin für <strong>${p.service}</strong> bei <strong>${p.business}</strong>.`,
         dateLabel: 'Termin',
+        locationLabel: 'Standort',
         cta: 'Buchungen ansehen',
         footer: 'Falls du nicht kommen kannst, storniere bitte in der App.',
       },
@@ -166,6 +181,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Reserva confirmada ✅',
         body: `Tu reserva para <strong>${p.service}</strong> en <strong>${p.business}</strong> ha sido creada con éxito.`,
         dateLabel: 'Cita',
+        locationLabel: 'Ubicación',
         cta: 'Ver mis reservas',
         footer: 'Para cambiar o cancelar, visita GigZone.',
       },
@@ -174,6 +190,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Reserva cancelada',
         body: `Tu reserva para <strong>${p.service}</strong> en <strong>${p.business}</strong> ha sido cancelada.`,
         dateLabel: 'Cita cancelada',
+        locationLabel: 'Ubicación',
         cta: 'Reservar de nuevo',
         footer: '¡Lo sentimos! Puedes reservar una nueva cita cuando quieras.',
       },
@@ -182,6 +199,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Cita reprogramada 🗓️',
         body: `Tu reserva para <strong>${p.service}</strong> en <strong>${p.business}</strong> ha sido reprogramada.`,
         dateLabel: 'Nueva cita',
+        locationLabel: 'Ubicación',
         cta: 'Ver mis reservas',
         footer: 'Si tienes alguna pregunta, no dudes en contactarnos.',
       },
@@ -190,6 +208,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Nueva reserva 📅',
         body: `<strong>${p.clientName ?? 'Un cliente'}</strong> ha reservado <strong>${p.service}</strong>.`,
         dateLabel: 'Cita',
+        locationLabel: 'Ubicación',
         cta: 'Ver reservas',
         footer: 'Inicia sesión en GigZone para ver los detalles y gestionar tus reservas.',
       },
@@ -198,6 +217,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Cita mañana ⏰',
         body: `Recordatorio: tienes una cita para <strong>${p.service}</strong> en <strong>${p.business}</strong>.`,
         dateLabel: 'Cita',
+        locationLabel: 'Ubicación',
         cta: 'Ver mis reservas',
         footer: 'Si no puedes asistir, por favor cancela en la aplicación.',
       },
@@ -208,6 +228,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Réservation confirmée ✅',
         body: `Votre réservation pour <strong>${p.service}</strong> chez <strong>${p.business}</strong> a bien été créée.`,
         dateLabel: 'Rendez-vous',
+        locationLabel: 'Lieu',
         cta: 'Voir mes réservations',
         footer: 'Pour modifier ou annuler, rendez-vous sur GigZone.',
       },
@@ -216,6 +237,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Réservation annulée',
         body: `Votre réservation pour <strong>${p.service}</strong> chez <strong>${p.business}</strong> a été annulée.`,
         dateLabel: 'Rendez-vous annulé',
+        locationLabel: 'Lieu',
         cta: 'Prendre un nouveau rendez-vous',
         footer: 'Nous sommes désolés ! Vous pouvez réserver à tout moment.',
       },
@@ -224,6 +246,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Rendez-vous déplacé 🗓️',
         body: `Votre réservation pour <strong>${p.service}</strong> chez <strong>${p.business}</strong> a été déplacée.`,
         dateLabel: 'Nouveau rendez-vous',
+        locationLabel: 'Lieu',
         cta: 'Voir mes réservations',
         footer: "Pour toute question, n'hésitez pas à nous contacter.",
       },
@@ -232,6 +255,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Nouvelle réservation 📅',
         body: `<strong>${p.clientName ?? 'Un client'}</strong> a réservé <strong>${p.service}</strong>.`,
         dateLabel: 'Rendez-vous',
+        locationLabel: 'Lieu',
         cta: 'Voir les réservations',
         footer: 'Connectez-vous à GigZone pour voir les détails et gérer vos réservations.',
       },
@@ -240,6 +264,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Rendez-vous demain ⏰',
         body: `Rappel : vous avez un rendez-vous pour <strong>${p.service}</strong> chez <strong>${p.business}</strong>.`,
         dateLabel: 'Rendez-vous',
+        locationLabel: 'Lieu',
         cta: 'Voir mes réservations',
         footer: "Si vous ne pouvez pas venir, veuillez annuler dans l'application.",
       },
@@ -249,7 +274,13 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
   return map[lang][type];
 }
 
-function buildHtml(c: ContentResult, firstName: string, dt: string): string {
+function buildHtml(c: ContentResult, firstName: string, dt: string, locationLine?: string): string {
+  const locationBlock = locationLine ? `
+        <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:16px 20px;margin-bottom:24px">
+          <p style="margin:0;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px">${c.locationLabel}</p>
+          <p style="margin:4px 0 0;font-size:15px;font-weight:600;color:#1a1a1a">${locationLine}</p>
+        </div>` : '';
+
   return `
     <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1a1a1a">
       <div style="text-align:center;padding:32px 0 16px">
@@ -261,10 +292,11 @@ function buildHtml(c: ContentResult, firstName: string, dt: string): string {
         <h2 style="margin:0 0 8px;font-size:22px">${c.title}</h2>
         <p style="color:#555;margin:0 0 6px">Zdravo / Hello, <strong>${firstName}</strong></p>
         <p style="color:#555;margin:0 0 20px">${c.body}</p>
-        <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:16px 20px;margin-bottom:24px">
+        <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:16px 20px;margin-bottom:16px">
           <p style="margin:0;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px">${c.dateLabel}</p>
           <p style="margin:4px 0 0;font-size:16px;font-weight:700;color:#1a1a1a">${dt}</p>
         </div>
+        ${locationBlock}
         <div style="text-align:center;margin:24px 0">
           <a href="https://gigzone.app/booking/my"
              style="background:#ea580c;color:#fff;text-decoration:none;padding:14px 32px;border-radius:12px;font-weight:700;font-size:15px;display:inline-block">
@@ -309,17 +341,23 @@ export async function POST(request: NextRequest) {
     const [clientRes, bizRes, locRes] = await Promise.all([
       db.from('profiles').select('name, email, country').eq('id', booking.client_id).maybeSingle(),
       db.from('profiles').select('name, email, country').eq('id', booking.business_id).maybeSingle(),
-      db.from('business_locations').select('timezone').eq('id', booking.location_id).maybeSingle(),
+      db.from('business_locations').select('timezone, name, address, city, country').eq('id', booking.location_id).maybeSingle(),
     ]);
 
     const clientProfile = clientRes.data;
     const bizProfile    = bizRes.data;
     if (!clientProfile?.email) return NextResponse.json({ ok: true });
 
-    const tz        = locRes.data?.timezone ?? 'UTC';
-    const service   = booking.service_name_snapshot ?? '';
-    const business  = bizProfile?.name ?? '';
-    const dt        = fmtDt(booking.starts_at, tz, getLang(clientProfile.country));
+    const tz       = locRes.data?.timezone ?? 'UTC';
+    const service  = booking.service_name_snapshot ?? '';
+    const business = bizProfile?.name ?? '';
+    const dt       = fmtDt(booking.starts_at, tz, getLang(clientProfile.country));
+
+    // Build a readable location line: "Salon Beograd · Knez Mihailova 5, Beograd"
+    const locData = locRes.data;
+    const locationLine = locData
+      ? [locData.name, [locData.address, locData.city, locData.country].filter(Boolean).join(', ')].filter(Boolean).join(' · ')
+      : undefined;
 
     // ── Email to client ────────────────────────────────────────────────────────
     const clientLang      = getLang(clientProfile.country);
@@ -330,7 +368,7 @@ export async function POST(request: NextRequest) {
       to: clientProfile.email,
       subject: clientContent.subject,
       replyTo: 'support@gigzone.app',
-      html: buildHtml(clientContent, clientFirstName, dt),
+      html: buildHtml(clientContent, clientFirstName, dt, locationLine),
     });
 
     // ── Email to business owner + assigned staff (only for new booking) ────────
@@ -367,7 +405,7 @@ export async function POST(request: NextRequest) {
           to: recipientProfile.email,
           subject: rContent.subject,
           replyTo: 'support@gigzone.app',
-          html: buildHtml(rContent, rFirstName, rDt),
+          html: buildHtml(rContent, rFirstName, rDt, locationLine),
         });
       }
     }
