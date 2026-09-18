@@ -138,6 +138,7 @@ function BusinessContent() {
       .select('id, starts_at, ends_at, service_name_snapshot, status, staff_member_id, notes, guest_name, guest_phone, profiles!bookings_client_id_fkey(name, phone)')
       .eq('business_id', profile.id)
       .eq('service_id', serviceId);
+    if (selectedDashLocId) query = query.eq('location_id', selectedDashLocId);
     if (filter === 'upcoming') {
       query = query.gte('starts_at', new Date().toISOString()).in('status', ['pending', 'confirmed']).order('starts_at', { ascending: true });
     } else if (filter === 'pending') {
