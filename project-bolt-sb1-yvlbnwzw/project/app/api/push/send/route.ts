@@ -44,15 +44,41 @@ async function processPush(body: any) {
     .select('*')
     .eq('user_id', user_id);
 
-  if (!subscriptions || subscriptions.length === 0) return;
-
-  // Translate push title/body to recipient's preferred language
+  // Fetch recipient profile (language + notification prefs)
   const { data: recipientLangRow } = await supabase
     .from('profiles')
-    .select('preferred_language')
+    .select('preferred_language, notification_prefs')
     .eq('id', user_id)
     .maybeSingle();
   const pushLang = (recipientLangRow?.preferred_language as string) || 'sr';
+  const notifPrefs = (recipientLangRow?.notification_prefs as Record<string, unknown>) || {};
+  const pushEnabled = notifPrefs.push_enabled !== false;
+  const emailEnabled = notifPrefs.email_enabled !== false;
+
+  // Quiet hours check (only when push_enabled)
+  function isInQuietHours(): boolean {
+    if (!notifPrefs.quiet_enabled) return false;
+    const from = notifPrefs.quiet_from as string | null;
+    const to   = notifPrefs.quiet_to   as string | null;
+    if (!from || !to) return false;
+    const tz = (notifPrefs.quiet_tz as string) || 'UTC';
+    const localStr = new Date().toLocaleTimeString('en-GB', {
+      hour: '2-digit', minute: '2-digit', timeZone: tz, hour12: false,
+    });
+    const [h, m] = localStr.split(':').map(Number);
+    const cur = h * 60 + m;
+    const [fH, fM] = from.split(':').map(Number);
+    const [tH, tM] = to.split(':').map(Number);
+    const qFrom = fH * 60 + fM;
+    const qTo   = tH * 60 + tM;
+    return qFrom > qTo ? (cur >= qFrom || cur < qTo) : (cur >= qFrom && cur < qTo);
+  }
+
+  const sendPush = pushEnabled && !isInQuietHours();
+
+  if (!subscriptions || subscriptions.length === 0) {
+    if (!emailEnabled) return; // nothing to do
+  }
   const translated = translateNotification({ title, body: notifBody, action_type, meta }, pushLang);
 
   let url = '/';
@@ -91,27 +117,31 @@ async function processPush(body: any) {
     icon: actorAvatar || undefined,
   });
 
-  const results = await Promise.allSettled(
-    subscriptions.map((sub) =>
-      webpush.sendNotification(
-        { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-        payload
+  if (sendPush && subscriptions && subscriptions.length > 0) {
+    const results = await Promise.allSettled(
+      subscriptions.map((sub) =>
+        webpush.sendNotification(
+          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+          payload
+        )
       )
-    )
-  );
+    );
 
-  const expiredEndpoints = results
-    .map((r, i) => ({ r, sub: subscriptions[i] }))
-    .filter(({ r }) => {
-      if (r.status !== 'rejected') return false;
-      const code = (r as PromiseRejectedResult).reason?.statusCode;
-      return code === 410 || code === 404;
-    })
-    .map(({ sub }) => sub.endpoint);
+    const expiredEndpoints = results
+      .map((r, i) => ({ r, sub: subscriptions[i] }))
+      .filter(({ r }) => {
+        if (r.status !== 'rejected') return false;
+        const code = (r as PromiseRejectedResult).reason?.statusCode;
+        return code === 410 || code === 404;
+      })
+      .map(({ sub }) => sub.endpoint);
 
-  if (expiredEndpoints.length > 0) {
-    await supabase.from('push_subscriptions').delete().in('endpoint', expiredEndpoints);
+    if (expiredEndpoints.length > 0) {
+      await supabase.from('push_subscriptions').delete().in('endpoint', expiredEndpoints);
+    }
   }
+
+  if (!emailEnabled) return;
 
   // Email locale — drives all email types below
   const emailLocales: Record<string, {

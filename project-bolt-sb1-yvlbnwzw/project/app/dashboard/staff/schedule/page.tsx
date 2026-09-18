@@ -97,6 +97,22 @@ function StaffScheduleContent() {
   const [togglingAccept, setTogglingAccept] = useState(false);
   const [canBlockTime, setCanBlockTime] = useState(false);
 
+  type NotifPrefs = {
+    push_enabled: boolean;
+    email_enabled: boolean;
+    quiet_enabled: boolean;
+    quiet_from: string;
+    quiet_to: string;
+  };
+  const [notifPrefs, setNotifPrefs] = useState<NotifPrefs>({
+    push_enabled: true,
+    email_enabled: true,
+    quiet_enabled: false,
+    quiet_from: '22:00',
+    quiet_to: '07:00',
+  });
+  const [notifPrefsSaving, setNotifPrefsSaving] = useState(false);
+
   const weekDays = DOW_ORDER.map((_, i) => {
     const mon = getMonday(weekDate);
     // DOW_ORDER: 1,2,3,4,5,6,0 → offset from Monday: 0,1,2,3,4,5,6
@@ -130,6 +146,23 @@ function StaffScheduleContent() {
       setCanEdit(!!sm.permissions?.can_set_hours);
       setAcceptBookings(sm.accept_bookings ?? true);
       setCanBlockTime(sm.role === 'owner' || !!sm.permissions?.can_block_time);
+
+      // Load notification prefs from profile
+      const { data: profileRow } = await (supabase as any)
+        .from('profiles')
+        .select('notification_prefs')
+        .eq('id', profile.id)
+        .maybeSingle();
+      if (profileRow?.notification_prefs) {
+        const prefs = profileRow.notification_prefs;
+        setNotifPrefs({
+          push_enabled:  prefs.push_enabled  !== false,
+          email_enabled: prefs.email_enabled !== false,
+          quiet_enabled: prefs.quiet_enabled === true,
+          quiet_from:    prefs.quiet_from ?? '22:00',
+          quiet_to:      prefs.quiet_to   ?? '07:00',
+        });
+      }
       // shifts are loaded by the weekDate/hasStaff effect below (avoids race condition)
     })();
   }, [profile]);
@@ -184,6 +217,23 @@ function StaffScheduleContent() {
       toast.error('Greška');
     }
     setTogglingAccept(false);
+  }
+
+  async function handleSaveNotifPrefs() {
+    setNotifPrefsSaving(true);
+    const { data } = await (supabase as any).rpc('update_notification_prefs', {
+      p_prefs: {
+        push_enabled:  notifPrefs.push_enabled,
+        email_enabled: notifPrefs.email_enabled,
+        quiet_enabled: notifPrefs.quiet_enabled,
+        quiet_from:    notifPrefs.quiet_from,
+        quiet_to:      notifPrefs.quiet_to,
+        quiet_tz:      Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+    });
+    setNotifPrefsSaving(false);
+    if (data?.ok) toast.success(t('notifPrefs.saved'));
+    else toast.error('Greška');
   }
 
   async function handleSave() {
@@ -284,6 +334,103 @@ function StaffScheduleContent() {
                 </button>
               </div>
             )}
+
+            {/* Notification preferences */}
+            <div className="border border-border rounded-xl p-3.5 flex flex-col gap-3 mb-3">
+              <div>
+                <p className="text-sm font-semibold">{t('notifPrefs.title')}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t('notifPrefs.desc')}</p>
+              </div>
+
+              {/* Push toggle */}
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm">{t('notifPrefs.push')}</p>
+                  <p className="text-xs text-muted-foreground">{t('notifPrefs.pushDesc')}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setNotifPrefs(p => ({ ...p, push_enabled: !p.push_enabled }))}
+                  className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200 mt-0.5 ${
+                    notifPrefs.push_enabled ? 'bg-primary' : 'bg-muted'
+                  }`}
+                >
+                  <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
+                    notifPrefs.push_enabled ? 'translate-x-5' : 'translate-x-0.5'
+                  }`} />
+                </button>
+              </div>
+
+              {/* Email toggle */}
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm">{t('notifPrefs.email')}</p>
+                  <p className="text-xs text-muted-foreground">{t('notifPrefs.emailDesc')}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setNotifPrefs(p => ({ ...p, email_enabled: !p.email_enabled }))}
+                  className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200 mt-0.5 ${
+                    notifPrefs.email_enabled ? 'bg-primary' : 'bg-muted'
+                  }`}
+                >
+                  <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
+                    notifPrefs.email_enabled ? 'translate-x-5' : 'translate-x-0.5'
+                  }`} />
+                </button>
+              </div>
+
+              {/* Quiet hours toggle */}
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm">{t('notifPrefs.quiet')}</p>
+                  <p className="text-xs text-muted-foreground">{t('notifPrefs.quietDesc')}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setNotifPrefs(p => ({ ...p, quiet_enabled: !p.quiet_enabled }))}
+                  className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200 mt-0.5 ${
+                    notifPrefs.quiet_enabled ? 'bg-primary' : 'bg-muted'
+                  }`}
+                >
+                  <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
+                    notifPrefs.quiet_enabled ? 'translate-x-5' : 'translate-x-0.5'
+                  }`} />
+                </button>
+              </div>
+
+              {notifPrefs.quiet_enabled && (
+                <div className="flex gap-4 pl-0.5">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] text-muted-foreground font-medium">{t('notifPrefs.quietFrom')}</label>
+                    <input
+                      type="time"
+                      value={notifPrefs.quiet_from}
+                      onChange={e => setNotifPrefs(p => ({ ...p, quiet_from: e.target.value }))}
+                      className="border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] text-muted-foreground font-medium">{t('notifPrefs.quietTo')}</label>
+                    <input
+                      type="time"
+                      value={notifPrefs.quiet_to}
+                      onChange={e => setNotifPrefs(p => ({ ...p, quiet_to: e.target.value }))}
+                      className="border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={handleSaveNotifPrefs}
+                disabled={notifPrefsSaving}
+                className="self-start text-xs font-medium px-3 py-2 rounded-xl border border-border bg-background hover:bg-accent transition-colors disabled:opacity-60"
+              >
+                {notifPrefsSaving ? '...' : t('notifPrefs.save')}
+              </button>
+            </div>
 
             {/* Time-off shortcut */}
             {canBlockTime && (

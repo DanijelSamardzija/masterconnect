@@ -405,6 +405,23 @@ export default function BusinessSetupPage() {
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileSaving, setProfileSaving] = useState(false);
 
+  // ── Notification prefs state ───────────────────────────────────────────────
+  type NotifPrefs = {
+    push_enabled: boolean;
+    email_enabled: boolean;
+    quiet_enabled: boolean;
+    quiet_from: string;
+    quiet_to: string;
+  };
+  const [notifPrefs, setNotifPrefs] = useState<NotifPrefs>({
+    push_enabled: true,
+    email_enabled: true,
+    quiet_enabled: false,
+    quiet_from: '22:00',
+    quiet_to: '07:00',
+  });
+  const [notifPrefsSaving, setNotifPrefsSaving] = useState(false);
+
   // ── Services state ─────────────────────────────────────────────────────────
   const [services, setServices] = useState<ServiceRow[]>([]);
   const [servicesLoading, setServicesLoading] = useState(initialTab === 'services');
@@ -507,14 +524,23 @@ export default function BusinessSetupPage() {
     if (!user) return;
     (async () => {
       setProfileLoading(true);
-      const [profileRes, locRes] = await Promise.all([
+      const [profileRes, locRes, notifRes] = await Promise.all([
         supabase.from('profiles').select('name, is_business').eq('id', user.id).single(),
         supabase.from('business_locations').select('timezone').eq('business_id', user.id).eq('is_primary', true).maybeSingle(),
+        (supabase as any).from('profiles').select('notification_prefs, booking_category').eq('id', user.id).single(),
       ]);
       if (profileRes.data) {
         setBizName(profileRes.data.name ?? '');
         setIsBusinessActive(profileRes.data.is_business ?? false);
-        setBizCategory((profileRes.data as any).booking_category ?? '');
+        setBizCategory(notifRes.data?.booking_category ?? '');
+        const prefs = notifRes.data?.notification_prefs ?? {};
+        setNotifPrefs({
+          push_enabled:  prefs.push_enabled  !== false,
+          email_enabled: prefs.email_enabled !== false,
+          quiet_enabled: prefs.quiet_enabled === true,
+          quiet_from:    prefs.quiet_from ?? '22:00',
+          quiet_to:      prefs.quiet_to   ?? '07:00',
+        });
       }
       // Load saved timezone from primary location; fall back to browser timezone for new users
       setTimezone(locRes.data?.timezone ?? getBrowserTimezone());
@@ -702,6 +728,25 @@ export default function BusinessSetupPage() {
       await (supabase as any).from('profiles').update({ booking_category: bizCategory }).eq('id', user.id);
     }
     toast.success(t('setup.profile.saved'));
+  }
+
+  // ── Notification prefs save ────────────────────────────────────────────────
+  async function handleSaveNotifPrefs() {
+    if (!user) return;
+    setNotifPrefsSaving(true);
+    const { data } = await (supabase as any).rpc('update_notification_prefs', {
+      p_prefs: {
+        push_enabled:  notifPrefs.push_enabled,
+        email_enabled: notifPrefs.email_enabled,
+        quiet_enabled: notifPrefs.quiet_enabled,
+        quiet_from:    notifPrefs.quiet_from,
+        quiet_to:      notifPrefs.quiet_to,
+        quiet_tz:      timezone || 'Europe/Sarajevo',
+      },
+    });
+    setNotifPrefsSaving(false);
+    if (data?.ok) toast.success(t('notifPrefs.saved'));
+    else toast.error(t('setup.error.saveFailed'));
   }
 
   // ── Service form helpers ───────────────────────────────────────────────────
@@ -1633,6 +1678,103 @@ export default function BusinessSetupPage() {
                   >
                     {profileSaving ? t('setup.profile.saving') : t('setup.profile.save')}
                   </Button>
+
+                  {/* ── Notification Preferences ─────────────────────── */}
+                  <div className="border border-border rounded-xl p-4 flex flex-col gap-3 mt-2">
+                    <div>
+                      <p className="text-sm font-semibold">{t('notifPrefs.title')}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{t('notifPrefs.desc')}</p>
+                    </div>
+
+                    {/* Push toggle */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm">{t('notifPrefs.push')}</p>
+                        <p className="text-xs text-muted-foreground">{t('notifPrefs.pushDesc')}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setNotifPrefs(p => ({ ...p, push_enabled: !p.push_enabled }))}
+                        className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200 mt-0.5 ${
+                          notifPrefs.push_enabled ? 'bg-primary' : 'bg-muted'
+                        }`}
+                      >
+                        <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
+                          notifPrefs.push_enabled ? 'translate-x-5' : 'translate-x-0.5'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {/* Email toggle */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm">{t('notifPrefs.email')}</p>
+                        <p className="text-xs text-muted-foreground">{t('notifPrefs.emailDesc')}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setNotifPrefs(p => ({ ...p, email_enabled: !p.email_enabled }))}
+                        className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200 mt-0.5 ${
+                          notifPrefs.email_enabled ? 'bg-primary' : 'bg-muted'
+                        }`}
+                      >
+                        <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
+                          notifPrefs.email_enabled ? 'translate-x-5' : 'translate-x-0.5'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {/* Quiet hours toggle */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm">{t('notifPrefs.quiet')}</p>
+                        <p className="text-xs text-muted-foreground">{t('notifPrefs.quietDesc')}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setNotifPrefs(p => ({ ...p, quiet_enabled: !p.quiet_enabled }))}
+                        className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200 mt-0.5 ${
+                          notifPrefs.quiet_enabled ? 'bg-primary' : 'bg-muted'
+                        }`}
+                      >
+                        <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
+                          notifPrefs.quiet_enabled ? 'translate-x-5' : 'translate-x-0.5'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {notifPrefs.quiet_enabled && (
+                      <div className="flex gap-4 mt-1 pl-0.5">
+                        <div className="flex flex-col gap-1">
+                          <label className="text-[10px] text-muted-foreground font-medium">{t('notifPrefs.quietFrom')}</label>
+                          <input
+                            type="time"
+                            value={notifPrefs.quiet_from}
+                            onChange={e => setNotifPrefs(p => ({ ...p, quiet_from: e.target.value }))}
+                            className="border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <label className="text-[10px] text-muted-foreground font-medium">{t('notifPrefs.quietTo')}</label>
+                          <input
+                            type="time"
+                            value={notifPrefs.quiet_to}
+                            onChange={e => setNotifPrefs(p => ({ ...p, quiet_to: e.target.value }))}
+                            className="border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <Button
+                      onClick={handleSaveNotifPrefs}
+                      disabled={notifPrefsSaving}
+                      variant="outline"
+                      className="self-start mt-1"
+                    >
+                      {notifPrefsSaving ? '...' : t('notifPrefs.save')}
+                    </Button>
+                  </div>
                 </>
               )}
             </div>
