@@ -774,9 +774,9 @@ function OwnerScheduleContent() {
         )}
 
         {/* Accept-bookings toggles */}
-        {staffAccept.length > 0 && (
+        {filteredStaff.length > 0 && (
           <div className="flex gap-x-4 overflow-x-auto scrollbar-hide mb-4 pl-1 pb-0.5">
-            {staffAccept.map(s => (
+            {filteredStaff.map(s => (
               <div key={s.id} className="flex items-center gap-1.5 shrink-0">
                 <span className="text-[11px] text-muted-foreground">{s.name}</span>
                 <button
