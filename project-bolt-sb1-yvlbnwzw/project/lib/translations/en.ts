@@ -2508,6 +2508,7 @@ export default {
   'setup.error.nameRequired': 'Business name is required',
   'setup.error.saveFailed': 'Save failed. Please try again.',
   'setup.error.loadFailed': 'Failed to load data.',
+  'setup.tab.notifications': 'Notifications',
   // F11A — Booking Rules tab
   'setup.tab.rules': 'Rules',
   'setup.rules.heading': 'Booking Rules',

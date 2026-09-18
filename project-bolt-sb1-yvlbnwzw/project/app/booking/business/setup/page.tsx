@@ -21,7 +21,7 @@ import { Button } from '@/components/ui/button';
 import { CityAutocomplete } from '@/components/city-autocomplete';
 import { countries } from '@/lib/countries';
 
-type Tab = 'profile' | 'services' | 'hours' | 'locations' | 'rules' | 'staff'
+type Tab = 'profile' | 'services' | 'hours' | 'locations' | 'rules' | 'staff' | 'notifications'
          | 'tables' | 'menu' | 'delivery' | 'trade_services' | 'acc_units' | 'acc_rules';
 
 type ServiceRow = {
@@ -391,7 +391,7 @@ export default function BusinessSetupPage() {
   const searchParams = useSearchParams();
   const { hasAccess, loading: authLoading } = useBookingAccess();
 
-  const VALID_TABS: Tab[] = ['profile', 'services', 'hours', 'locations', 'rules', 'staff',
+  const VALID_TABS: Tab[] = ['profile', 'services', 'hours', 'locations', 'rules', 'staff', 'notifications',
     'tables', 'menu', 'delivery', 'trade_services', 'acc_units', 'acc_rules'];
   const tabFromUrl = searchParams.get('tab') as Tab | null;
   const initialTab: Tab = tabFromUrl && VALID_TABS.includes(tabFromUrl) ? tabFromUrl : 'profile';
@@ -1507,12 +1507,15 @@ export default function BusinessSetupPage() {
     const base: { key: Tab; label: string }[] = [
       { key: 'profile', label: t('setup.tab.profile') },
     ];
+    const notifTab = { key: 'notifications' as Tab, label: t('setup.tab.notifications') };
+
     if (bizCategory === 'restaurant') {
       base.push(
         { key: 'tables',    label: t('restaurant.setup.tab') },
         { key: 'hours',     label: t('setup.tab.hours') },
         { key: 'locations', label: t('setup.tab.locations') },
         { key: 'staff',     label: t('setup.tab.staff') },
+        notifTab,
         { key: 'rules',     label: t('setup.tab.rules') },
       );
     } else if (bizCategory === 'food_order') {
@@ -1521,6 +1524,7 @@ export default function BusinessSetupPage() {
         { key: 'delivery',  label: t('delivery.setup.tab') },
         { key: 'hours',     label: t('setup.tab.hours') },
         { key: 'staff',     label: t('setup.tab.staff') },
+        notifTab,
       );
     } else if (bizCategory === 'tradespeople') {
       base.push(
@@ -1528,6 +1532,7 @@ export default function BusinessSetupPage() {
         { key: 'hours',          label: t('setup.tab.hours') },
         { key: 'locations',      label: t('setup.tab.locations') },
         { key: 'staff',          label: t('setup.tab.staff') },
+        notifTab,
         { key: 'rules',          label: t('setup.tab.rules') },
       );
     } else if (bizCategory === 'accommodation') {
@@ -1535,6 +1540,7 @@ export default function BusinessSetupPage() {
         { key: 'acc_units', label: t('acc.setup.tab') },
         { key: 'acc_rules', label: t('acc.settings.tab') },
         { key: 'staff',     label: t('setup.tab.staff') },
+        notifTab,
       );
     } else {
       // Default: appointment (frizeri, doktori...) or no category
@@ -1543,6 +1549,7 @@ export default function BusinessSetupPage() {
         { key: 'hours',     label: t('setup.tab.hours') },
         { key: 'locations', label: t('setup.tab.locations') },
         { key: 'staff',     label: t('setup.tab.staff') },
+        notifTab,
         { key: 'rules',     label: t('setup.tab.rules') },
       );
     }
@@ -1695,135 +1702,8 @@ export default function BusinessSetupPage() {
                     {profileSaving ? t('setup.profile.saving') : t('setup.profile.save')}
                   </Button>
 
-                  {/* ── Notification Preferences ─────────────────────── */}
-                  <div className="border border-border rounded-xl p-4 flex flex-col gap-3 mt-2">
-                    <div>
-                      <p className="text-sm font-semibold">{t('notifPrefs.title')}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{t('notifPrefs.desc')}</p>
-                    </div>
-
-                    {/* Push toggle */}
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm">{t('notifPrefs.push')}</p>
-                        <p className="text-xs text-muted-foreground">{t('notifPrefs.pushDesc')}</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setNotifPrefs(p => ({ ...p, push_enabled: !p.push_enabled }))}
-                        className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200 mt-0.5 ${
-                          notifPrefs.push_enabled ? 'bg-primary' : 'bg-muted'
-                        }`}
-                      >
-                        <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
-                          notifPrefs.push_enabled ? 'translate-x-5' : 'translate-x-0.5'
-                        }`} />
-                      </button>
-                    </div>
-
-                    {/* Email toggle */}
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm">{t('notifPrefs.email')}</p>
-                        <p className="text-xs text-muted-foreground">{t('notifPrefs.emailDesc')}</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setNotifPrefs(p => ({ ...p, email_enabled: !p.email_enabled }))}
-                        className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200 mt-0.5 ${
-                          notifPrefs.email_enabled ? 'bg-primary' : 'bg-muted'
-                        }`}
-                      >
-                        <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
-                          notifPrefs.email_enabled ? 'translate-x-5' : 'translate-x-0.5'
-                        }`} />
-                      </button>
-                    </div>
-
-                    {/* Quiet hours toggle */}
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm">{t('notifPrefs.quiet')}</p>
-                        <p className="text-xs text-muted-foreground">{t('notifPrefs.quietDesc')}</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setNotifPrefs(p => ({ ...p, quiet_enabled: !p.quiet_enabled }))}
-                        className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200 mt-0.5 ${
-                          notifPrefs.quiet_enabled ? 'bg-primary' : 'bg-muted'
-                        }`}
-                      >
-                        <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
-                          notifPrefs.quiet_enabled ? 'translate-x-5' : 'translate-x-0.5'
-                        }`} />
-                      </button>
-                    </div>
-
-                    {notifPrefs.quiet_enabled && (
-                      <div className="flex gap-4 mt-1 pl-0.5">
-                        <div className="flex flex-col gap-1">
-                          <label className="text-[10px] text-muted-foreground font-medium">{t('notifPrefs.quietFrom')}</label>
-                          <input
-                            type="time"
-                            value={notifPrefs.quiet_from}
-                            onChange={e => setNotifPrefs(p => ({ ...p, quiet_from: e.target.value }))}
-                            className="border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                          />
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <label className="text-[10px] text-muted-foreground font-medium">{t('notifPrefs.quietTo')}</label>
-                          <input
-                            type="time"
-                            value={notifPrefs.quiet_to}
-                            onChange={e => setNotifPrefs(p => ({ ...p, quiet_to: e.target.value }))}
-                            className="border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Booking event types */}
-                    <div className="border-t border-border pt-3 mt-1 flex flex-col gap-2">
-                      <div>
-                        <p className="text-xs font-semibold">{t('notifPrefs.events')}</p>
-                        <p className="text-[11px] text-muted-foreground">{t('notifPrefs.eventsDesc')}</p>
-                      </div>
-                      {([
-                        { key: 'notify_new_booking',   label: t('notifPrefs.newBooking'),   desc: t('notifPrefs.newBookingDesc') },
-                        { key: 'notify_staff_booking',  label: t('notifPrefs.staffBooking'),  desc: t('notifPrefs.staffBookingDesc') },
-                        { key: 'notify_cancellation',  label: t('notifPrefs.cancellation'),  desc: t('notifPrefs.cancellationDesc') },
-                        { key: 'notify_reschedule',    label: t('notifPrefs.reschedule'),    desc: t('notifPrefs.rescheduleDesc') },
-                      ] as const).map(({ key, label, desc }) => (
-                        <div key={key} className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="text-xs font-medium">{label}</p>
-                            <p className="text-[11px] text-muted-foreground leading-tight">{desc}</p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setNotifPrefs(p => ({ ...p, [key]: !p[key] }))}
-                            className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 mt-0.5 ${
-                              notifPrefs[key] ? 'bg-primary' : 'bg-muted'
-                            }`}
-                          >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
-                              notifPrefs[key] ? 'translate-x-4' : 'translate-x-0.5'
-                            }`} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-
-                    <Button
-                      onClick={handleSaveNotifPrefs}
-                      disabled={notifPrefsSaving}
-                      variant="outline"
-                      className="self-start mt-1"
-                    >
-                      {notifPrefsSaving ? '...' : t('notifPrefs.save')}
-                    </Button>
-                  </div>
                 </>
+
               )}
             </div>
           )}
@@ -2587,6 +2467,139 @@ export default function BusinessSetupPage() {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ── Tab: Notifications ──────────────────────────────────────── */}
+          {activeTab === 'notifications' && (
+            <div className="flex flex-col gap-5">
+              <div>
+                <h2 className="font-semibold">{t('notifPrefs.title')}</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">{t('notifPrefs.desc')}</p>
+              </div>
+
+              <div className="border border-border rounded-xl p-4 flex flex-col gap-3">
+                {/* Push toggle */}
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm">{t('notifPrefs.push')}</p>
+                    <p className="text-xs text-muted-foreground">{t('notifPrefs.pushDesc')}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setNotifPrefs(p => ({ ...p, push_enabled: !p.push_enabled }))}
+                    className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200 mt-0.5 ${
+                      notifPrefs.push_enabled ? 'bg-primary' : 'bg-muted'
+                    }`}
+                  >
+                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
+                      notifPrefs.push_enabled ? 'translate-x-5' : 'translate-x-0.5'
+                    }`} />
+                  </button>
+                </div>
+
+                {/* Email toggle */}
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm">{t('notifPrefs.email')}</p>
+                    <p className="text-xs text-muted-foreground">{t('notifPrefs.emailDesc')}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setNotifPrefs(p => ({ ...p, email_enabled: !p.email_enabled }))}
+                    className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200 mt-0.5 ${
+                      notifPrefs.email_enabled ? 'bg-primary' : 'bg-muted'
+                    }`}
+                  >
+                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
+                      notifPrefs.email_enabled ? 'translate-x-5' : 'translate-x-0.5'
+                    }`} />
+                  </button>
+                </div>
+
+                {/* Quiet hours toggle */}
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm">{t('notifPrefs.quiet')}</p>
+                    <p className="text-xs text-muted-foreground">{t('notifPrefs.quietDesc')}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setNotifPrefs(p => ({ ...p, quiet_enabled: !p.quiet_enabled }))}
+                    className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200 mt-0.5 ${
+                      notifPrefs.quiet_enabled ? 'bg-primary' : 'bg-muted'
+                    }`}
+                  >
+                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
+                      notifPrefs.quiet_enabled ? 'translate-x-5' : 'translate-x-0.5'
+                    }`} />
+                  </button>
+                </div>
+
+                {notifPrefs.quiet_enabled && (
+                  <div className="flex gap-4 mt-1 pl-0.5">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] text-muted-foreground font-medium">{t('notifPrefs.quietFrom')}</label>
+                      <input
+                        type="time"
+                        value={notifPrefs.quiet_from}
+                        onChange={e => setNotifPrefs(p => ({ ...p, quiet_from: e.target.value }))}
+                        className="border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] text-muted-foreground font-medium">{t('notifPrefs.quietTo')}</label>
+                      <input
+                        type="time"
+                        value={notifPrefs.quiet_to}
+                        onChange={e => setNotifPrefs(p => ({ ...p, quiet_to: e.target.value }))}
+                        className="border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Booking event types */}
+                <div className="border-t border-border pt-3 mt-1 flex flex-col gap-2">
+                  <div>
+                    <p className="text-xs font-semibold">{t('notifPrefs.events')}</p>
+                    <p className="text-[11px] text-muted-foreground">{t('notifPrefs.eventsDesc')}</p>
+                  </div>
+                  {([
+                    { key: 'notify_new_booking',  label: t('notifPrefs.newBooking'),  desc: t('notifPrefs.newBookingDesc') },
+                    { key: 'notify_staff_booking', label: t('notifPrefs.staffBooking'), desc: t('notifPrefs.staffBookingDesc') },
+                    { key: 'notify_cancellation', label: t('notifPrefs.cancellation'), desc: t('notifPrefs.cancellationDesc') },
+                    { key: 'notify_reschedule',   label: t('notifPrefs.reschedule'),   desc: t('notifPrefs.rescheduleDesc') },
+                  ] as const).map(({ key, label, desc }) => (
+                    <div key={key} className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-medium">{label}</p>
+                        <p className="text-[11px] text-muted-foreground leading-tight">{desc}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setNotifPrefs(p => ({ ...p, [key]: !p[key] }))}
+                        className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 mt-0.5 ${
+                          notifPrefs[key] ? 'bg-primary' : 'bg-muted'
+                        }`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
+                          notifPrefs[key] ? 'translate-x-4' : 'translate-x-0.5'
+                        }`} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <Button
+                  onClick={handleSaveNotifPrefs}
+                  disabled={notifPrefsSaving}
+                  variant="outline"
+                  className="self-start mt-1"
+                >
+                  {notifPrefsSaving ? '...' : t('notifPrefs.save')}
+                </Button>
+              </div>
             </div>
           )}
 

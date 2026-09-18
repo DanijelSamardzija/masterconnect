@@ -2433,6 +2433,7 @@ export default {
   'setup.error.nameRequired': "Le nom de l'entreprise est requis",
   'setup.error.saveFailed': "Échec de l'enregistrement. Veuillez réessayer.",
   'setup.error.loadFailed': 'Échec du chargement des données.',
+  'setup.tab.notifications': 'Notifications',
   // F11A — Booking Rules tab
   'setup.tab.rules': 'Règles',
   'setup.rules.heading': 'Règles de réservation',

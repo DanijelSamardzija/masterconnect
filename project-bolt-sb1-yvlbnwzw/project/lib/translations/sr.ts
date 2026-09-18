@@ -2508,6 +2508,7 @@ export default {
   'setup.error.nameRequired': 'Naziv biznisa je obavezan',
   'setup.error.saveFailed': 'Greška pri čuvanju. Pokušajte ponovo.',
   'setup.error.loadFailed': 'Greška pri učitavanju podataka.',
+  'setup.tab.notifications': 'Notifikacije',
   // F11A — Booking Rules tab
   'setup.tab.rules': 'Pravila',
   'setup.rules.heading': 'Pravila rezervacije',

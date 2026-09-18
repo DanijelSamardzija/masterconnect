@@ -2426,6 +2426,7 @@ export default {
   'setup.error.nameRequired': 'El nombre del negocio es obligatorio',
   'setup.error.saveFailed': 'Error al guardar. Por favor, inténtalo de nuevo.',
   'setup.error.loadFailed': 'Error al cargar los datos.',
+  'setup.tab.notifications': 'Notificaciones',
   // F11A — Booking Rules tab
   'setup.tab.rules': 'Reglas',
   'setup.rules.heading': 'Reglas de reserva',

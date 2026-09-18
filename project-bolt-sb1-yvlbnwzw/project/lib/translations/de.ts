@@ -2498,6 +2498,7 @@ export default {
   'setup.error.nameRequired': 'Unternehmensname ist erforderlich',
   'setup.error.saveFailed': 'Speichern fehlgeschlagen. Bitte erneut versuchen.',
   'setup.error.loadFailed': 'Daten konnten nicht geladen werden.',
+  'setup.tab.notifications': 'Benachrichtigungen',
   // F11A — Booking Rules tab
   'setup.tab.rules': 'Regeln',
   'setup.rules.heading': 'Buchungsregeln',
