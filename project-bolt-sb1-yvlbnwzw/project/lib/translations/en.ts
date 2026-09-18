@@ -2889,6 +2889,7 @@ export default {
   'schedule.thisMonth': 'This month',
   'schedule.retention': 'Shift data is kept for the last 2 years.',
   'schedule.info': 'Here you set the schedule for each staff member. Click any day to change working hours, add a break, a note, or mark a day off. Each staff member has their own card — weeks can be browsed independently, and the copy icon copies the week to the next one. For annual leave or sick leave, use Absences (link in the navigation above).',
+  'schedule.locFilter.all': 'All locations',
   'ownerStaffHours.info': 'Enter working hours week by week. If a week is not set, the last entered week is used automatically. Staff see the shifts directly in their schedule.',
   'ownerStaffHours.retention': 'Staff schedule data is kept for the last 2 years.',
   'ownerStaffHours.selectWeek': 'Week:',

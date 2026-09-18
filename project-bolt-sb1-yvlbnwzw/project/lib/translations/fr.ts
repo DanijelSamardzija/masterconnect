@@ -2806,6 +2806,7 @@ export default {
   'schedule.thisMonth': 'Ce mois',
   'schedule.retention': 'Les données de quarts sont conservées pour les 2 dernières années.',
   'schedule.info': 'Ici vous définissez le planning de chaque membre du personnel. Cliquez sur n\'importe quel jour pour modifier les heures de travail, ajouter une pause, une note ou marquer un jour de congé. Chaque membre a sa propre carte — les semaines se naviguent indépendamment, et l\'icône de copie transfère la semaine à la suivante. Pour les congés annuels ou arrêts maladie, utilisez Absences (lien dans la navigation ci-dessus).',
+  'schedule.locFilter.all': 'Tous les sites',
   'ownerStaffHours.info': 'Saisissez les horaires de travail semaine par semaine. Si une semaine n\'est pas définie, la dernière semaine saisie est utilisée automatiquement. Le personnel voit les quarts directement dans son planning.',
   'ownerStaffHours.retention': 'Les données de planning du personnel sont conservées pour les 2 dernières années.',
   'ownerStaffHours.selectWeek': 'Semaine :',

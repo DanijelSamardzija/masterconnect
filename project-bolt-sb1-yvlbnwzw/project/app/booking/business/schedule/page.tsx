@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
-import { ChevronLeft, ChevronRight, Copy, X, Info, Download, AlertTriangle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Copy, X, Info, Download, AlertTriangle, MapPin } from 'lucide-react';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
 
 type ShiftRow = {
@@ -123,7 +123,7 @@ function OwnerScheduleContent() {
     const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), 1);
   });
   const [staffRows, setStaffRows] = useState<StaffRow[]>([]);
-  const [staffAccept, setStaffAccept] = useState<{id: string; name: string; accept: boolean; role: string}[]>([]);
+  const [staffAccept, setStaffAccept] = useState<{id: string; name: string; accept: boolean; role: string; location_id: string | null}[]>([]);
   const [loading, setLoading] = useState(true);
   const [cardWeeks, setCardWeeks] = useState<Record<string, Date>>({});
   const [cardShifts, setCardShifts] = useState<Record<string, ShiftRow[]>>({});
@@ -137,6 +137,8 @@ function OwnerScheduleContent() {
   const [shiftConflictCount, setShiftConflictCount] = useState<number | null>(null);
   const [absences, setAbsences] = useState<AbsenceRow[]>([]);
   const [primaryLocId, setPrimaryLocId] = useState<string | null>(null);
+  const [locations, setLocations] = useState<{id: string; name: string}[]>([]);
+  const [schedLocId, setSchedLocId] = useState<string | null>(null);
   // staffId → day_of_week(0=Sun..6=Sat) → { is_closed, start_time, end_time }
   const [staffDefaultHours, setStaffDefaultHours] = useState<Record<string, Record<number, { is_closed: boolean; start_time: string; end_time: string }>>>({});
 
@@ -196,21 +198,20 @@ function OwnerScheduleContent() {
       if (!sm) { setLoading(false); return; }
       setIsOwner(true);
 
-      const { data: locData } = await supabase
+      const { data: allLocs } = await supabase
         .from('business_locations')
-        .select('id')
+        .select('id, name, is_primary')
         .eq('business_id', sm.business_id)
-        .eq('is_primary', true)
         .eq('is_active', true)
-        .maybeSingle();
-      if (locData?.id) {
-        setPrimaryLocId(locData.id);
-        loadAbsences(locData.id);
-      }
+        .order('is_primary', { ascending: false });
+      const locsArr = Array.isArray(allLocs) ? allLocs as {id: string; name: string; is_primary: boolean}[] : [];
+      setLocations(locsArr.map(l => ({ id: l.id, name: l.name })));
+      const primaryLoc = locsArr.find(l => l.is_primary) ?? locsArr[0];
+      if (primaryLoc?.id) setPrimaryLocId(primaryLoc.id);
 
       const { data: staff } = await (supabase as any)
         .from('staff_members')
-        .select('id, accept_bookings, role, profiles!staff_members_user_id_fkey(name)')
+        .select('id, accept_bookings, role, primary_location_id, profiles!staff_members_user_id_fkey(name)')
         .eq('business_id', sm.business_id)
         .eq('is_active', true)
         .in('role', ['worker', 'manager', 'owner']);
@@ -220,6 +221,7 @@ function OwnerScheduleContent() {
           name: s.profiles?.name || '—',
           accept: s.accept_bookings ?? true,
           role: s.role ?? 'worker',
+          location_id: s.primary_location_id ?? null,
         }));
         setStaffAccept(members);
 
@@ -256,6 +258,11 @@ function OwnerScheduleContent() {
       await loadShifts(weekStart);
     })();
   }, [profile]);
+
+  useEffect(() => {
+    const targetLoc = schedLocId ?? primaryLocId;
+    if (targetLoc) loadAbsences(targetLoc);
+  }, [schedLocId, primaryLocId, loadAbsences]);
 
   function prevWeek() {
     const ws = addDays(weekStart, -7);
@@ -499,6 +506,10 @@ function OwnerScheduleContent() {
     }
   }
 
+  const filteredStaff = schedLocId
+    ? staffAccept.filter(s => s.location_id === schedLocId)
+    : staffAccept;
+
   const timeCls = 'border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary w-28';
 
   const monthDays = viewMode === 'month' ? getMonthDays(monthDate) : [];
@@ -732,6 +743,36 @@ function OwnerScheduleContent() {
           </div>
         </div>
 
+        {/* Location filter pills — shown only when multi-location */}
+        {locations.length > 1 && (
+          <div className="flex flex-wrap gap-1.5 mb-3 mt-2">
+            <button
+              onClick={() => setSchedLocId(null)}
+              className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                schedLocId === null
+                  ? 'border-primary bg-primary/10 text-primary font-semibold'
+                  : 'border-border text-muted-foreground hover:border-primary/50 hover:text-foreground'
+              }`}
+            >
+              {t('schedule.locFilter.all')}
+            </button>
+            {locations.map(loc => (
+              <button
+                key={loc.id}
+                onClick={() => setSchedLocId(loc.id)}
+                className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                  schedLocId === loc.id
+                    ? 'border-primary bg-primary/10 text-primary font-semibold'
+                    : 'border-border text-muted-foreground hover:border-primary/50 hover:text-foreground'
+                }`}
+              >
+                <MapPin className="w-3 h-3 shrink-0" />
+                {loc.name}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Accept-bookings toggles */}
         {staffAccept.length > 0 && (
           <div className="flex gap-x-4 overflow-x-auto scrollbar-hide mb-4 pl-1 pb-0.5">
@@ -760,14 +801,14 @@ function OwnerScheduleContent() {
           <div className="flex justify-center py-16">
             <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
-        ) : staffAccept.length === 0 ? (
+        ) : filteredStaff.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-muted-foreground text-sm">{t('schedule.noStaff')}</p>
           </div>
         ) : (
           /* ── PER-STAFF SCROLLABLE CARDS (week + month) ── */
           <div className="space-y-3">
-            {[...staffAccept]
+            {[...filteredStaff]
               .sort((a, b) => {
                 const order: Record<string, number> = { owner: 0, manager: 1, worker: 2 };
                 return (order[a.role] ?? 2) - (order[b.role] ?? 2);

@@ -2871,6 +2871,7 @@ export default {
   'schedule.thisMonth': 'Dieser Monat',
   'schedule.retention': 'Schichtdaten werden für die letzten 2 Jahre gespeichert.',
   'schedule.info': 'Hier legst du den Dienstplan für jeden Mitarbeiter fest. Klicke auf einen beliebigen Tag, um Arbeitszeiten zu ändern, eine Pause oder Notiz hinzuzufügen oder einen freien Tag zu markieren. Jeder Mitarbeiter hat seine eigene Karte — Wochen sind unabhängig navigierbar, das Kopiersymbol überträgt die Woche auf die nächste. Für Urlaub oder Krankheit nutze Abwesenheiten (Link in der Navigation oben).',
+  'schedule.locFilter.all': 'Alle Standorte',
   'ownerStaffHours.info': 'Arbeitszeiten Woche für Woche eingeben. Wird eine Woche nicht gesetzt, wird die zuletzt eingegebene Woche verwendet. Mitarbeiter sehen die Schichten direkt in ihrem Dienstplan.',
   'ownerStaffHours.retention': 'Mitarbeiterplandaten werden für die letzten 2 Jahre gespeichert.',
   'ownerStaffHours.selectWeek': 'Woche:',
