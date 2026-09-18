@@ -262,7 +262,8 @@ export default function BookingSlotPickerPage() {
       });
       const members = (data as StaffOption[]) ?? [];
       setStaffOptions(members);
-      setSelectedStaffId(null);
+      // Auto-select the only staff member so "Bilo koji radnik" never shows for a solo worker
+      setSelectedStaffId(members.length === 1 ? members[0].staff_member_id : null);
     } finally {
       setLoadingStaff(false);
     }
@@ -633,8 +634,8 @@ export default function BookingSlotPickerPage() {
           </div>
         )}
 
-        {/* Staff selection */}
-        {!loadingStaff && staffOptions.length > 0 && (
+        {/* Staff selection — hidden when solo (auto-selected above) */}
+        {!loadingStaff && staffOptions.length > 1 && (
           <div className="mb-5">
             <label className="block text-sm font-medium mb-2">{t('booking.staff.heading')}</label>
             <div className="flex flex-wrap gap-2">
