@@ -2789,6 +2789,7 @@ export default {
   'ownerBookings.status.completed': 'Abgeschlossen',
   'ownerBookings.status.no_show': 'Nicht erschienen',
   'ownerBookings.status.cancelled': 'Storniert',
+  'ownerBookings.status.pastDone': 'Erledigt',
   'ownerBookings.noPermission': 'Zugriff nur für Inhaber und Manager.',
   'ownerBookings.cancelModal.title': 'Termin absagen',
   'ownerBookings.cancelModal.body': 'Der Kunde wird über die Absage benachrichtigt. Sie können optional einen Grund angeben.',

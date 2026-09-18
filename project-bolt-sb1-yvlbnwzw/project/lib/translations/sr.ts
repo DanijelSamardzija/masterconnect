@@ -2807,6 +2807,7 @@ export default {
   'ownerBookings.status.completed': 'Završen',
   'ownerBookings.status.no_show': 'Nije se pojavio',
   'ownerBookings.status.cancelled': 'Otkazan',
+  'ownerBookings.status.pastDone': 'Odradjeno',
   'ownerBookings.noPermission': 'Pristup dozvoljen samo vlasnicima i menadžerima.',
   'ownerBookings.cancelModal.title': 'Otkaži termin',
   'ownerBookings.cancelModal.body': 'Klijent će biti obavješten o otkazivanju. Možete navesti razlog (opciono).',

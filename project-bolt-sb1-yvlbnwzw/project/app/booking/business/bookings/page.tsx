@@ -487,11 +487,14 @@ function OwnerBookingsContent() {
                 const isPast   = new Date(b.starts_at) < new Date();
                 const isActive = ['pending', 'confirmed'].includes(b.status);
                 const client   = b.client_name || b.guest_name;
+                const displaySc = (isPast && isActive)
+                  ? { ...sc, label: t('ownerBookings.status.pastDone'), cls: 'bg-muted text-muted-foreground' }
+                  : sc;
                 return (
-                  <div key={b.id} className={`border rounded-2xl p-4 space-y-3 ${isPast ? 'bg-muted/40 border-border/50' : 'bg-card border-border'}`}>
+                  <div key={b.id} className="bg-card border border-border rounded-2xl p-4 space-y-3">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className={`text-sm font-semibold ${isPast ? 'text-muted-foreground' : 'text-foreground'}`}>
+                        <p className="text-sm font-semibold text-foreground">
                           {new Date(b.starts_at).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
                         </p>
                         <p className="text-xs text-muted-foreground">
@@ -500,8 +503,8 @@ function OwnerBookingsContent() {
                           {new Date(b.ends_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
-                      <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full shrink-0 ${sc.cls}`}>
-                        {sc.icon} {sc.label}
+                      <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full shrink-0 ${displaySc.cls}`}>
+                        {displaySc.icon} {displaySc.label}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -731,11 +734,14 @@ function OwnerBookingsContent() {
               const isActive    = ['pending', 'confirmed'].includes(b.status);
               const isDeletable = ['completed', 'cancelled'].includes(b.status);
               const client   = clientLabel(b);
+              const displaySc = (isPast && isActive)
+                ? { ...sc, label: t('ownerBookings.status.pastDone'), cls: 'bg-muted text-muted-foreground' }
+                : sc;
               return (
-                <div key={b.id} className={`border rounded-2xl p-4 space-y-3 ${isPast ? 'bg-muted/40 border-border/50' : 'bg-card border-border'}`}>
+                <div key={b.id} className="bg-card border border-border rounded-2xl p-4 space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <p className={`text-sm font-semibold ${isPast ? 'text-muted-foreground' : 'text-foreground'}`}>
+                      <p className="text-sm font-semibold text-foreground">
                         {new Date(b.starts_at).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
                       </p>
                       <p className="text-xs text-muted-foreground">
@@ -744,8 +750,8 @@ function OwnerBookingsContent() {
                         {new Date(b.ends_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
-                    <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full shrink-0 ${sc.cls}`}>
-                      {sc.icon} {sc.label}
+                    <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full shrink-0 ${displaySc.cls}`}>
+                      {displaySc.icon} {displaySc.label}
                     </span>
                   </div>
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">

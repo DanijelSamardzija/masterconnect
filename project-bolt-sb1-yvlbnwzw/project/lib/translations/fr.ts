@@ -2724,6 +2724,7 @@ export default {
   'ownerBookings.status.completed': 'Terminé',
   'ownerBookings.status.no_show': 'Absent',
   'ownerBookings.status.cancelled': 'Annulé',
+  'ownerBookings.status.pastDone': 'Effectué',
   'ownerBookings.noPermission': 'Accès réservé aux propriétaires et managers.',
   'ownerBookings.cancelModal.title': 'Annuler le rendez-vous',
   'ownerBookings.cancelModal.body': 'Le client sera notifié de l\'annulation. Vous pouvez indiquer une raison (facultatif).',

@@ -2807,6 +2807,7 @@ export default {
   'ownerBookings.status.completed': 'Completed',
   'ownerBookings.status.no_show': 'No show',
   'ownerBookings.status.cancelled': 'Cancelled',
+  'ownerBookings.status.pastDone': 'Done',
   'ownerBookings.noPermission': 'Access restricted to owners and managers.',
   'ownerBookings.cancelModal.title': 'Cancel appointment',
   'ownerBookings.cancelModal.body': 'The client will be notified of the cancellation. You may provide a reason (optional).',

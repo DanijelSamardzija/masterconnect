@@ -2717,6 +2717,7 @@ export default {
   'ownerBookings.status.completed': 'Completada',
   'ownerBookings.status.no_show': 'No se presentó',
   'ownerBookings.status.cancelled': 'Cancelada',
+  'ownerBookings.status.pastDone': 'Realizado',
   'ownerBookings.noPermission': 'Acceso solo para propietarios y gestores.',
   'ownerBookings.cancelModal.title': 'Cancelar cita',
   'ownerBookings.cancelModal.body': 'El cliente será notificado de la cancelación. Puede indicar un motivo (opcional).',
