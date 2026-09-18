@@ -1297,10 +1297,17 @@ export default function BusinessSetupPage() {
         ? { ...sm, primary_location_id: locationId, primary_location_name: locations.find(l => l.id === locationId)?.name ?? null }
         : sm
     ));
+    // Invalidate cached schedule so next expand loads data for the new location
+    setStaffShiftsMap(prev => { const { [staffMemberId]: _, ...rest } = prev; return rest; });
+    setStaffScheduleEditMap(prev => { const { [staffMemberId]: _, ...rest } = prev; return rest; });
+    // If details are currently expanded, reload immediately
+    if (expandedStaffId === staffMemberId) {
+      await loadStaffDetails(staffMemberId, true);
+    }
   }
 
-  async function loadStaffDetails(staffId: string) {
-    if (staffShiftsMap[staffId] !== undefined) return;
+  async function loadStaffDetails(staffId: string, force = false) {
+    if (!force && staffShiftsMap[staffId] !== undefined) return;
     const isOwnerMember = staffMembers.find(sm => sm.id === staffId)?.role === 'owner';
     const weeks = getScheduleWeeks();
 
