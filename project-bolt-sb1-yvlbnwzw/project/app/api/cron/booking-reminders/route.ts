@@ -73,7 +73,7 @@ function reminderContent(lang: Lang, service: string, business: string): Reminde
   return map[lang];
 }
 
-function buildHtml(c: ReminderEmail, firstName: string, dt: string): string {
+function buildHtml(c: ReminderEmail, firstName: string, dt: string, locationLine?: string): string {
   return `
     <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1a1a1a">
       <div style="text-align:center;padding:32px 0 16px">
@@ -88,6 +88,7 @@ function buildHtml(c: ReminderEmail, firstName: string, dt: string): string {
         <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:16px 20px;margin-bottom:24px">
           <p style="margin:0;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px">Termin / Appointment</p>
           <p style="margin:4px 0 0;font-size:16px;font-weight:700;color:#1a1a1a">${dt}</p>
+          ${locationLine ? `<p style="margin:8px 0 0;font-size:13px;color:#555">📍 ${locationLine}</p>` : ''}
         </div>
         <div style="text-align:center;margin:24px 0">
           <a href="https://gigzone.app/booking/my"
@@ -139,18 +140,22 @@ export async function GET(request: NextRequest) {
       client_country: string;
       business_name: string;
       timezone: string;
+      location_name: string | null;
+      location_address: string | null;
+      location_city: string | null;
     }>) {
       if (!b.client_email) continue;
       try {
-        const lang      = getLang(b.client_country);
-        const firstName = b.client_name?.split(' ')[0] || 'there';
-        const dt        = fmtDt(b.starts_at, b.timezone, lang);
-        const c         = reminderContent(lang, b.service_name ?? '', b.business_name ?? '');
+        const lang         = getLang(b.client_country);
+        const firstName    = b.client_name?.split(' ')[0] || 'there';
+        const dt           = fmtDt(b.starts_at, b.timezone, lang);
+        const c            = reminderContent(lang, b.service_name ?? '', b.business_name ?? '');
+        const locationLine = [b.location_name, [b.location_address, b.location_city].filter(Boolean).join(', ')].filter(Boolean).join(' · ') || undefined;
         await sendEmail({
           to: b.client_email,
           subject: c.subject,
           replyTo: 'support@gigzone.app',
-          html: buildHtml(c, firstName, dt),
+          html: buildHtml(c, firstName, dt, locationLine),
         });
         emailsSent++;
       } catch (emailErr) {

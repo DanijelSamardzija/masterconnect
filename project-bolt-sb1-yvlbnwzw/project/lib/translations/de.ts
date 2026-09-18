@@ -2768,6 +2768,7 @@ export default {
   'ownerBookings.filter.upcoming': 'Bevorstehend',
   'ownerBookings.filter.pending': 'Ausstehend',
   'ownerBookings.filter.all': 'Alle',
+  'ownerBookings.filterLoc.all': 'Alle Standorte',
   'ownerBookings.filterStaff': 'Mitarbeiter',
   'ownerBookings.filterStaff.all': 'Alle Mitarbeiter',
   'ownerBookings.empty': 'Keine Buchungen in dieser Kategorie.',

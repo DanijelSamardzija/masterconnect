@@ -2703,6 +2703,7 @@ export default {
   'ownerBookings.filter.upcoming': 'À venir',
   'ownerBookings.filter.pending': 'En attente',
   'ownerBookings.filter.all': 'Toutes',
+  'ownerBookings.filterLoc.all': 'Tous les sites',
   'ownerBookings.filterStaff': 'Personnel',
   'ownerBookings.filterStaff.all': 'Tout le personnel',
   'ownerBookings.empty': 'Aucune réservation dans cette catégorie.',

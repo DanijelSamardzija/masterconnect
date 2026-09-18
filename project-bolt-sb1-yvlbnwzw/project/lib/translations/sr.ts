@@ -2786,6 +2786,7 @@ export default {
   'ownerBookings.filter.upcoming': 'Nadolazeće',
   'ownerBookings.filter.pending': 'Na čekanju',
   'ownerBookings.filter.all': 'Sve',
+  'ownerBookings.filterLoc.all': 'Sve lokacije',
   'ownerBookings.filterStaff': 'Radnik',
   'ownerBookings.filterStaff.all': 'Svi radnici',
   'ownerBookings.empty': 'Nema rezervacija u ovoj kategoriji.',

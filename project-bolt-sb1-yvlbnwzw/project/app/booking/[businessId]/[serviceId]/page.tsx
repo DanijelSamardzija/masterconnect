@@ -12,7 +12,7 @@ import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
 import {
   ArrowLeft, ChevronLeft, ChevronRight, Clock, Users,
-  Check, Calendar, X
+  Check, Calendar, X, MapPin
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -907,6 +907,12 @@ export default function BookingSlotPickerPage() {
                 </span>
                 {' '}({formatDate(new Date(selectedSlot.slot_start), locale)})
               </div>
+              {selectedLocation && (
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <MapPin className="h-3.5 w-3.5 shrink-0" />
+                  <span>{[selectedLocation.name, [selectedLocation.address, selectedLocation.city].filter(Boolean).join(', ')].filter(Boolean).join(' · ')}</span>
+                </div>
+              )}
 
               {service.capacity > 1 && (
                 <div>

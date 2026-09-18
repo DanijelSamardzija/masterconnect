@@ -2696,6 +2696,7 @@ export default {
   'ownerBookings.filter.upcoming': 'Próximas',
   'ownerBookings.filter.pending': 'Pendientes',
   'ownerBookings.filter.all': 'Todas',
+  'ownerBookings.filterLoc.all': 'Todas las ubicaciones',
   'ownerBookings.filterStaff': 'Empleado',
   'ownerBookings.filterStaff.all': 'Todos los empleados',
   'ownerBookings.empty': 'No hay reservas en esta categoría.',

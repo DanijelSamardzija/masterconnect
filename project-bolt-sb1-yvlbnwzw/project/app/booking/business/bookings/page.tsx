@@ -10,7 +10,7 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   ChevronLeft, ChevronRight, Calendar, Users, CheckCircle2, XCircle,
-  Clock, AlertCircle, Plus, Trash2
+  Clock, AlertCircle, Plus, Trash2, MapPin
 } from 'lucide-react';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
 
@@ -21,6 +21,8 @@ type Booking = {
   service_name_snapshot: string;
   status: string;
   staff_member_id: string | null;
+  location_id: string | null;
+  location: { name: string } | null;
   notes: string | null;
   client_id: string | null;
   client_name: string | null;
@@ -64,7 +66,9 @@ function OwnerBookingsContent() {
   const [bookings, setBookings]   = useState<Booking[]>([]);
   const [staff, setStaff]         = useState<StaffMember[]>([]);
   const [services, setServices]   = useState<Service[]>([]);
-  const [locationId, setLocationId] = useState<string>('');
+  const [locationId, setLocationId]   = useState<string>('');
+  const [locations, setLocations]     = useState<{ id: string; name: string }[]>([]);
+  const [locFilter, setLocFilter]     = useState<string>('all');
   const [loading, setLoading]     = useState(true);
   const [filter, setFilter]       = useState<Filter>(() => {
     try {
@@ -132,7 +136,7 @@ function OwnerBookingsContent() {
 
   useEffect(() => {
     if (isOwner) fetchBookings();
-  }, [isOwner, filter, staffFilter]);
+  }, [isOwner, filter, staffFilter, locFilter]);
 
   useEffect(() => {
     if (staffMemberId && staffBizId) fetchStaffBookings();
@@ -190,10 +194,13 @@ function OwnerBookingsContent() {
   const fetchLocation = async () => {
     if (!profile) return;
     const { data } = await (supabase as any)
-      .from('business_locations').select('id')
+      .from('business_locations').select('id, name')
       .eq('business_id', profile.id).eq('is_active', true)
-      .order('is_primary', { ascending: false }).limit(1).maybeSingle();
-    if (data) setLocationId(data.id);
+      .order('is_primary', { ascending: false });
+    if (data?.length) {
+      setLocationId(data[0].id);
+      setLocations(data.map((l: any) => ({ id: l.id, name: l.name })));
+    }
   };
 
   const fetchStaffBookings = async () => {
@@ -201,7 +208,7 @@ function OwnerBookingsContent() {
     setLoading(true);
     const { data } = await (supabase as any)
       .from('bookings')
-      .select('id, starts_at, ends_at, service_name_snapshot, status, staff_member_id, notes, client_id, guest_name, guest_phone, profiles!bookings_client_id_fkey(name, phone)')
+      .select('id, starts_at, ends_at, service_name_snapshot, status, staff_member_id, location_id, location:location_id(name), notes, client_id, guest_name, guest_phone, profiles!bookings_client_id_fkey(name, phone)')
       .eq('business_id', staffBizId)
       .eq('staff_member_id', staffMemberId)
       .gte('starts_at', new Date().toISOString())
@@ -222,13 +229,14 @@ function OwnerBookingsContent() {
     setLoading(true);
     let query = (supabase as any)
       .from('bookings')
-      .select('id, starts_at, ends_at, service_name_snapshot, status, staff_member_id, notes, client_id, guest_name, guest_phone, profiles!bookings_client_id_fkey(name, phone)')
+      .select('id, starts_at, ends_at, service_name_snapshot, status, staff_member_id, location_id, location:location_id(name), notes, client_id, guest_name, guest_phone, profiles!bookings_client_id_fkey(name, phone)')
       .eq('business_id', profile.id);
     if (filter === 'upcoming')
       query = query.gte('starts_at', new Date().toISOString()).in('status', ['pending', 'confirmed']);
     else if (filter === 'pending')
       query = query.eq('status', 'pending');
     if (staffFilter !== 'all') query = query.eq('staff_member_id', staffFilter);
+    if (locFilter !== 'all') query = query.eq('location_id', locFilter);
     const { data } = await query.order('starts_at', { ascending: filter !== 'all' }).limit(50);
     setBookings((data || []).map((b: any) => ({
       ...b,
@@ -678,6 +686,19 @@ function OwnerBookingsContent() {
           ))}
         </div>
 
+        {/* Location filter */}
+        {locations.length > 1 && (
+          <div className="flex items-center gap-2">
+            <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <select value={locFilter} onChange={e => setLocFilter(e.target.value)}
+              className="flex-1 border border-border rounded-xl px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+            >
+              <option value="all">{t('ownerBookings.filterLoc.all')}</option>
+              {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+            </select>
+          </div>
+        )}
+
         {/* Staff filter */}
         {staff.length > 1 && (
           <div className="flex items-center gap-2">
@@ -731,6 +752,12 @@ function OwnerBookingsContent() {
                     <span className="font-medium text-foreground truncate">{b.service_name_snapshot}</span>
                     {staffName && <span className="shrink-0">· {staffName}</span>}
                   </div>
+                  {locations.length > 1 && (b.location as any)?.name && (
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <MapPin className="h-3 w-3 shrink-0" />
+                      <span>{(b.location as any).name}</span>
+                    </div>
+                  )}
                   {client && (
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Users className="h-3 w-3 shrink-0" />

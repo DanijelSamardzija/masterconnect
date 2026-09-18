@@ -2786,6 +2786,7 @@ export default {
   'ownerBookings.filter.upcoming': 'Upcoming',
   'ownerBookings.filter.pending': 'Pending',
   'ownerBookings.filter.all': 'All',
+  'ownerBookings.filterLoc.all': 'All locations',
   'ownerBookings.filterStaff': 'Staff',
   'ownerBookings.filterStaff.all': 'All staff',
   'ownerBookings.empty': 'No bookings in this category.',
