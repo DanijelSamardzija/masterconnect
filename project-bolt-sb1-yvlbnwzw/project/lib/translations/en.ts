@@ -1942,6 +1942,8 @@ export default {
   'booking.followers': '{n} followers',
   'booking.reviews.title': 'Reviews',
   'booking.reviews.noReviews': 'No reviews yet',
+  'booking.reviews.showMore': 'Show more ({n})',
+  'booking.reviews.showLess': 'Show less',
   'booking.following.title': 'Following',
   'booking.following.empty': 'Not following anyone yet',
   'booking.reschedule': 'Reschedule',

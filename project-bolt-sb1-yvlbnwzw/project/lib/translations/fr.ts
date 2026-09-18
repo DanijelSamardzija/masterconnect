@@ -1867,6 +1867,8 @@ export default {
   'booking.followers': '{n} abonnés',
   'booking.reviews.title': 'Avis',
   'booking.reviews.noReviews': 'Aucun avis encore',
+  'booking.reviews.showMore': 'Voir plus ({n})',
+  'booking.reviews.showLess': 'Voir moins',
   'booking.following.title': 'Je suis',
   'booking.following.empty': 'Tu ne suis personne encore',
   'booking.reschedule': 'Déplacer',

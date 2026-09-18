@@ -1860,6 +1860,8 @@ export default {
   'booking.followers': '{n} seguidores',
   'booking.reviews.title': 'Reseñas',
   'booking.reviews.noReviews': 'Aún no hay reseñas',
+  'booking.reviews.showMore': 'Ver más ({n})',
+  'booking.reviews.showLess': 'Ver menos',
   'booking.following.title': 'Siguiendo',
   'booking.following.empty': 'No sigues a nadie aún',
   'booking.reschedule': 'Reprogramar',

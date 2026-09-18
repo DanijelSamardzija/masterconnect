@@ -1932,6 +1932,8 @@ export default {
   'booking.followers': '{n} Follower',
   'booking.reviews.title': 'Bewertungen',
   'booking.reviews.noReviews': 'Noch keine Bewertungen',
+  'booking.reviews.showMore': 'Mehr anzeigen ({n})',
+  'booking.reviews.showLess': 'Weniger anzeigen',
   'booking.following.title': 'Ich folge',
   'booking.following.empty': 'Du folgst noch niemandem',
   'booking.reschedule': 'Termin verschieben',

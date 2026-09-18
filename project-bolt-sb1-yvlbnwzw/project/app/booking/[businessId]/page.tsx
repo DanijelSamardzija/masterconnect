@@ -75,6 +75,7 @@ export default function BusinessBookingProfilePage() {
   const [followLoading, setFollowLoading] = useState(false);
 
   const [reviewsData, setReviewsData] = useState<ReviewsData | null>(null);
+  const [showAllReviews, setShowAllReviews] = useState(false);
 
   useEffect(() => {
     if (!businessId) return;
@@ -301,26 +302,38 @@ export default function BusinessBookingProfilePage() {
             {!reviewsData || reviewsData.total_count === 0 ? (
               <p className="text-xs text-muted-foreground">{t('booking.reviews.noReviews')}</p>
             ) : (
-              <div className="flex flex-col gap-3">
-                {reviewsData.reviews.map((r) => (
-                  <div key={r.id} className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2">
-                      <div className="flex gap-0.5">
-                        {[1,2,3,4,5].map(n => (
-                          <Star key={n} className={`w-3 h-3 ${n <= r.rating ? 'fill-amber-400 text-amber-400' : 'text-border'}`} />
-                        ))}
+              <>
+                <div className="flex flex-col gap-3">
+                  {(showAllReviews ? reviewsData.reviews : reviewsData.reviews.slice(0, 2)).map((r) => (
+                    <div key={r.id} className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-0.5">
+                          {[1,2,3,4,5].map(n => (
+                            <Star key={n} className={`w-3 h-3 ${n <= r.rating ? 'fill-amber-400 text-amber-400' : 'text-border'}`} />
+                          ))}
+                        </div>
+                        <span className="text-xs font-medium text-foreground">{r.reviewer_name}</span>
+                        <span className="text-xs text-muted-foreground ml-auto">
+                          {new Date(r.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </span>
                       </div>
-                      <span className="text-xs font-medium text-foreground">{r.reviewer_name}</span>
-                      <span className="text-xs text-muted-foreground ml-auto">
-                        {new Date(r.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </span>
+                      {r.comment && (
+                        <p className="text-xs text-muted-foreground leading-relaxed">{r.comment}</p>
+                      )}
                     </div>
-                    {r.comment && (
-                      <p className="text-xs text-muted-foreground leading-relaxed">{r.comment}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+                {reviewsData.reviews.length > 2 && (
+                  <button
+                    onClick={() => setShowAllReviews(v => !v)}
+                    className="mt-3 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                  >
+                    {showAllReviews
+                      ? t('booking.reviews.showLess')
+                      : t('booking.reviews.showMore').replace('{n}', String(reviewsData.reviews.length - 2))}
+                  </button>
+                )}
+              </>
             )}
           </div>
 

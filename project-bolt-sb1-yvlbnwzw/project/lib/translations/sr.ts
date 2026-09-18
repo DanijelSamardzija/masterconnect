@@ -1942,6 +1942,8 @@ export default {
   'booking.followers': '{n} pratilaca',
   'booking.reviews.title': 'Recenzije',
   'booking.reviews.noReviews': 'Još nema recenzija',
+  'booking.reviews.showMore': 'Vidi još ({n})',
+  'booking.reviews.showLess': 'Prikaži manje',
   'booking.following.title': 'Pratim',
   'booking.following.empty': 'Ne pratiš nijednog pružaoca usluga',
   'booking.reschedule': 'Promijeni termin',
