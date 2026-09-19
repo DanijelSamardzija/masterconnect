@@ -801,7 +801,7 @@ function OwnerBookingsContent() {
             <p className="text-xs text-muted-foreground">{t('ownerBookings.subtitle')}</p>
           </div>
           <button
-            onClick={openAddModal}
+            onClick={() => router.push('/booking/business/add-booking')}
             className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl px-3 py-2 text-sm font-semibold transition-colors"
           >
             <Plus className="h-4 w-4" />
