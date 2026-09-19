@@ -47,7 +47,7 @@ type ServiceStat = {
   completed_count: number;
 };
 
-type StaffMember = { id: string; name: string };
+type StaffMember = { id: string; name: string; locationId: string | null };
 type Service     = { id: string; name: string; duration_minutes: number };
 type Slot        = { slot_start: string; slot_end: string; available: boolean };
 type Filter = 'upcoming' | 'pending' | 'all';
@@ -242,9 +242,9 @@ function OwnerBookingsContent() {
     if (!profile) return;
     const { data } = await (supabase as any)
       .from('staff_members')
-      .select('id, profiles!staff_members_user_id_fkey(name)')
+      .select('id, primary_location_id, profiles!staff_members_user_id_fkey(name)')
       .eq('business_id', profile.id).eq('is_active', true);
-    if (data) setStaff(data.map((s: any) => ({ id: s.id, name: s.profiles?.name || '—' })));
+    if (data) setStaff(data.map((s: any) => ({ id: s.id, name: s.profiles?.name || '—', locationId: s.primary_location_id ?? null })));
   };
 
   const fetchServices = async () => {
@@ -736,7 +736,7 @@ function OwnerBookingsContent() {
             <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
             <div className="flex gap-1.5 flex-wrap">
               <button
-                onClick={() => setSelectedLocId('')}
+                onClick={() => { setSelectedLocId(''); setStaffFilter('all'); }}
                 className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
                   !selectedLocId
                     ? 'bg-primary text-primary-foreground border-primary'
@@ -748,7 +748,7 @@ function OwnerBookingsContent() {
               {locations.map(loc => (
                 <button
                   key={loc.id}
-                  onClick={() => setSelectedLocId(loc.id)}
+                  onClick={() => { setSelectedLocId(loc.id); setStaffFilter('all'); }}
                   className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
                     selectedLocId === loc.id
                       ? 'bg-primary text-primary-foreground border-primary'
@@ -830,18 +830,24 @@ function OwnerBookingsContent() {
           ))}
         </div>
 
-        {/* Staff filter */}
-        {staff.length > 1 && (
-          <div className="flex items-center gap-2">
-            <Users className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-            <select value={staffFilter} onChange={e => setStaffFilter(e.target.value)}
-              className="flex-1 border border-border rounded-xl px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
-            >
-              <option value="all">{t('ownerBookings.filterStaff.all')}</option>
-              {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-          </div>
-        )}
+        {/* Staff filter — scoped to selected location */}
+        {(() => {
+          const visibleStaff = selectedLocId
+            ? staff.filter(s => s.locationId === selectedLocId)
+            : staff;
+          if (visibleStaff.length <= 1) return null;
+          return (
+            <div className="flex items-center gap-2">
+              <Users className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <select value={staffFilter} onChange={e => setStaffFilter(e.target.value)}
+                className="flex-1 border border-border rounded-xl px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+              >
+                <option value="all">{t('ownerBookings.filterStaff.all')}</option>
+                {visibleStaff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </div>
+          );
+        })()}
 
         {/* Bookings list */}
         {loading ? (
