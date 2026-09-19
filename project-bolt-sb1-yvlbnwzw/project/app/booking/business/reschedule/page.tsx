@@ -393,7 +393,7 @@ function BusinessRescheduleContent() {
                       const before = dayBreak ? daySlots.filter(s => fmt(s.slot_start) < breakStart!) : daySlots;
                       const after  = dayBreak ? daySlots.filter(s => fmt(s.slot_start) >= breakEnd!)  : [];
                       const SlotBtn = ({ sl }: { sl: Slot }) => {
-                        const timeStr = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit', timeZone: tz }).format(new Date(sl.slot_start));
+                        const timeStr = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: tz }).format(new Date(sl.slot_start));
                         const isChosen = slotStart === sl.slot_start;
                         return (
                           <button onClick={() => setSlotStart(sl.slot_start)}

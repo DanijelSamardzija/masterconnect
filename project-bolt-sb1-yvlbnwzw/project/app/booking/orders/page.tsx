@@ -173,7 +173,7 @@ export default function OrdersDashboard() {
                         <span className="font-medium text-foreground">
                           {order.total_amount.toFixed(2)} {order.currency}
                         </span>
-                        <span>{new Date(order.created_at).toLocaleTimeString('sr', { hour: '2-digit', minute: '2-digit' })}</span>
+                        <span>{new Date(order.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
                       </div>
                       {order.delivery_address && (
                         <p className="text-xs text-muted-foreground flex items-center gap-0.5 mt-0.5">

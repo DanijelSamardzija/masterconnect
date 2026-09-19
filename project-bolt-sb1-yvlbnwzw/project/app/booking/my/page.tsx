@@ -65,7 +65,7 @@ function toDateKey(d: Date): string {
 function formatDt(isoStr: string, locale: string): string {
   return new Intl.DateTimeFormat(locale, {
     year: 'numeric', month: 'short', day: 'numeric',
-    hour: '2-digit', minute: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false,
   }).format(new Date(isoStr));
 }
 

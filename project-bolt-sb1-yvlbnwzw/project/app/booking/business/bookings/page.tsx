@@ -592,9 +592,9 @@ function OwnerBookingsContent() {
                           {new Date(b.starts_at).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(b.starts_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(b.starts_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })}
                           {' – '}
-                          {new Date(b.ends_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(b.ends_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })}
                         </p>
                       </div>
                       <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full shrink-0 ${displaySc.cls}`}>
@@ -879,9 +879,9 @@ function OwnerBookingsContent() {
                         {new Date(b.starts_at).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {new Date(b.starts_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(b.starts_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })}
                         {' – '}
-                        {new Date(b.ends_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(b.ends_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })}
                       </p>
                     </div>
                     <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full shrink-0 ${displaySc.cls}`}>
@@ -1126,8 +1126,8 @@ function OwnerBookingsContent() {
                     const before = dayBreak ? daySlots.filter(s => fmt(s.slot_start) < breakStart!) : daySlots;
                     const after  = dayBreak ? daySlots.filter(s => fmt(s.slot_start) >= breakEnd!)  : [];
                     const SlotBtn = ({ sl }: { sl: Slot }) => {
-                      const timeStr = new Intl.DateTimeFormat(undefined, {
-                        hour: '2-digit', minute: '2-digit', timeZone: addTz,
+                      const timeStr = new Intl.DateTimeFormat('en-GB', {
+                        hour: '2-digit', minute: '2-digit', hour12: false, timeZone: addTz,
                       }).format(new Date(sl.slot_start));
                       const isChosen = addSlotStart === sl.slot_start;
                       return (
