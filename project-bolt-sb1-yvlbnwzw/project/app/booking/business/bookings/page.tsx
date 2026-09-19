@@ -144,6 +144,7 @@ function OwnerBookingsContent() {
   const [addPhone, setAddPhone]           = useState('');
   const [addNotes, setAddNotes]           = useState('');
   const [addLoading, setAddLoading]       = useState(false);
+  const [addTimezone, setAddTimezone]     = useState('UTC');
 
   useEffect(() => {
     if (!profile) return;
@@ -168,11 +169,28 @@ function OwnerBookingsContent() {
     if (staffMemberId && staffBizId) fetchStaffBookings();
   }, [staffMemberId, staffBizId]);
 
-  // Fetch slots whenever week, service, location, or modal-open changes
+  // Fetch slots whenever week, service, staff, location, or modal-open changes
   useEffect(() => {
     const slotLocId = selectedLocId || locationId;
     if (addOpen && addServiceId && slotLocId) fetchSlots();
-  }, [addOpen, addServiceId, addWeek, locationId, selectedLocId]);
+  }, [addOpen, addServiceId, addStaffId, addWeek, locationId, selectedLocId]);
+
+  // Auto-select first available day after slots load
+  useEffect(() => {
+    if (addSlotsLoading || !addOpen) return;
+    const tz = addTimezone || 'UTC';
+    const days = Array.from({ length: 7 }, (_, i) => addDays(addWeek, i));
+    for (const d of days) {
+      const key = new Intl.DateTimeFormat('en-CA', {
+        timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
+      }).format(d);
+      const count = addSlots.filter(s => s.available && new Intl.DateTimeFormat('en-CA', {
+        timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
+      }).format(new Date(s.slot_start)) === key).length;
+      if (count > 0) { setAddSelectedDay(key); return; }
+    }
+    setAddSelectedDay('');
+  }, [addSlots, addSlotsLoading, addOpen, addWeek, addTimezone]);
 
   const checkOwnerRole = async () => {
     if (!profile) return;
@@ -222,11 +240,12 @@ function OwnerBookingsContent() {
   const fetchLocation = async () => {
     if (!profile) return;
     const { data } = await (supabase as any)
-      .from('business_locations').select('id, name, city')
+      .from('business_locations').select('id, name, city, timezone')
       .eq('business_id', profile.id).eq('is_active', true)
       .order('is_primary', { ascending: false });
     if (data?.length) {
       setLocationId(data[0].id);
+      setAddTimezone(data[0].timezone ?? 'UTC');
       setLocations(data.map((l: any) => ({ id: l.id, name: l.name, city: l.city ?? null })));
     }
   };
@@ -291,15 +310,26 @@ function OwnerBookingsContent() {
     setAddSlotsLoading(true);
     setAddSlots([]);
     setAddSlotStart('');
-    const { data } = await (supabase as any).rpc('get_available_slots', {
-      p_business_id: profile.id,
-      p_location_id: slotLocId,
-      p_service_id:  addServiceId,
-      p_week_start:  toDateKey(addWeek),
-    });
-    setAddSlots(data || []);
+    if (addStaffId) {
+      const { data } = await (supabase as any).rpc('get_available_slots', {
+        p_business_id:     profile.id,
+        p_location_id:     slotLocId,
+        p_service_id:      addServiceId,
+        p_week_start:      toDateKey(addWeek),
+        p_staff_member_id: addStaffId,
+      });
+      setAddSlots(data || []);
+    } else {
+      const { data } = await (supabase as any).rpc('get_available_slots_any_staff', {
+        p_business_id: profile.id,
+        p_location_id: slotLocId,
+        p_service_id:  addServiceId,
+        p_week_start:  toDateKey(addWeek),
+      });
+      setAddSlots(data || []);
+    }
     setAddSlotsLoading(false);
-  }, [profile, addServiceId, locationId, selectedLocId, addWeek]);
+  }, [profile, addServiceId, addStaffId, locationId, selectedLocId, addWeek]);
 
   const handleConfirm = async (bookingId: string) => {
     setActionLoading(bookingId + '-confirm');
@@ -492,12 +522,16 @@ function OwnerBookingsContent() {
     fetchBookings();
   };
 
-  // Slots grouped by day key
+  // Slots grouped by timezone-aware day key
+  const addTz = addTimezone || 'UTC';
   const slotsByDay: Record<string, Slot[]> = {};
   for (const s of addSlots) {
-    const key = s.slot_start.slice(0, 10);
+    if (!s.available) continue;
+    const key = new Intl.DateTimeFormat('en-CA', {
+      timeZone: addTz, year: 'numeric', month: '2-digit', day: '2-digit',
+    }).format(new Date(s.slot_start));
     if (!slotsByDay[key]) slotsByDay[key] = [];
-    if (s.available) slotsByDay[key].push(s);
+    slotsByDay[key].push(s);
   }
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(addWeek, i));
@@ -1021,33 +1055,57 @@ function OwnerBookingsContent() {
           </DialogHeader>
           <div className="space-y-4 pt-1">
 
-            {/* Service */}
-            <select value={addServiceId} onChange={e => { setAddServiceId(e.target.value); setAddSlotStart(''); }}
-              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
-            >
-              {services.map(s => <option key={s.id} value={s.id}>{s.name} ({s.duration_minutes} min)</option>)}
-            </select>
+            {/* Service — card picker */}
+            <div>
+              <label className="block text-xs text-muted-foreground mb-1.5">{t('staffBooking.service')}</label>
+              <div className="flex flex-col gap-1.5">
+                {services.map(s => (
+                  <button key={s.id} type="button"
+                    onClick={() => { setAddServiceId(s.id); setAddSlotStart(''); }}
+                    className={`flex items-center justify-between px-3 py-2.5 rounded-xl border transition-colors text-left ${
+                      addServiceId === s.id ? 'border-primary bg-primary/5' : 'border-border bg-background hover:bg-accent'
+                    }`}
+                  >
+                    <span className="text-sm font-medium">{s.name}</span>
+                    <span className="text-xs text-muted-foreground">{s.duration_minutes} min</span>
+                  </button>
+                ))}
+              </div>
+            </div>
 
-            {/* Staff */}
+            {/* Staff — pill picker */}
             {staff.length > 1 && (
-              <select value={addStaffId} onChange={e => setAddStaffId(e.target.value)}
-                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
-              >
-                {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-              </select>
+              <div>
+                <label className="block text-xs text-muted-foreground mb-1.5">{t('booking.staff.heading')}</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {staff.map(s => (
+                    <button key={s.id} type="button"
+                      onClick={() => { setAddStaffId(s.id); setAddSlotStart(''); }}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                        addStaffId === s.id
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-background text-muted-foreground border-border hover:border-primary hover:text-foreground'
+                      }`}
+                    >
+                      {s.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
 
             {/* Week navigation */}
             <div className="flex items-center justify-between">
               <button onClick={() => { setAddWeek(w => addDays(w, -7)); setAddSlotStart(''); }}
-                className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
+                disabled={toDateKey(addWeek) <= toDateKey(new Date())}
+                className="p-1.5 rounded-lg hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-muted-foreground"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <span className="text-xs font-semibold text-foreground">
-                {addWeek.toLocaleDateString(locale, { day: 'numeric', month: 'long' })}
+              <span className="text-sm font-medium text-foreground">
+                {weekDays[0].toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
                 {' – '}
-                {addDays(addWeek, 6).toLocaleDateString(locale, { day: 'numeric', month: 'long' })}
+                {weekDays[6].toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
               </span>
               <button onClick={() => { setAddWeek(w => addDays(w, 7)); setAddSlotStart(''); }}
                 className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
@@ -1056,66 +1114,86 @@ function OwnerBookingsContent() {
               </button>
             </div>
 
-            {/* Day tabs */}
-            <div className="grid grid-cols-7 gap-1">
-              {weekDays.map((day, i) => {
-                const key = toDateKey(day);
-                const hasSlots = (slotsByDay[key]?.length || 0) > 0;
-                const isSelected = addSelectedDay === key;
-                const isToday = toDateKey(new Date()) === key;
-                return (
-                  <button key={key}
-                    onClick={() => { setAddSelectedDay(key); setAddSlotStart(''); }}
-                    className={`flex flex-col items-center py-1.5 rounded-lg text-[10px] font-semibold transition-colors ${
-                      isSelected
-                        ? 'bg-orange-500 text-white'
-                        : hasSlots
-                        ? 'bg-muted text-foreground hover:bg-orange-100 dark:hover:bg-orange-950'
-                        : 'bg-muted/40 text-muted-foreground cursor-default'
-                    }`}
-                    disabled={!hasSlots && !isSelected}
-                  >
-                    <span>{DAY_NAMES[i]}</span>
-                    <span className={`text-xs font-bold ${isToday && !isSelected ? 'text-orange-500' : ''}`}>
-                      {day.getDate()}
-                    </span>
-                    {hasSlots && !isSelected && (
-                      <span className="w-1 h-1 rounded-full bg-orange-500 mt-0.5" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Slot grid */}
+            {/* Day picker — horizontal scroll pills */}
             {addSlotsLoading ? (
               <div className="flex justify-center py-4">
-                <div className="h-5 w-5 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
+                <div className="h-5 w-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
               </div>
-            ) : addSelectedDay && (slotsByDay[addSelectedDay]?.length || 0) === 0 ? (
-              <p className="text-xs text-muted-foreground text-center py-2">
-                {t('ownerBookings.add.noSlots')}
-              </p>
-            ) : addSelectedDay && slotsByDay[addSelectedDay] ? (
-              <div className="grid grid-cols-4 gap-1.5">
-                {slotsByDay[addSelectedDay].map(sl => {
-                  const timeStr = new Date(sl.slot_start).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
-                  const isChosen = addSlotStart === sl.slot_start;
-                  return (
-                    <button key={sl.slot_start}
-                      onClick={() => setAddSlotStart(sl.slot_start)}
-                      className={`py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                        isChosen
-                          ? 'bg-orange-500 text-white'
-                          : 'bg-muted text-foreground hover:bg-orange-100 dark:hover:bg-orange-950'
-                      }`}
-                    >
-                      {timeStr}
-                    </button>
-                  );
-                })}
-              </div>
-            ) : null}
+            ) : (
+              <>
+                <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1" style={{ scrollbarWidth: 'none' }}>
+                  {weekDays.map((day) => {
+                    const key = new Intl.DateTimeFormat('en-CA', {
+                      timeZone: addTz, year: 'numeric', month: '2-digit', day: '2-digit',
+                    }).format(day);
+                    const count = (slotsByDay[key] ?? []).length;
+                    const isSelected = addSelectedDay === key;
+                    const hasSlots = count > 0;
+                    const isPast = toDateKey(day) < toDateKey(new Date());
+                    const shortDay = new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(day);
+                    return (
+                      <button key={key} type="button"
+                        onClick={() => { if (hasSlots) { setAddSelectedDay(key); setAddSlotStart(''); } }}
+                        disabled={!hasSlots}
+                        className={`flex flex-col items-center shrink-0 w-12 py-2 rounded-xl border transition-colors ${
+                          isSelected
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : hasSlots
+                              ? 'border-border hover:border-primary/60 hover:bg-accent'
+                              : isPast
+                                ? 'border-border/40 opacity-25 cursor-not-allowed'
+                                : 'border-border opacity-35 cursor-not-allowed'
+                        }`}
+                      >
+                        <span className={`text-[9px] font-medium uppercase tracking-wide ${isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                          {shortDay}
+                        </span>
+                        <span className="text-base font-bold leading-tight mt-0.5">{day.getDate()}</span>
+                        {hasSlots ? (
+                          <span className={`text-[9px] font-medium mt-0.5 ${isSelected ? 'text-primary-foreground/70' : 'text-primary'}`}>
+                            {count}
+                          </span>
+                        ) : (
+                          <span className="text-[9px] mt-0.5 opacity-0">·</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Slot grid */}
+                {!addSelectedDay || Object.keys(slotsByDay).length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-2">
+                    {t('ownerBookings.add.noSlots')}
+                  </p>
+                ) : addSelectedDay && slotsByDay[addSelectedDay]?.length > 0 ? (
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {slotsByDay[addSelectedDay].map(sl => {
+                      const timeStr = new Intl.DateTimeFormat(undefined, {
+                        hour: '2-digit', minute: '2-digit', timeZone: addTz,
+                      }).format(new Date(sl.slot_start));
+                      const isChosen = addSlotStart === sl.slot_start;
+                      return (
+                        <button key={sl.slot_start}
+                          onClick={() => setAddSlotStart(sl.slot_start)}
+                          className={`py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                            isChosen
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-primary/10 hover:bg-primary/20 text-primary'
+                          }`}
+                        >
+                          {timeStr}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : addSelectedDay ? (
+                  <p className="text-xs text-muted-foreground text-center py-2">
+                    {t('ownerBookings.add.noSlots')}
+                  </p>
+                ) : null}
+              </>
+            )}
 
             {/* Client details — shown only after slot is chosen */}
             {addSlotStart && (
