@@ -224,7 +224,6 @@ export default function BookingSlotPickerPage() {
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
 
   const [shareOpen, setShareOpen] = useState(false);
-  const [isStaffMember, setIsStaffMember] = useState(false);
 
   useEffect(() => {
     if (!businessId || !serviceId) return;
@@ -257,14 +256,6 @@ export default function BookingSlotPickerPage() {
     }
     loadMeta();
   }, [businessId, serviceId]);
-
-  useEffect(() => {
-    if (!user || !businessId || user.id === businessId) return;
-    supabase.from('staff_members').select('id')
-      .eq('business_id', businessId).eq('user_id', user.id)
-      .maybeSingle()
-      .then(({ data }) => setIsStaffMember(!!data));
-  }, [user?.id, businessId]);
 
   const loadStaff = useCallback(async (locId: string) => {
     if (!serviceId) return;
@@ -554,16 +545,14 @@ export default function BookingSlotPickerPage() {
         <div className="mb-6">
           <div className="flex items-start justify-between gap-2">
             <h1 className="text-xl font-semibold">{service.name}</h1>
-            {!!user && (user.id === businessId || isStaffMember) && (
-              <button
-                onClick={() => setShareOpen(true)}
-                className="shrink-0 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground border border-border rounded-lg px-2.5 py-1.5 hover:bg-accent transition-colors"
-                title={t('booking.shareService')}
-              >
-                <Share2 className="w-3.5 h-3.5" />
-                {t('booking.shareService')}
-              </button>
-            )}
+            <button
+              onClick={() => setShareOpen(true)}
+              className="shrink-0 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground border border-border rounded-lg px-2.5 py-1.5 hover:bg-accent transition-colors"
+              title={t('booking.shareService')}
+            >
+              <Share2 className="w-3.5 h-3.5" />
+              {t('booking.shareService')}
+            </button>
           </div>
           <p className="text-sm font-medium text-muted-foreground mt-0.5">{business.name}</p>
           <div className="flex flex-wrap gap-3 mt-2 text-sm text-muted-foreground">
