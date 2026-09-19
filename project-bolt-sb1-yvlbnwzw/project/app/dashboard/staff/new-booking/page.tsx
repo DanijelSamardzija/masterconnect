@@ -58,6 +58,7 @@ export default function StaffNewBookingPage() {
   const [locationId, setLocationId] = useState('');
   const [timezone, setTimezone] = useState('UTC');
   const [staffName, setStaffName] = useState('');
+  const [staffMemberId, setStaffMemberId] = useState('');
 
   const [serviceId, setServiceId] = useState('');
   const [week, setWeek] = useState<Date>(weekMonday(new Date()));
@@ -65,6 +66,7 @@ export default function StaffNewBookingPage() {
   const [slotStart, setSlotStart] = useState('');
   const [slots, setSlots] = useState<Slot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
+  const [breaks, setBreaks] = useState<Record<string, { break_start: string; break_end: string }>>({});
 
   const [guestName, setGuestName] = useState('');
   const [guestPhone, setGuestPhone] = useState('');
@@ -90,6 +92,7 @@ export default function StaffNewBookingPage() {
 
       setHasPermission(true);
       setBusinessId(sm.business_id);
+      setStaffMemberId(sm.id);
       setStaffName(profile.name ?? '');
 
       let locId = sm.primary_location_id;
@@ -128,23 +131,39 @@ export default function StaffNewBookingPage() {
   }, [profile]);
 
   const fetchSlots = useCallback(async () => {
-    if (!businessId || !locationId || !serviceId) return;
+    if (!businessId || !locationId || !serviceId || !staffMemberId) return;
     setSlotsLoading(true);
     setSlots([]);
     setSlotStart('');
-    const { data } = await (supabase as any).rpc('get_available_slots_any_staff', {
-      p_business_id: businessId,
-      p_location_id: locationId,
-      p_service_id:  serviceId,
-      p_week_start:  toDateKey(week),
+    const { data } = await (supabase as any).rpc('get_available_slots', {
+      p_business_id:     businessId,
+      p_location_id:     locationId,
+      p_service_id:      serviceId,
+      p_week_start:      toDateKey(week),
+      p_staff_member_id: staffMemberId,
     });
     setSlots(data || []);
     setSlotsLoading(false);
-  }, [businessId, locationId, serviceId, week]);
+  }, [businessId, locationId, serviceId, week, staffMemberId]);
 
   useEffect(() => {
-    if (hasPermission && businessId && locationId && serviceId) fetchSlots();
-  }, [hasPermission, businessId, locationId, serviceId, week, fetchSlots]);
+    if (hasPermission && businessId && locationId && serviceId && staffMemberId) fetchSlots();
+  }, [hasPermission, businessId, locationId, serviceId, week, staffMemberId, fetchSlots]);
+
+  // Fetch breaks for the current week
+  useEffect(() => {
+    if (!staffMemberId) return;
+    (supabase as any).rpc('public_get_week_breaks', {
+      p_staff_member_id: staffMemberId,
+      p_week_start:      toDateKey(week),
+    }).then(({ data }: { data: { shift_date: string; break_start: string; break_end: string }[] | null }) => {
+      const map: Record<string, { break_start: string; break_end: string }> = {};
+      if (Array.isArray(data)) {
+        data.forEach(b => { map[b.shift_date] = { break_start: b.break_start, break_end: b.break_end }; });
+      }
+      setBreaks(map);
+    });
+  }, [staffMemberId, week]);
 
   // Auto-select first available day after slots load
   useEffect(() => {
@@ -344,27 +363,48 @@ export default function StaffNewBookingPage() {
                       {t('staffBooking.noSlots')}
                     </p>
                   ) : selectedDay && slotsByDay[selectedDay]?.length > 0 ? (
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                      {slotsByDay[selectedDay].map(sl => {
+                    (() => {
+                      const daySlots = slotsByDay[selectedDay];
+                      const dayBreak = breaks[selectedDay];
+                      const fmt = (iso: string) => new Intl.DateTimeFormat('en-GB', {
+                        hour: '2-digit', minute: '2-digit', timeZone: tz,
+                      }).format(new Date(iso));
+                      const breakStart = dayBreak?.break_start.slice(0, 5);
+                      const breakEnd   = dayBreak?.break_end.slice(0, 5);
+                      const before = dayBreak ? daySlots.filter(s => fmt(s.slot_start) < breakStart!) : daySlots;
+                      const after  = dayBreak ? daySlots.filter(s => fmt(s.slot_start) >= breakEnd!)  : [];
+                      const SlotBtn = ({ sl }: { sl: Slot }) => {
                         const timeStr = new Intl.DateTimeFormat(undefined, {
                           hour: '2-digit', minute: '2-digit', timeZone: tz,
                         }).format(new Date(sl.slot_start));
                         const isChosen = slotStart === sl.slot_start;
                         return (
                           <button
-                            key={sl.slot_start}
                             onClick={() => setSlotStart(sl.slot_start)}
                             className={`py-3 rounded-xl text-sm font-medium transition-colors ${
-                              isChosen
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-primary/10 hover:bg-primary/20 text-primary'
+                              isChosen ? 'bg-primary text-primary-foreground' : 'bg-primary/10 hover:bg-primary/20 text-primary'
                             }`}
                           >
                             {timeStr}
                           </button>
                         );
-                      })}
-                    </div>
+                      };
+                      return (
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                          {before.map(sl => <SlotBtn key={sl.slot_start} sl={sl} />)}
+                          {dayBreak && after.length > 0 && (
+                            <div className="col-span-3 sm:col-span-4 flex items-center gap-2 py-1">
+                              <div className="flex-1 h-px bg-border" />
+                              <span className="text-[11px] text-orange-500 font-medium whitespace-nowrap">
+                                {t('schedule.break')} {breakStart}–{breakEnd}
+                              </span>
+                              <div className="flex-1 h-px bg-border" />
+                            </div>
+                          )}
+                          {after.map(sl => <SlotBtn key={sl.slot_start} sl={sl} />)}
+                        </div>
+                      );
+                    })()
                   ) : selectedDay ? (
                     <p className="text-sm text-muted-foreground text-center py-4">
                       {t('staffBooking.noSlots')}

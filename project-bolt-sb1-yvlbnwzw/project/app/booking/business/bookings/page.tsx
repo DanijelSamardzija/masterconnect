@@ -145,6 +145,7 @@ function OwnerBookingsContent() {
   const [addNotes, setAddNotes]           = useState('');
   const [addLoading, setAddLoading]       = useState(false);
   const [addTimezone, setAddTimezone]     = useState('UTC');
+  const [addBreaks, setAddBreaks]         = useState<Record<string, { break_start: string; break_end: string }>>({});
 
   useEffect(() => {
     if (!profile) return;
@@ -191,6 +192,21 @@ function OwnerBookingsContent() {
     }
     setAddSelectedDay('');
   }, [addSlots, addSlotsLoading, addOpen, addWeek, addTimezone]);
+
+  // Fetch break data for the selected staff + week (only when a specific staff is chosen)
+  useEffect(() => {
+    if (!addStaffId || !addOpen) { setAddBreaks({}); return; }
+    (supabase as any).rpc('public_get_week_breaks', {
+      p_staff_member_id: addStaffId,
+      p_week_start:      toDateKey(addWeek),
+    }).then(({ data }: { data: { shift_date: string; break_start: string; break_end: string }[] | null }) => {
+      const map: Record<string, { break_start: string; break_end: string }> = {};
+      if (Array.isArray(data)) {
+        data.forEach(b => { map[b.shift_date] = { break_start: b.break_start, break_end: b.break_end }; });
+      }
+      setAddBreaks(map);
+    });
+  }, [addStaffId, addWeek, addOpen]);
 
   const checkOwnerRole = async () => {
     if (!profile) return;
@@ -1167,8 +1183,17 @@ function OwnerBookingsContent() {
                     {t('ownerBookings.add.noSlots')}
                   </p>
                 ) : addSelectedDay && slotsByDay[addSelectedDay]?.length > 0 ? (
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {slotsByDay[addSelectedDay].map(sl => {
+                  (() => {
+                    const daySlots = slotsByDay[addSelectedDay];
+                    const dayBreak = addBreaks[addSelectedDay];
+                    const fmt = (iso: string) => new Intl.DateTimeFormat('en-GB', {
+                      hour: '2-digit', minute: '2-digit', timeZone: addTz,
+                    }).format(new Date(iso));
+                    const breakStart = dayBreak?.break_start.slice(0, 5);
+                    const breakEnd   = dayBreak?.break_end.slice(0, 5);
+                    const before = dayBreak ? daySlots.filter(s => fmt(s.slot_start) < breakStart!) : daySlots;
+                    const after  = dayBreak ? daySlots.filter(s => fmt(s.slot_start) >= breakEnd!)  : [];
+                    const SlotBtn = ({ sl }: { sl: Slot }) => {
                       const timeStr = new Intl.DateTimeFormat(undefined, {
                         hour: '2-digit', minute: '2-digit', timeZone: addTz,
                       }).format(new Date(sl.slot_start));
@@ -1177,16 +1202,29 @@ function OwnerBookingsContent() {
                         <button key={sl.slot_start}
                           onClick={() => setAddSlotStart(sl.slot_start)}
                           className={`py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                            isChosen
-                              ? 'bg-primary text-primary-foreground'
-                              : 'bg-primary/10 hover:bg-primary/20 text-primary'
+                            isChosen ? 'bg-primary text-primary-foreground' : 'bg-primary/10 hover:bg-primary/20 text-primary'
                           }`}
                         >
                           {timeStr}
                         </button>
                       );
-                    })}
-                  </div>
+                    };
+                    return (
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {before.map(sl => <SlotBtn key={sl.slot_start} sl={sl} />)}
+                        {dayBreak && after.length > 0 && (
+                          <div className="col-span-3 flex items-center gap-2 py-1">
+                            <div className="flex-1 h-px bg-border" />
+                            <span className="text-[11px] text-orange-500 font-medium whitespace-nowrap">
+                              {t('schedule.break')} {breakStart}–{breakEnd}
+                            </span>
+                            <div className="flex-1 h-px bg-border" />
+                          </div>
+                        )}
+                        {after.map(sl => <SlotBtn key={sl.slot_start} sl={sl} />)}
+                      </div>
+                    );
+                  })()
                 ) : addSelectedDay ? (
                   <p className="text-xs text-muted-foreground text-center py-2">
                     {t('ownerBookings.add.noSlots')}
