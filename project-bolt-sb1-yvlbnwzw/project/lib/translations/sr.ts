@@ -2814,6 +2814,7 @@ export default {
   'staffBooking.clientNote': 'Klijent / napomena (opciono)',
   'staffBooking.clientNotePlaceholder': 'Ime klijenta ili napomena...',
   'staffBooking.durationHint': 'Termin traje {d} minuta.',
+  'staffBooking.assignedTo': 'Termin za',
   'staffBooking.create': 'Zakaži termin',
   'staffBooking.creating': 'Zakazivanje...',
   'staffBooking.success': 'Termin zakazan',

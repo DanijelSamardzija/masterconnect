@@ -2796,6 +2796,7 @@ export default {
   'staffBooking.clientNote': 'Kunde / Notiz (optional)',
   'staffBooking.clientNotePlaceholder': 'Kundenname oder Notiz...',
   'staffBooking.durationHint': 'Termin dauert {d} Minuten.',
+  'staffBooking.assignedTo': 'Termin für',
   'staffBooking.create': 'Termin buchen',
   'staffBooking.creating': 'Wird gebucht...',
   'staffBooking.success': 'Termin gebucht',

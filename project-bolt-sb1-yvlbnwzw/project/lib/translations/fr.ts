@@ -2731,6 +2731,7 @@ export default {
   'staffBooking.clientNote': 'Client / note (optionnel)',
   'staffBooking.clientNotePlaceholder': 'Nom du client ou note...',
   'staffBooking.durationHint': 'Le rendez-vous dure {d} minutes.',
+  'staffBooking.assignedTo': 'Rendez-vous pour',
   'staffBooking.create': 'Réserver',
   'staffBooking.creating': 'Réservation en cours...',
   'staffBooking.success': 'Rendez-vous réservé',

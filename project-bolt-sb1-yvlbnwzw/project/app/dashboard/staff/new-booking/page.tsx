@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, User } from 'lucide-react';
 
 type Service = {
   id: string;
@@ -37,6 +37,11 @@ function toDateKey(d: Date): string {
   const day = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
 }
+function tzDateKey(isoOrDate: string | Date, tz: string): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(typeof isoOrDate === 'string' ? new Date(isoOrDate) : isoOrDate);
+}
 
 export default function StaffNewBookingPage() {
   const { t, language } = useLanguage();
@@ -51,10 +56,12 @@ export default function StaffNewBookingPage() {
   const [loading, setLoading] = useState(true);
   const [businessId, setBusinessId] = useState('');
   const [locationId, setLocationId] = useState('');
+  const [timezone, setTimezone] = useState('UTC');
+  const [staffName, setStaffName] = useState('');
 
   const [serviceId, setServiceId] = useState('');
   const [week, setWeek] = useState<Date>(weekMonday(new Date()));
-  const [selectedDay, setSelectedDay] = useState<string>(toDateKey(new Date()));
+  const [selectedDay, setSelectedDay] = useState<string>('');
   const [slotStart, setSlotStart] = useState('');
   const [slots, setSlots] = useState<Slot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
@@ -69,7 +76,7 @@ export default function StaffNewBookingPage() {
     (async () => {
       const { data: sm } = await (supabase as any)
         .from('staff_members')
-        .select('id, business_id, primary_location_id, permissions')
+        .select('id, business_id, primary_location_id, permissions, user_id')
         .eq('user_id', profile.id)
         .eq('is_active', true)
         .in('role', ['worker', 'manager'])
@@ -83,21 +90,28 @@ export default function StaffNewBookingPage() {
 
       setHasPermission(true);
       setBusinessId(sm.business_id);
+      setStaffName(profile.name ?? '');
 
-      // If no primary_location_id on staff member, fall back to business primary location
-      if (sm.primary_location_id) {
-        setLocationId(sm.primary_location_id);
-      } else {
+      let locId = sm.primary_location_id;
+      if (!locId) {
         const { data: loc } = await (supabase as any)
           .from('business_locations')
-          .select('id')
+          .select('id, timezone')
           .eq('business_id', sm.business_id)
           .eq('is_active', true)
           .order('is_primary', { ascending: false })
           .limit(1)
           .maybeSingle();
-        if (loc) setLocationId(loc.id);
+        if (loc) { locId = loc.id; setTimezone(loc.timezone ?? 'UTC'); }
+      } else {
+        const { data: loc } = await (supabase as any)
+          .from('business_locations')
+          .select('timezone')
+          .eq('id', locId)
+          .maybeSingle();
+        if (loc?.timezone) setTimezone(loc.timezone);
       }
+      if (locId) setLocationId(locId);
 
       const { data: svcs } = await (supabase as any)
         .from('service_catalog')
@@ -132,6 +146,22 @@ export default function StaffNewBookingPage() {
     if (hasPermission && businessId && locationId && serviceId) fetchSlots();
   }, [hasPermission, businessId, locationId, serviceId, week, fetchSlots]);
 
+  // Auto-select first available day after slots load
+  useEffect(() => {
+    if (slotsLoading) return;
+    const tz = timezone || 'UTC';
+    const weekDays = Array.from({ length: 7 }, (_, i) => addDays(week, i));
+    for (const d of weekDays) {
+      const key = tzDateKey(d, tz);
+      const daySlots = slots.filter(s => tzDateKey(s.slot_start, tz) === key && s.available);
+      if (daySlots.length > 0) {
+        setSelectedDay(key);
+        return;
+      }
+    }
+    setSelectedDay('');
+  }, [slots, slotsLoading, week, timezone]);
+
   async function handleSubmit() {
     if (!serviceId || !slotStart || !guestName.trim()) return;
     setSubmitting(true);
@@ -156,18 +186,18 @@ export default function StaffNewBookingPage() {
     router.push('/dashboard/staff/bookings');
   }
 
-  // Group available slots by day key
+  // Group available slots by timezone-aware day key
+  const tz = timezone || 'UTC';
   const slotsByDay: Record<string, Slot[]> = {};
   for (const s of slots) {
-    const key = toDateKey(new Date(s.slot_start));
+    if (!s.available) continue;
+    const key = tzDateKey(s.slot_start, tz);
     if (!slotsByDay[key]) slotsByDay[key] = [];
-    if (s.available) slotsByDay[key].push(s);
+    slotsByDay[key].push(s);
   }
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(week, i));
-  const DAY_NAMES = weekDays.map(d =>
-    d.toLocaleDateString(locale, { weekday: 'short' }).replace(/\.$/, '')
-  );
+  const todayStr = toDateKey(new Date());
 
   return (
     <ProtectedRoute>
@@ -179,7 +209,7 @@ export default function StaffNewBookingPage() {
               onClick={() => router.push('/dashboard/staff/bookings')}
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
-              <ChevronRight className="w-5 h-5 rotate-180" />
+              <ChevronLeft className="w-5 h-5" />
             </button>
             <div className="flex-1">
               <h1 className="text-xl font-semibold">{t('staffBooking.title')}</h1>
@@ -201,7 +231,20 @@ export default function StaffNewBookingPage() {
               <p className="text-muted-foreground text-sm">{t('staffBooking.noServices')}</p>
             </div>
           ) : (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-5">
+
+              {/* Staff identity */}
+              {staffName && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-muted/50 border border-border/60">
+                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <User className="w-3.5 h-3.5 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-muted-foreground leading-none mb-0.5">{t('staffBooking.assignedTo')}</p>
+                    <p className="text-sm font-medium text-foreground truncate">{staffName}</p>
+                  </div>
+                </div>
+              )}
 
               {/* Service picker */}
               <div>
@@ -211,7 +254,7 @@ export default function StaffNewBookingPage() {
                     <button
                       key={svc.id}
                       type="button"
-                      onClick={() => { setServiceId(svc.id); setSlotStart(''); }}
+                      onClick={() => { setServiceId(svc.id); setSlotStart(''); setSelectedDay(''); }}
                       className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-colors text-left ${
                         serviceId === svc.id
                           ? 'border-primary bg-primary/5'
@@ -229,85 +272,106 @@ export default function StaffNewBookingPage() {
               <div className="flex items-center justify-between">
                 <button
                   onClick={() => { setWeek(w => addDays(w, -7)); setSlotStart(''); }}
-                  className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
+                  disabled={toDateKey(week) <= todayStr}
+                  className="p-2 rounded-lg hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-muted-foreground"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
-                <span className="text-xs font-semibold text-foreground">
-                  {week.toLocaleDateString(locale, { day: 'numeric', month: 'long' })}
+                <span className="text-sm font-medium text-foreground">
+                  {weekDays[0].toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
                   {' – '}
-                  {addDays(week, 6).toLocaleDateString(locale, { day: 'numeric', month: 'long' })}
+                  {weekDays[6].toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
                 </span>
                 <button
                   onClick={() => { setWeek(w => addDays(w, 7)); setSlotStart(''); }}
-                  className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
+                  className="p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
 
-              {/* Day tabs */}
-              <div className="grid grid-cols-7 gap-1">
-                {weekDays.map((day, i) => {
-                  const key = toDateKey(day);
-                  const hasSlots = (slotsByDay[key]?.length || 0) > 0;
-                  const isSelected = selectedDay === key;
-                  const isToday = toDateKey(new Date()) === key;
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => { setSelectedDay(key); setSlotStart(''); }}
-                      disabled={!hasSlots && !isSelected}
-                      className={`flex flex-col items-center py-1.5 rounded-lg text-[10px] font-semibold transition-colors ${
-                        isSelected
-                          ? 'bg-primary text-white'
-                          : hasSlots
-                          ? 'bg-muted text-foreground hover:bg-primary/10'
-                          : 'bg-muted/40 text-muted-foreground cursor-default'
-                      }`}
-                    >
-                      <span>{DAY_NAMES[i]}</span>
-                      <span className={`text-xs font-bold ${isToday && !isSelected ? 'text-primary' : ''}`}>
-                        {day.getDate()}
-                      </span>
-                      {hasSlots && !isSelected && (
-                        <span className="w-1 h-1 rounded-full bg-primary mt-0.5" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Slot grid */}
+              {/* Day selector — horizontal scroll pills matching client booking */}
               {slotsLoading ? (
-                <div className="flex justify-center py-4">
+                <div className="flex justify-center py-6">
                   <div className="h-5 w-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
                 </div>
-              ) : selectedDay && (slotsByDay[selectedDay]?.length || 0) === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-2">
-                  {t('staffBooking.noSlots')}
-                </p>
-              ) : selectedDay && slotsByDay[selectedDay] ? (
-                <div className="grid grid-cols-4 gap-1.5">
-                  {slotsByDay[selectedDay].map(sl => {
-                    const timeStr = new Date(sl.slot_start).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
-                    const isChosen = slotStart === sl.slot_start;
-                    return (
-                      <button
-                        key={sl.slot_start}
-                        onClick={() => setSlotStart(sl.slot_start)}
-                        className={`py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                          isChosen
-                            ? 'bg-primary text-white'
-                            : 'bg-muted text-foreground hover:bg-primary/10'
-                        }`}
-                      >
-                        {timeStr}
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : null}
+              ) : (
+                <>
+                  <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" style={{ scrollbarWidth: 'none' }}>
+                    {weekDays.map((day) => {
+                      const dayKey = tzDateKey(day, tz);
+                      const daySlots = slotsByDay[dayKey] ?? [];
+                      const availableCount = daySlots.length;
+                      const isSelected = selectedDay === dayKey;
+                      const hasSlots = availableCount > 0;
+                      const isPast = toDateKey(day) < todayStr;
+                      const shortDay = new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(day);
+                      return (
+                        <button
+                          key={dayKey}
+                          type="button"
+                          onClick={() => { if (hasSlots) { setSelectedDay(dayKey); setSlotStart(''); } }}
+                          disabled={!hasSlots}
+                          className={`flex flex-col items-center shrink-0 w-14 py-2.5 rounded-xl border transition-colors ${
+                            isSelected
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : hasSlots
+                                ? 'border-border hover:border-primary/60 hover:bg-accent'
+                                : isPast
+                                  ? 'border-border/40 opacity-25 cursor-not-allowed'
+                                  : 'border-border opacity-35 cursor-not-allowed'
+                          }`}
+                        >
+                          <span className={`text-[10px] font-medium uppercase tracking-wide ${isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                            {shortDay}
+                          </span>
+                          <span className="text-lg font-bold leading-tight mt-0.5">{day.getDate()}</span>
+                          {hasSlots ? (
+                            <span className={`text-[10px] font-medium mt-1 ${isSelected ? 'text-primary-foreground/70' : 'text-primary'}`}>
+                              {availableCount}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] mt-1 opacity-0">·</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Slot grid */}
+                  {!selectedDay || Object.keys(slotsByDay).length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      {t('staffBooking.noSlots')}
+                    </p>
+                  ) : selectedDay && slotsByDay[selectedDay]?.length > 0 ? (
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                      {slotsByDay[selectedDay].map(sl => {
+                        const timeStr = new Intl.DateTimeFormat(undefined, {
+                          hour: '2-digit', minute: '2-digit', timeZone: tz,
+                        }).format(new Date(sl.slot_start));
+                        const isChosen = slotStart === sl.slot_start;
+                        return (
+                          <button
+                            key={sl.slot_start}
+                            onClick={() => setSlotStart(sl.slot_start)}
+                            className={`py-3 rounded-xl text-sm font-medium transition-colors ${
+                              isChosen
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-primary/10 hover:bg-primary/20 text-primary'
+                            }`}
+                          >
+                            {timeStr}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : selectedDay ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      {t('staffBooking.noSlots')}
+                    </p>
+                  ) : null}
+                </>
+              )}
 
               {/* Guest details — shown after slot selected */}
               {slotStart && (
