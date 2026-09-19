@@ -12,7 +12,7 @@ import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
 import {
   ArrowLeft, ChevronLeft, ChevronRight, Clock, Users,
-  Check, Calendar, X, MapPin
+  Check, Calendar, X, MapPin, Share2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,6 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { SharePostModal } from '@/components/share-post-modal';
 
 type Slot = {
   slot_start: string;
@@ -222,6 +223,9 @@ export default function BookingSlotPickerPage() {
   const [calendarMonth, setCalendarMonth] = useState(() => startOfDay(new Date()));
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
 
+  const [shareOpen, setShareOpen] = useState(false);
+  const [isStaffMember, setIsStaffMember] = useState(false);
+
   useEffect(() => {
     if (!businessId || !serviceId) return;
     async function loadMeta() {
@@ -253,6 +257,14 @@ export default function BookingSlotPickerPage() {
     }
     loadMeta();
   }, [businessId, serviceId]);
+
+  useEffect(() => {
+    if (!user || !businessId || user.id === businessId) return;
+    supabase.from('staff_members').select('id')
+      .eq('business_id', businessId).eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => setIsStaffMember(!!data));
+  }, [user?.id, businessId]);
 
   const loadStaff = useCallback(async (locId: string) => {
     if (!serviceId) return;
@@ -540,7 +552,19 @@ export default function BookingSlotPickerPage() {
         </button>
 
         <div className="mb-6">
-          <h1 className="text-xl font-semibold">{service.name}</h1>
+          <div className="flex items-start justify-between gap-2">
+            <h1 className="text-xl font-semibold">{service.name}</h1>
+            {!!user && (user.id === businessId || isStaffMember) && (
+              <button
+                onClick={() => setShareOpen(true)}
+                className="shrink-0 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground border border-border rounded-lg px-2.5 py-1.5 hover:bg-accent transition-colors"
+                title={t('booking.shareService')}
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                {t('booking.shareService')}
+              </button>
+            )}
+          </div>
           <p className="text-sm font-medium text-muted-foreground mt-0.5">{business.name}</p>
           <div className="flex flex-wrap gap-3 mt-2 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
@@ -1139,6 +1163,13 @@ export default function BookingSlotPickerPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <SharePostModal
+        postId={serviceId}
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+        urlPath={`/booking/${businessId}/${serviceId}`}
+      />
     </div>
   );
 }

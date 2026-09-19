@@ -1899,6 +1899,7 @@ export default {
   'booking.successConfirmed': 'Buchung bestätigt!',
   'booking.successPending': 'Buchung eingegangen — wartet auf Bestätigung',
   'booking.backToServices': 'Zurück zu den Diensten',
+  'booking.shareService': 'Dienst teilen',
   'booking.backToSetup': 'Zurück zu den Einstellungen',
   'booking.duration': '{min} Min.',
   'booking.price': 'Preis',

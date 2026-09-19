@@ -1909,6 +1909,7 @@ export default {
   'booking.successConfirmed': 'Booking confirmed!',
   'booking.successPending': 'Booking received — awaiting confirmation',
   'booking.backToServices': 'Back to services',
+  'booking.shareService': 'Share service',
   'booking.backToSetup': 'Back to settings',
   'booking.duration': '{min} min',
   'booking.price': 'Price',

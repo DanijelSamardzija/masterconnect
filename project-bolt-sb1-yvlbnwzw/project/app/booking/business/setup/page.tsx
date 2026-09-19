@@ -9,8 +9,9 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { useBookingAccess } from '@/lib/hooks/use-booking-access';
 import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
-import { ChevronRight, ChevronLeft, Plus, Pencil, X, CheckCircle2, MapPin, ExternalLink, AlertTriangle, Check, Loader2, Info, Copy } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Plus, Pencil, X, CheckCircle2, MapPin, ExternalLink, AlertTriangle, Check, Loader2, Info, Copy, Share2 } from 'lucide-react';
 import { TimePicker24h } from '@/components/ui/time-picker-24h';
+import { SharePostModal } from '@/components/share-post-modal';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
 import { RestaurantTablesTab } from '@/components/setup/RestaurantTablesTab';
 import { MenuTab } from '@/components/setup/MenuTab';
@@ -529,6 +530,7 @@ export default function BusinessSetupPage() {
   const [serviceLocMap, setServiceLocMap] = useState<Record<string, string[]>>({});
   const [serviceLocSaving, setServiceLocSaving] = useState<string | null>(null);
   const [deletingSvcId, setDeletingSvcId] = useState<string | null>(null);
+  const [shareSvcId, setShareSvcId] = useState<string | null>(null);
 
   // ── Load profile on mount ──────────────────────────────────────────────────
   useEffect(() => {
@@ -1983,13 +1985,22 @@ export default function BusinessSetupPage() {
                           ) : (
                             <>
                               {svc.is_active && user?.id && (
-                                <button
-                                  onClick={() => router.push(`/booking/${user!.id}/${svc.id}`)}
-                                  className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-accent transition-colors"
-                                  title={t('setup.services.viewPage')}
-                                >
-                                  <ExternalLink className="w-3.5 h-3.5" />
-                                </button>
+                                <>
+                                  <button
+                                    onClick={() => router.push(`/booking/${user!.id}/${svc.id}`)}
+                                    className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-accent transition-colors"
+                                    title={t('setup.services.viewPage')}
+                                  >
+                                    <ExternalLink className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => setShareSvcId(svc.id)}
+                                    className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-accent transition-colors"
+                                    title={t('booking.shareService')}
+                                  >
+                                    <Share2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </>
                               )}
                               <button
                                 onClick={() => openEditSvc(svc)}
@@ -3166,6 +3177,14 @@ export default function BusinessSetupPage() {
 
         </div>
       </div>
+      {shareSvcId && user?.id && (
+        <SharePostModal
+          postId={shareSvcId}
+          open={!!shareSvcId}
+          onOpenChange={(open) => { if (!open) setShareSvcId(null); }}
+          urlPath={`/booking/${user.id}/${shareSvcId}`}
+        />
+      )}
     </ProtectedRoute>
   );
 }

@@ -1827,6 +1827,7 @@ export default {
   'booking.successConfirmed': '¡Reserva confirmada!',
   'booking.successPending': 'Reserva recibida — pendiente de confirmación',
   'booking.backToServices': 'Volver a servicios',
+  'booking.shareService': 'Compartir servicio',
   'booking.backToSetup': 'Volver a configuración',
   'booking.duration': '{min} min',
   'booking.price': 'Precio',

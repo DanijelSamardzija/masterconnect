@@ -1909,6 +1909,7 @@ export default {
   'booking.successConfirmed': 'Rezervacija potvrđena!',
   'booking.successPending': 'Rezervacija primljena — čeka potvrdu',
   'booking.backToServices': 'Nazad na usluge',
+  'booking.shareService': 'Podijeli uslugu',
   'booking.backToSetup': 'Nazad na podešavanja',
   'booking.duration': '{min} min',
   'booking.price': 'Cijena',
