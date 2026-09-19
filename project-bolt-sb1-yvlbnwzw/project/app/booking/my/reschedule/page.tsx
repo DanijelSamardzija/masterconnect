@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { ChevronLeft, ChevronRight, CalendarClock, MapPin } from 'lucide-react';
 
 type Slot            = { slot_start: string; slot_end: string; available: boolean };
+type StaffOption     = { staff_member_id: string; name: string };
 type StaffAbsenceRow = { date_from: string; date_to: string; reason: string };
 type StaffShiftDay   = { is_off: boolean; off_reason: string | null };
 
@@ -61,7 +62,8 @@ function ClientRescheduleContent() {
   const [serviceName, setServiceName]     = useState('');
   const [serviceDuration, setServiceDuration] = useState(0);
   const [location, setLocation]           = useState<LocationInfo | null>(null);
-  const [staffName, setStaffName]         = useState('');
+  const [staffOptions, setStaffOptions]   = useState<StaffOption[]>([]);
+  const [selectedStaffId, setSelectedStaffId] = useState(staffId);
   const [tz, setTz]                       = useState('UTC');
 
   const [week, setWeek]               = useState<Date>(weekMonday(new Date()));
@@ -75,27 +77,29 @@ function ClientRescheduleContent() {
   const [staffShiftDays, setStaffShiftDays] = useState<Record<string, StaffShiftDay>>({});
   const [confirming, setConfirming]   = useState(false);
 
-  // Load service name + location + staff name
+  // Load service name + location + all staff for this service+location
   useEffect(() => {
     if (!serviceId || !locationId) return;
     (async () => {
       const [svcRes, locRes, staffRes] = await Promise.all([
         (supabase as any).from('service_catalog').select('name, duration_minutes').eq('id', serviceId).maybeSingle(),
         supabase.from('business_locations').select('id, name, address, city, country, timezone').eq('id', locationId).maybeSingle(),
-        staffId
-          ? (supabase as any).from('staff_members')
-              .select('id, profiles!staff_members_user_id_fkey(name)')
-              .eq('id', staffId).maybeSingle()
-          : Promise.resolve({ data: null }),
+        (supabase as any).rpc('get_staff_for_service', { p_service_id: serviceId, p_location_id: locationId }),
       ]);
       if (svcRes.data) { setServiceName(svcRes.data.name ?? ''); setServiceDuration(svcRes.data.duration_minutes ?? 0); }
       if (locRes.data) { setLocation(locRes.data as LocationInfo); setTz((locRes.data as LocationInfo).timezone ?? 'UTC'); }
-      if (staffRes.data) setStaffName((staffRes.data as any).profiles?.name ?? '—');
+      const members = ((staffRes.data ?? []) as any[]).map((s: any) => ({
+        staff_member_id: s.staff_member_id,
+        name: s.name,
+      }));
+      setStaffOptions(members);
+      const inList = members.some((s: StaffOption) => s.staff_member_id === staffId);
+      if (!inList && members.length > 0) setSelectedStaffId(members[0].staff_member_id);
       setLoading(false);
     })();
   }, [serviceId, locationId, staffId]);
 
-  // Fetch available slots (p_exclude_booking_id so current slot stays available)
+  // Fetch available slots — uses selectedStaffId so picking a different staff updates slots
   const fetchSlots = useCallback(async () => {
     if (!businessId || !locationId || !serviceId) return;
     setSlotsLoading(true);
@@ -106,40 +110,40 @@ function ClientRescheduleContent() {
       p_location_id:        locationId,
       p_service_id:         serviceId,
       p_week_start:         toDateKey(week),
-      p_staff_member_id:    staffId || null,
+      p_staff_member_id:    selectedStaffId || null,
       p_exclude_booking_id: bookingId,
     });
     setSlots(data ?? []);
     setSlotsLoading(false);
-  }, [businessId, locationId, serviceId, staffId, bookingId, week]);
+  }, [businessId, locationId, serviceId, selectedStaffId, bookingId, week]);
 
   useEffect(() => { fetchSlots(); }, [fetchSlots]);
 
-  // Fetch breaks for staff + week
+  // Fetch breaks for selected staff + week
   useEffect(() => {
-    if (!staffId) { setBreaks({}); return; }
+    if (!selectedStaffId) { setBreaks({}); return; }
     (supabase as any).rpc('public_get_week_breaks', {
-      p_staff_member_id: staffId,
+      p_staff_member_id: selectedStaffId,
       p_week_start:      toDateKey(week),
     }).then(({ data }: { data: { shift_date: string; break_start: string; break_end: string }[] | null }) => {
       const map: Record<string, { break_start: string; break_end: string }> = {};
       if (Array.isArray(data)) data.forEach(b => { map[b.shift_date] = { break_start: b.break_start, break_end: b.break_end }; });
       setBreaks(map);
     });
-  }, [staffId, week]);
+  }, [selectedStaffId, week]);
 
   // Fetch all-time absences (for labels on day pills)
   useEffect(() => {
-    if (!staffId) { setStaffAbsences([]); return; }
-    (supabase as any).rpc('public_get_staff_absences', { p_staff_member_id: staffId })
+    if (!selectedStaffId) { setStaffAbsences([]); return; }
+    (supabase as any).rpc('public_get_staff_absences', { p_staff_member_id: selectedStaffId })
       .then(({ data }: { data: StaffAbsenceRow[] | null }) => setStaffAbsences(data ?? []));
-  }, [staffId]);
+  }, [selectedStaffId]);
 
   // Fetch shift schedule for this week
   useEffect(() => {
-    if (!staffId) { setStaffShiftDays({}); return; }
+    if (!selectedStaffId) { setStaffShiftDays({}); return; }
     (supabase as any).rpc('get_staff_schedule_for_client', {
-      p_staff_member_id: staffId,
+      p_staff_member_id: selectedStaffId,
       p_from_date: toDateKey(week),
       p_to_date: toDateKey(addDays(week, 6)),
     }).then(({ data }: { data: { schedule: { shift_date: string; is_off: boolean; off_reason: string | null }[] } | null }) => {
@@ -149,7 +153,7 @@ function ClientRescheduleContent() {
       }
       setStaffShiftDays(map);
     });
-  }, [staffId, week]);
+  }, [selectedStaffId, week]);
 
   // Auto-select first available day
   useEffect(() => {
@@ -255,14 +259,25 @@ function ClientRescheduleContent() {
                 </div>
               )}
 
-              {/* Staff — read-only pill */}
-              {staffName && (
+              {/* Staff pills — interactive when multiple, read-only when single */}
+              {staffOptions.length > 0 && (
                 <div>
                   <label className="block text-xs text-muted-foreground mb-1.5">{t('booking.staff.heading')}</label>
                   <div className="flex flex-wrap gap-1.5">
-                    <div className="px-3 py-1.5 rounded-full text-sm font-medium border bg-primary text-primary-foreground border-primary">
-                      {staffName}
-                    </div>
+                    {staffOptions.map((s) => (
+                      <button
+                        key={s.staff_member_id}
+                        type="button"
+                        onClick={() => { setSelectedStaffId(s.staff_member_id); setSlotStart(''); }}
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                          selectedStaffId === s.staff_member_id
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-background text-muted-foreground border-border hover:border-primary hover:text-foreground'
+                        }`}
+                      >
+                        {s.name}
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}
@@ -305,7 +320,7 @@ function ClientRescheduleContent() {
                       const isPast = toDateKey(day) < todayStr;
                       const shortDay = new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(day);
                       let unavailLabel: string | null = null;
-                      if (!hasSlots && !isPast && staffId) {
+                      if (!hasSlots && !isPast && selectedStaffId) {
                         const dayAbsence = staffAbsences.find(a => a.date_from <= dayKey && a.date_to >= dayKey);
                         const dayShift = staffShiftDays[dayKey];
                         if (dayAbsence) {
