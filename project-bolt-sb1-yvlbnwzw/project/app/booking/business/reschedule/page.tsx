@@ -175,11 +175,16 @@ function BusinessRescheduleContent() {
   async function handleConfirm() {
     if (!bookingId || !slotStart) return;
     setConfirming(true);
-    const rpcName = role === 'staff' ? 'staff_reschedule_booking' : 'owner_reschedule_booking';
-    const { data } = await (supabase as any).rpc(rpcName, {
+    const isOwner = role !== 'staff';
+    const rpcName = isOwner ? 'owner_reschedule_booking' : 'staff_reschedule_booking';
+    const rpcParams: Record<string, unknown> = {
       p_booking_id:    bookingId,
       p_new_starts_at: slotStart,
-    });
+    };
+    if (isOwner && selectedStaffId) {
+      rpcParams.p_staff_member_id = selectedStaffId;
+    }
+    const { data } = await (supabase as any).rpc(rpcName, rpcParams);
     setConfirming(false);
     if (!data?.ok) {
       const key = data?.error === 'conflict'
