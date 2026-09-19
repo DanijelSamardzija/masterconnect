@@ -88,10 +88,18 @@ function getPeriodRange(period: Period, customFrom: string, customTo: string): {
 }
 
 // Format currency — no trailing zeros for whole numbers
-function fmtMoney(n: number): string {
+function currencyPrefix(c: string): string {
+  if (c === 'EUR') return '€';
+  if (c === 'USD') return '$';
+  if (c === 'GBP') return '£';
+  return c; // RSD, BAM, HRK, etc.
+}
+
+function fmtMoney(n: number, currency = 'EUR'): string {
+  const prefix = currencyPrefix(currency);
   return n % 1 === 0
-    ? `€ ${n.toLocaleString()}`
-    : `€ ${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    ? `${prefix} ${n.toLocaleString()}`
+    : `${prefix} ${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 // ── Main component ─────────────────────────────────────────────────────────
@@ -189,6 +197,8 @@ function AnalyticsPageInner() {
   const byStaff  = data?.by_staff ?? [];
   const svcBrk   = data?.staff_service_breakdown ?? [];
 
+  const currency = data?.currency ?? 'EUR';
+
   // Group service rows by staff key
   const staffSvcMap = svcBrk.reduce<Record<string, StaffServiceRow[]>>((acc, row) => {
     const key = row.staff_member_id ?? '__none__';
@@ -210,7 +220,7 @@ function AnalyticsPageInner() {
     if (!summary) return;
     const { from, to } = getPeriodRange(period, customFrom, customTo);
     const bom = '﻿';
-    const header = 'Radnik,Usluga,Broj termina,Prosj. cijena (EUR),Ukupno (EUR)';
+    const header = `Radnik,Usluga,Broj termina,Prosj. cijena (${currency}),Ukupno (${currency})`;
     const rows: string[] = [];
     byStaff.filter(s => s.completed > 0).forEach(staffRow => {
       const key = staffRow.staff_member_id ?? '__none__';
@@ -242,14 +252,14 @@ function AnalyticsPageInner() {
       const key = staffRow.staff_member_id ?? '__none__';
       const svcs = staffSvcMap[key] ?? [];
       const serviceRows = svcs.map(svc =>
-        `<tr><td>${svc.service_name}</td><td>${svc.completed}</td><td>€ ${Number(svc.avg_price).toFixed(2)}</td><td>€ ${Number(svc.revenue).toFixed(2)}</td></tr>`
+        `<tr><td>${svc.service_name}</td><td>${svc.completed}</td><td>${fmtMoney(Number(svc.avg_price), currency)}</td><td>${fmtMoney(Number(svc.revenue), currency)}</td></tr>`
       ).join('');
       return `
         <h3 style="margin:14px 0 4px;font-size:12px">${staffRow.staff_name}</h3>
         <table>
           <thead><tr><th>Usluga</th><th>Broj</th><th>Prosj. cijena</th><th>Ukupno</th></tr></thead>
           <tbody>${serviceRows}</tbody>
-          <tfoot><tr><td><strong>Ukupno</strong></td><td><strong>${staffRow.completed}</strong></td><td></td><td><strong>€ ${Number(staffRow.revenue).toFixed(2)}</strong></td></tr></tfoot>
+          <tfoot><tr><td><strong>Ukupno</strong></td><td><strong>${staffRow.completed}</strong></td><td></td><td>${fmtMoney(Number(staffRow.revenue), currency)}</td></tr></tfoot>
         </table>`;
     }).join('');
 
@@ -267,7 +277,7 @@ function AnalyticsPageInner() {
 </style></head><body>
 <h2>${title}</h2>
 ${staffBlocks}
-<div class="grand">Ukupno: ${summary.completed} termina &nbsp;·&nbsp; € ${Number(summary.revenue).toFixed(2)}</div>
+<div class="grand">Ukupno: ${summary.completed} termina &nbsp;·&nbsp; ${fmtMoney(Number(summary.revenue), currency)}</div>
 </body></html>`;
 
     const win = window.open('', '_blank');
@@ -441,10 +451,10 @@ ${staffBlocks}
                                 {svc.completed}
                               </td>
                               <td className="px-3 py-2.5 text-right tabular-nums text-muted-foreground whitespace-nowrap">
-                                {fmtMoney(svc.avg_price)}
+                                {fmtMoney(svc.avg_price, currency, currency)}
                               </td>
                               <td className="px-4 py-2.5 text-right tabular-nums text-foreground font-semibold whitespace-nowrap">
-                                {fmtMoney(svc.revenue)}
+                                {fmtMoney(svc.revenue, currency, currency)}
                               </td>
                             </tr>
                           ))}
@@ -460,7 +470,7 @@ ${staffBlocks}
                             </td>
                             <td className="px-3 py-2.5" />
                             <td className="px-4 py-2.5 text-right tabular-nums text-primary font-bold text-sm whitespace-nowrap">
-                              {fmtMoney(staffRow.revenue)}
+                              {fmtMoney(staffRow.revenue, currency, currency)}
                             </td>
                           </tr>
                         </tfoot>
@@ -481,7 +491,7 @@ ${staffBlocks}
                       {summary.completed}&nbsp;×
                     </span>
                     <span className="text-base font-bold text-primary tabular-nums">
-                      {fmtMoney(summary.revenue)}
+                      {fmtMoney(summary.revenue, currency, currency)}
                     </span>
                   </div>
                 </div>

@@ -150,7 +150,8 @@ const BOOKING_TYPES = [
 const PRICE_TYPES = ['fixed', 'from', 'negotiable', 'free'] as const;
 
 const CURRENCIES = [
-  'BAM', 'EUR', 'RSD', 'USD', 'GBP', 'CHF',
+  'EUR', 'USD', 'RSD',
+  'BAM', 'GBP', 'CHF',
   'MKD', 'ALL', 'HUF', 'CZK', 'PLN',
   'CAD', 'AUD', 'NOK', 'SEK', 'DKK',
 ] as const;
