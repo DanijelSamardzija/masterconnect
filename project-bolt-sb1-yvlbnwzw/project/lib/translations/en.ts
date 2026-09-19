@@ -2679,7 +2679,7 @@ export default {
   'staffDashboard.title': 'My Bookings',
   'staffDashboard.empty': 'No upcoming bookings.',
   'staffDashboard.pastEmpty': 'No past bookings.',
-  'staffDashboard.newBooking': 'New booking',
+  'staffDashboard.newBooking': 'Add appointment',
   'staffDashboard.timeOff': 'Time off',
   'staffDashboard.myHours': 'My hours',
   'staffDashboard.cancelBooking': 'Cancel booking',

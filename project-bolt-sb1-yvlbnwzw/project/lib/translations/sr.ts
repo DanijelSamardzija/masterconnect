@@ -2679,7 +2679,7 @@ export default {
   'staffDashboard.title': 'Moje Rezervacije',
   'staffDashboard.empty': 'Nema nadolazećih rezervacija.',
   'staffDashboard.pastEmpty': 'Nema prošlih rezervacija.',
-  'staffDashboard.newBooking': 'Zakaži termin',
+  'staffDashboard.newBooking': 'Dodaj termin',
   'staffDashboard.timeOff': 'Slobodan dan',
   'staffDashboard.myHours': 'Moje smjene',
   'staffDashboard.cancelBooking': 'Otkaži rezervaciju',

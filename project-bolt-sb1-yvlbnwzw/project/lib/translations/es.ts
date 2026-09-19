@@ -2597,7 +2597,7 @@ export default {
   'staffDashboard.title': 'Mis Reservas',
   'staffDashboard.empty': 'No hay próximas reservas.',
   'staffDashboard.pastEmpty': 'No hay reservas pasadas.',
-  'staffDashboard.newBooking': 'Nueva cita',
+  'staffDashboard.newBooking': 'Añadir cita',
   'staffDashboard.timeOff': 'Día libre',
   'staffDashboard.myHours': 'Mis horarios',
   'staffDashboard.cancelBooking': 'Cancelar reserva',

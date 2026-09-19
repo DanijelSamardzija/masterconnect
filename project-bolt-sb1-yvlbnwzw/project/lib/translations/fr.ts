@@ -2604,7 +2604,7 @@ export default {
   'staffDashboard.title': 'Mes Réservations',
   'staffDashboard.empty': 'Aucune réservation à venir.',
   'staffDashboard.pastEmpty': 'Aucune réservation passée.',
-  'staffDashboard.newBooking': 'Nouveau rendez-vous',
+  'staffDashboard.newBooking': 'Ajouter un RDV',
   'staffDashboard.timeOff': 'Congé',
   'staffDashboard.myHours': 'Mes horaires',
   'staffDashboard.cancelBooking': 'Annuler la réservation',
