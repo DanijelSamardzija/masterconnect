@@ -71,138 +71,6 @@ function toDateKey(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-type SlotItem = { slot_start: string; slot_end: string; available: boolean };
-
-function RescheduleSlotPicker({
-  tz, locale, week, setWeek, weekDays, slotsByDay, breaks,
-  selectedDay, setSelectedDay, slotStart, setSlotStart, slotsLoading,
-  onConfirm, confirming, confirmLabel, noSlotsLabel, breakLabel,
-}: {
-  tz: string; locale: string;
-  week: Date; setWeek: (d: Date) => void;
-  weekDays: Date[]; slotsByDay: Record<string, SlotItem[]>;
-  breaks: Record<string, { break_start: string; break_end: string }>;
-  selectedDay: string; setSelectedDay: (d: string) => void;
-  slotStart: string; setSlotStart: (s: string) => void;
-  slotsLoading: boolean;
-  onConfirm: () => void; confirming: boolean;
-  confirmLabel: string; noSlotsLabel: string; breakLabel: string;
-}) {
-  const todayStr = toDateKey(new Date());
-  return (
-    <div className="flex flex-col gap-4 pt-1">
-      {/* Week nav */}
-      <div className="flex items-center justify-between">
-        <button onClick={() => setWeek(addDays(week, -7))}
-          disabled={toDateKey(week) <= todayStr}
-          className="p-1.5 rounded-lg hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-muted-foreground">
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-        <span className="text-sm font-medium text-foreground">
-          {weekDays[0].toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
-          {' – '}
-          {weekDays[6].toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
-        </span>
-        <button onClick={() => setWeek(addDays(week, 7))}
-          className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
-          <ChevronRight className="h-4 w-4" />
-        </button>
-      </div>
-
-      {slotsLoading ? (
-        <div className="flex justify-center py-6">
-          <div className="h-5 w-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-        </div>
-      ) : (
-        <>
-          {/* Day pills */}
-          <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1" style={{ scrollbarWidth: 'none' }}>
-            {weekDays.map(day => {
-              const dayKey = toDateKey(day);
-              const count = (slotsByDay[dayKey] ?? []).length;
-              const isSelected = selectedDay === dayKey;
-              const hasSlots = count > 0;
-              const isPast = dayKey < todayStr;
-              const shortDay = new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(day);
-              return (
-                <button key={dayKey} type="button"
-                  onClick={() => { if (hasSlots) { setSelectedDay(dayKey); setSlotStart(''); } }}
-                  disabled={!hasSlots}
-                  className={`flex flex-col items-center shrink-0 w-12 py-2 rounded-xl border transition-colors ${
-                    isSelected ? 'bg-primary text-primary-foreground border-primary'
-                    : hasSlots ? 'border-border hover:border-primary/60 hover:bg-accent'
-                    : isPast ? 'border-border/40 opacity-25 cursor-not-allowed'
-                    : 'border-border opacity-35 cursor-not-allowed'
-                  }`}
-                >
-                  <span className={`text-[9px] font-medium uppercase tracking-wide ${isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>{shortDay}</span>
-                  <span className="text-base font-bold leading-tight mt-0.5">{day.getDate()}</span>
-                  {hasSlots
-                    ? <span className={`text-[9px] font-medium mt-0.5 ${isSelected ? 'text-primary-foreground/70' : 'text-primary'}`}>{count}</span>
-                    : <span className="text-[9px] mt-0.5 opacity-0">·</span>}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Slot grid */}
-          {!selectedDay || Object.keys(slotsByDay).length === 0 ? (
-            <p className="text-xs text-muted-foreground text-center py-3">{noSlotsLabel}</p>
-          ) : selectedDay && slotsByDay[selectedDay]?.length > 0 ? (
-            (() => {
-              const daySlots = slotsByDay[selectedDay];
-              const dayBreak = breaks[selectedDay];
-              const fmt = (iso: string) => new Intl.DateTimeFormat('en-GB', {
-                hour: '2-digit', minute: '2-digit', timeZone: tz,
-              }).format(new Date(iso));
-              const breakStart = dayBreak?.break_start.slice(0, 5);
-              const breakEnd   = dayBreak?.break_end.slice(0, 5);
-              const before = dayBreak ? daySlots.filter(s => fmt(s.slot_start) < breakStart!) : daySlots;
-              const after  = dayBreak ? daySlots.filter(s => fmt(s.slot_start) >= breakEnd!)  : [];
-              const SlotBtn = ({ sl }: { sl: SlotItem }) => {
-                const timeStr = new Intl.DateTimeFormat(undefined, {
-                  hour: '2-digit', minute: '2-digit', timeZone: tz,
-                }).format(new Date(sl.slot_start));
-                const isChosen = slotStart === sl.slot_start;
-                return (
-                  <button onClick={() => setSlotStart(sl.slot_start)}
-                    className={`py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                      isChosen ? 'bg-primary text-primary-foreground' : 'bg-primary/10 hover:bg-primary/20 text-primary'
-                    }`}
-                  >{timeStr}</button>
-                );
-              };
-              return (
-                <div className="grid grid-cols-3 gap-1.5">
-                  {before.map(sl => <SlotBtn key={sl.slot_start} sl={sl} />)}
-                  {dayBreak && after.length > 0 && (
-                    <div className="col-span-3 flex items-center gap-2 py-1">
-                      <div className="flex-1 h-px bg-border" />
-                      <span className="text-[11px] text-orange-500 font-medium whitespace-nowrap">
-                        {breakLabel} {breakStart}–{breakEnd}
-                      </span>
-                      <div className="flex-1 h-px bg-border" />
-                    </div>
-                  )}
-                  {after.map(sl => <SlotBtn key={sl.slot_start} sl={sl} />)}
-                </div>
-              );
-            })()
-          ) : selectedDay ? (
-            <p className="text-xs text-muted-foreground text-center py-3">{noSlotsLabel}</p>
-          ) : null}
-        </>
-      )}
-
-      <button onClick={onConfirm} disabled={confirming || !slotStart}
-        className="w-full bg-primary hover:bg-primary/90 disabled:opacity-40 text-white rounded-xl py-2.5 text-sm font-semibold transition-colors"
-      >
-        {confirming ? '...' : confirmLabel}
-      </button>
-    </div>
-  );
-}
-
 function OwnerBookingsContent() {
   const { profile } = useAuth();
   const router = useRouter();
@@ -249,20 +117,6 @@ function OwnerBookingsContent() {
   const [cancelBookingId, setCancelBookingId] = useState<string | null>(null);
   const [cancelReason, setCancelReason]       = useState('');
 
-  // Reschedule modal
-  const [rescheduleOpen, setRescheduleOpen]           = useState(false);
-  const [rescheduleBookingId, setRescheduleBookingId] = useState<string | null>(null);
-  const [rescheduleDate, setRescheduleDate]           = useState('');  // selected day YYYY-MM-DD
-  const [rescheduleWeek, setRescheduleWeek]           = useState<Date>(weekMonday(new Date()));
-  const [rescheduleLoading, setRescheduleLoading]     = useState(false);
-  // Slot-based reschedule
-  const [rescheduleServiceId, setRescheduleServiceId] = useState('');
-  const [rescheduleStaffId, setRescheduleStaffId]     = useState('');
-  const [rescheduleLocId, setRescheduleLocId]         = useState('');
-  const [rescheduleSlots, setRescheduleSlots]         = useState<Slot[]>([]);
-  const [rescheduleSlotsLoading, setRescheduleSlotsLoading] = useState(false);
-  const [rescheduleSlotStart, setRescheduleSlotStart] = useState('');
-  const [rescheduleBreaks, setRescheduleBreaks]       = useState<Record<string, { break_start: string; break_end: string }>>({});
 
   // Client history modal
   const [historyOpen, setHistoryOpen]           = useState(false);
@@ -354,61 +208,6 @@ function OwnerBookingsContent() {
     });
   }, [addStaffId, addWeek, addOpen]);
 
-  // Fetch available slots for reschedule modal
-  useEffect(() => {
-    if (!rescheduleOpen || !rescheduleServiceId || !rescheduleStaffId || !rescheduleLocId || !profile) return;
-    setRescheduleSlotsLoading(true);
-    setRescheduleSlots([]);
-    setRescheduleSlotStart('');
-    (supabase as any).rpc('get_available_slots', {
-      p_business_id:     profile.id,
-      p_location_id:     rescheduleLocId,
-      p_service_id:      rescheduleServiceId,
-      p_week_start:      toDateKey(rescheduleWeek),
-      p_staff_member_id: rescheduleStaffId,
-    }).then(({ data }: { data: Slot[] | null }) => {
-      setRescheduleSlots(data || []);
-      setRescheduleSlotsLoading(false);
-    });
-  }, [rescheduleOpen, rescheduleServiceId, rescheduleStaffId, rescheduleLocId, rescheduleWeek, profile]);
-
-  // Fetch breaks for reschedule staff + week
-  useEffect(() => {
-    if (!rescheduleStaffId || !rescheduleOpen) { setRescheduleBreaks({}); return; }
-    (supabase as any).rpc('public_get_week_breaks', {
-      p_staff_member_id: rescheduleStaffId,
-      p_week_start:      toDateKey(rescheduleWeek),
-    }).then(({ data }: { data: { shift_date: string; break_start: string; break_end: string }[] | null }) => {
-      const map: Record<string, { break_start: string; break_end: string }> = {};
-      if (Array.isArray(data)) {
-        data.forEach(b => { map[b.shift_date] = { break_start: b.break_start, break_end: b.break_end }; });
-      }
-      setRescheduleBreaks(map);
-    });
-  }, [rescheduleStaffId, rescheduleWeek, rescheduleOpen]);
-
-  // Auto-select first available day for reschedule (preserve if current day still has slots)
-  useEffect(() => {
-    if (rescheduleSlotsLoading || !rescheduleOpen) return;
-    const tz = addTimezone || 'UTC';
-    const dk = (iso: string) => new Intl.DateTimeFormat('en-CA', {
-      timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
-    }).format(new Date(iso));
-    if (rescheduleDate) {
-      const stillHasSlots = rescheduleSlots.some(s => s.available && dk(s.slot_start) === rescheduleDate);
-      if (stillHasSlots) return;
-    }
-    const days = Array.from({ length: 7 }, (_, i) => addDays(rescheduleWeek, i));
-    for (const d of days) {
-      const key = new Intl.DateTimeFormat('en-CA', {
-        timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
-      }).format(d);
-      if (rescheduleSlots.some(s => s.available && dk(s.slot_start) === key)) {
-        setRescheduleDate(key); return;
-      }
-    }
-    setRescheduleDate('');
-  }, [rescheduleSlots, rescheduleSlotsLoading, rescheduleOpen, rescheduleWeek, addTimezone, rescheduleDate]);
 
   const checkOwnerRole = async () => {
     if (!profile) return;
@@ -645,41 +444,17 @@ function OwnerBookingsContent() {
   };
 
   const openReschedule = (b: Booking) => {
-    setRescheduleBookingId(b.id);
-    setRescheduleServiceId(b.service_id ?? '');
-    setRescheduleStaffId(b.staff_member_id ?? '');
-    setRescheduleLocId(b.location_id ?? locationId);
-    setRescheduleWeek(weekMonday(new Date()));
-    setRescheduleDate('');
-    setRescheduleSlotStart('');
-    setRescheduleOpen(true);
-  };
-
-  const handleReschedule = async () => {
-    if (!rescheduleBookingId || !rescheduleSlotStart) return;
-    setRescheduleLoading(true);
-    const rpc = isOwner ? 'owner_reschedule_booking' : 'staff_reschedule_booking';
-    const { data, error } = await (supabase as any).rpc(rpc, {
-      p_booking_id:    rescheduleBookingId,
-      p_new_starts_at: rescheduleSlotStart,
+    const bizId = isOwner ? (profile?.id ?? '') : (staffBizId ?? '');
+    const params = new URLSearchParams({
+      bookingId:  b.id,
+      serviceId:  b.service_id ?? '',
+      staffId:    b.staff_member_id ?? '',
+      locationId: b.location_id ?? locationId,
+      businessId: bizId,
+      tz:         addTz,
+      role:       isOwner ? 'owner' : 'staff',
     });
-    setRescheduleLoading(false);
-    if (error || data?.ok === false) {
-      const key = data?.error === 'conflict'
-        ? 'ownerBookings.rescheduleError.conflict'
-        : 'ownerBookings.rescheduleError.tooSoon';
-      toast.error(t(key as Parameters<typeof t>[0]));
-      return;
-    }
-    toast.success(t('ownerBookings.rescheduled'));
-    fetch('/api/booking/notify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'reschedule', booking_id: rescheduleBookingId }),
-    }).catch(() => {});
-    setRescheduleOpen(false);
-    setRescheduleBookingId(null);
-    if (isOwner) fetchBookings(); else fetchStaffBookings();
+    router.push(`/booking/business/reschedule?${params.toString()}`);
   };
 
   const openHistory = async (clientId: string, clientName: string) => {
@@ -750,18 +525,6 @@ function OwnerBookingsContent() {
   }
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(addWeek, i));
-
-  // Slots grouped by day for reschedule
-  const rescheduleSlotsByDay: Record<string, Slot[]> = {};
-  for (const s of rescheduleSlots) {
-    if (!s.available) continue;
-    const key = new Intl.DateTimeFormat('en-CA', {
-      timeZone: addTz, year: 'numeric', month: '2-digit', day: '2-digit',
-    }).format(new Date(s.slot_start));
-    if (!rescheduleSlotsByDay[key]) rescheduleSlotsByDay[key] = [];
-    rescheduleSlotsByDay[key].push(s);
-  }
-  const rescheduleWeekDays = Array.from({ length: 7 }, (_, i) => addDays(rescheduleWeek, i));
 
   const clientLabel = (b: Booking) => b.client_name || b.guest_name;
 
@@ -892,30 +655,6 @@ function OwnerBookingsContent() {
             </div>
           )}
         </div>
-
-        {/* Reschedule modal (reused) */}
-        <Dialog open={rescheduleOpen} onOpenChange={o => { if (!o) { setRescheduleOpen(false); setRescheduleBookingId(null); } }}>
-          <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-orange-500" />
-                {t('ownerBookings.rescheduleModal.title')}
-              </DialogTitle>
-            </DialogHeader>
-            <RescheduleSlotPicker
-              tz={addTz} locale={locale}
-              week={rescheduleWeek} setWeek={w => { setRescheduleWeek(w); setRescheduleSlotStart(''); }}
-              weekDays={rescheduleWeekDays} slotsByDay={rescheduleSlotsByDay}
-              breaks={rescheduleBreaks} selectedDay={rescheduleDate} setSelectedDay={setRescheduleDate}
-              slotStart={rescheduleSlotStart} setSlotStart={setRescheduleSlotStart}
-              slotsLoading={rescheduleSlotsLoading}
-              onConfirm={handleReschedule} confirming={rescheduleLoading}
-              confirmLabel={t('ownerBookings.rescheduleModal.confirm')}
-              noSlotsLabel={t('ownerBookings.add.noSlots')}
-              breakLabel={t('schedule.break')}
-            />
-          </DialogContent>
-        </Dialog>
 
         {/* Cancel modal (reused) */}
         <Dialog open={cancelOpen} onOpenChange={o => { if (!o) { setCancelOpen(false); setCancelBookingId(null); } }}>
@@ -1517,30 +1256,6 @@ function OwnerBookingsContent() {
               {actionLoading?.endsWith('-reassign') ? '...' : t('ownerBookings.reassign')}
             </button>
           </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* ── Reschedule modal ──────────────────────────────────────────── */}
-      <Dialog open={rescheduleOpen} onOpenChange={o => { if (!o) { setRescheduleOpen(false); setRescheduleBookingId(null); } }}>
-        <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-orange-500" />
-              {t('ownerBookings.rescheduleModal.title')}
-            </DialogTitle>
-          </DialogHeader>
-          <RescheduleSlotPicker
-            tz={addTz} locale={locale}
-            week={rescheduleWeek} setWeek={w => { setRescheduleWeek(w); setRescheduleSlotStart(''); }}
-            weekDays={rescheduleWeekDays} slotsByDay={rescheduleSlotsByDay}
-            breaks={rescheduleBreaks} selectedDay={rescheduleDate} setSelectedDay={setRescheduleDate}
-            slotStart={rescheduleSlotStart} setSlotStart={setRescheduleSlotStart}
-            slotsLoading={rescheduleSlotsLoading}
-            onConfirm={handleReschedule} confirming={rescheduleLoading}
-            confirmLabel={t('ownerBookings.rescheduleModal.confirm')}
-            noSlotsLabel={t('ownerBookings.add.noSlots')}
-            breakLabel={t('schedule.break')}
-          />
         </DialogContent>
       </Dialog>
 

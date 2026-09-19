@@ -22,7 +22,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ReviewModal } from '@/components/review-modal';
 
 type Booking = {
@@ -41,8 +40,6 @@ type Booking = {
   location: { name: string } | null;
 };
 
-type Slot = { slot_start: string; slot_end: string; available: boolean };
-
 function StatusBadge({ status, t }: { status: string; t: (k: string) => string }) {
   const map: Record<string, string> = {
     pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
@@ -58,16 +55,6 @@ function StatusBadge({ status, t }: { status: string; t: (k: string) => string }
   );
 }
 
-function weekMonday(date: Date): Date {
-  const d = new Date(date);
-  const day = d.getDay() || 7;
-  d.setDate(d.getDate() - (day - 1));
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-function addDays(d: Date, n: number): Date {
-  const r = new Date(d); r.setDate(r.getDate() + n); return r;
-}
 function toDateKey(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -101,14 +88,6 @@ export default function MyBookingsPage() {
   const [cancelReason, setCancelReason] = useState('');
   const [cancelling, setCancelling] = useState(false);
   const [reviewTarget, setReviewTarget] = useState<{ bookingId: string; proId: string; proName: string } | null>(null);
-  const [rescheduleTarget, setRescheduleTarget] = useState<Booking | null>(null);
-  const [rescheduleDate, setRescheduleDate] = useState('');
-  const [rescheduleWeek, setRescheduleWeek] = useState<Date>(weekMonday(new Date()));
-  const [rescheduleReason, setRescheduleReason] = useState('');
-  const [rescheduling, setRescheduling] = useState(false);
-  const [slots, setSlots] = useState<Slot[]>([]);
-  const [slotsLoading, setSlotsLoading] = useState(false);
-  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -171,39 +150,6 @@ export default function MyBookingsPage() {
     setUpcoming((prev) => prev.filter((b) => b.id !== cancelTarget));
   }
 
-  async function handleReschedule() {
-    if (!rescheduleTarget || !selectedSlot) return;
-    setRescheduling(true);
-    const { data } = await (supabase as any).rpc('client_reschedule_booking', {
-      p_booking_id:    rescheduleTarget.id,
-      p_new_starts_at: selectedSlot,
-      p_reason:        rescheduleReason.trim() || null,
-    });
-    setRescheduling(false);
-    const result = data as { ok: boolean; error?: string } | null;
-    if (!result?.ok) {
-      const key = result?.error === 'conflict'
-        ? 'booking.rescheduleError.conflict'
-        : 'booking.rescheduleError.tooSoon';
-      toast.error(t(key as Parameters<typeof t>[0]));
-      return;
-    }
-    toast.success(t('booking.rescheduled'));
-    fetch('/api/booking/notify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'reschedule', booking_id: rescheduleTarget.id }),
-    }).catch(() => {});
-    setRescheduleTarget(null);
-    setRescheduleReason('');
-    setSelectedSlot(null);
-    setSlots([]);
-    setUpcoming(prev => prev.map(b =>
-      b.id === rescheduleTarget.id
-        ? { ...b, starts_at: selectedSlot }
-        : b
-    ));
-  }
 
   const canCancel = (b: Booking) =>
     ['pending', 'confirmed'].includes(b.status) && new Date(b.starts_at) > new Date();
@@ -212,34 +158,16 @@ export default function MyBookingsPage() {
     ['pending', 'confirmed'].includes(b.status) && new Date(b.starts_at) > new Date();
 
   const openReschedule = (b: Booking) => {
-    const d = new Date(b.starts_at);
-    setRescheduleDate(toDateKey(d));
-    setRescheduleWeek(weekMonday(d));
-    setSelectedSlot(null);
-    setSlots([]);
-    setRescheduleTarget(b);
+    const params = new URLSearchParams({
+      bookingId:  b.id,
+      businessId: b.business_id ?? '',
+      serviceId:  b.service_id ?? '',
+      staffId:    b.staff_member_id ?? '',
+      locationId: b.location_id ?? '',
+    });
+    router.push(`/booking/my/reschedule?${params.toString()}`);
   };
 
-  useEffect(() => {
-    if (!rescheduleTarget || !rescheduleDate) { setSlots([]); return; }
-    const { business_id, location_id, service_id, staff_member_id } = rescheduleTarget;
-    if (!business_id || !location_id || !service_id) { setSlots([]); return; }
-    setSlotsLoading(true);
-    setSelectedSlot(null);
-    const weekStart = weekMonday(new Date(rescheduleDate + 'T00:00:00'));
-    ;(supabase as any).rpc('get_available_slots', {
-      p_business_id:        business_id,
-      p_location_id:        location_id,
-      p_service_id:         service_id,
-      p_week_start:         toDateKey(weekStart),
-      p_staff_member_id:    staff_member_id ?? null,
-      p_exclude_booking_id: rescheduleTarget.id,
-    }).then(({ data }: { data: Slot[] | null }) => {
-      setSlotsLoading(false);
-      const all = (data ?? []) as Slot[];
-      setSlots(all.filter(s => toDateKey(new Date(s.slot_start)) === rescheduleDate && s.available));
-    });
-  }, [rescheduleDate, rescheduleTarget]);
 
   if (!authLoading && !hasAccess) {
     return (
@@ -382,115 +310,6 @@ export default function MyBookingsPage() {
             onSuccess={() => setReviewTarget(null)}
           />
         )}
-
-        {/* Reschedule dialog */}
-        <Dialog open={!!rescheduleTarget} onOpenChange={o => { if (!o) setRescheduleTarget(null); }}>
-          <DialogContent className="max-w-sm">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <CalendarClock className="h-4 w-4 text-primary" />
-                {t('booking.rescheduleModal.title')}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 pt-1">
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground">{t('booking.rescheduleModal.dateLabel')}</label>
-                <div className="flex items-center justify-between mb-1">
-                  <button onClick={() => setRescheduleWeek(w => addDays(w, -7))}
-                    className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
-                    <ChevronRight className="h-4 w-4 rotate-180" />
-                  </button>
-                  <span className="text-xs font-semibold text-foreground">
-                    {rescheduleWeek.toLocaleDateString(locale, { day: 'numeric', month: 'long' })}
-                    {' – '}
-                    {addDays(rescheduleWeek, 6).toLocaleDateString(locale, { day: 'numeric', month: 'long' })}
-                  </span>
-                  <button onClick={() => setRescheduleWeek(w => addDays(w, 7))}
-                    className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
-                <div className="grid grid-cols-7 gap-1">
-                  {Array.from({ length: 7 }, (_, i) => addDays(rescheduleWeek, i)).map(day => {
-                    const key = toDateKey(day);
-                    const isSelected = rescheduleDate === key;
-                    const isToday = toDateKey(new Date()) === key;
-                    const isPast = day < new Date(new Date().toDateString());
-                    return (
-                      <button key={key} onClick={() => !isPast && setRescheduleDate(key)}
-                        disabled={isPast}
-                        className={`flex flex-col items-center py-1.5 rounded-lg text-[10px] font-semibold transition-colors ${
-                          isSelected
-                            ? 'bg-primary text-white'
-                            : isPast
-                            ? 'bg-muted/40 text-muted-foreground/60 cursor-default'
-                            : 'bg-muted text-foreground hover:bg-primary/10'
-                        }`}
-                      >
-                        <span>{day.toLocaleDateString(locale, { weekday: 'short' }).replace(/\.$/, '')}</span>
-                        <span className={`text-xs font-bold ${isToday && !isSelected ? 'text-primary' : ''}`}>{day.getDate()}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground">{t('booking.rescheduleModal.timeLabel')}</label>
-                {slotsLoading ? (
-                  <div className="flex justify-center py-4">
-                    <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                  </div>
-                ) : slots.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-3">{rescheduleDate ? t('booking.rescheduleModal.noSlots') : ''}</p>
-                ) : (
-                  <div className="grid grid-cols-3 gap-1.5 max-h-40 overflow-y-auto">
-                    {slots.map(s => {
-                      const timeStr = new Date(s.slot_start).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
-                      const isSelected = selectedSlot === s.slot_start;
-                      return (
-                        <button
-                          key={s.slot_start}
-                          onClick={() => setSelectedSlot(s.slot_start)}
-                          className={`py-2 rounded-lg text-xs font-semibold transition-colors ${
-                            isSelected
-                              ? 'bg-primary text-white'
-                              : 'bg-muted text-foreground hover:bg-primary/10'
-                          }`}
-                        >
-                          {timeStr}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">
-                  {t('booking.rescheduleModal.reasonLabel')}
-                </label>
-                <textarea
-                  value={rescheduleReason}
-                  onChange={e => setRescheduleReason(e.target.value)}
-                  placeholder={t('booking.rescheduleModal.reasonPlaceholder')}
-                  rows={2}
-                  className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-                />
-              </div>
-              <div className="flex gap-2">
-                <button onClick={() => { setRescheduleTarget(null); setRescheduleReason(''); }}
-                  className="flex-1 border border-border rounded-lg py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors"
-                >
-                  {t('block.cancel')}
-                </button>
-                <button onClick={handleReschedule} disabled={rescheduling || !rescheduleDate || !selectedSlot}
-                  className="flex-1 bg-primary hover:bg-primary/90 disabled:opacity-50 text-white rounded-lg py-2.5 text-sm font-semibold transition-colors"
-                >
-                  {rescheduling ? '...' : t('booking.rescheduleModal.confirm')}
-                </button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
 
         {/* Cancel dialog */}
         <AlertDialog open={!!cancelTarget} onOpenChange={(open) => !open && setCancelTarget(null)}>
