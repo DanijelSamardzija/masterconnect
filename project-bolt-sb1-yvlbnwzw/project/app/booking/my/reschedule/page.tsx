@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ProtectedRoute } from '@/components/protected-route';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
-import { langToLocale } from '@/lib/utils/locale';
 import { toast } from 'sonner';
 import { ChevronLeft, ChevronRight, CalendarClock, MapPin } from 'lucide-react';
 
@@ -21,8 +20,6 @@ type LocationInfo = {
   country: string | null;
   timezone: string;
 };
-
-type StaffInfo = { id: string; name: string };
 
 function weekMonday(date: Date): Date {
   const d = new Date(date);
@@ -48,7 +45,7 @@ function tzDateKey(isoOrDate: string | Date, tz: string): string {
 
 function ClientRescheduleContent() {
   const { t, language } = useLanguage();
-  const locale = langToLocale(language);
+  const locale = { sr: 'sr-RS', en: 'en-US', de: 'de-DE', es: 'es-ES', fr: 'fr-FR' }[language] ?? 'en-US';
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -60,11 +57,12 @@ function ClientRescheduleContent() {
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
-  const [loading, setLoading] = useState(true);
-  const [location, setLocation] = useState<LocationInfo | null>(null);
-  const [allLocations, setAllLocations] = useState<LocationInfo[]>([]);
-  const [staffInfo, setStaffInfo] = useState<StaffInfo | null>(null);
-  const [tz, setTz] = useState('UTC');
+  const [loading, setLoading]             = useState(true);
+  const [serviceName, setServiceName]     = useState('');
+  const [serviceDuration, setServiceDuration] = useState(0);
+  const [location, setLocation]           = useState<LocationInfo | null>(null);
+  const [staffName, setStaffName]         = useState('');
+  const [tz, setTz]                       = useState('UTC');
 
   const [week, setWeek]               = useState<Date>(weekMonday(new Date()));
   const [selectedDay, setSelectedDay] = useState('');
@@ -77,31 +75,25 @@ function ClientRescheduleContent() {
   const [staffShiftDays, setStaffShiftDays] = useState<Record<string, StaffShiftDay>>({});
   const [confirming, setConfirming]   = useState(false);
 
-  // Load location info + staff name
+  // Load service name + location + staff name
   useEffect(() => {
-    if (!businessId) return;
+    if (!serviceId || !locationId) return;
     (async () => {
-      const [locRes, staffRes] = await Promise.all([
-        supabase.from('business_locations')
-          .select('id, name, address, city, country, timezone')
-          .eq('business_id', businessId).eq('is_active', true)
-          .order('is_primary', { ascending: false }),
+      const [svcRes, locRes, staffRes] = await Promise.all([
+        (supabase as any).from('service_catalog').select('name, duration_minutes').eq('id', serviceId).maybeSingle(),
+        supabase.from('business_locations').select('id, name, address, city, country, timezone').eq('id', locationId).maybeSingle(),
         staffId
           ? (supabase as any).from('staff_members')
               .select('id, profiles!staff_members_user_id_fkey(name)')
               .eq('id', staffId).maybeSingle()
           : Promise.resolve({ data: null }),
       ]);
-      const locs = (locRes.data ?? []) as LocationInfo[];
-      setAllLocations(locs);
-      const loc = locationId ? (locs.find(l => l.id === locationId) ?? locs[0]) : locs[0];
-      if (loc) { setLocation(loc); setTz(loc.timezone ?? 'UTC'); }
-      if (staffRes.data) {
-        setStaffInfo({ id: staffRes.data.id, name: (staffRes.data as any).profiles?.name ?? '—' });
-      }
+      if (svcRes.data) { setServiceName(svcRes.data.name ?? ''); setServiceDuration(svcRes.data.duration_minutes ?? 0); }
+      if (locRes.data) { setLocation(locRes.data as LocationInfo); setTz((locRes.data as LocationInfo).timezone ?? 'UTC'); }
+      if (staffRes.data) setStaffName((staffRes.data as any).profiles?.name ?? '—');
       setLoading(false);
     })();
-  }, [businessId, locationId, staffId]);
+  }, [serviceId, locationId, staffId]);
 
   // Fetch available slots (p_exclude_booking_id so current slot stays available)
   const fetchSlots = useCallback(async () => {
@@ -236,64 +228,64 @@ function ClientRescheduleContent() {
           ) : (
             <div className="flex flex-col gap-5">
 
-              {/* Location — show card(s), selected pre-filled */}
-              {allLocations.length > 0 && (
+              {/* Service — read-only selected card */}
+              <div>
+                <label className="block text-xs text-muted-foreground mb-1.5">{t('staffBooking.service')}</label>
+                <div className="flex items-center justify-between px-4 py-3 rounded-xl border border-primary bg-primary/5">
+                  <span className="text-sm font-medium">{serviceName}</span>
+                  {serviceDuration > 0 && (
+                    <span className="text-xs text-muted-foreground">{serviceDuration} min</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Location — single read-only card */}
+              {location && (
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">{t('booking.location')}</label>
-                  <div className="flex flex-col gap-2">
-                    {allLocations.map((loc) => (
-                      <div
-                        key={loc.id}
-                        className={`w-full text-left px-3 py-2.5 rounded-xl border ${
-                          loc.id === location?.id
-                            ? 'border-primary bg-primary/5'
-                            : 'border-border opacity-40'
-                        }`}
-                      >
-                        <p className="text-sm font-medium">{loc.name}</p>
-                        {(loc.address || loc.city) && (
-                          <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
-                            <MapPin className="w-3 h-3 shrink-0" />
-                            {[loc.address, loc.city, loc.country].filter(Boolean).join(', ')}
-                          </p>
-                        )}
-                      </div>
-                    ))}
+                  <label className="block text-xs text-muted-foreground mb-1.5">{t('booking.location')}</label>
+                  <div className="px-4 py-3 rounded-xl border border-primary bg-primary/5">
+                    <p className="text-sm font-medium">{location.name}</p>
+                    {(location.address || location.city) && (
+                      <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+                        <MapPin className="w-3 h-3 shrink-0" />
+                        {[location.address, location.city, location.country].filter(Boolean).join(', ')}
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
 
-              {/* Staff — read-only, booking staff pre-selected */}
-              {staffInfo && (
+              {/* Staff — read-only pill */}
+              {staffName && (
                 <div>
-                  <label className="block text-sm font-medium mb-2">{t('booking.staff.heading')}</label>
-                  <div className="flex flex-wrap gap-2">
+                  <label className="block text-xs text-muted-foreground mb-1.5">{t('booking.staff.heading')}</label>
+                  <div className="flex flex-wrap gap-1.5">
                     <div className="px-3 py-1.5 rounded-full text-sm font-medium border bg-primary text-primary-foreground border-primary">
-                      {staffInfo.name}
+                      {staffName}
                     </div>
                   </div>
                 </div>
               )}
 
               {/* Week navigation */}
-              <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center justify-between">
                 <button
                   onClick={() => { setWeek(w => addDays(w, -7)); setSlotStart(''); }}
                   disabled={toDateKey(week) <= todayStr}
-                  className="p-2 rounded-lg hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  className="p-2 rounded-lg hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-muted-foreground"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="h-4 w-4" />
                 </button>
-                <span className="text-sm font-medium">
-                  {weekDays[0].toLocaleDateString(locale, { month: 'short', day: 'numeric' })}
+                <span className="text-sm font-medium text-foreground">
+                  {weekDays[0].toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
                   {' – '}
-                  {weekDays[6].toLocaleDateString(locale, { month: 'short', day: 'numeric' })}
+                  {weekDays[6].toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
                 </span>
                 <button
                   onClick={() => { setWeek(w => addDays(w, 7)); setSlotStart(''); }}
-                  className="p-2 rounded-lg hover:bg-accent transition-colors"
+                  className="p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
 
@@ -416,7 +408,7 @@ function ClientRescheduleContent() {
               <button
                 onClick={handleConfirm}
                 disabled={confirming || !slotStart}
-                className="w-full py-3 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-60"
+                className="w-full py-3 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-60 mt-1"
               >
                 {confirming ? '...' : t('booking.rescheduleModal.confirm')}
               </button>
