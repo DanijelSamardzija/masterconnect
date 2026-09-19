@@ -41,6 +41,7 @@ type StaffServiceRow = {
 type AnalyticsResult = {
   ok: boolean;
   error?: string;
+  currency?: string;
   summary: Summary;
   by_staff: StaffRow[];
   by_service: unknown[];
