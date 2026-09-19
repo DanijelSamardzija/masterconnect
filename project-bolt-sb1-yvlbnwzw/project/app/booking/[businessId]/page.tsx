@@ -62,7 +62,8 @@ const BOOKING_TYPE_LABELS: Record<string, string> = {
 export default function BusinessBookingProfilePage() {
   const { businessId } = useParams<{ businessId: string }>();
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const locale = { sr: 'sr-RS', en: 'en-US', de: 'de-DE', es: 'es-ES', fr: 'fr-FR' }[language] ?? 'en-US';
   const { user } = useAuth();
 
   const [business, setBusiness] = useState<Business | null>(null);
@@ -324,7 +325,7 @@ export default function BusinessBookingProfilePage() {
                         </div>
                         <span className="text-xs font-medium text-foreground">{r.reviewer_name}</span>
                         <span className="text-xs text-muted-foreground ml-auto">
-                          {new Date(r.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+                          {new Date(r.created_at).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })}
                         </span>
                       </div>
                       {r.comment && (

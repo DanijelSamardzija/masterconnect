@@ -112,7 +112,8 @@ function getMonthDays(d: Date): Date[] {
 }
 
 function OwnerScheduleContent() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const locale = { sr: 'sr-RS', en: 'en-US', de: 'de-DE', es: 'es-ES', fr: 'fr-FR' }[language] ?? 'en-US';
   const { profile } = useAuth();
   const router = useRouter();
 
@@ -545,7 +546,7 @@ function OwnerScheduleContent() {
       for (const day of days) {
         const dateStr = isoDate(day);
         const shift = getShift(staff.staff_member_id, dateStr);
-        const dayName = day.toLocaleDateString('sr-RS', { weekday: 'short' });
+        const dayName = day.toLocaleDateString(locale, { weekday: 'short' });
         let start = 'redovni';
         let end = '';
         let breakCol = '';
@@ -583,7 +584,7 @@ function OwnerScheduleContent() {
       : `Raspored: ${SR_MONTHS[monthDate.getMonth()]} ${monthDate.getFullYear()}`;
 
     const headerCells = ['<th>Radnik</th>', ...days.map(d =>
-      `<th>${d.toLocaleDateString('sr-RS', { weekday: 'short' })}<br><span style="font-weight:400;font-size:10px">${isoDate(d)}</span></th>`
+      `<th>${d.toLocaleDateString(locale, { weekday: 'short' })}<br><span style="font-weight:400;font-size:10px">${isoDate(d)}</span></th>`
     )].join('');
 
     const bodyRows = staffRows.map(staff => {
@@ -1085,7 +1086,7 @@ function OwnerScheduleContent() {
               <div>
                 <p className="font-semibold text-sm text-foreground">{edit.staffName}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {new Date(edit.date + 'T00:00:00').toLocaleDateString('sr-RS', {
+                  {new Date(edit.date + 'T00:00:00').toLocaleDateString(locale, {
                     weekday: 'long', day: 'numeric', month: 'long',
                   })}
                 </p>
