@@ -175,9 +175,10 @@ function ClientRescheduleContent() {
     if (!bookingId || !slotStart) return;
     setConfirming(true);
     const { data } = await (supabase as any).rpc('client_reschedule_booking', {
-      p_booking_id:    bookingId,
-      p_new_starts_at: slotStart,
-      p_reason:        reason.trim() || null,
+      p_booking_id:      bookingId,
+      p_new_starts_at:   slotStart,
+      p_reason:          reason.trim() || null,
+      p_staff_member_id: selectedStaffId || null,
     });
     setConfirming(false);
     if (!data?.ok) {
