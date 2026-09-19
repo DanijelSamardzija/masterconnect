@@ -9,9 +9,11 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 
-type Service      = { id: string; name: string; duration_minutes: number };
-type StaffMember  = { id: string; name: string };
-type Slot         = { slot_start: string; slot_end: string; available: boolean };
+type Service         = { id: string; name: string; duration_minutes: number };
+type StaffMember     = { id: string; name: string };
+type Slot            = { slot_start: string; slot_end: string; available: boolean };
+type StaffAbsenceRow = { date_from: string; date_to: string; reason: string };
+type StaffShiftDay   = { is_off: boolean; off_reason: string | null };
 
 function weekMonday(date: Date): Date {
   const d = new Date(date);
@@ -58,7 +60,9 @@ export default function OwnerAddBookingPage() {
   const [slotStart, setSlotStart]   = useState('');
   const [slots, setSlots]           = useState<Slot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
-  const [breaks, setBreaks]         = useState<Record<string, { break_start: string; break_end: string }>>({});
+  const [breaks, setBreaks]           = useState<Record<string, { break_start: string; break_end: string }>>({});
+  const [staffAbsences, setStaffAbsences]   = useState<StaffAbsenceRow[]>([]);
+  const [staffShiftDays, setStaffShiftDays] = useState<Record<string, StaffShiftDay>>({});
 
   const [guestName, setGuestName]   = useState('');
   const [guestPhone, setGuestPhone] = useState('');
@@ -139,6 +143,29 @@ export default function OwnerAddBookingPage() {
         data.forEach(b => { map[b.shift_date] = { break_start: b.break_start, break_end: b.break_end }; });
       }
       setBreaks(map);
+    });
+  }, [staffId, week]);
+
+  // Fetch staff absences when staff changes
+  useEffect(() => {
+    if (!staffId) { setStaffAbsences([]); return; }
+    (supabase as any).rpc('public_get_staff_absences', { p_staff_member_id: staffId })
+      .then(({ data }: { data: StaffAbsenceRow[] | null }) => setStaffAbsences(data ?? []));
+  }, [staffId]);
+
+  // Fetch staff shift schedule per week (for is_off / off_reason labels)
+  useEffect(() => {
+    if (!staffId) { setStaffShiftDays({}); return; }
+    (supabase as any).rpc('get_staff_schedule_for_client', {
+      p_staff_member_id: staffId,
+      p_from_date: toDateKey(week),
+      p_to_date: toDateKey(addDays(week, 6)),
+    }).then(({ data }: { data: { schedule: { shift_date: string; is_off: boolean; off_reason: string | null }[] } | null }) => {
+      const map: Record<string, StaffShiftDay> = {};
+      if (data?.schedule && Array.isArray(data.schedule)) {
+        data.schedule.forEach(d => { map[d.shift_date] = { is_off: d.is_off, off_reason: d.off_reason }; });
+      }
+      setStaffShiftDays(map);
     });
   }, [staffId, week]);
 
@@ -301,6 +328,20 @@ export default function OwnerAddBookingPage() {
                       const hasSlots = count > 0;
                       const isPast = toDateKey(day) < todayStr;
                       const shortDay = new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(day);
+                      let unavailLabel: string | null = null;
+                      if (!hasSlots && !isPast && staffId) {
+                        const dayAbsence = staffAbsences.find(a => a.date_from <= dayKey && a.date_to >= dayKey);
+                        const dayShift = staffShiftDays[dayKey];
+                        if (dayAbsence) {
+                          unavailLabel = dayAbsence.reason === 'vacation' ? t('shift.vacation')
+                            : dayAbsence.reason === 'sick_leave' ? t('shift.sickLeave')
+                            : t('booking.staffUnavailable');
+                        } else if (dayShift?.is_off) {
+                          unavailLabel = dayShift.off_reason === 'vacation' ? t('shift.vacation')
+                            : dayShift.off_reason === 'sick_leave' ? t('shift.sickLeave')
+                            : t('shift.dayOff');
+                        }
+                      }
                       return (
                         <button
                           key={dayKey}
@@ -325,6 +366,8 @@ export default function OwnerAddBookingPage() {
                             <span className={`text-[10px] font-medium mt-1 ${isSelected ? 'text-primary-foreground/70' : 'text-primary'}`}>
                               {count}
                             </span>
+                          ) : unavailLabel ? (
+                            <span className="text-[9px] text-orange-500 mt-1 leading-tight text-center">{unavailLabel}</span>
                           ) : (
                             <span className="text-[10px] mt-1 opacity-0">·</span>
                           )}
