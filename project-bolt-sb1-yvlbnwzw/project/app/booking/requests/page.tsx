@@ -10,6 +10,7 @@ import { useBookingAccess } from '@/lib/hooks/use-booking-access';
 import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
 import { ChevronRight, MapPin, Calendar, X, Send } from 'lucide-react';
+import { TimePicker24h } from '@/components/ui/time-picker-24h';
 
 type TradeRequest = {
   id: string;
@@ -384,8 +385,8 @@ export default function RequestsDashboard() {
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-medium text-muted-foreground">{t('trade.quote.scheduledTime')}</label>
-                  <input type="time"
-                    value={form.scheduled_time} onChange={(e) => setForm((f) => ({ ...f, scheduled_time: e.target.value }))}
+                  <TimePicker24h
+                    value={form.scheduled_time} onChange={(v) => setForm((f) => ({ ...f, scheduled_time: v }))}
                     className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
                 </div>
               </div>

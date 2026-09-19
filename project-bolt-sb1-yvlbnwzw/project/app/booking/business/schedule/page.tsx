@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
 import { ChevronLeft, ChevronRight, Copy, X, Info, Download, AlertTriangle, MapPin } from 'lucide-react';
+import { TimePicker24h } from '@/components/ui/time-picker-24h';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
 
 type ShiftRow = {
@@ -1153,19 +1154,17 @@ function OwnerScheduleContent() {
                 <div className="flex items-center gap-3">
                   <div className="flex-1">
                     <label className="text-[10px] text-muted-foreground block mb-1">{t('schedule.shiftStart')}</label>
-                    <input
-                      type="time"
+                    <TimePicker24h
                       value={edit.startTime}
-                      onChange={e => setEdit(ev => ev ? { ...ev, startTime: e.target.value } : ev)}
+                      onChange={v => setEdit(ev => ev ? { ...ev, startTime: v } : ev)}
                       className={timeCls + ' w-full'}
                     />
                   </div>
                   <div className="flex-1">
                     <label className="text-[10px] text-muted-foreground block mb-1">{t('schedule.shiftEnd')}</label>
-                    <input
-                      type="time"
+                    <TimePicker24h
                       value={edit.endTime}
-                      onChange={e => setEdit(ev => ev ? { ...ev, endTime: e.target.value } : ev)}
+                      onChange={v => setEdit(ev => ev ? { ...ev, endTime: v } : ev)}
                       className={timeCls + ' w-full'}
                     />
                   </div>
@@ -1188,19 +1187,17 @@ function OwnerScheduleContent() {
                   <div className="flex items-center gap-3">
                     <div className="flex-1">
                       <label className="text-[10px] text-muted-foreground block mb-1">{t('schedule.breakStart')}</label>
-                      <input
-                        type="time"
+                      <TimePicker24h
                         value={edit.breakStart}
-                        onChange={e => setEdit(ev => ev ? { ...ev, breakStart: e.target.value } : ev)}
+                        onChange={v => setEdit(ev => ev ? { ...ev, breakStart: v } : ev)}
                         className={timeCls + ' w-full'}
                       />
                     </div>
                     <div className="flex-1">
                       <label className="text-[10px] text-muted-foreground block mb-1">{t('schedule.breakEnd')}</label>
-                      <input
-                        type="time"
+                      <TimePicker24h
                         value={edit.breakEnd}
-                        onChange={e => setEdit(ev => ev ? { ...ev, breakEnd: e.target.value } : ev)}
+                        onChange={v => setEdit(ev => ev ? { ...ev, breakEnd: v } : ev)}
                         className={timeCls + ' w-full'}
                       />
                     </div>

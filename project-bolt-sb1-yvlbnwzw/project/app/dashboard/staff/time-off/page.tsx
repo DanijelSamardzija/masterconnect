@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
 import { ChevronRight, CalendarOff, Trash2 } from 'lucide-react';
+import { TimePicker24h } from '@/components/ui/time-picker-24h';
 import { StaffBookingNav } from '@/components/booking/staff-booking-nav';
 
 type TimeBlock = {
@@ -172,19 +173,17 @@ export default function StaffTimeOffPage() {
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs text-muted-foreground mb-1">{t('staffTimeOff.fromTime')}</label>
-                        <input
-                          type="time"
+                        <TimePicker24h
                           value={startTime}
-                          onChange={(e) => setStartTime(e.target.value)}
+                          onChange={v => setStartTime(v)}
                           className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                         />
                       </div>
                       <div>
                         <label className="block text-xs text-muted-foreground mb-1">{t('staffTimeOff.toTime')}</label>
-                        <input
-                          type="time"
+                        <TimePicker24h
                           value={endTime}
-                          onChange={(e) => setEndTime(e.target.value)}
+                          onChange={v => setEndTime(v)}
                           className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                         />
                       </div>

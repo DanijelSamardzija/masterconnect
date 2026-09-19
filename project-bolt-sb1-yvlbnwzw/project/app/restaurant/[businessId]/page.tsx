@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
 import { ArrowLeft, Users, MapPin, Calendar, Clock, Check } from 'lucide-react';
+import { TimePicker24h } from '@/components/ui/time-picker-24h';
 
 type Business = { id: string; name: string; avatar_url: string | null; city: string | null };
 type TableRow = { id: string; name: string; capacity: number; location_tag: string | null };
@@ -169,11 +170,9 @@ export default function RestaurantReservationPage() {
               <label className="text-xs font-medium text-muted-foreground">
                 <Clock className="w-3 h-3 inline mr-1" />{t('restaurant.reserve.time')}
               </label>
-              <input
-                type="time"
+              <TimePicker24h
                 value={time}
-                onChange={(e) => setTime(e.target.value)}
-                required
+                onChange={(v) => setTime(v)}
                 className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>

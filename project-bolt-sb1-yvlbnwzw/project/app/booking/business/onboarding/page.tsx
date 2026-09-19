@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
 import { Check, Copy, ExternalLink, ChevronLeft, Loader2, X, AlertTriangle, Info } from 'lucide-react';
+import { TimePicker24h } from '@/components/ui/time-picker-24h';
 import { CityAutocomplete } from '@/components/city-autocomplete';
 import { countries } from '@/lib/countries';
 
@@ -798,19 +799,17 @@ export default function BookingSetupWizardPage() {
                         <div className="flex flex-col gap-1.5 flex-1 min-w-0">
                           {/* Main hours: from → to (no break) or from → to2 (with break) */}
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <input
-                              type="time"
+                            <TimePicker24h
                               value={dh.from}
-                              onChange={(e) => updateDayTime(dh.day, 'from', e.target.value)}
+                              onChange={(v) => updateDayTime(dh.day, 'from', v)}
                               className={timeCls}
                             />
                             <span className="text-xs text-muted-foreground">–</span>
-                            <input
-                              type="time"
+                            <TimePicker24h
                               value={dh.open2 ? dh.to2 : dh.to}
-                              onChange={(e) => dh.open2
-                                ? updateDayTime2(dh.day, 'to2', e.target.value)
-                                : updateDayTime(dh.day, 'to', e.target.value)
+                              onChange={(v) => dh.open2
+                                ? updateDayTime2(dh.day, 'to2', v)
+                                : updateDayTime(dh.day, 'to', v)
                               }
                               className={timeCls}
                             />
@@ -828,17 +827,15 @@ export default function BookingSetupWizardPage() {
                           {dh.open2 && (
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <span className="text-[11px] text-muted-foreground w-12 shrink-0">{t('bookingSetup.hours.break')}</span>
-                              <input
-                                type="time"
+                              <TimePicker24h
                                 value={dh.to}
-                                onChange={(e) => updateDayTime(dh.day, 'to', e.target.value)}
+                                onChange={(v) => updateDayTime(dh.day, 'to', v)}
                                 className={timeCls}
                               />
                               <span className="text-xs text-muted-foreground">–</span>
-                              <input
-                                type="time"
+                              <TimePicker24h
                                 value={dh.from2}
-                                onChange={(e) => updateDayTime2(dh.day, 'from2', e.target.value)}
+                                onChange={(v) => updateDayTime2(dh.day, 'from2', v)}
                                 className={timeCls}
                               />
                               <button

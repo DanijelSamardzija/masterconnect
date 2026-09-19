@@ -10,6 +10,7 @@ import { useBookingAccess } from '@/lib/hooks/use-booking-access';
 import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
 import { ChevronRight, ChevronLeft, Plus, Pencil, X, CheckCircle2, MapPin, ExternalLink, AlertTriangle, Check, Loader2, Info, Copy } from 'lucide-react';
+import { TimePicker24h } from '@/components/ui/time-picker-24h';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
 import { RestaurantTablesTab } from '@/components/setup/RestaurantTablesTab';
 import { MenuTab } from '@/components/setup/MenuTab';
@@ -2148,19 +2149,17 @@ export default function BusinessSetupPage() {
                             <div className="flex flex-col gap-1.5 pl-28">
                               {/* Main hours */}
                               <div className="flex items-center gap-2">
-                                <input
-                                  type="time"
+                                <TimePicker24h
                                   value={p0?.start_time ?? '09:00'}
-                                  onChange={(e) => updatePeriod(h.day_of_week, 0, 'start_time', e.target.value)}
+                                  onChange={(v) => updatePeriod(h.day_of_week, 0, 'start_time', v)}
                                   className={timeCls}
                                 />
                                 <span className="text-muted-foreground text-xs">–</span>
-                                <input
-                                  type="time"
+                                <TimePicker24h
                                   value={p1 ? p1.end_time : (p0?.end_time ?? '17:00')}
-                                  onChange={(e) => p1
-                                    ? updatePeriod(h.day_of_week, 1, 'end_time', e.target.value)
-                                    : updatePeriod(h.day_of_week, 0, 'end_time', e.target.value)
+                                  onChange={(v) => p1
+                                    ? updatePeriod(h.day_of_week, 1, 'end_time', v)
+                                    : updatePeriod(h.day_of_week, 0, 'end_time', v)
                                   }
                                   className={timeCls}
                                 />
@@ -2169,17 +2168,15 @@ export default function BusinessSetupPage() {
                               {p1 && (
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs text-muted-foreground w-12 shrink-0">{t('setup.hours.break')}</span>
-                                  <input
-                                    type="time"
+                                  <TimePicker24h
                                     value={p0?.end_time ?? '12:00'}
-                                    onChange={(e) => updatePeriod(h.day_of_week, 0, 'end_time', e.target.value)}
+                                    onChange={(v) => updatePeriod(h.day_of_week, 0, 'end_time', v)}
                                     className={timeCls}
                                   />
                                   <span className="text-muted-foreground text-xs">–</span>
-                                  <input
-                                    type="time"
+                                  <TimePicker24h
                                     value={p1.start_time}
-                                    onChange={(e) => updatePeriod(h.day_of_week, 1, 'start_time', e.target.value)}
+                                    onChange={(v) => updatePeriod(h.day_of_week, 1, 'start_time', v)}
                                     className={timeCls}
                                   />
                                   <button
@@ -2473,19 +2470,17 @@ export default function BusinessSetupPage() {
                   <div className="flex gap-4 mt-1 pl-0.5">
                     <div className="flex flex-col gap-1">
                       <label className="text-[10px] text-muted-foreground font-medium">{t('notifPrefs.quietFrom')}</label>
-                      <input
-                        type="time"
+                      <TimePicker24h
                         value={notifPrefs.quiet_from}
-                        onChange={e => setNotifPrefs(p => ({ ...p, quiet_from: e.target.value }))}
+                        onChange={v => setNotifPrefs(p => ({ ...p, quiet_from: v }))}
                         className="border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                       />
                     </div>
                     <div className="flex flex-col gap-1">
                       <label className="text-[10px] text-muted-foreground font-medium">{t('notifPrefs.quietTo')}</label>
-                      <input
-                        type="time"
+                      <TimePicker24h
                         value={notifPrefs.quiet_to}
-                        onChange={e => setNotifPrefs(p => ({ ...p, quiet_to: e.target.value }))}
+                        onChange={v => setNotifPrefs(p => ({ ...p, quiet_to: v }))}
                         className="border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                       />
                     </div>
@@ -2969,11 +2964,11 @@ export default function BusinessSetupPage() {
                                                 )}
                                                 {!day.is_closed && (
                                                   <div className="flex items-center gap-1 ml-auto">
-                                                    <input type="time" value={day.start_time} className={timeCls}
-                                                      onChange={e => updateStaffDay(sm.id, dow, { start_time: e.target.value })} />
+                                                    <TimePicker24h value={day.start_time} className={timeCls}
+                                                      onChange={v => updateStaffDay(sm.id, dow, { start_time: v })} />
                                                     <span className="text-muted-foreground text-[10px]">–</span>
-                                                    <input type="time" value={day.end_time} className={timeCls}
-                                                      onChange={e => updateStaffDay(sm.id, dow, { end_time: e.target.value })} />
+                                                    <TimePicker24h value={day.end_time} className={timeCls}
+                                                      onChange={v => updateStaffDay(sm.id, dow, { end_time: v })} />
                                                     <button
                                                       type="button"
                                                       onClick={() => toggleStaffBreak(sm.id, dow)}
@@ -2987,11 +2982,11 @@ export default function BusinessSetupPage() {
                                               {!day.is_closed && day.has_break && (
                                                 <div className="flex items-center gap-1 ml-16">
                                                   <span className="text-[9px] text-muted-foreground shrink-0">pauza</span>
-                                                  <input type="time" value={day.break_start} className={timeCls}
-                                                    onChange={e => updateStaffDay(sm.id, dow, { break_start: e.target.value })} />
+                                                  <TimePicker24h value={day.break_start} className={timeCls}
+                                                    onChange={v => updateStaffDay(sm.id, dow, { break_start: v })} />
                                                   <span className="text-muted-foreground text-[10px]">–</span>
-                                                  <input type="time" value={day.break_end} className={timeCls}
-                                                    onChange={e => updateStaffDay(sm.id, dow, { break_end: e.target.value })} />
+                                                  <TimePicker24h value={day.break_end} className={timeCls}
+                                                    onChange={v => updateStaffDay(sm.id, dow, { break_end: v })} />
                                                 </div>
                                               )}
                                             </div>

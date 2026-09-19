@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
 import { ChevronLeft, ChevronRight, X, Info, CalendarOff } from 'lucide-react';
+import { TimePicker24h } from '@/components/ui/time-picker-24h';
 import { StaffBookingNav } from '@/components/booking/staff-booking-nav';
 
 type ShiftRow = {
@@ -546,19 +547,17 @@ function StaffScheduleContent() {
                 <div className="flex gap-3">
                   <div className="flex items-center gap-1.5">
                     <label className="text-[11px] text-muted-foreground">{t('notifPrefs.quietFrom')}</label>
-                    <input
-                      type="time"
+                    <TimePicker24h
                       value={notifPrefs.quiet_from}
-                      onChange={e => setNotifPrefs(p => ({ ...p, quiet_from: e.target.value }))}
+                      onChange={v => setNotifPrefs(p => ({ ...p, quiet_from: v }))}
                       className="border border-border rounded-lg px-2 py-1 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
                   <div className="flex items-center gap-1.5">
                     <label className="text-[11px] text-muted-foreground">{t('notifPrefs.quietTo')}</label>
-                    <input
-                      type="time"
+                    <TimePicker24h
                       value={notifPrefs.quiet_to}
-                      onChange={e => setNotifPrefs(p => ({ ...p, quiet_to: e.target.value }))}
+                      onChange={v => setNotifPrefs(p => ({ ...p, quiet_to: v }))}
                       className="border border-border rounded-lg px-2 py-1 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
@@ -647,19 +646,17 @@ function StaffScheduleContent() {
                 <div className="flex gap-3">
                   <div className="flex-1">
                     <label className="text-[10px] text-muted-foreground block mb-1">{t('schedule.shiftStart')}</label>
-                    <input
-                      type="time"
+                    <TimePicker24h
                       value={edit.startTime}
-                      onChange={e => setEdit(ev => ev ? { ...ev, startTime: e.target.value } : ev)}
+                      onChange={v => setEdit(ev => ev ? { ...ev, startTime: v } : ev)}
                       className={timeCls}
                     />
                   </div>
                   <div className="flex-1">
                     <label className="text-[10px] text-muted-foreground block mb-1">{t('schedule.shiftEnd')}</label>
-                    <input
-                      type="time"
+                    <TimePicker24h
                       value={edit.endTime}
-                      onChange={e => setEdit(ev => ev ? { ...ev, endTime: e.target.value } : ev)}
+                      onChange={v => setEdit(ev => ev ? { ...ev, endTime: v } : ev)}
                       className={timeCls}
                     />
                   </div>
@@ -681,19 +678,17 @@ function StaffScheduleContent() {
                   <div className="flex gap-3">
                     <div className="flex-1">
                       <label className="text-[10px] text-muted-foreground block mb-1">{t('schedule.breakStart')}</label>
-                      <input
-                        type="time"
+                      <TimePicker24h
                         value={edit.breakStart}
-                        onChange={e => setEdit(ev => ev ? { ...ev, breakStart: e.target.value } : ev)}
+                        onChange={v => setEdit(ev => ev ? { ...ev, breakStart: v } : ev)}
                         className={timeCls}
                       />
                     </div>
                     <div className="flex-1">
                       <label className="text-[10px] text-muted-foreground block mb-1">{t('schedule.breakEnd')}</label>
-                      <input
-                        type="time"
+                      <TimePicker24h
                         value={edit.breakEnd}
-                        onChange={e => setEdit(ev => ev ? { ...ev, breakEnd: e.target.value } : ev)}
+                        onChange={v => setEdit(ev => ev ? { ...ev, breakEnd: v } : ev)}
                         className={timeCls}
                       />
                     </div>
