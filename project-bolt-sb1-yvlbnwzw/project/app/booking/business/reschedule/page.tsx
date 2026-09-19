@@ -6,12 +6,21 @@ import { ProtectedRoute } from '@/components/protected-route';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
-import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, MapPin } from 'lucide-react';
 
 type Slot            = { slot_start: string; slot_end: string; available: boolean };
-type StaffMember     = { id: string; name: string };
+type StaffOption     = { staff_member_id: string; name: string };
 type StaffAbsenceRow = { date_from: string; date_to: string; reason: string };
 type StaffShiftDay   = { is_off: boolean; off_reason: string | null };
+
+type LocationInfo = {
+  id: string;
+  name: string;
+  address: string | null;
+  city: string | null;
+  country: string | null;
+  timezone: string;
+};
 
 function weekMonday(date: Date): Date {
   const d = new Date(date);
@@ -43,7 +52,7 @@ function BusinessRescheduleContent() {
 
   const bookingId  = searchParams.get('bookingId')  ?? '';
   const serviceId  = searchParams.get('serviceId')  ?? '';
-  const staffId    = searchParams.get('staffId')    ?? '';
+  const staffId    = searchParams.get('staffId')    ?? ''; // initial/current staff
   const locationId = searchParams.get('locationId') ?? '';
   const businessId = searchParams.get('businessId') ?? '';
   const tz         = searchParams.get('tz')         ?? 'UTC';
@@ -51,10 +60,13 @@ function BusinessRescheduleContent() {
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
-  const [loading, setLoading]         = useState(true);
-  const [serviceName, setServiceName] = useState('');
+  const [loading, setLoading]             = useState(true);
+  const [serviceName, setServiceName]     = useState('');
   const [serviceDuration, setServiceDuration] = useState(0);
-  const [allStaff, setAllStaff]       = useState<StaffMember[]>([]);
+  const [location, setLocation]           = useState<LocationInfo | null>(null);
+  const [staffOptions, setStaffOptions]   = useState<StaffOption[]>([]);
+  // selectedStaffId drives slot/break/absence fetching; starts as the booking's current staff
+  const [selectedStaffId, setSelectedStaffId] = useState(staffId);
 
   const [week, setWeek]               = useState<Date>(weekMonday(new Date()));
   const [selectedDay, setSelectedDay] = useState('');
@@ -66,23 +78,30 @@ function BusinessRescheduleContent() {
   const [staffShiftDays, setStaffShiftDays] = useState<Record<string, StaffShiftDay>>({});
   const [confirming, setConfirming]   = useState(false);
 
-  // Load service name + all staff for the business
+  // Load service name + location + staff for this location
   useEffect(() => {
-    if (!businessId || !serviceId) return;
+    if (!serviceId || !locationId) return;
     (async () => {
-      const [{ data: svcData }, { data: staffData }] = await Promise.all([
+      const [svcRes, locRes, staffRes] = await Promise.all([
         (supabase as any).from('service_catalog').select('name, duration_minutes').eq('id', serviceId).maybeSingle(),
-        (supabase as any).from('staff_members')
-          .select('id, profiles!staff_members_user_id_fkey(name)')
-          .eq('business_id', businessId).eq('is_active', true),
+        supabase.from('business_locations').select('id, name, address, city, country, timezone').eq('id', locationId).maybeSingle(),
+        (supabase as any).rpc('get_staff_for_service', { p_service_id: serviceId, p_location_id: locationId }),
       ]);
-      if (svcData) { setServiceName(svcData.name ?? ''); setServiceDuration(svcData.duration_minutes ?? 0); }
-      setAllStaff(((staffData ?? []) as any[]).map((s: any) => ({ id: s.id, name: s.profiles?.name || '—' })));
+      if (svcRes.data) { setServiceName(svcRes.data.name ?? ''); setServiceDuration(svcRes.data.duration_minutes ?? 0); }
+      if (locRes.data) setLocation(locRes.data as LocationInfo);
+      const members = ((staffRes.data ?? []) as any[]).map((s: any) => ({
+        staff_member_id: s.staff_member_id,
+        name: s.name,
+      }));
+      setStaffOptions(members);
+      // Keep initial selection if that staff is in the list; otherwise pick first
+      const inList = members.some((s: StaffOption) => s.staff_member_id === staffId);
+      if (!inList && members.length > 0) setSelectedStaffId(members[0].staff_member_id);
       setLoading(false);
     })();
-  }, [businessId, serviceId]);
+  }, [serviceId, locationId, staffId]);
 
-  // Fetch slots for this week
+  // Fetch slots whenever week / selected staff changes
   const fetchSlots = useCallback(async () => {
     if (!businessId || !locationId || !serviceId) return;
     setSlotsLoading(true);
@@ -93,39 +112,39 @@ function BusinessRescheduleContent() {
       p_location_id:     locationId,
       p_service_id:      serviceId,
       p_week_start:      toDateKey(week),
-      p_staff_member_id: staffId || null,
+      p_staff_member_id: selectedStaffId || null,
     });
     setSlots(data ?? []);
     setSlotsLoading(false);
-  }, [businessId, locationId, serviceId, staffId, week]);
+  }, [businessId, locationId, serviceId, selectedStaffId, week]);
 
   useEffect(() => { fetchSlots(); }, [fetchSlots]);
 
   // Fetch breaks for selected staff + week
   useEffect(() => {
-    if (!staffId) { setBreaks({}); return; }
+    if (!selectedStaffId) { setBreaks({}); return; }
     (supabase as any).rpc('public_get_week_breaks', {
-      p_staff_member_id: staffId,
+      p_staff_member_id: selectedStaffId,
       p_week_start:      toDateKey(week),
     }).then(({ data }: { data: { shift_date: string; break_start: string; break_end: string }[] | null }) => {
       const map: Record<string, { break_start: string; break_end: string }> = {};
       if (Array.isArray(data)) data.forEach(b => { map[b.shift_date] = { break_start: b.break_start, break_end: b.break_end }; });
       setBreaks(map);
     });
-  }, [staffId, week]);
+  }, [selectedStaffId, week]);
 
-  // Fetch all-time absences for staff (for absence labels on day pills)
+  // Fetch all-time absences (for labels on day pills)
   useEffect(() => {
-    if (!staffId) { setStaffAbsences([]); return; }
-    (supabase as any).rpc('public_get_staff_absences', { p_staff_member_id: staffId })
+    if (!selectedStaffId) { setStaffAbsences([]); return; }
+    (supabase as any).rpc('public_get_staff_absences', { p_staff_member_id: selectedStaffId })
       .then(({ data }: { data: StaffAbsenceRow[] | null }) => setStaffAbsences(data ?? []));
-  }, [staffId]);
+  }, [selectedStaffId]);
 
   // Fetch shift schedule for this week (is_off / off_reason for day pills)
   useEffect(() => {
-    if (!staffId) { setStaffShiftDays({}); return; }
+    if (!selectedStaffId) { setStaffShiftDays({}); return; }
     (supabase as any).rpc('get_staff_schedule_for_client', {
-      p_staff_member_id: staffId,
+      p_staff_member_id: selectedStaffId,
       p_from_date: toDateKey(week),
       p_to_date: toDateKey(addDays(week, 6)),
     }).then(({ data }: { data: { schedule: { shift_date: string; is_off: boolean; off_reason: string | null }[] } | null }) => {
@@ -135,7 +154,7 @@ function BusinessRescheduleContent() {
       }
       setStaffShiftDays(map);
     });
-  }, [staffId, week]);
+  }, [selectedStaffId, week]);
 
   // Auto-select first available day
   useEffect(() => {
@@ -225,22 +244,40 @@ function BusinessRescheduleContent() {
                 </div>
               </div>
 
-              {/* Staff pills — read-only, booking staff pre-selected */}
-              {allStaff.length > 1 && (
+              {/* Location — read-only */}
+              {location && (
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-1.5">{t('booking.location')}</label>
+                  <div className="px-4 py-3 rounded-xl border border-primary bg-primary/5">
+                    <p className="text-sm font-medium">{location.name}</p>
+                    {(location.address || location.city) && (
+                      <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+                        <MapPin className="w-3 h-3 shrink-0" />
+                        {[location.address, location.city, location.country].filter(Boolean).join(', ')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Staff pills — interactive, only staff at this location */}
+              {staffOptions.length > 1 && (
                 <div>
                   <label className="block text-xs text-muted-foreground mb-1.5">{t('booking.staff.heading')}</label>
                   <div className="flex flex-wrap gap-1.5">
-                    {allStaff.map((s) => (
-                      <div
-                        key={s.id}
-                        className={`px-3 py-1.5 rounded-full text-sm font-medium border ${
-                          s.id === staffId
+                    {staffOptions.map((s) => (
+                      <button
+                        key={s.staff_member_id}
+                        type="button"
+                        onClick={() => { setSelectedStaffId(s.staff_member_id); setSlotStart(''); }}
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                          selectedStaffId === s.staff_member_id
                             ? 'bg-primary text-primary-foreground border-primary'
-                            : 'bg-background text-muted-foreground border-border opacity-40'
+                            : 'bg-background text-muted-foreground border-border hover:border-primary hover:text-foreground'
                         }`}
                       >
                         {s.name}
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -284,7 +321,7 @@ function BusinessRescheduleContent() {
                       const isPast = toDateKey(day) < todayStr;
                       const shortDay = new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(day);
                       let unavailLabel: string | null = null;
-                      if (!hasSlots && !isPast && staffId) {
+                      if (!hasSlots && !isPast && selectedStaffId) {
                         const dayAbsence = staffAbsences.find(a => a.date_from <= dayKey && a.date_to >= dayKey);
                         const dayShift = staffShiftDays[dayKey];
                         if (dayAbsence) {
