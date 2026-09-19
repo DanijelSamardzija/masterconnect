@@ -1617,7 +1617,7 @@ export default function BusinessSetupPage() {
           </div>
 
           {/* Tab bar */}
-          <div className="flex border-b border-border mb-6 gap-0 overflow-x-auto">
+          <div className="flex border-b border-border mb-6 gap-0 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {TABS.map(({ key, label }) => (
               <button
                 key={key}
