@@ -2669,6 +2669,7 @@ export default {
   'setup.posts.validate.title': 'Booking not ready',
   'setup.posts.validate.missing': 'Missing:',
   // F12 — Booking staff selection
+  'booking.location.heading': 'Choose a location',
   'booking.staff.heading': 'Choose a staff member',
   'booking.staff.any': 'Any available',
   'booking.staff.noStaff': 'No staff available for this service.',

@@ -2587,6 +2587,7 @@ export default {
   'setup.posts.validate.title': 'Reserva no lista',
   'setup.posts.validate.missing': 'Falta:',
   // F12 — Booking staff selection
+  'booking.location.heading': 'Elige una ubicación',
   'booking.staff.heading': 'Elige un trabajador',
   'booking.staff.any': 'Cualquier disponible',
   'booking.staff.noStaff': 'No hay personal disponible para este servicio.',

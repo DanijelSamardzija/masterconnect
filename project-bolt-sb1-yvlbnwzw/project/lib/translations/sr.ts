@@ -2669,6 +2669,7 @@ export default {
   'setup.posts.validate.title': 'Booking nije spreman',
   'setup.posts.validate.missing': 'Nedostaje:',
   // F12 — Booking staff selection
+  'booking.location.heading': 'Izaberi lokaciju',
   'booking.staff.heading': 'Izaberi radnika',
   'booking.staff.any': 'Bilo koji radnik',
   'booking.staff.noStaff': 'Nema dostupnih radnika za ovu uslugu.',

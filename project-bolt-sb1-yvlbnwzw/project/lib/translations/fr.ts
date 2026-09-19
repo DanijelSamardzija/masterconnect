@@ -2594,6 +2594,7 @@ export default {
   'setup.posts.validate.title': 'Réservation non prête',
   'setup.posts.validate.missing': 'Manquant :',
   // F12 — Booking staff selection
+  'booking.location.heading': 'Choisir un emplacement',
   'booking.staff.heading': 'Choisir un employé',
   'booking.staff.any': 'N\'importe quel disponible',
   'booking.staff.noStaff': 'Aucun personnel disponible pour ce service.',

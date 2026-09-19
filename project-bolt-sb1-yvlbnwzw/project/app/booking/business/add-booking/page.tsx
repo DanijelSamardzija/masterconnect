@@ -10,7 +10,8 @@ import { toast } from 'sonner';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 
 type Service         = { id: string; name: string; duration_minutes: number };
-type StaffMember     = { id: string; name: string };
+type StaffMember     = { id: string; name: string; locationId: string | null };
+type Location        = { id: string; name: string; city: string | null; timezone: string };
 type Slot            = { slot_start: string; slot_end: string; available: boolean };
 type StaffAbsenceRow = { date_from: string; date_to: string; reason: string };
 type StaffShiftDay   = { is_off: boolean; off_reason: string | null };
@@ -50,6 +51,7 @@ export default function OwnerAddBookingPage() {
   const [loading, setLoading]       = useState(true);
   const [services, setServices]     = useState<Service[]>([]);
   const [staff, setStaff]           = useState<StaffMember[]>([]);
+  const [locations, setLocations]   = useState<Location[]>([]);
   const [locationId, setLocationId] = useState('');
   const [timezone, setTimezone]     = useState('UTC');
 
@@ -77,25 +79,34 @@ export default function OwnerAddBookingPage() {
           .select('id, name, duration_minutes')
           .eq('business_id', profile.id).eq('is_active', true).order('name'),
         (supabase as any).from('staff_members')
-          .select('id, profiles!staff_members_user_id_fkey(name)')
+          .select('id, primary_location_id, profiles!staff_members_user_id_fkey(name)')
           .eq('business_id', profile.id).eq('is_active', true),
         (supabase as any).from('business_locations')
-          .select('id, timezone')
+          .select('id, name, city, timezone')
           .eq('business_id', profile.id).eq('is_active', true)
-          .order('is_primary', { ascending: false }).limit(1),
+          .order('is_primary', { ascending: false }),
       ]);
       const svcList = (svcs as Service[]) ?? [];
       const staffList = ((staffData ?? []) as any[]).map((s: any) => ({
         id: s.id,
         name: s.profiles?.name || '—',
+        locationId: s.primary_location_id ?? null,
+      }));
+      const locList: Location[] = ((locs ?? []) as any[]).map((l: any) => ({
+        id: l.id, name: l.name, city: l.city ?? null, timezone: l.timezone ?? 'UTC',
       }));
       setServices(svcList);
       setStaff(staffList);
+      setLocations(locList);
       if (svcList.length > 0) setServiceId(svcList[0].id);
-      if (staffList.length > 0) setStaffId(staffList[0].id);
-      if (locs?.length) {
-        setLocationId(locs[0].id);
-        setTimezone(locs[0].timezone ?? 'UTC');
+      if (locList.length > 0) {
+        const firstLoc = locList[0];
+        setLocationId(firstLoc.id);
+        setTimezone(firstLoc.timezone);
+        const firstStaff = staffList.find(s => s.locationId === firstLoc.id) ?? staffList[0];
+        if (firstStaff) setStaffId(firstStaff.id);
+      } else if (staffList.length > 0) {
+        setStaffId(staffList[0].id);
       }
       setLoading(false);
     })();
@@ -268,28 +279,63 @@ export default function OwnerAddBookingPage() {
                 </div>
               </div>
 
-              {/* Staff picker */}
-              {staff.length > 1 && (
+              {/* Location picker */}
+              {locations.length > 1 && (
                 <div>
-                  <label className="block text-xs text-muted-foreground mb-1.5">{t('booking.staff.heading')}</label>
+                  <label className="block text-xs text-muted-foreground mb-1.5">{t('booking.location.heading')}</label>
                   <div className="flex flex-wrap gap-1.5">
-                    {staff.map((s) => (
+                    {locations.map((loc) => (
                       <button
-                        key={s.id}
+                        key={loc.id}
                         type="button"
-                        onClick={() => { setStaffId(s.id); setSlotStart(''); }}
+                        onClick={() => {
+                          setLocationId(loc.id);
+                          setTimezone(loc.timezone);
+                          setSlotStart('');
+                          const firstStaff = staff.find(s => s.locationId === loc.id);
+                          if (firstStaff) setStaffId(firstStaff.id);
+                        }}
                         className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-                          staffId === s.id
+                          locationId === loc.id
                             ? 'bg-primary text-primary-foreground border-primary'
                             : 'bg-background text-muted-foreground border-border hover:border-primary hover:text-foreground'
                         }`}
                       >
-                        {s.name}
+                        {loc.name}{loc.city ? ` · ${loc.city}` : ''}
                       </button>
                     ))}
                   </div>
                 </div>
               )}
+
+              {/* Staff picker — filtered by selected location */}
+              {(() => {
+                const visibleStaff = locationId
+                  ? staff.filter(s => s.locationId === locationId)
+                  : staff;
+                if (visibleStaff.length <= 1) return null;
+                return (
+                  <div>
+                    <label className="block text-xs text-muted-foreground mb-1.5">{t('booking.staff.heading')}</label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {visibleStaff.map((s) => (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => { setStaffId(s.id); setSlotStart(''); }}
+                          className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                            staffId === s.id
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'bg-background text-muted-foreground border-border hover:border-primary hover:text-foreground'
+                          }`}
+                        >
+                          {s.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Week navigation */}
               <div className="flex items-center justify-between">
