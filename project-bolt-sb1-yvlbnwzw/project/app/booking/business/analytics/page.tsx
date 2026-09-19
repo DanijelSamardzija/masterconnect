@@ -452,10 +452,10 @@ ${staffBlocks}
                                 {svc.completed}
                               </td>
                               <td className="px-3 py-2.5 text-right tabular-nums text-muted-foreground whitespace-nowrap">
-                                {fmtMoney(svc.avg_price, currency, currency)}
+                                {fmtMoney(svc.avg_price, currency)}
                               </td>
                               <td className="px-4 py-2.5 text-right tabular-nums text-foreground font-semibold whitespace-nowrap">
-                                {fmtMoney(svc.revenue, currency, currency)}
+                                {fmtMoney(svc.revenue, currency)}
                               </td>
                             </tr>
                           ))}
@@ -471,7 +471,7 @@ ${staffBlocks}
                             </td>
                             <td className="px-3 py-2.5" />
                             <td className="px-4 py-2.5 text-right tabular-nums text-primary font-bold text-sm whitespace-nowrap">
-                              {fmtMoney(staffRow.revenue, currency, currency)}
+                              {fmtMoney(staffRow.revenue, currency)}
                             </td>
                           </tr>
                         </tfoot>
@@ -492,7 +492,7 @@ ${staffBlocks}
                       {summary.completed}&nbsp;×
                     </span>
                     <span className="text-base font-bold text-primary tabular-nums">
-                      {fmtMoney(summary.revenue, currency, currency)}
+                      {fmtMoney(summary.revenue, currency)}
                     </span>
                   </div>
                 </div>
