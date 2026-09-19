@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ProtectedRoute } from '@/components/protected-route';
 import { supabase } from '@/lib/supabase/client';
@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 
 type Slot            = { slot_start: string; slot_end: string; available: boolean };
+type StaffMember     = { id: string; name: string };
 type StaffAbsenceRow = { date_from: string; date_to: string; reason: string };
 type StaffShiftDay   = { is_off: boolean; off_reason: string | null };
 
@@ -20,9 +21,7 @@ function weekMonday(date: Date): Date {
   return d;
 }
 function addDays(d: Date, n: number): Date {
-  const r = new Date(d);
-  r.setDate(r.getDate() + n);
-  return r;
+  const r = new Date(d); r.setDate(r.getDate() + n); return r;
 }
 function toDateKey(d: Date): string {
   const y = d.getFullYear();
@@ -48,39 +47,61 @@ function BusinessRescheduleContent() {
   const locationId = searchParams.get('locationId') ?? '';
   const businessId = searchParams.get('businessId') ?? '';
   const tz         = searchParams.get('tz')         ?? 'UTC';
-  const role       = searchParams.get('role')       ?? 'owner'; // 'owner' | 'staff'
+  const role       = searchParams.get('role')       ?? 'owner';
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
-  const [week, setWeek]             = useState<Date>(weekMonday(new Date()));
+  const [loading, setLoading]         = useState(true);
+  const [serviceName, setServiceName] = useState('');
+  const [serviceDuration, setServiceDuration] = useState(0);
+  const [allStaff, setAllStaff]       = useState<StaffMember[]>([]);
+
+  const [week, setWeek]               = useState<Date>(weekMonday(new Date()));
   const [selectedDay, setSelectedDay] = useState('');
-  const [slotStart, setSlotStart]   = useState('');
-  const [slots, setSlots]           = useState<Slot[]>([]);
+  const [slotStart, setSlotStart]     = useState('');
+  const [slots, setSlots]             = useState<Slot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
-  const [breaks, setBreaks]         = useState<Record<string, { break_start: string; break_end: string }>>({});
+  const [breaks, setBreaks]           = useState<Record<string, { break_start: string; break_end: string }>>({});
   const [staffAbsences, setStaffAbsences]   = useState<StaffAbsenceRow[]>([]);
   const [staffShiftDays, setStaffShiftDays] = useState<Record<string, StaffShiftDay>>({});
-  const [confirming, setConfirming] = useState(false);
+  const [confirming, setConfirming]   = useState(false);
 
-  // Fetch available slots for the week
+  // Load service name + all staff for the business
   useEffect(() => {
-    if (!businessId || !locationId || !serviceId || !staffId) return;
+    if (!businessId || !serviceId) return;
+    (async () => {
+      const [{ data: svcData }, { data: staffData }] = await Promise.all([
+        (supabase as any).from('service_catalog').select('name, duration_minutes').eq('id', serviceId).maybeSingle(),
+        (supabase as any).from('staff_members')
+          .select('id, profiles!staff_members_user_id_fkey(name)')
+          .eq('business_id', businessId).eq('is_active', true),
+      ]);
+      if (svcData) { setServiceName(svcData.name ?? ''); setServiceDuration(svcData.duration_minutes ?? 0); }
+      setAllStaff(((staffData ?? []) as any[]).map((s: any) => ({ id: s.id, name: s.profiles?.name || '—' })));
+      setLoading(false);
+    })();
+  }, [businessId, serviceId]);
+
+  // Fetch slots for this week
+  const fetchSlots = useCallback(async () => {
+    if (!businessId || !locationId || !serviceId) return;
     setSlotsLoading(true);
     setSlots([]);
     setSlotStart('');
-    (supabase as any).rpc('get_available_slots', {
+    const { data } = await (supabase as any).rpc('get_available_slots', {
       p_business_id:     businessId,
       p_location_id:     locationId,
       p_service_id:      serviceId,
       p_week_start:      toDateKey(week),
-      p_staff_member_id: staffId,
-    }).then(({ data }: { data: Slot[] | null }) => {
-      setSlots(data || []);
-      setSlotsLoading(false);
+      p_staff_member_id: staffId || null,
     });
+    setSlots(data ?? []);
+    setSlotsLoading(false);
   }, [businessId, locationId, serviceId, staffId, week]);
 
-  // Fetch breaks for the week
+  useEffect(() => { fetchSlots(); }, [fetchSlots]);
+
+  // Fetch breaks for selected staff + week
   useEffect(() => {
     if (!staffId) { setBreaks({}); return; }
     (supabase as any).rpc('public_get_week_breaks', {
@@ -88,21 +109,19 @@ function BusinessRescheduleContent() {
       p_week_start:      toDateKey(week),
     }).then(({ data }: { data: { shift_date: string; break_start: string; break_end: string }[] | null }) => {
       const map: Record<string, { break_start: string; break_end: string }> = {};
-      if (Array.isArray(data)) {
-        data.forEach(b => { map[b.shift_date] = { break_start: b.break_start, break_end: b.break_end }; });
-      }
+      if (Array.isArray(data)) data.forEach(b => { map[b.shift_date] = { break_start: b.break_start, break_end: b.break_end }; });
       setBreaks(map);
     });
   }, [staffId, week]);
 
-  // Fetch staff absences
+  // Fetch all-time absences for staff (for absence labels on day pills)
   useEffect(() => {
     if (!staffId) { setStaffAbsences([]); return; }
     (supabase as any).rpc('public_get_staff_absences', { p_staff_member_id: staffId })
       .then(({ data }: { data: StaffAbsenceRow[] | null }) => setStaffAbsences(data ?? []));
   }, [staffId]);
 
-  // Fetch shift schedule per week (for is_off / off_reason labels on day pills)
+  // Fetch shift schedule for this week (is_off / off_reason for day pills)
   useEffect(() => {
     if (!staffId) { setStaffShiftDays({}); return; }
     (supabase as any).rpc('get_staff_schedule_for_client', {
@@ -118,15 +137,14 @@ function BusinessRescheduleContent() {
     });
   }, [staffId, week]);
 
-  // Auto-select first available day, preserve current if it still has slots
+  // Auto-select first available day
   useEffect(() => {
     if (slotsLoading) return;
     if (selectedDay) {
-      const stillHasSlots = slots.some(s => s.available && tzDateKey(s.slot_start, tz) === selectedDay);
-      if (stillHasSlots) return;
+      const stillHas = slots.some(s => s.available && tzDateKey(s.slot_start, tz) === selectedDay);
+      if (stillHas) return;
     }
-    const weekDays = Array.from({ length: 7 }, (_, i) => addDays(week, i));
-    for (const d of weekDays) {
+    for (const d of Array.from({ length: 7 }, (_, i) => addDays(week, i))) {
       const key = tzDateKey(d, tz);
       if (slots.some(s => s.available && tzDateKey(s.slot_start, tz) === key)) {
         setSelectedDay(key); return;
@@ -139,12 +157,12 @@ function BusinessRescheduleContent() {
     if (!bookingId || !slotStart) return;
     setConfirming(true);
     const rpcName = role === 'staff' ? 'staff_reschedule_booking' : 'owner_reschedule_booking';
-    const { data, error } = await (supabase as any).rpc(rpcName, {
+    const { data } = await (supabase as any).rpc(rpcName, {
       p_booking_id:    bookingId,
       p_new_starts_at: slotStart,
     });
     setConfirming(false);
-    if (error || data?.ok === false) {
+    if (!data?.ok) {
       const key = data?.error === 'conflict'
         ? 'ownerBookings.rescheduleError.conflict'
         : 'ownerBookings.rescheduleError.tooSoon';
@@ -167,9 +185,8 @@ function BusinessRescheduleContent() {
     if (!slotsByDay[key]) slotsByDay[key] = [];
     slotsByDay[key].push(s);
   }
-
-  const weekDays  = Array.from({ length: 7 }, (_, i) => addDays(week, i));
-  const todayStr  = toDateKey(new Date());
+  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(week, i));
+  const todayStr = toDateKey(new Date());
 
   return (
     <ProtectedRoute>
@@ -190,157 +207,178 @@ function BusinessRescheduleContent() {
             </h1>
           </div>
 
-          <div className="flex flex-col gap-5">
-
-            {/* Week navigation */}
-            <div className="flex items-center justify-between">
-              <button
-                onClick={() => { setWeek(w => addDays(w, -7)); setSlotStart(''); }}
-                disabled={toDateKey(week) <= todayStr}
-                className="p-2 rounded-lg hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-muted-foreground"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <span className="text-sm font-medium text-foreground">
-                {weekDays[0].toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
-                {' – '}
-                {weekDays[6].toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
-              </span>
-              <button
-                onClick={() => { setWeek(w => addDays(w, 7)); setSlotStart(''); }}
-                className="p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
+          ) : (
+            <div className="flex flex-col gap-5">
 
-            {/* Day pills + slot grid */}
-            {slotsLoading ? (
-              <div className="flex justify-center py-6">
-                <div className="h-5 w-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+              {/* Service — read-only selected card */}
+              <div>
+                <label className="block text-xs text-muted-foreground mb-1.5">{t('staffBooking.service')}</label>
+                <div className="flex items-center justify-between px-4 py-3 rounded-xl border border-primary bg-primary/5">
+                  <span className="text-sm font-medium">{serviceName}</span>
+                  {serviceDuration > 0 && (
+                    <span className="text-xs text-muted-foreground">{serviceDuration} min</span>
+                  )}
+                </div>
               </div>
-            ) : (
-              <>
-                <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" style={{ scrollbarWidth: 'none' }}>
-                  {weekDays.map((day) => {
-                    const dayKey = tzDateKey(day, tz);
-                    const count = (slotsByDay[dayKey] ?? []).length;
-                    const isSelected = selectedDay === dayKey;
-                    const hasSlots = count > 0;
-                    const isPast = toDateKey(day) < todayStr;
-                    const shortDay = new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(day);
-                    let unavailLabel: string | null = null;
-                    if (!hasSlots && !isPast && staffId) {
-                      const dayAbsence = staffAbsences.find(a => a.date_from <= dayKey && a.date_to >= dayKey);
-                      const dayShift = staffShiftDays[dayKey];
-                      if (dayAbsence) {
-                        unavailLabel = dayAbsence.reason === 'vacation' ? t('shift.vacation')
-                          : dayAbsence.reason === 'sick_leave' ? t('shift.sickLeave')
-                          : t('booking.staffUnavailable');
-                      } else if (dayShift?.is_off) {
-                        unavailLabel = dayShift.off_reason === 'vacation' ? t('shift.vacation')
-                          : dayShift.off_reason === 'sick_leave' ? t('shift.sickLeave')
-                          : t('shift.dayOff');
-                      }
-                    }
-                    return (
-                      <button
-                        key={dayKey}
-                        type="button"
-                        onClick={() => { if (hasSlots) { setSelectedDay(dayKey); setSlotStart(''); } }}
-                        disabled={!hasSlots}
-                        className={`flex flex-col items-center shrink-0 w-14 py-2.5 rounded-xl border transition-colors ${
-                          isSelected
+
+              {/* Staff pills — read-only, booking staff pre-selected */}
+              {allStaff.length > 1 && (
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-1.5">{t('booking.staff.heading')}</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {allStaff.map((s) => (
+                      <div
+                        key={s.id}
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium border ${
+                          s.id === staffId
                             ? 'bg-primary text-primary-foreground border-primary'
-                            : hasSlots
-                              ? 'border-border hover:border-primary/60 hover:bg-accent'
-                              : isPast
-                                ? 'border-border/40 opacity-25 cursor-not-allowed'
-                                : 'border-border opacity-35 cursor-not-allowed'
+                            : 'bg-background text-muted-foreground border-border opacity-40'
                         }`}
                       >
-                        <span className={`text-[10px] font-medium uppercase tracking-wide ${isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
-                          {shortDay}
-                        </span>
-                        <span className="text-lg font-bold leading-tight mt-0.5">{day.getDate()}</span>
-                        {hasSlots ? (
-                          <span className={`text-[10px] font-medium mt-1 ${isSelected ? 'text-primary-foreground/70' : 'text-primary'}`}>
-                            {count}
-                          </span>
-                        ) : unavailLabel ? (
-                          <span className="text-[9px] text-orange-500 mt-1 leading-tight text-center">{unavailLabel}</span>
-                        ) : (
-                          <span className="text-[10px] mt-1 opacity-0">·</span>
-                        )}
-                      </button>
-                    );
-                  })}
+                        {s.name}
+                      </div>
+                    ))}
+                  </div>
                 </div>
+              )}
 
-                {/* Slot grid with break divider */}
-                {!selectedDay || Object.keys(slotsByDay).length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    {t('ownerBookings.add.noSlots')}
-                  </p>
-                ) : selectedDay && slotsByDay[selectedDay]?.length > 0 ? (
-                  (() => {
-                    const daySlots = slotsByDay[selectedDay];
-                    const dayBreak = breaks[selectedDay];
-                    const fmt = (iso: string) => new Intl.DateTimeFormat('en-GB', {
-                      hour: '2-digit', minute: '2-digit', timeZone: tz,
-                    }).format(new Date(iso));
-                    const breakStart = dayBreak?.break_start.slice(0, 5);
-                    const breakEnd   = dayBreak?.break_end.slice(0, 5);
-                    const before = dayBreak ? daySlots.filter(s => fmt(s.slot_start) < breakStart!) : daySlots;
-                    const after  = dayBreak ? daySlots.filter(s => fmt(s.slot_start) >= breakEnd!)  : [];
-                    const SlotBtn = ({ sl }: { sl: Slot }) => {
-                      const timeStr = new Intl.DateTimeFormat(undefined, {
-                        hour: '2-digit', minute: '2-digit', timeZone: tz,
-                      }).format(new Date(sl.slot_start));
-                      const isChosen = slotStart === sl.slot_start;
+              {/* Week navigation */}
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => { setWeek(w => addDays(w, -7)); setSlotStart(''); }}
+                  disabled={toDateKey(week) <= todayStr}
+                  className="p-2 rounded-lg hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-muted-foreground"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <span className="text-sm font-medium text-foreground">
+                  {weekDays[0].toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
+                  {' – '}
+                  {weekDays[6].toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
+                </span>
+                <button
+                  onClick={() => { setWeek(w => addDays(w, 7)); setSlotStart(''); }}
+                  className="p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Day selector */}
+              {slotsLoading ? (
+                <div className="flex justify-center py-6">
+                  <div className="h-5 w-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                </div>
+              ) : (
+                <>
+                  <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" style={{ scrollbarWidth: 'none' }}>
+                    {weekDays.map((day) => {
+                      const dayKey = tzDateKey(day, tz);
+                      const count = (slotsByDay[dayKey] ?? []).length;
+                      const isSelected = selectedDay === dayKey;
+                      const hasSlots = count > 0;
+                      const isPast = toDateKey(day) < todayStr;
+                      const shortDay = new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(day);
+                      let unavailLabel: string | null = null;
+                      if (!hasSlots && !isPast && staffId) {
+                        const dayAbsence = staffAbsences.find(a => a.date_from <= dayKey && a.date_to >= dayKey);
+                        const dayShift = staffShiftDays[dayKey];
+                        if (dayAbsence) {
+                          unavailLabel = dayAbsence.reason === 'vacation' ? t('shift.vacation')
+                            : dayAbsence.reason === 'sick_leave' ? t('shift.sickLeave')
+                            : t('booking.staffUnavailable');
+                        } else if (dayShift?.is_off) {
+                          unavailLabel = dayShift.off_reason === 'vacation' ? t('shift.vacation')
+                            : dayShift.off_reason === 'sick_leave' ? t('shift.sickLeave')
+                            : t('shift.dayOff');
+                        }
+                      }
                       return (
                         <button
-                          onClick={() => setSlotStart(sl.slot_start)}
-                          className={`py-3 rounded-xl text-sm font-medium transition-colors ${
-                            isChosen ? 'bg-primary text-primary-foreground' : 'bg-primary/10 hover:bg-primary/20 text-primary'
+                          key={dayKey}
+                          type="button"
+                          onClick={() => { if (hasSlots) { setSelectedDay(dayKey); setSlotStart(''); } }}
+                          disabled={!hasSlots}
+                          className={`flex flex-col items-center shrink-0 w-14 py-2.5 rounded-xl border transition-colors ${
+                            isSelected
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : hasSlots
+                                ? 'border-border hover:border-primary/60 hover:bg-accent'
+                                : isPast
+                                  ? 'border-border/40 opacity-25 cursor-not-allowed'
+                                  : 'border-border opacity-35 cursor-not-allowed'
                           }`}
                         >
-                          {timeStr}
+                          <span className={`text-[10px] font-medium uppercase tracking-wide ${isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                            {shortDay}
+                          </span>
+                          <span className="text-lg font-bold leading-tight mt-0.5">{day.getDate()}</span>
+                          {hasSlots ? (
+                            <span className={`text-[10px] font-medium mt-1 ${isSelected ? 'text-primary-foreground/70' : 'text-primary'}`}>{count}</span>
+                          ) : unavailLabel ? (
+                            <span className="text-[9px] text-orange-500 mt-1 leading-tight text-center">{unavailLabel}</span>
+                          ) : (
+                            <span className="text-[10px] mt-1 opacity-0">·</span>
+                          )}
                         </button>
                       );
-                    };
-                    return (
-                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                        {before.map(sl => <SlotBtn key={sl.slot_start} sl={sl} />)}
-                        {dayBreak && after.length > 0 && (
-                          <div className="col-span-3 sm:col-span-4 flex items-center gap-2 py-1">
-                            <div className="flex-1 h-px bg-border" />
-                            <span className="text-[11px] text-orange-500 font-medium whitespace-nowrap">
-                              {t('schedule.break')} {breakStart}–{breakEnd}
-                            </span>
-                            <div className="flex-1 h-px bg-border" />
-                          </div>
-                        )}
-                        {after.map(sl => <SlotBtn key={sl.slot_start} sl={sl} />)}
-                      </div>
-                    );
-                  })()
-                ) : selectedDay ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    {t('ownerBookings.add.noSlots')}
-                  </p>
-                ) : null}
-              </>
-            )}
+                    })}
+                  </div>
 
-            <button
-              onClick={handleConfirm}
-              disabled={confirming || !slotStart}
-              className="w-full py-3 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-60 mt-1"
-            >
-              {confirming ? '...' : t('ownerBookings.rescheduleModal.confirm')}
-            </button>
-          </div>
+                  {/* Slot grid */}
+                  {!selectedDay || Object.keys(slotsByDay).length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">{t('ownerBookings.add.noSlots')}</p>
+                  ) : selectedDay && slotsByDay[selectedDay]?.length > 0 ? (
+                    (() => {
+                      const daySlots = slotsByDay[selectedDay];
+                      const dayBreak = breaks[selectedDay];
+                      const fmt = (iso: string) => new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: tz }).format(new Date(iso));
+                      const breakStart = dayBreak?.break_start.slice(0, 5);
+                      const breakEnd   = dayBreak?.break_end.slice(0, 5);
+                      const before = dayBreak ? daySlots.filter(s => fmt(s.slot_start) < breakStart!) : daySlots;
+                      const after  = dayBreak ? daySlots.filter(s => fmt(s.slot_start) >= breakEnd!)  : [];
+                      const SlotBtn = ({ sl }: { sl: Slot }) => {
+                        const timeStr = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit', timeZone: tz }).format(new Date(sl.slot_start));
+                        const isChosen = slotStart === sl.slot_start;
+                        return (
+                          <button onClick={() => setSlotStart(sl.slot_start)}
+                            className={`py-3 rounded-xl text-sm font-medium transition-colors ${isChosen ? 'bg-primary text-primary-foreground' : 'bg-primary/10 hover:bg-primary/20 text-primary'}`}
+                          >{timeStr}</button>
+                        );
+                      };
+                      return (
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                          {before.map(sl => <SlotBtn key={sl.slot_start} sl={sl} />)}
+                          {dayBreak && after.length > 0 && (
+                            <div className="col-span-3 sm:col-span-4 flex items-center gap-2 py-1">
+                              <div className="flex-1 h-px bg-border" />
+                              <span className="text-[11px] text-orange-500 font-medium whitespace-nowrap">{t('schedule.break')} {breakStart}–{breakEnd}</span>
+                              <div className="flex-1 h-px bg-border" />
+                            </div>
+                          )}
+                          {after.map(sl => <SlotBtn key={sl.slot_start} sl={sl} />)}
+                        </div>
+                      );
+                    })()
+                  ) : selectedDay ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">{t('ownerBookings.add.noSlots')}</p>
+                  ) : null}
+                </>
+              )}
+
+              <button
+                onClick={handleConfirm}
+                disabled={confirming || !slotStart}
+                className="w-full py-3 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-60 mt-1"
+              >
+                {confirming ? '...' : t('ownerBookings.rescheduleModal.confirm')}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </ProtectedRoute>
