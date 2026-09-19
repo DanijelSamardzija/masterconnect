@@ -11,7 +11,7 @@ type Lang = 'sr' | 'de' | 'en' | 'es' | 'fr';
 // confirmation / cancellation / reschedule = client emails
 // new_booking  = business owner/staff email when new booking arrives
 // reminder     = client reminder email (called from cron)
-type EmailType = 'confirmation' | 'cancellation' | 'reschedule' | 'new_booking' | 'reminder';
+type EmailType = 'confirmation' | 'cancellation' | 'reschedule' | 'new_booking' | 'reminder' | 'client_rescheduled';
 
 function getLang(country: string | null | undefined): Lang {
   if (BALKAN.includes(country ?? ''))  return 'sr';
@@ -29,7 +29,7 @@ function fmtDt(iso: string, tz: string, lang: Lang): string {
   }).format(new Date(iso));
 }
 
-type ContentParams = { firstName: string; service: string; business: string; dt: string; clientName?: string };
+type ContentParams = { firstName: string; service: string; business: string; dt: string; clientName?: string; reason?: string };
 type ContentResult = { subject: string; title: string; body: string; dateLabel: string; locationLabel: string; cta: string; footer: string };
 
 function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
@@ -67,6 +67,15 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Nova rezervacija 📅',
         body: `<strong>${p.clientName ?? 'Klijent'}</strong> je zakazao/la termin za <strong>${p.service}</strong>.`,
         dateLabel: 'Termin',
+        locationLabel: 'Lokacija',
+        cta: 'Pregledaj termine',
+        footer: 'Prijavite se na GigZone da vidite detalje i upravljate rezervacijama.',
+      },
+      client_rescheduled: {
+        subject: `Termin premješten — ${p.service}`,
+        title: 'Klijent premjestio/la termin 🗓️',
+        body: `<strong>${p.clientName ?? 'Klijent'}</strong> je premjestio/la termin za <strong>${p.service}</strong>.${p.reason ? `<br/><em>Razlog: ${p.reason}</em>` : ''}`,
+        dateLabel: 'Novi termin',
         locationLabel: 'Lokacija',
         cta: 'Pregledaj termine',
         footer: 'Prijavite se na GigZone da vidite detalje i upravljate rezervacijama.',
@@ -118,6 +127,15 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         cta: 'View bookings',
         footer: 'Log in to GigZone to view details and manage your bookings.',
       },
+      client_rescheduled: {
+        subject: `Appointment rescheduled — ${p.service}`,
+        title: 'Client rescheduled 🗓️',
+        body: `<strong>${p.clientName ?? 'A client'}</strong> rescheduled their appointment for <strong>${p.service}</strong>.${p.reason ? `<br/><em>Reason: ${p.reason}</em>` : ''}`,
+        dateLabel: 'New appointment',
+        locationLabel: 'Location',
+        cta: 'View bookings',
+        footer: 'Log in to GigZone to view details and manage your bookings.',
+      },
       reminder: {
         subject: `Reminder — appointment tomorrow: ${p.service}`,
         title: 'Appointment tomorrow ⏰',
@@ -161,6 +179,15 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Neue Buchung 📅',
         body: `<strong>${p.clientName ?? 'Ein Kunde'}</strong> hat einen Termin für <strong>${p.service}</strong> gebucht.`,
         dateLabel: 'Termin',
+        locationLabel: 'Standort',
+        cta: 'Buchungen ansehen',
+        footer: 'Melde dich bei GigZone an, um Details zu sehen und Buchungen zu verwalten.',
+      },
+      client_rescheduled: {
+        subject: `Termin verschoben — ${p.service}`,
+        title: 'Kunde hat Termin verschoben 🗓️',
+        body: `<strong>${p.clientName ?? 'Ein Kunde'}</strong> hat den Termin für <strong>${p.service}</strong> verschoben.${p.reason ? `<br/><em>Grund: ${p.reason}</em>` : ''}`,
+        dateLabel: 'Neuer Termin',
         locationLabel: 'Standort',
         cta: 'Buchungen ansehen',
         footer: 'Melde dich bei GigZone an, um Details zu sehen und Buchungen zu verwalten.',
@@ -212,6 +239,15 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         cta: 'Ver reservas',
         footer: 'Inicia sesión en GigZone para ver los detalles y gestionar tus reservas.',
       },
+      client_rescheduled: {
+        subject: `Cita reprogramada — ${p.service}`,
+        title: 'Cliente reprogramó la cita 🗓️',
+        body: `<strong>${p.clientName ?? 'Un cliente'}</strong> ha reprogramado su cita para <strong>${p.service}</strong>.${p.reason ? `<br/><em>Motivo: ${p.reason}</em>` : ''}`,
+        dateLabel: 'Nueva cita',
+        locationLabel: 'Ubicación',
+        cta: 'Ver reservas',
+        footer: 'Inicia sesión en GigZone para ver los detalles y gestionar tus reservas.',
+      },
       reminder: {
         subject: `Recordatorio — cita mañana: ${p.service}`,
         title: 'Cita mañana ⏰',
@@ -255,6 +291,15 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         title: 'Nouvelle réservation 📅',
         body: `<strong>${p.clientName ?? 'Un client'}</strong> a réservé <strong>${p.service}</strong>.`,
         dateLabel: 'Rendez-vous',
+        locationLabel: 'Lieu',
+        cta: 'Voir les réservations',
+        footer: 'Connectez-vous à GigZone pour voir les détails et gérer vos réservations.',
+      },
+      client_rescheduled: {
+        subject: `Rendez-vous déplacé — ${p.service}`,
+        title: 'Le client a déplacé le rendez-vous 🗓️',
+        body: `<strong>${p.clientName ?? 'Un client'}</strong> a déplacé son rendez-vous pour <strong>${p.service}</strong>.${p.reason ? `<br/><em>Motif : ${p.reason}</em>` : ''}`,
+        dateLabel: 'Nouveau rendez-vous',
         locationLabel: 'Lieu',
         cta: 'Voir les réservations',
         footer: 'Connectez-vous à GigZone pour voir les détails et gérer vos réservations.',
@@ -322,7 +367,7 @@ export async function POST(request: NextRequest) {
     const bookingId: string = body.booking_id;
 
     if (!type || !bookingId) return NextResponse.json({ ok: true });
-    if (!['confirmation', 'cancellation', 'reschedule', 'reminder'].includes(type)) return NextResponse.json({ ok: true });
+    if (!['confirmation', 'cancellation', 'reschedule', 'reminder', 'client_rescheduled'].includes(type)) return NextResponse.json({ ok: true });
     if (!process.env.BREVO_API_KEY) return NextResponse.json({ ok: true });
 
     const db = createClient(
@@ -332,7 +377,7 @@ export async function POST(request: NextRequest) {
 
     const { data: booking } = await db
       .from('bookings')
-      .select('starts_at, service_name_snapshot, client_id, business_id, location_id, staff_member_id')
+      .select('starts_at, service_name_snapshot, client_id, business_id, location_id, staff_member_id, internal_notes')
       .eq('id', bookingId)
       .maybeSingle();
 
@@ -371,8 +416,8 @@ export async function POST(request: NextRequest) {
       html: buildHtml(clientContent, clientFirstName, dt, locationLine),
     });
 
-    // ── Email to business owner + assigned staff (only for new booking) ────────
-    if (type === 'confirmation') {
+    // ── Email to business owner + assigned staff (new booking OR client reschedule) ─
+    if (type === 'confirmation' || type === 'reschedule') {
       const clientName = clientProfile.name ?? 'Klijent';
 
       // Collect unique recipient emails: owner + assigned staff
@@ -399,7 +444,11 @@ export async function POST(request: NextRequest) {
         const rLang      = getLang(recipientProfile.country);
         const rFirstName = recipientProfile.name?.split(' ')[0] || 'there';
         const rDt        = fmtDt(booking.starts_at, tz, rLang);
-        const rContent   = content('new_booking', rLang, { firstName: rFirstName, service, business, dt: rDt, clientName });
+        const bizEmailType = type === 'reschedule' ? 'client_rescheduled' : 'new_booking';
+        const rescheduleReason = type === 'reschedule' && (booking as any).internal_notes?.includes('[Pomjeranje termina]')
+          ? (booking as any).internal_notes.replace('[Pomjeranje termina]', '').trim()
+          : undefined;
+        const rContent   = content(bizEmailType, rLang, { firstName: rFirstName, service, business, dt: rDt, clientName, reason: rescheduleReason });
 
         await sendEmail({
           to: recipientProfile.email,

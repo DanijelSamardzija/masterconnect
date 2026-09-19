@@ -2815,6 +2815,7 @@ export default {
   'ownerBookings.add.success': 'Cita añadida',
   'ownerBookings.reschedule': 'Reprogramar',
   'ownerBookings.rescheduled': 'Cita reprogramada',
+  'ownerBookings.rescheduleNote': 'Motivo del cambio',
   'ownerBookings.staffView.title': 'Mis citas',
   'ownerBookings.staffView.subtitle': 'Citas asignadas a usted',
   'ownerBookings.staffView.empty': 'No hay citas próximas',

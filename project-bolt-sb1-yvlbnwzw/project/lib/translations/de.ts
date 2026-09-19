@@ -2887,6 +2887,7 @@ export default {
   'ownerBookings.add.success': 'Termin hinzugefügt',
   'ownerBookings.reschedule': 'Verschieben',
   'ownerBookings.rescheduled': 'Termin verschoben',
+  'ownerBookings.rescheduleNote': 'Grund der Verschiebung',
   'ownerBookings.staffView.title': 'Meine Termine',
   'ownerBookings.staffView.subtitle': 'Ihnen zugewiesene Termine',
   'ownerBookings.staffView.empty': 'Keine bevorstehenden Termine',

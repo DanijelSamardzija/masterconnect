@@ -26,6 +26,7 @@ type Booking = {
   location_id: string | null;
   location: { name: string } | null;
   notes: string | null;
+  internal_notes: string | null;
   client_id: string | null;
   client_name: string | null;
   client_phone: string | null;
@@ -272,7 +273,7 @@ function OwnerBookingsContent() {
     setLoading(true);
     const { data } = await (supabase as any)
       .from('bookings')
-      .select('id, starts_at, ends_at, service_id, service_name_snapshot, status, staff_member_id, location_id, location:location_id(name), notes, client_id, guest_name, guest_phone, profiles!bookings_client_id_fkey(name, phone)')
+      .select('id, starts_at, ends_at, service_id, service_name_snapshot, status, staff_member_id, location_id, location:location_id(name), notes, internal_notes, client_id, guest_name, guest_phone, profiles!bookings_client_id_fkey(name, phone)')
       .eq('business_id', staffBizId)
       .eq('staff_member_id', staffMemberId)
       .gte('starts_at', new Date().toISOString())
@@ -293,7 +294,7 @@ function OwnerBookingsContent() {
     setLoading(true);
     let query = (supabase as any)
       .from('bookings')
-      .select('id, starts_at, ends_at, service_id, service_name_snapshot, status, staff_member_id, location_id, location:location_id(name), notes, client_id, guest_name, guest_phone, profiles!bookings_client_id_fkey(name, phone)')
+      .select('id, starts_at, ends_at, service_id, service_name_snapshot, status, staff_member_id, location_id, location:location_id(name), notes, internal_notes, client_id, guest_name, guest_phone, profiles!bookings_client_id_fkey(name, phone)')
       .eq('business_id', profile.id);
     if (filter === 'upcoming')
       query = query.gte('starts_at', new Date().toISOString()).in('status', ['pending', 'confirmed']);
@@ -613,6 +614,11 @@ function OwnerBookingsContent() {
                       </div>
                     )}
                     {b.notes?.trim() && <p className="text-xs text-muted-foreground/70 italic">{b.notes}</p>}
+                    {b.internal_notes?.includes('[Pomjeranje termina]') && (
+                      <p className="text-xs text-amber-600 dark:text-amber-400 italic">
+                        {t('ownerBookings.rescheduleNote')}: {b.internal_notes.replace('[Pomjeranje termina]', '').trim()}
+                      </p>
+                    )}
                     {isActive && (staffPerms.can_reschedule_bookings || staffPerms.can_cancel_bookings || staffPerms.can_complete_bookings) && (
                       <div className="flex items-center gap-2 pt-1 border-t border-border flex-wrap">
                         {!isPast && staffPerms.can_reschedule_bookings && (
@@ -906,6 +912,11 @@ function OwnerBookingsContent() {
                     </div>
                   )}
                   {b.notes?.trim() && <p className="text-xs text-muted-foreground/70 italic">{b.notes}</p>}
+                  {b.internal_notes?.includes('[Pomjeranje termina]') && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 italic">
+                      {t('ownerBookings.rescheduleNote')}: {b.internal_notes.replace('[Pomjeranje termina]', '').trim()}
+                    </p>
+                  )}
                   {isActive && (
                     <div className="flex items-center gap-2 pt-1 border-t border-border">
                       {b.status === 'pending' && (

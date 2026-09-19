@@ -2822,6 +2822,7 @@ export default {
   'ownerBookings.add.success': 'Rendez-vous ajouté',
   'ownerBookings.reschedule': 'Déplacer',
   'ownerBookings.rescheduled': 'Rendez-vous déplacé',
+  'ownerBookings.rescheduleNote': 'Motif du déplacement',
   'ownerBookings.staffView.title': 'Mes rendez-vous',
   'ownerBookings.staffView.subtitle': 'Rendez-vous qui vous sont assignés',
   'ownerBookings.staffView.empty': 'Aucun rendez-vous à venir',

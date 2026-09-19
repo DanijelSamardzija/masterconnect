@@ -2905,6 +2905,7 @@ export default {
   'ownerBookings.add.success': 'Termin dodan',
   'ownerBookings.reschedule': 'Premjesti',
   'ownerBookings.rescheduled': 'Termin premješten',
+  'ownerBookings.rescheduleNote': 'Razlog premještanja',
   'ownerBookings.staffView.title': 'Moji termini',
   'ownerBookings.staffView.subtitle': 'Termini koji su vam dodijeljeni',
   'ownerBookings.staffView.empty': 'Nema predstojećih termina',

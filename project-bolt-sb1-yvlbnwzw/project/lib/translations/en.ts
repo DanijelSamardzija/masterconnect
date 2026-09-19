@@ -2905,6 +2905,7 @@ export default {
   'ownerBookings.add.success': 'Booking added',
   'ownerBookings.reschedule': 'Reschedule',
   'ownerBookings.rescheduled': 'Booking rescheduled',
+  'ownerBookings.rescheduleNote': 'Reschedule note',
   'ownerBookings.staffView.title': 'My bookings',
   'ownerBookings.staffView.subtitle': 'Bookings assigned to you',
   'ownerBookings.staffView.empty': 'No upcoming bookings',
