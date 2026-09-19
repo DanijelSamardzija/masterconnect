@@ -142,18 +142,23 @@ export default function OwnerAddBookingPage() {
     });
   }, [staffId, week]);
 
-  // Auto-select first available day
+  // Auto-select first available day, but keep current selection if it still has slots
   useEffect(() => {
     if (slotsLoading) return;
     const tz = timezone || 'UTC';
+    if (selectedDay) {
+      const stillHasSlots = slots.some(s => s.available && tzDateKey(s.slot_start, tz) === selectedDay);
+      if (stillHasSlots) return;
+    }
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(week, i));
     for (const d of weekDays) {
       const key = tzDateKey(d, tz);
-      const count = slots.filter(s => s.available && tzDateKey(s.slot_start, tz) === key).length;
-      if (count > 0) { setSelectedDay(key); return; }
+      if (slots.some(s => s.available && tzDateKey(s.slot_start, tz) === key)) {
+        setSelectedDay(key); return;
+      }
     }
     setSelectedDay('');
-  }, [slots, slotsLoading, week, timezone]);
+  }, [slots, slotsLoading, week, timezone, selectedDay]);
 
   async function handleSubmit() {
     if (!serviceId || !staffId || !slotStart || !guestName.trim()) return;
@@ -222,7 +227,7 @@ export default function OwnerAddBookingPage() {
                     <button
                       key={svc.id}
                       type="button"
-                      onClick={() => { setServiceId(svc.id); setSlotStart(''); setSelectedDay(''); }}
+                      onClick={() => { setServiceId(svc.id); setSlotStart(''); }}
                       className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-colors text-left ${
                         serviceId === svc.id
                           ? 'border-primary bg-primary/5'
@@ -245,7 +250,7 @@ export default function OwnerAddBookingPage() {
                       <button
                         key={s.id}
                         type="button"
-                        onClick={() => { setStaffId(s.id); setSlotStart(''); setSelectedDay(''); }}
+                        onClick={() => { setStaffId(s.id); setSlotStart(''); }}
                         className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                           staffId === s.id
                             ? 'bg-primary text-primary-foreground border-primary'

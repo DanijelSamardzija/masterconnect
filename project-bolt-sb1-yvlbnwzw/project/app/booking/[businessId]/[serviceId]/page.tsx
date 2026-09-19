@@ -320,24 +320,27 @@ export default function BookingSlotPickerPage() {
   useEffect(() => {
     if (loadingSlots) return;
     const tz = selectedTimezone || 'UTC';
+    const fmt = (d: Date) => new Intl.DateTimeFormat('en-CA', {
+      timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
+    }).format(d);
+    const slotDk = (s: { slot_start: string }) => new Intl.DateTimeFormat('en-CA', {
+      timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
+    }).format(new Date(s.slot_start));
+    // Keep current selection if it still has available slots
+    if (selectedDayKey) {
+      const stillHasSlots = slots.some(s => s.available && slotDk(s) === selectedDayKey);
+      if (stillHasSlots) return;
+    }
     const monday = getMonday(weekDate);
     for (let i = 0; i < 7; i++) {
-      const day = addDays(monday, i);
-      const dk = new Intl.DateTimeFormat('en-CA', {
-        timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
-      }).format(day);
-      if (slots.some(s => {
-        const slotDk = new Intl.DateTimeFormat('en-CA', {
-          timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
-        }).format(new Date(s.slot_start));
-        return slotDk === dk && s.available;
-      })) {
+      const dk = fmt(addDays(monday, i));
+      if (slots.some(s => slotDk(s) === dk && s.available)) {
         setSelectedDayKey(dk);
         return;
       }
     }
     setSelectedDayKey(null);
-  }, [slots, loadingSlots, weekDate, selectedTimezone]);
+  }, [slots, loadingSlots, weekDate, selectedTimezone, selectedDayKey]);
 
   useEffect(() => {
     if (!selectedStaffId) { setStaffAbsences([]); return; }

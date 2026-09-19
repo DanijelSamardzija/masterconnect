@@ -316,22 +316,28 @@ function OwnerBookingsContent() {
     if (addOpen && addServiceId && slotLocId) fetchSlots();
   }, [addOpen, addServiceId, addStaffId, addWeek, locationId, selectedLocId]);
 
-  // Auto-select first available day after slots load
+  // Auto-select first available day, keep current selection if it still has slots
   useEffect(() => {
     if (addSlotsLoading || !addOpen) return;
     const tz = addTimezone || 'UTC';
+    const dk = (iso: string) => new Intl.DateTimeFormat('en-CA', {
+      timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
+    }).format(new Date(iso));
+    if (addSelectedDay) {
+      const stillHasSlots = addSlots.some(s => s.available && dk(s.slot_start) === addSelectedDay);
+      if (stillHasSlots) return;
+    }
     const days = Array.from({ length: 7 }, (_, i) => addDays(addWeek, i));
     for (const d of days) {
       const key = new Intl.DateTimeFormat('en-CA', {
         timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
       }).format(d);
-      const count = addSlots.filter(s => s.available && new Intl.DateTimeFormat('en-CA', {
-        timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
-      }).format(new Date(s.slot_start)) === key).length;
-      if (count > 0) { setAddSelectedDay(key); return; }
+      if (addSlots.some(s => s.available && dk(s.slot_start) === key)) {
+        setAddSelectedDay(key); return;
+      }
     }
     setAddSelectedDay('');
-  }, [addSlots, addSlotsLoading, addOpen, addWeek, addTimezone]);
+  }, [addSlots, addSlotsLoading, addOpen, addWeek, addTimezone, addSelectedDay]);
 
   // Fetch break data for the selected staff + week (only when a specific staff is chosen)
   useEffect(() => {
@@ -381,22 +387,28 @@ function OwnerBookingsContent() {
     });
   }, [rescheduleStaffId, rescheduleWeek, rescheduleOpen]);
 
-  // Auto-select first available day for reschedule
+  // Auto-select first available day for reschedule (preserve if current day still has slots)
   useEffect(() => {
     if (rescheduleSlotsLoading || !rescheduleOpen) return;
     const tz = addTimezone || 'UTC';
+    const dk = (iso: string) => new Intl.DateTimeFormat('en-CA', {
+      timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
+    }).format(new Date(iso));
+    if (rescheduleDate) {
+      const stillHasSlots = rescheduleSlots.some(s => s.available && dk(s.slot_start) === rescheduleDate);
+      if (stillHasSlots) return;
+    }
     const days = Array.from({ length: 7 }, (_, i) => addDays(rescheduleWeek, i));
     for (const d of days) {
       const key = new Intl.DateTimeFormat('en-CA', {
         timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
       }).format(d);
-      const count = rescheduleSlots.filter(s => s.available && new Intl.DateTimeFormat('en-CA', {
-        timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
-      }).format(new Date(s.slot_start)) === key).length;
-      if (count > 0) { setRescheduleDate(key); return; }
+      if (rescheduleSlots.some(s => s.available && dk(s.slot_start) === key)) {
+        setRescheduleDate(key); return;
+      }
     }
     setRescheduleDate('');
-  }, [rescheduleSlots, rescheduleSlotsLoading, rescheduleOpen, rescheduleWeek, addTimezone]);
+  }, [rescheduleSlots, rescheduleSlotsLoading, rescheduleOpen, rescheduleWeek, addTimezone, rescheduleDate]);
 
   const checkOwnerRole = async () => {
     if (!profile) return;
