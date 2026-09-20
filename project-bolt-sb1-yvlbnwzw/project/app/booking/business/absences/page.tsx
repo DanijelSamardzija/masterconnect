@@ -9,6 +9,7 @@ import { ProtectedRoute } from '@/components/protected-route';
 import { toast } from 'sonner';
 import { AlertTriangle, X, Check, Loader2, MapPin } from 'lucide-react';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
+import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
 
 type BusinessClosure = {
   id: string;
@@ -48,8 +49,14 @@ function formatDate(dateStr: string): string {
 
 export default function AbsencesPage() {
   const { user } = useAuth();
+  const { activeProfileId, loading: profileCtxLoading } = useBookingProfile();
   const { t } = useLanguage();
   const router = useRouter();
+
+  // Redirect to hub when context is ready but no active profile
+  useEffect(() => {
+    if (!profileCtxLoading && !activeProfileId) router.replace('/booking');
+  }, [profileCtxLoading, activeProfileId, router]);
 
   const [loading, setLoading] = useState(true);
   const [locations, setLocations] = useState<{ id: string; name: string; city: string | null }[]>([]);
@@ -91,16 +98,16 @@ export default function AbsencesPage() {
   }, []);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !activeProfileId) return;
     (async () => {
       setLoading(true);
       const [locsRes, staffRes] = await Promise.all([
         supabase.from('business_locations')
           .select('id, name, city, is_primary')
-          .eq('business_id', user.id)
+          .eq('business_id', activeProfileId)
           .eq('is_active', true)
           .order('is_primary', { ascending: false }),
-        (supabase as any).rpc('get_my_staff', { p_business_id: user.id }),
+        (supabase as any).rpc('get_my_staff', { p_business_id: activeProfileId }),
       ]);
       const locs = (locsRes.data as { id: string; name: string; city: string | null; is_primary: boolean }[]) ?? [];
       setLocations(locs);
@@ -118,7 +125,7 @@ export default function AbsencesPage() {
       }
       setLoading(false);
     })();
-  }, [user, loadClosures, loadAbsences]);
+  }, [user, activeProfileId, loadClosures, loadAbsences]);
 
   // ── Firma closure handlers ─────────────────────────────────────────────────
 
@@ -246,7 +253,7 @@ export default function AbsencesPage() {
             ))}
           </div>
 
-          {loading ? (
+          {(profileCtxLoading || !activeProfileId || loading) ? (
             <div className="flex justify-center py-12">
               <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
             </div>

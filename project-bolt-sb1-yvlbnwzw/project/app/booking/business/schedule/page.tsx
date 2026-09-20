@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { ChevronLeft, ChevronRight, Copy, X, Info, Download, AlertTriangle, MapPin } from 'lucide-react';
 import { TimePicker24h } from '@/components/ui/time-picker-24h';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
+import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
 
 type ShiftRow = {
   shift_date: string;
@@ -117,8 +118,13 @@ function OwnerScheduleContent() {
   const locale = { sr: 'sr-RS', en: 'en-US', de: 'de-DE', es: 'es-ES', fr: 'fr-FR' }[language] ?? 'en-US';
   const { profile } = useAuth();
   const router = useRouter();
+  const { activeProfileId, loading: profileCtxLoading } = useBookingProfile();
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
+
+  useEffect(() => {
+    if (!profileCtxLoading && !activeProfileId) router.replace('/booking');
+  }, [profileCtxLoading, activeProfileId, router]);
 
   const [weekStart, setWeekStart] = useState<Date>(() => addDays(getMondayOf(new Date()), 7));
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
@@ -156,16 +162,17 @@ function OwnerScheduleContent() {
     setLoading(true);
     const { data } = await (supabase as any).rpc('owner_get_week_shifts', {
       p_week_start: isoDate(ws),
+      p_business_id: activeProfileId,
     });
     setStaffRows(Array.isArray(data) ? data : []);
     setLoading(false);
-  }, []);
+  }, [activeProfileId]);
 
   const loadMonthShifts = useCallback(async (md: Date) => {
     setLoading(true);
     const weeks = getMonthWeeks(md);
     const results = await Promise.all(
-      weeks.map(ws => (supabase as any).rpc('owner_get_week_shifts', { p_week_start: isoDate(ws) }))
+      weeks.map(ws => (supabase as any).rpc('owner_get_week_shifts', { p_week_start: isoDate(ws), p_business_id: activeProfileId }))
     );
     const staffMap = new Map<string, StaffRow>();
     for (const { data } of results) {
@@ -186,15 +193,19 @@ function OwnerScheduleContent() {
       }),
     })));
     setLoading(false);
-  }, []);
+  }, [activeProfileId]);
 
   useEffect(() => {
-    if (!profile) return;
+    if (!profile || !activeProfileId) { setLoading(false); return; }
+    setIsOwner(false);
+    setStaffRows([]);
+    setStaffAccept([]);
     (async () => {
       const { data: sm } = await (supabase as any)
         .from('staff_members')
         .select('role, business_id')
         .eq('user_id', profile.id)
+        .eq('business_id', activeProfileId)
         .eq('is_active', true)
         .in('role', ['owner', 'manager'])
         .maybeSingle();
@@ -204,7 +215,7 @@ function OwnerScheduleContent() {
       const { data: allLocs } = await supabase
         .from('business_locations')
         .select('id, name, is_primary')
-        .eq('business_id', sm.business_id)
+        .eq('business_id', activeProfileId)
         .eq('is_active', true)
         .order('is_primary', { ascending: false });
       const locsArr = Array.isArray(allLocs) ? allLocs as {id: string; name: string; is_primary: boolean}[] : [];
@@ -215,7 +226,7 @@ function OwnerScheduleContent() {
       const { data: staff } = await (supabase as any)
         .from('staff_members')
         .select('id, accept_bookings, role, primary_location_id, profiles!staff_members_user_id_fkey(name)')
-        .eq('business_id', sm.business_id)
+        .eq('business_id', activeProfileId)
         .eq('is_active', true)
         .in('role', ['worker', 'manager', 'owner']);
       if (Array.isArray(staff)) {
@@ -260,7 +271,7 @@ function OwnerScheduleContent() {
 
       await loadShifts(weekStart);
     })();
-  }, [profile]);
+  }, [profile, activeProfileId]);
 
   useEffect(() => {
     const targetLoc = schedLocId ?? primaryLocId;
@@ -288,7 +299,7 @@ function OwnerScheduleContent() {
   async function loadCardMonthShifts(staffId: string, month: Date): Promise<ShiftRow[]> {
     const weeks = getMonthWeeks(month);
     const results = await Promise.all(
-      weeks.map(ws => (supabase as any).rpc('owner_get_week_shifts', { p_week_start: isoDate(ws) }))
+      weeks.map(ws => (supabase as any).rpc('owner_get_week_shifts', { p_week_start: isoDate(ws), p_business_id: activeProfileId }))
     );
     const [year, mo] = [month.getFullYear(), month.getMonth()];
     const shifts: ShiftRow[] = [];
@@ -327,7 +338,7 @@ function OwnerScheduleContent() {
     if (newWeek.getTime() < navMin.getTime()) return;
     if (addDays(newWeek, 7).getTime() >= navMax.getTime()) return;
     setCardWeeks(prev => ({ ...prev, [staffId]: newWeek }));
-    const { data } = await (supabase as any).rpc('owner_get_week_shifts', { p_week_start: isoDate(newWeek) });
+    const { data } = await (supabase as any).rpc('owner_get_week_shifts', { p_week_start: isoDate(newWeek), p_business_id: activeProfileId });
     if (Array.isArray(data)) {
       const found = (data as StaffRow[]).find(r => r.staff_member_id === staffId);
       setCardShifts(prev => ({ ...prev, [staffId]: found?.shifts ?? [] }));
@@ -454,6 +465,7 @@ function OwnerScheduleContent() {
         p_notes:           edit.notes.trim() || null,
         p_break_start:     edit.mode === 'working' && edit.hasBreak ? edit.breakStart : null,
         p_break_end:       edit.mode === 'working' && edit.hasBreak ? edit.breakEnd   : null,
+        p_business_id:     activeProfileId,
       });
       if (data?.ok === false) throw new Error(data.error);
       toast.success(t('schedule.savedSuccess'));
@@ -468,7 +480,7 @@ function OwnerScheduleContent() {
         }
       } else if (cardWeeks[savedStaffId]) {
         const cw = cardWeeks[savedStaffId];
-        const { data } = await (supabase as any).rpc('owner_get_week_shifts', { p_week_start: isoDate(cw) });
+        const { data } = await (supabase as any).rpc('owner_get_week_shifts', { p_week_start: isoDate(cw), p_business_id: activeProfileId });
         if (Array.isArray(data)) {
           const found = (data as StaffRow[]).find(r => r.staff_member_id === savedStaffId);
           setCardShifts(prev => ({ ...prev, [savedStaffId]: found?.shifts ?? [] }));
@@ -489,6 +501,7 @@ function OwnerScheduleContent() {
       p_staff_member_id: staffId,
       p_from_week_start: isoDate(fromWeek),
       p_to_week_start:   isoDate(toWeek),
+      p_business_id:     activeProfileId,
     });
     setCopyingMap(m => ({ ...m, [staffId]: false }));
     if (data?.ok) {
@@ -630,6 +643,14 @@ function OwnerScheduleContent() {
     win.document.close();
     win.focus();
     setTimeout(() => { win.print(); }, 300);
+  }
+
+  if (profileCtxLoading || !activeProfileId) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
   }
 
   if (!isOwner && !loading) {

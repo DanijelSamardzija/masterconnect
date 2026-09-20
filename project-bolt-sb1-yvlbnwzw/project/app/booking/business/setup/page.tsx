@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useBookingAccess } from '@/lib/hooks/use-booking-access';
+import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
 import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
 import { ChevronRight, ChevronLeft, Plus, Pencil, X, CheckCircle2, MapPin, ExternalLink, AlertTriangle, Check, Loader2, Info, Copy, Share2 } from 'lucide-react';
@@ -393,6 +394,11 @@ export default function BusinessSetupPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { hasAccess, loading: authLoading } = useBookingAccess();
+  const {
+    activeProfileId,
+    loading: profileCtxLoading,
+    reload: reloadProfileCtx,
+  } = useBookingProfile();
 
   const VALID_TABS: Tab[] = ['profile', 'services', 'hours', 'locations', 'rules', 'staff', 'notifications',
     'tables', 'menu', 'delivery', 'trade_services', 'acc_units', 'acc_rules'];
@@ -539,20 +545,30 @@ export default function BusinessSetupPage() {
   const [reactivateProfileLoading, setReactivateProfileLoading] = useState(false);
   const [shareSvcId, setShareSvcId] = useState<string | null>(null);
 
+  // ── Guard: redirect to Hub if no active booking profile ───────────────────
+  useEffect(() => {
+    if (!profileCtxLoading && !activeProfileId) {
+      router.replace('/booking');
+    }
+  }, [profileCtxLoading, activeProfileId, router]);
+
   // ── Load profile on mount ──────────────────────────────────────────────────
   useEffect(() => {
-    if (!user) return;
+    if (!user || !activeProfileId) return;
     (async () => {
       setProfileLoading(true);
-      const [profileRes, locRes, notifRes] = await Promise.all([
-        supabase.from('profiles').select('name, is_business').eq('id', user.id).single(),
-        supabase.from('business_locations').select('timezone').eq('business_id', user.id).eq('is_primary', true).maybeSingle(),
-        (supabase as any).from('profiles').select('notification_prefs, booking_category').eq('id', user.id).single(),
+      const [bpRes, locRes, notifRes] = await Promise.all([
+        // Booking profile data (name, active state, type) — comes from booking_profiles
+        (supabase as any).from('booking_profiles').select('name, is_active, profile_type').eq('id', activeProfileId).single() as Promise<{ data: { name: string; is_active: boolean; profile_type: string } | null; error: unknown }>,
+        // Primary location timezone for this booking profile
+        supabase.from('business_locations').select('timezone').eq('business_id', activeProfileId).eq('is_primary', true).maybeSingle(),
+        // Notification prefs — owner-level, stays on profiles table
+        (supabase as any).from('profiles').select('notification_prefs').eq('id', user.id).single(),
       ]);
-      if (profileRes.data) {
-        setBizName(profileRes.data.name ?? '');
-        setIsBusinessActive(profileRes.data.is_business ?? false);
-        setBizCategory(notifRes.data?.booking_category ?? '');
+      if (bpRes.data) {
+        setBizName(bpRes.data.name ?? '');
+        setIsBusinessActive(bpRes.data.is_active ?? false);
+        setBizCategory(bpRes.data.profile_type ?? '');
         const prefs = notifRes.data?.notification_prefs ?? {};
         setNotifPrefs({
           push_enabled:         prefs.push_enabled         !== false,
@@ -570,36 +586,36 @@ export default function BusinessSetupPage() {
       setTimezone(locRes.data?.timezone ?? getBrowserTimezone());
       setProfileLoading(false);
     })();
-  }, [user]);
+  }, [user, activeProfileId]);
 
   // ── Load services ──────────────────────────────────────────────────────────
   const loadServices = useCallback(async () => {
-    if (!user) return;
+    if (!activeProfileId) return;
     setServicesLoading(true);
     const { data } = await supabase
       .from('service_catalog')
       .select('id, name, description, duration_minutes, price, price_type, capacity, booking_type, currency, is_active, post_id')
-      .eq('business_id', user.id)
+      .eq('business_id', activeProfileId)
       .order('created_at', { ascending: true });
     setServices((data as unknown as ServiceRow[]) ?? []);
     setServicesLoading(false);
-  }, [user]);
+  }, [activeProfileId]);
 
   // ── Load locations + primary location id ──────────────────────────────────
   const loadLocations = useCallback(async () => {
-    if (!user) return;
+    if (!activeProfileId) return;
     setLocsLoading(true);
     const { data } = await supabase
       .from('business_locations')
       .select('id, name, address, city, country, timezone, phone, is_primary, is_active')
-      .eq('business_id', user.id)
+      .eq('business_id', activeProfileId)
       .order('created_at', { ascending: true });
     const rows = (data as LocationRow[]) ?? [];
     setLocations(rows);
     const primary = rows.find((l) => l.is_primary && l.is_active);
     if (primary) setPrimaryLocId(primary.id);
     setLocsLoading(false);
-  }, [user]);
+  }, [activeProfileId]);
 
   // ── Load business closures ─────────────────────────────────────────────────
   const loadClosures = useCallback(async (locId: string) => {
@@ -654,12 +670,12 @@ export default function BusinessSetupPage() {
   }, []);
 
   const loadRules = useCallback(async () => {
-    if (!user) return;
+    if (!activeProfileId) return;
     setRulesLoading(true);
-    const { data } = await (supabase as any).rpc('get_booking_rules', { p_business_id: user.id });
+    const { data } = await (supabase as any).rpc('get_booking_rules', { p_business_id: activeProfileId });
     if (data) setRules(data as BookingRules);
     setRulesLoading(false);
-  }, [user]);
+  }, [activeProfileId]);
 
   const loadPostListings = useCallback(async () => {
     if (!user) return;
@@ -667,7 +683,7 @@ export default function BusinessSetupPage() {
     const { data } = await supabase
       .from('posts')
       .select('id, job_title, booking_enabled')
-      .eq('user_id', user.id)
+      .eq('user_id', user.id)  // posts belong to the user, not a specific profile
       .eq('post_type', 'service_listing')
       .eq('is_active', true)
       .order('created_at', { ascending: false });
@@ -677,20 +693,20 @@ export default function BusinessSetupPage() {
 
   // ── Load staff ─────────────────────────────────────────────────────────────
   const loadStaff = useCallback(async () => {
-    if (!user) return;
+    if (!activeProfileId) return;
     setStaffLoading(true);
     const [staffRes, invRes] = await Promise.all([
-      (supabase as any).rpc('get_my_staff', { p_business_id: user.id }),
-      (supabase as any).rpc('get_my_staff_invitations', { p_business_id: user.id }),
+      (supabase as any).rpc('get_my_staff', { p_business_id: activeProfileId }),
+      (supabase as any).rpc('get_my_staff_invitations', { p_business_id: activeProfileId }),
     ]);
     setStaffMembers((staffRes.data as StaffMember[]) ?? []);
     setStaffInvitations((invRes.data as StaffInvitation[]) ?? []);
     setStaffLoading(false);
-  }, [user]);
+  }, [activeProfileId]);
 
   const loadServiceLocationAssignments = useCallback(async () => {
-    if (!user) return;
-    const { data } = await (supabase as any).rpc('get_service_location_assignments', { p_business_id: user.id });
+    if (!activeProfileId) return;
+    const { data } = await (supabase as any).rpc('get_service_location_assignments', { p_business_id: activeProfileId });
     if (data && typeof data === 'object') {
       const map: Record<string, string[]> = {};
       for (const [svcId, locIds] of Object.entries(data as Record<string, unknown[]>)) {
@@ -698,11 +714,11 @@ export default function BusinessSetupPage() {
       }
       setServiceLocMap(map);
     }
-  }, [user]);
+  }, [activeProfileId]);
 
   // ── Tab switch loaders ─────────────────────────────────────────────────────
   useEffect(() => {
-    if (!user) return; // wait for auth before loading any tab data
+    if (!user || !activeProfileId) return; // wait for auth + active profile
     if (activeTab === 'services') { loadServices(); loadPostListings(); loadLocations(); loadServiceLocationAssignments(); }
     if (activeTab === 'locations') loadLocations();
     if (activeTab === 'staff') { loadStaff(); loadLocations(); loadServices(); }
@@ -713,7 +729,7 @@ export default function BusinessSetupPage() {
         const { data: locData } = await supabase
           .from('business_locations')
           .select('id')
-          .eq('business_id', user.id)
+          .eq('business_id', activeProfileId)
           .eq('is_primary', true)
           .eq('is_active', true)
           .single();
@@ -727,11 +743,11 @@ export default function BusinessSetupPage() {
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, user]);
+  }, [activeTab, user, activeProfileId]);
 
   // ── Profile save ───────────────────────────────────────────────────────────
   async function handleSaveProfile() {
-    if (!user) return;
+    if (!user || !activeProfileId) return;
     if (!bizName.trim()) {
       toast.error(t('setup.error.nameRequired'));
       return;
@@ -740,6 +756,7 @@ export default function BusinessSetupPage() {
     const { data, error } = await (supabase as any).rpc('upsert_my_business_profile', {
       p_name: bizName.trim(),
       p_timezone: timezone.trim() || 'Europe/Sarajevo',
+      p_booking_profile_id: activeProfileId,
     });
     setProfileSaving(false);
     const result = data as { ok: boolean; error?: string; location_id?: string } | null;
@@ -749,10 +766,10 @@ export default function BusinessSetupPage() {
     }
     setIsBusinessActive(true);
     if (result.location_id) setPrimaryLocId(result.location_id);
-    if (bizCategory) {
-      await (supabase as any).from('profiles').update({ booking_category: bizCategory }).eq('id', user.id);
-    }
+    // Profile type is immutable — no category save needed
     toast.success(t('setup.profile.saved'));
+    // Reload profile context so the nav chip reflects the new name
+    reloadProfileCtx();
   }
 
   // ── Notification prefs save ────────────────────────────────────────────────
@@ -806,7 +823,7 @@ export default function BusinessSetupPage() {
   }
 
   async function handleSaveSvc() {
-    if (!user) return;
+    if (!user || !activeProfileId) return;
     if (!svcName.trim()) { toast.error(t('setup.error.nameRequired')); return; }
     const dur = parseInt(svcDuration, 10);
     if (!dur || dur <= 0) { toast.error(t('setup.error.saveFailed')); return; }
@@ -829,7 +846,7 @@ export default function BusinessSetupPage() {
       if (!result?.ok) { toast.error(t('setup.error.saveFailed')); setSvcSaving(false); return; }
     } else {
       const { data } = await (supabase as any).rpc('create_service', {
-        p_business_id: user.id,
+        p_business_id: activeProfileId,
         p_name: svcName.trim(),
         p_description: svcDesc.trim() || null,
         p_duration_minutes: dur,
@@ -899,14 +916,14 @@ export default function BusinessSetupPage() {
   }
 
   async function openDeactivateProfileModal() {
+    if (!activeProfileId) return;
     setDeactivateProfileModal(true);
     setDeactivateProfileFutureCount(null);
     setDeactivateProfileLoading(true);
-    if (!user) return;
     const { count } = await supabase
       .from('bookings')
       .select('id', { count: 'exact', head: true })
-      .eq('business_id', user.id)
+      .eq('business_id', activeProfileId)
       .in('status', ['pending', 'confirmed'])
       .gt('starts_at', new Date().toISOString());
     setDeactivateProfileFutureCount(count ?? 0);
@@ -914,10 +931,10 @@ export default function BusinessSetupPage() {
   }
 
   async function handleDeactivateProfile() {
-    if (!user) return;
+    if (!activeProfileId) return;
     setDeactivateProfileLoading(true);
     const { data } = await (supabase as any).rpc('deactivate_booking_profile', {
-      p_booking_profile_id: user.id,
+      p_booking_profile_id: activeProfileId,
     });
     const result = data as { ok: boolean; error?: string; count?: number } | null;
     setDeactivateProfileLoading(false);
@@ -933,14 +950,15 @@ export default function BusinessSetupPage() {
     toast.success(t('booking.deleteProfile.success'));
     setDeactivateProfileModal(false);
     setIsBusinessActive(false);
+    reloadProfileCtx();
     loadServices();
   }
 
   async function handleReactivateProfile() {
-    if (!user) return;
+    if (!activeProfileId) return;
     setReactivateProfileLoading(true);
     const { data } = await (supabase as any).rpc('reactivate_booking_profile', {
-      p_booking_profile_id: user.id,
+      p_booking_profile_id: activeProfileId,
     });
     const result = data as { ok: boolean } | null;
     setReactivateProfileLoading(false);
@@ -952,6 +970,7 @@ export default function BusinessSetupPage() {
     toast.success(t('booking.reactivateProfile.success'));
     setReactivateProfileModal(false);
     setIsBusinessActive(true);
+    reloadProfileCtx();
     loadServices();
   }
 
@@ -964,6 +983,7 @@ export default function BusinessSetupPage() {
       p_min_notice_minutes: rules.min_notice_minutes,
       p_max_advance_days:   rules.max_advance_days,
       p_cancellation_hours: rules.cancellation_hours,
+      p_booking_profile_id: activeProfileId,
     });
     setRulesSaving(false);
     const result = data as { ok: boolean; error?: string } | null;
@@ -1218,7 +1238,7 @@ export default function BusinessSetupPage() {
   }
 
   async function handleSaveLoc() {
-    if (!user) return;
+    if (!user || !activeProfileId) return;
     if (!locName.trim()) { toast.error(t('setup.error.nameRequired')); return; }
     setLocSaving(true);
     if (editingLoc) {
@@ -1235,7 +1255,7 @@ export default function BusinessSetupPage() {
       if (!result?.ok) { toast.error(t('setup.error.saveFailed')); setLocSaving(false); return; }
     } else {
       const { data } = await (supabase as any).rpc('create_location', {
-        p_business_id: user.id,
+        p_business_id: activeProfileId,
         p_name: locName.trim(),
         p_address: locAddress.trim() || null,
         p_city: locCity.trim() || null,
@@ -1325,10 +1345,10 @@ export default function BusinessSetupPage() {
   }
 
   async function handleSendInvite() {
-    if (!user || !inviteEmail.trim()) return;
+    if (!user || !activeProfileId || !inviteEmail.trim()) return;
     setInviteSending(true);
     const { data } = await (supabase as any).rpc('send_staff_invitation', {
-      p_business_id: user.id,
+      p_business_id: activeProfileId,
       p_email: inviteEmail.trim(),
       p_role: inviteRole,
       p_location_id: inviteLocationId || null,
@@ -3223,55 +3243,55 @@ export default function BusinessSetupPage() {
           )}
 
           {/* ── Tab: Restaurant Tables ────────────────────────────────────── */}
-          {activeTab === 'tables' && user && (
+          {activeTab === 'tables' && activeProfileId && (
             <div className="flex flex-col gap-5">
-              <RestaurantTablesTab businessId={user.id} />
+              <RestaurantTablesTab businessId={activeProfileId} />
             </div>
           )}
 
           {/* ── Tab: Menu ─────────────────────────────────────────────────── */}
-          {activeTab === 'menu' && user && (
+          {activeTab === 'menu' && activeProfileId && (
             <div className="flex flex-col gap-5">
-              <MenuTab businessId={user.id} />
+              <MenuTab businessId={activeProfileId} />
             </div>
           )}
 
           {/* ── Tab: Delivery Settings ────────────────────────────────────── */}
-          {activeTab === 'delivery' && user && (
+          {activeTab === 'delivery' && activeProfileId && (
             <div className="flex flex-col gap-5">
-              <DeliverySettingsTab businessId={user.id} />
+              <DeliverySettingsTab businessId={activeProfileId} />
             </div>
           )}
 
           {/* ── Tab: Trade Services ───────────────────────────────────────── */}
-          {activeTab === 'trade_services' && user && (
+          {activeTab === 'trade_services' && activeProfileId && (
             <div className="flex flex-col gap-5">
-              <TradeServicesTab businessId={user.id} />
+              <TradeServicesTab businessId={activeProfileId} />
             </div>
           )}
 
           {/* ── Tab: Accommodation Units ──────────────────────────────────── */}
-          {activeTab === 'acc_units' && user && (
+          {activeTab === 'acc_units' && activeProfileId && (
             <div className="flex flex-col gap-5">
-              <AccommodationUnitsTab businessId={user.id} />
+              <AccommodationUnitsTab businessId={activeProfileId} />
             </div>
           )}
 
           {/* ── Tab: Accommodation Rules ──────────────────────────────────── */}
-          {activeTab === 'acc_rules' && user && (
+          {activeTab === 'acc_rules' && activeProfileId && (
             <div className="flex flex-col gap-5">
-              <AccommodationSettingsTab businessId={user.id} />
+              <AccommodationSettingsTab businessId={activeProfileId} />
             </div>
           )}
 
         </div>
       </div>
-      {shareSvcId && user?.id && (
+      {shareSvcId && activeProfileId && (
         <SharePostModal
           postId={shareSvcId}
           open={!!shareSvcId}
           onOpenChange={(open) => { if (!open) setShareSvcId(null); }}
-          urlPath={`/booking/${user.id}/${shareSvcId}`}
+          urlPath={`/booking/${activeProfileId}/${shareSvcId}`}
         />
       )}
 

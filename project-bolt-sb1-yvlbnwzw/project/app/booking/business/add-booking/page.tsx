@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/protected-route';
 import { useAuth } from '@/lib/contexts/auth-context';
+import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
@@ -43,10 +44,16 @@ function tzDateKey(isoOrDate: string | Date, tz: string): string {
 export default function OwnerAddBookingPage() {
   const { t, language } = useLanguage();
   const { profile } = useAuth();
+  const { activeProfileId, loading: profileCtxLoading } = useBookingProfile();
   const router = useRouter();
   const locale = { sr: 'sr-RS', en: 'en-US', de: 'de-DE', es: 'es-ES', fr: 'fr-FR' }[language] ?? 'en-US';
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
+
+  // Redirect to hub when context is ready but no active profile
+  useEffect(() => {
+    if (!profileCtxLoading && !activeProfileId) router.replace('/booking');
+  }, [profileCtxLoading, activeProfileId, router]);
 
   const [loading, setLoading]       = useState(true);
   const [services, setServices]     = useState<Service[]>([]);
@@ -72,18 +79,18 @@ export default function OwnerAddBookingPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!profile) return;
+    if (!profile || !activeProfileId) return;
     (async () => {
       const [{ data: svcs }, { data: staffData }, { data: locs }] = await Promise.all([
         (supabase as any).from('service_catalog')
           .select('id, name, duration_minutes')
-          .eq('business_id', profile.id).eq('is_active', true).order('name'),
+          .eq('business_id', activeProfileId).eq('is_active', true).order('name'),
         (supabase as any).from('staff_members')
           .select('id, primary_location_id, profiles!staff_members_user_id_fkey(name)')
-          .eq('business_id', profile.id).eq('is_active', true),
+          .eq('business_id', activeProfileId).eq('is_active', true),
         (supabase as any).from('business_locations')
           .select('id, name, city, timezone')
-          .eq('business_id', profile.id).eq('is_active', true)
+          .eq('business_id', activeProfileId).eq('is_active', true)
           .order('is_primary', { ascending: false }),
       ]);
       const svcList = (svcs as Service[]) ?? [];
@@ -110,16 +117,16 @@ export default function OwnerAddBookingPage() {
       }
       setLoading(false);
     })();
-  }, [profile]);
+  }, [profile, activeProfileId]);
 
   const fetchSlots = useCallback(async () => {
-    if (!profile || !locationId || !serviceId) return;
+    if (!activeProfileId || !locationId || !serviceId) return;
     setSlotsLoading(true);
     setSlots([]);
     setSlotStart('');
     if (staffId) {
       const { data } = await (supabase as any).rpc('get_available_slots', {
-        p_business_id:     profile.id,
+        p_business_id:     activeProfileId,
         p_location_id:     locationId,
         p_service_id:      serviceId,
         p_week_start:      toDateKey(week),
@@ -128,7 +135,7 @@ export default function OwnerAddBookingPage() {
       setSlots(data || []);
     } else {
       const { data } = await (supabase as any).rpc('get_available_slots_any_staff', {
-        p_business_id: profile.id,
+        p_business_id: activeProfileId,
         p_location_id: locationId,
         p_service_id:  serviceId,
         p_week_start:  toDateKey(week),
@@ -136,7 +143,7 @@ export default function OwnerAddBookingPage() {
       setSlots(data || []);
     }
     setSlotsLoading(false);
-  }, [profile, locationId, serviceId, staffId, week]);
+  }, [activeProfileId, locationId, serviceId, staffId, week]);
 
   useEffect(() => {
     if (locationId && serviceId) fetchSlots();
@@ -250,7 +257,7 @@ export default function OwnerAddBookingPage() {
             </div>
           </div>
 
-          {loading ? (
+          {(profileCtxLoading || !activeProfileId || loading) ? (
             <div className="flex justify-center py-12">
               <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             </div>

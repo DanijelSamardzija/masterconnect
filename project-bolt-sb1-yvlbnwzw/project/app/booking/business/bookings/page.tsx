@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { isBookingBetaUser } from '@/lib/booking-whitelist';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
+import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
 
 type Booking = {
   id: string;
@@ -74,11 +75,17 @@ function toDateKey(d: Date): string {
 
 function OwnerBookingsContent() {
   const { profile } = useAuth();
+  const { activeProfileId, loading: profileCtxLoading } = useBookingProfile();
   const router = useRouter();
   const { t, language } = useLanguage();
   const locale = { sr: 'sr-RS', en: 'en-US', de: 'de-DE', es: 'es-ES', fr: 'fr-FR' }[language] ?? 'en-US';
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
+
+  // Redirect to hub when context is ready but no active profile is available
+  useEffect(() => {
+    if (!profileCtxLoading && !activeProfileId) router.replace('/booking');
+  }, [profileCtxLoading, activeProfileId, router]);
 
   const isPremium = (profile as any)?.is_premium === true;
 
@@ -143,16 +150,17 @@ function OwnerBookingsContent() {
   const [addBreaks, setAddBreaks]         = useState<Record<string, { break_start: string; break_end: string }>>({});
 
   useEffect(() => {
-    if (!profile) return;
+    if (!profile || !activeProfileId) return;
+    setIsOwner(null); // Reset role check when active profile changes
     checkOwnerRole();
     fetchStaff();
     fetchServices();
     fetchLocation();
-  }, [profile]);
+  }, [profile, activeProfileId]);
 
   useEffect(() => {
-    if (isOwner) fetchBookings();
-  }, [isOwner, filter, staffFilter, selectedLocId]);
+    if (isOwner && activeProfileId) fetchBookings();
+  }, [isOwner, filter, staffFilter, selectedLocId, activeProfileId]);
 
   useEffect(() => {
     if (!isOwner || !profile) return;
@@ -211,18 +219,20 @@ function OwnerBookingsContent() {
 
 
   const checkOwnerRole = async () => {
-    if (!profile) return;
+    if (!profile || !activeProfileId) return;
+    // 1. Check if logged-in user is owner/manager of the ACTIVE booking profile
     const { data: ownerData } = await (supabase as any)
       .from('staff_members').select('role')
-      .eq('business_id', profile.id).eq('user_id', profile.id)
+      .eq('business_id', activeProfileId).eq('user_id', profile.id)
       .eq('is_active', true).in('role', ['owner', 'manager'])
       .limit(1).maybeSingle();
     if (ownerData) { setIsOwner(true); return; }
 
-    // Not owner — check if staff member of another business
+    // 2. Not owner — check if user is a non-owner staff member of the ACTIVE profile
     const { data: smData } = await (supabase as any)
       .from('staff_members').select('id, business_id, permissions')
-      .eq('user_id', profile.id).eq('is_active', true)
+      .eq('business_id', activeProfileId).eq('user_id', profile.id)
+      .eq('is_active', true)
       .not('role', 'in', '("owner","manager")')
       .limit(1).maybeSingle();
     if (smData) {
@@ -239,27 +249,27 @@ function OwnerBookingsContent() {
   };
 
   const fetchStaff = async () => {
-    if (!profile) return;
+    if (!activeProfileId) return;
     const { data } = await (supabase as any)
       .from('staff_members')
       .select('id, primary_location_id, profiles!staff_members_user_id_fkey(name)')
-      .eq('business_id', profile.id).eq('is_active', true);
+      .eq('business_id', activeProfileId).eq('is_active', true);
     if (data) setStaff(data.map((s: any) => ({ id: s.id, name: s.profiles?.name || '—', locationId: s.primary_location_id ?? null })));
   };
 
   const fetchServices = async () => {
-    if (!profile) return;
+    if (!activeProfileId) return;
     const { data } = await (supabase as any)
       .from('service_catalog').select('id, name, duration_minutes')
-      .eq('business_id', profile.id).eq('is_active', true);
+      .eq('business_id', activeProfileId).eq('is_active', true);
     if (data) setServices(data);
   };
 
   const fetchLocation = async () => {
-    if (!profile) return;
+    if (!activeProfileId) return;
     const { data } = await (supabase as any)
       .from('business_locations').select('id, name, city, timezone')
-      .eq('business_id', profile.id).eq('is_active', true)
+      .eq('business_id', activeProfileId).eq('is_active', true)
       .order('is_primary', { ascending: false });
     if (data?.length) {
       setLocationId(data[0].id);
@@ -290,12 +300,12 @@ function OwnerBookingsContent() {
   };
 
   const fetchBookings = async () => {
-    if (!profile) return;
+    if (!activeProfileId) return;
     setLoading(true);
     let query = (supabase as any)
       .from('bookings')
       .select('id, starts_at, ends_at, service_id, service_name_snapshot, status, staff_member_id, location_id, location:location_id(name), notes, internal_notes, client_id, guest_name, guest_phone, profiles!bookings_client_id_fkey(name, phone)')
-      .eq('business_id', profile.id);
+      .eq('business_id', activeProfileId);
     if (filter === 'upcoming')
       query = query.gte('starts_at', new Date().toISOString()).in('status', ['pending', 'confirmed']);
     else if (filter === 'pending')
@@ -324,13 +334,13 @@ function OwnerBookingsContent() {
 
   const fetchSlots = useCallback(async () => {
     const slotLocId = selectedLocId || locationId;
-    if (!profile || !addServiceId || !slotLocId) return;
+    if (!activeProfileId || !addServiceId || !slotLocId) return;
     setAddSlotsLoading(true);
     setAddSlots([]);
     setAddSlotStart('');
     if (addStaffId) {
       const { data } = await (supabase as any).rpc('get_available_slots', {
-        p_business_id:     profile.id,
+        p_business_id:     activeProfileId,
         p_location_id:     slotLocId,
         p_service_id:      addServiceId,
         p_week_start:      toDateKey(addWeek),
@@ -339,7 +349,7 @@ function OwnerBookingsContent() {
       setAddSlots(data || []);
     } else {
       const { data } = await (supabase as any).rpc('get_available_slots_any_staff', {
-        p_business_id: profile.id,
+        p_business_id: activeProfileId,
         p_location_id: slotLocId,
         p_service_id:  addServiceId,
         p_week_start:  toDateKey(addWeek),
@@ -347,7 +357,7 @@ function OwnerBookingsContent() {
       setAddSlots(data || []);
     }
     setAddSlotsLoading(false);
-  }, [profile, addServiceId, addStaffId, locationId, selectedLocId, addWeek]);
+  }, [activeProfileId, addServiceId, addStaffId, locationId, selectedLocId, addWeek]);
 
   const handleConfirm = async (bookingId: string) => {
     setActionLoading(bookingId + '-confirm');
@@ -445,7 +455,7 @@ function OwnerBookingsContent() {
   };
 
   const openReschedule = (b: Booking) => {
-    const bizId = isOwner ? (profile?.id ?? '') : (staffBizId ?? '');
+    const bizId = isOwner ? (activeProfileId ?? '') : (staffBizId ?? '');
     const params = new URLSearchParams({
       bookingId:  b.id,
       serviceId:  b.service_id ?? '',
@@ -467,7 +477,7 @@ function OwnerBookingsContent() {
     const { data } = await (supabase as any)
       .from('bookings')
       .select('id, starts_at, service_name_snapshot, status')
-      .eq('business_id', profile?.id)
+      .eq('business_id', activeProfileId)
       .eq('client_id', clientId)
       .order('starts_at', { ascending: false })
       .limit(20);
@@ -536,6 +546,15 @@ function OwnerBookingsContent() {
     no_show:   { label: t('ownerBookings.status.no_show'),   cls: 'bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-400',           icon: <AlertCircle className="h-3 w-3" /> },
     cancelled: { label: t('ownerBookings.status.cancelled'), cls: 'bg-muted text-muted-foreground', icon: <XCircle className="h-3 w-3" /> },
   };
+
+  // While booking profile context is loading or redirecting (null activeProfileId)
+  if (profileCtxLoading || !activeProfileId) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="h-7 w-7 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
+      </div>
+    );
+  }
 
   if (isOwner === false && !staffMemberId) {
     return (
@@ -763,7 +782,7 @@ function OwnerBookingsContent() {
         )}
 
         {/* Service stats — compact grid (premium + beta users only) */}
-        {isPremium && isBookingBetaUser(profile.id) && serviceStatsLoaded && serviceStats.length > 0 && (
+        {isPremium && isBookingBetaUser(profile?.id ?? '') && serviceStatsLoaded && serviceStats.length > 0 && (
           <div className="space-y-2">
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-0.5">
               {t('ownerBookings.services.sectionTitle')}
@@ -778,7 +797,7 @@ function OwnerBookingsContent() {
                     </div>
                     <button
                       onClick={() => {
-                        navigator.clipboard.writeText(`https://gigzone.app/booking/${profile.id}/${svc.id}`);
+                        navigator.clipboard.writeText(`https://gigzone.app/booking/${activeProfileId}/${svc.id}`);
                         toast.success(t('dashboard.services.linkCopied'));
                       }}
                       className="p-1 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0"
