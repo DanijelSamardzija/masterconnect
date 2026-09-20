@@ -42,7 +42,23 @@ export function ServiceSharePicker({ businessId, open, onOpenChange }: Props) {
       });
   }, [open, businessId]);
 
-  if (!open) return null;
+  if (!open && !shareServiceId) return null;
+
+  if (shareServiceId) {
+    return (
+      <SharePostModal
+        postId={shareServiceId}
+        open={true}
+        onOpenChange={(o) => {
+          if (!o) {
+            setShareServiceId(null);
+            onOpenChange(false);
+          }
+        }}
+        urlPath={`/booking/${businessId}/${shareServiceId}`}
+      />
+    );
+  }
 
   return (
     <>
@@ -98,7 +114,7 @@ export function ServiceSharePicker({ businessId, open, onOpenChange }: Props) {
                 return (
                   <button
                     key={svc.id}
-                    onClick={() => { setShareServiceId(svc.id); onOpenChange(false); }}
+                    onClick={() => setShareServiceId(svc.id)}
                     className="flex items-center justify-between gap-3 w-full px-4 py-3 rounded-2xl bg-muted hover:bg-accent border border-border transition-colors text-left"
                   >
                     <span className="text-sm font-medium text-foreground truncate">{svc.name}</span>
@@ -114,15 +130,6 @@ export function ServiceSharePicker({ businessId, open, onOpenChange }: Props) {
           </div>
         </div>
       </div>
-
-      {shareServiceId && (
-        <SharePostModal
-          postId={shareServiceId}
-          open={!!shareServiceId}
-          onOpenChange={(o) => { if (!o) setShareServiceId(null); }}
-          urlPath={`/booking/${businessId}/${shareServiceId}`}
-        />
-      )}
     </>
   );
 }
