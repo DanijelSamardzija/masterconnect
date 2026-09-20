@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { EmptyState } from '@/components/empty-state';
 import { SharePostModal } from '@/components/share-post-modal';
-import { Loader2, Search, Filter, X, Bookmark, Share2, ArrowUpDown, Star, Clock, TrendingUp, Plus, Sparkles, Zap } from 'lucide-react';
+import { Loader2, Search, Filter, X, Bookmark, Share2, ArrowUpDown, Star, Clock, TrendingUp, Plus, Sparkles, Zap, SlidersHorizontal } from 'lucide-react';
 import { CreateMarketplacePostModal } from '@/components/create-marketplace-post-modal';
 import { NotifyMeButton } from '@/components/notify-me-button';
 import { BoostModal } from '@/components/boost-modal';
@@ -85,6 +85,7 @@ export function ServicesClient({ initialSearch = '' }: ServicesClientProps) {
   const router = useRouter();
   const [searchInput, setSearchInput] = useState(initialSearch);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const isFirstRender = useRef(true);
 
   useEffect(() => {
@@ -368,23 +369,16 @@ export function ServicesClient({ initialSearch = '' }: ServicesClientProps) {
         )}
       </div>
 
-      {/* FILTER CARD */}
-      <div className="bg-card text-card-foreground border border-border rounded-2xl shadow-sm p-6 mb-6 transition-all duration-200 hover:shadow-md">
-
-        <div className="flex items-center gap-2 mb-4">
-          <Filter className="h-5 w-5 text-muted-foreground" />
-          <h2 className="text-lg font-semibold text-foreground">{t('discover.filtersHeading')}</h2>
-        </div>
-
-        {/* KEYWORD SEARCH */}
-        <div className="relative mb-4">
+      {/* SEARCH + FILTER TOGGLE ROW */}
+      <div className="flex gap-2 mb-3">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <input
             type="text"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder={t('discover.searchKeyword')}
-            className="w-full h-10 pl-9 pr-9 rounded-md border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            className="w-full h-10 pl-9 pr-9 rounded-xl border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           />
           {searchInput && (
             <button
@@ -396,8 +390,23 @@ export function ServicesClient({ initialSearch = '' }: ServicesClientProps) {
             </button>
           )}
         </div>
+        <button
+          onClick={() => setFiltersOpen(v => !v)}
+          className={`md:hidden flex items-center gap-1.5 px-3 h-10 rounded-xl border text-sm font-medium transition-colors shrink-0 ${
+            filtersOpen || hasFilters
+              ? 'border-primary/50 bg-primary/10 text-primary'
+              : 'border-input bg-background text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <SlidersHorizontal className="h-4 w-4" />
+          {hasFilters && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+        </button>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* FILTER CARD */}
+      <div className={`bg-card text-card-foreground border border-border rounded-2xl shadow-sm p-4 md:p-6 mb-4 md:mb-6 transition-all duration-200 hover:shadow-md ${filtersOpen ? 'block' : 'hidden md:block'}`}>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
           <div>
             <Label>{t('discover.allCategories')}</Label>
             <CategoryCombobox
@@ -436,7 +445,7 @@ export function ServicesClient({ initialSearch = '' }: ServicesClientProps) {
         </div>
 
         {/* Sort buttons */}
-        <div className="mt-4 flex flex-wrap gap-2 items-center">
+        <div className="mt-3 md:mt-4 flex flex-wrap gap-2 items-center">
           <span className="text-xs text-muted-foreground flex items-center gap-1 mr-1">
             <ArrowUpDown className="h-3.5 w-3.5" /> {t('discover.sortBy')}:
           </span>
