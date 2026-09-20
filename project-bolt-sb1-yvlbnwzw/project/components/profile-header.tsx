@@ -230,17 +230,17 @@ export function ProfileHeader({
                         href={`https://wa.me/${phoneContactData.wa}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="h-7 w-7 flex items-center justify-center rounded-full bg-[#25D366]/15 text-[#128C7E] dark:text-[#25D366] hover:bg-[#25D366]/25 transition-colors"
+                        className="h-8 w-8 flex items-center justify-center rounded-full bg-[#25D366]/15 text-[#128C7E] dark:text-[#25D366] hover:bg-[#25D366]/25 transition-colors"
                         title="WhatsApp"
                       >
-                        <MessageSquare className="h-3.5 w-3.5" />
+                        <MessageSquare className="h-4 w-4" />
                       </a>
                       <a
                         href={`viber://chat?number=${encodeURIComponent(phoneContactData.tel)}`}
-                        className="h-7 w-7 flex items-center justify-center rounded-full bg-[#7360F2]/15 text-[#7360F2] dark:text-[#9B8BF4] hover:bg-[#7360F2]/25 transition-colors"
+                        className="h-8 w-8 flex items-center justify-center rounded-full bg-[#7360F2]/15 text-[#7360F2] dark:text-[#9B8BF4] hover:bg-[#7360F2]/25 transition-colors"
                         title="Viber"
                       >
-                        <Phone className="h-3.5 w-3.5" />
+                        <Phone className="h-4 w-4" />
                       </a>
                     </div>
                   )}
