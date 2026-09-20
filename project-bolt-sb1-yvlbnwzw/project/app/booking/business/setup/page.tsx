@@ -535,6 +535,8 @@ export default function BusinessSetupPage() {
   const [deactivateProfileModal, setDeactivateProfileModal] = useState(false);
   const [deactivateProfileLoading, setDeactivateProfileLoading] = useState(false);
   const [deactivateProfileFutureCount, setDeactivateProfileFutureCount] = useState<number | null>(null);
+  const [reactivateProfileModal, setReactivateProfileModal] = useState(false);
+  const [reactivateProfileLoading, setReactivateProfileLoading] = useState(false);
   const [shareSvcId, setShareSvcId] = useState<string | null>(null);
 
   // ── Load profile on mount ──────────────────────────────────────────────────
@@ -924,6 +926,22 @@ export default function BusinessSetupPage() {
     toast.success(t('booking.deleteProfile.success'));
     setDeactivateProfileModal(false);
     setIsBusinessActive(false);
+    loadServices();
+  }
+
+  async function handleReactivateProfile() {
+    setReactivateProfileLoading(true);
+    const { data } = await (supabase as any).rpc('reactivate_booking_profile');
+    const result = data as { ok: boolean } | null;
+    setReactivateProfileLoading(false);
+    if (!result?.ok) {
+      toast.error(t('setup.error.saveFailed'));
+      setReactivateProfileModal(false);
+      return;
+    }
+    toast.success(t('booking.reactivateProfile.success'));
+    setReactivateProfileModal(false);
+    setIsBusinessActive(true);
     loadServices();
   }
 
@@ -1693,6 +1711,23 @@ export default function BusinessSetupPage() {
             <div className="flex flex-col gap-5">
               <p className="text-sm text-muted-foreground">{t('setup.profile.desc')}</p>
 
+              {/* Inactive profile banner */}
+              {!profileLoading && !isBusinessActive && (
+                <div className="rounded-2xl border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20 p-4 flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <div className="flex flex-col gap-2 flex-1">
+                    <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">{t('booking.reactivateProfile.inactiveBanner')}</p>
+                    <p className="text-xs text-amber-700 dark:text-amber-400">{t('booking.reactivateProfile.inactiveBannerDesc')}</p>
+                    <button
+                      onClick={() => setReactivateProfileModal(true)}
+                      className="self-start mt-1 px-4 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium transition-colors"
+                    >
+                      {t('booking.reactivateProfile.title')}
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {profileLoading ? (
                 <div className="flex justify-center py-8">
                   <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -1787,17 +1822,19 @@ export default function BusinessSetupPage() {
                     {profileSaving ? t('setup.profile.saving') : t('setup.profile.save')}
                   </Button>
 
-                  {/* Danger Zone */}
-                  <div className="mt-6 pt-5 border-t border-destructive/20">
-                    <h3 className="text-sm font-semibold text-destructive mb-1">{t('booking.deleteProfile.dangerZone')}</h3>
-                    <p className="text-xs text-muted-foreground mb-3">{t('booking.deleteProfile.dangerZoneDesc')}</p>
-                    <button
-                      onClick={openDeactivateProfileModal}
-                      className="px-4 py-2 rounded-xl border border-destructive/40 text-destructive text-sm font-medium hover:bg-destructive/10 transition-colors"
-                    >
-                      {t('booking.deleteProfile.title')}
-                    </button>
-                  </div>
+                  {/* Danger Zone — only shown when booking profile is active */}
+                  {isBusinessActive && (
+                    <div className="mt-6 pt-5 border-t border-destructive/20">
+                      <h3 className="text-sm font-semibold text-destructive mb-1">{t('booking.deleteProfile.dangerZone')}</h3>
+                      <p className="text-xs text-muted-foreground mb-3">{t('booking.deleteProfile.dangerZoneDesc')}</p>
+                      <button
+                        onClick={openDeactivateProfileModal}
+                        className="px-4 py-2 rounded-xl border border-destructive/40 text-destructive text-sm font-medium hover:bg-destructive/10 transition-colors"
+                      >
+                        {t('booking.deleteProfile.title')}
+                      </button>
+                    </div>
+                  )}
 
                 </>
 
@@ -3290,6 +3327,53 @@ export default function BusinessSetupPage() {
                     {t('setup.services.delete')}
                   </button>
                 )}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── Reactivate Profile Modal ─────────────────────────────────────────── */}
+      {reactivateProfileModal && (
+        <>
+          <div
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            onClick={() => { if (!reactivateProfileLoading) setReactivateProfileModal(false); }}
+          />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+            <div className="pointer-events-auto bg-background border border-border rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 shrink-0" />
+                  <h3 className="text-base font-semibold text-foreground">{t('booking.reactivateProfile.title')}</h3>
+                </div>
+                <button
+                  onClick={() => setReactivateProfileModal(false)}
+                  disabled={reactivateProfileLoading}
+                  className="p-1 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground disabled:opacity-50"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <p className="text-sm text-muted-foreground">{t('booking.reactivateProfile.desc')}</p>
+
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={() => setReactivateProfileModal(false)}
+                  disabled={reactivateProfileLoading}
+                  className="flex-1 py-2 px-4 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-accent transition-colors disabled:opacity-50"
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  onClick={handleReactivateProfile}
+                  disabled={reactivateProfileLoading}
+                  className="flex-1 py-2 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                >
+                  {reactivateProfileLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                  {t('booking.reactivateProfile.confirm')}
+                </button>
               </div>
             </div>
           </div>

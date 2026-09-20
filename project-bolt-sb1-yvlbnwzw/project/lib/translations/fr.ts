@@ -2633,6 +2633,12 @@ export default {
   'booking.deleteProfile.dangerZoneDesc': "Désactiver la fonctionnalité de réservation. L'historique des réservations est conservé.",
   'booking.deleteProfile.confirm': 'Oui, désactiver le profil',
   'booking.deleteProfile.checking': 'Vérification...',
+  'booking.reactivateProfile.title': 'Réactiver le profil de réservation',
+  'booking.reactivateProfile.desc': "Votre profil de réservation et tous les services désactivés automatiquement seront restaurés. Les services désactivés manuellement restent éteints.",
+  'booking.reactivateProfile.confirm': 'Activer les réservations',
+  'booking.reactivateProfile.success': 'Profil de réservation réactivé',
+  'booking.reactivateProfile.inactiveBanner': 'Le profil de réservation est désactivé',
+  'booking.reactivateProfile.inactiveBannerDesc': 'Les clients ne peuvent pas réserver de rendez-vous pour le moment.',
   'serviceDetail.deleteBookingWarning': "Cette annonce a la réservation en ligne activée. La supprimer désactivera le service de réservation.",
   'serviceDetail.deleteFutureBlock': "Impossible de supprimer l'annonce tant que des réservations actives ({count}) existent. Annulez-les dans le tableau de bord.",
   // Booking setup wizard

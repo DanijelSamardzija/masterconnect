@@ -2698,6 +2698,12 @@ export default {
   'booking.deleteProfile.dangerZoneDesc': 'Buchungsfunktionalität deaktivieren. Buchungshistorie bleibt erhalten.',
   'booking.deleteProfile.confirm': 'Ja, Profil deaktivieren',
   'booking.deleteProfile.checking': 'Prüfung...',
+  'booking.reactivateProfile.title': 'Buchungsprofil reaktivieren',
+  'booking.reactivateProfile.desc': 'Ihr Buchungsprofil und alle automatisch deaktivierten Dienste werden wiederhergestellt. Manuell deaktivierte Dienste bleiben ausgeschaltet.',
+  'booking.reactivateProfile.confirm': 'Buchung aktivieren',
+  'booking.reactivateProfile.success': 'Buchungsprofil reaktiviert',
+  'booking.reactivateProfile.inactiveBanner': 'Buchungsprofil ist deaktiviert',
+  'booking.reactivateProfile.inactiveBannerDesc': 'Kunden können derzeit keine Termine buchen.',
   'serviceDetail.deleteBookingWarning': 'Dieses Inserat hat Online-Buchung aktiviert. Beim Löschen wird der Buchungsdienst deaktiviert.',
   'serviceDetail.deleteFutureBlock': 'Inserat kann nicht gelöscht werden, solange aktive Buchungen ({count}) vorhanden sind.',
   // Booking setup wizard

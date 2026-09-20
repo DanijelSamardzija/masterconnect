@@ -2708,6 +2708,12 @@ export default {
   'booking.deleteProfile.dangerZoneDesc': 'Deactivate booking functionality. Booking history is preserved.',
   'booking.deleteProfile.confirm': 'Yes, deactivate profile',
   'booking.deleteProfile.checking': 'Checking...',
+  'booking.reactivateProfile.title': 'Reactivate Booking Profile',
+  'booking.reactivateProfile.desc': 'Your Booking profile and all automatically deactivated services will be restored. Services you manually deactivated remain off.',
+  'booking.reactivateProfile.confirm': 'Activate Booking',
+  'booking.reactivateProfile.success': 'Booking profile reactivated',
+  'booking.reactivateProfile.inactiveBanner': 'Booking profile is deactivated',
+  'booking.reactivateProfile.inactiveBannerDesc': 'Clients cannot book appointments at this time.',
   'serviceDetail.deleteBookingWarning': 'This listing has online booking enabled. Deleting the listing will deactivate the booking service.',
   'serviceDetail.deleteFutureBlock': 'Cannot delete listing while there are active bookings ({count}). Cancel them in the Booking dashboard.',
   // Booking setup wizard

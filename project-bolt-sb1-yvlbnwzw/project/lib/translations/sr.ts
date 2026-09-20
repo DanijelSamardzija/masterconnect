@@ -2708,6 +2708,12 @@ export default {
   'booking.deleteProfile.dangerZoneDesc': 'Deaktiviraj booking funkcionalnost. Historija rezervacija ostaje sačuvana.',
   'booking.deleteProfile.confirm': 'Da, deaktiviraj profil',
   'booking.deleteProfile.checking': 'Provjera...',
+  'booking.reactivateProfile.title': 'Reaktiviraj Booking profil',
+  'booking.reactivateProfile.desc': 'Tvoj Booking profil i prethodno automatski deaktivirane Booking usluge biće ponovo aktivirani. Usluge koje si ručno deaktivirao ostaju isključene.',
+  'booking.reactivateProfile.confirm': 'Aktiviraj Booking',
+  'booking.reactivateProfile.success': 'Booking profil je reaktiviran',
+  'booking.reactivateProfile.inactiveBanner': 'Booking profil je deaktiviran',
+  'booking.reactivateProfile.inactiveBannerDesc': 'Klijenti trenutno ne mogu rezervisati termine.',
   'serviceDetail.deleteBookingWarning': 'Ovaj oglas ima aktiviranu online rezervaciju. Brisanjem oglasa, rezervacija za ovu uslugu biće deaktivirana.',
   'serviceDetail.deleteFutureBlock': 'Nije moguće obrisati oglas dok postoje aktivne rezervacije ({count}). Otkažite ih u Booking dashboardu.',
   // Booking setup wizard (bookingSetup.* prefix to avoid conflict with general onboarding)

@@ -2626,6 +2626,12 @@ export default {
   'booking.deleteProfile.dangerZoneDesc': 'Desactiva la funcionalidad de reservas. El historial de reservas se conserva.',
   'booking.deleteProfile.confirm': 'Sí, desactivar perfil',
   'booking.deleteProfile.checking': 'Comprobando...',
+  'booking.reactivateProfile.title': 'Reactivar perfil de reservas',
+  'booking.reactivateProfile.desc': 'Tu perfil de reservas y todos los servicios desactivados automáticamente serán restaurados. Los servicios que desactivaste manualmente permanecerán apagados.',
+  'booking.reactivateProfile.confirm': 'Activar reservas',
+  'booking.reactivateProfile.success': 'Perfil de reservas reactivado',
+  'booking.reactivateProfile.inactiveBanner': 'El perfil de reservas está desactivado',
+  'booking.reactivateProfile.inactiveBannerDesc': 'Los clientes no pueden reservar citas en este momento.',
   'serviceDetail.deleteBookingWarning': 'Este anuncio tiene reserva en línea activada. Al eliminarlo, se desactivará el servicio de reservas.',
   'serviceDetail.deleteFutureBlock': 'No se puede eliminar el anuncio mientras haya reservas activas ({count}). Cancélalas en el panel de reservas.',
   // Booking setup wizard
