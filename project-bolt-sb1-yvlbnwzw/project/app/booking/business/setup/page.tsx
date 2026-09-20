@@ -914,8 +914,11 @@ export default function BusinessSetupPage() {
   }
 
   async function handleDeactivateProfile() {
+    if (!user) return;
     setDeactivateProfileLoading(true);
-    const { data } = await (supabase as any).rpc('deactivate_booking_profile');
+    const { data } = await (supabase as any).rpc('deactivate_booking_profile', {
+      p_booking_profile_id: user.id,
+    });
     const result = data as { ok: boolean; error?: string; count?: number } | null;
     setDeactivateProfileLoading(false);
     if (!result?.ok) {
@@ -934,8 +937,11 @@ export default function BusinessSetupPage() {
   }
 
   async function handleReactivateProfile() {
+    if (!user) return;
     setReactivateProfileLoading(true);
-    const { data } = await (supabase as any).rpc('reactivate_booking_profile');
+    const { data } = await (supabase as any).rpc('reactivate_booking_profile', {
+      p_booking_profile_id: user.id,
+    });
     const result = data as { ok: boolean } | null;
     setReactivateProfileLoading(false);
     if (!result?.ok) {
