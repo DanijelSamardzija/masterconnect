@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ProtectedRoute } from '@/components/protected-route';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
-import { Check, Copy, ExternalLink, ChevronLeft, Loader2, X, AlertTriangle, Info } from 'lucide-react';
+import { Check, Copy, ExternalLink, ChevronLeft, Loader2, X, AlertTriangle, Info, Camera } from 'lucide-react';
+import { compressImage } from '@/lib/utils/compress-image';
 import { TimePicker24h } from '@/components/ui/time-picker-24h';
 import { CityAutocomplete } from '@/components/city-autocomplete';
 import { countries } from '@/lib/countries';
@@ -92,7 +93,18 @@ export default function BookingSetupWizardPage() {
   const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const postId = searchParams.get('postId');
+  const postId    = searchParams.get('postId');
+  const profileId = searchParams.get('profileId');   // secondary profile UUID; null = primary
+  const profileType = searchParams.get('profileType'); // profile_type of the target profile
+
+  // Primary profile: user.id === booking_profiles.id (backward compat)
+  // Secondary profile: explicit UUID from URL param
+  const resolvedProfileId = profileId ?? user?.id;
+
+  // Show Service step only for appointment/tradespeople types
+  const showServiceStep = !profileType || profileType === 'appointment' || profileType === 'tradespeople';
+  const VISIBLE_STEPS = (showServiceStep ? STEP_KEYS : STEP_KEYS.filter((k) => k !== 'service')) as readonly StepKey[];
+  const VISIBLE_STEP_COUNT = VISIBLE_STEPS.length;
 
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -101,6 +113,9 @@ export default function BookingSetupWizardPage() {
 
   // Step 0 — Profile
   const [bizName, setBizName] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   // Step 1 — Service
   const [svcId, setSvcId] = useState<string | null>(null);
@@ -167,15 +182,26 @@ export default function BookingSetupWizardPage() {
   // ── Load existing data ──────────────────────────────────────────────────
 
   const loadExisting = useCallback(async () => {
-    if (!user) return;
+    if (!user || !resolvedProfileId) return;
     setLoading(true);
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('name')
-      .eq('id', user.id)
-      .single();
-    if (profile?.name) setBizName(profile.name);
+    // Load name and avatar from booking_profiles; for primary profile fall back to profiles for name
+    const { data: bpRow } = await (supabase as any)
+      .from('booking_profiles')
+      .select('name, avatar_url')
+      .eq('id', resolvedProfileId)
+      .maybeSingle();
+    if (bpRow?.avatar_url) setAvatarUrl(bpRow.avatar_url);
+    if (bpRow?.name) {
+      setBizName(bpRow.name);
+    } else if (!profileId) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('id', user.id)
+        .single();
+      if (profile?.name) setBizName(profile.name);
+    }
 
     if (postId) {
       // Load the post title and check current activation status
@@ -194,7 +220,7 @@ export default function BookingSetupWizardPage() {
         .from('service_catalog')
         .select('id, duration_minutes, price, price_type, currency')
         .eq('post_id', postId)
-        .eq('business_id', user.id)
+        .eq('business_id', resolvedProfileId)
         .maybeSingle();
       if (linkedSvc) {
         setSvcId(linkedSvc.id);
@@ -208,7 +234,7 @@ export default function BookingSetupWizardPage() {
       const { data: svcs } = await (supabase as any)
         .from('service_catalog')
         .select('id, name, description, duration_minutes, price, price_type, currency')
-        .eq('business_id', user.id)
+        .eq('business_id', resolvedProfileId)
         .eq('is_active', true)
         .order('created_at', { ascending: true })
         .limit(1);
@@ -227,7 +253,7 @@ export default function BookingSetupWizardPage() {
     const { data: locs } = await (supabase as any)
       .from('business_locations')
       .select('id, name, address, city, country')
-      .eq('business_id', user.id)
+      .eq('business_id', resolvedProfileId)
       .eq('is_active', true)
       .order('is_primary', { ascending: false })
       .limit(1);
@@ -273,18 +299,18 @@ export default function BookingSetupWizardPage() {
     const { data: rulesData } = await (supabase as any)
       .from('booking_rules')
       .select('confirmation_mode, min_notice_minutes, max_advance_days, cancellation_hours, slot_interval_min')
-      .eq('business_id', user.id)
+      .eq('business_id', resolvedProfileId)
       .maybeSingle();
     if (rulesData) setRules(rulesData as Rules);
 
     setLoading(false);
-  }, [user, postId]);
+  }, [user, postId, profileId, resolvedProfileId]);
 
   useEffect(() => { loadExisting(); }, [loadExisting]);
 
   // ── Save handlers ───────────────────────────────────────────────────────
 
-  function advance() { setStep((s) => Math.min(s + 1, STEP_COUNT - 1)); }
+  function advance() { setStep((s) => Math.min(s + 1, VISIBLE_STEP_COUNT - 1)); }
   function back()    { setStep((s) => Math.max(s - 1, 0)); }
 
   async function saveProfile() {
@@ -293,6 +319,7 @@ export default function BookingSetupWizardPage() {
     const { data } = await (supabase as any).rpc('upsert_my_business_profile', {
       p_name: bizName.trim(),
       p_timezone: 'Europe/Sarajevo',
+      ...(profileId ? { p_booking_profile_id: profileId } : {}),
     });
     setSaving(false);
     if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); return; }
@@ -300,7 +327,7 @@ export default function BookingSetupWizardPage() {
   }
 
   async function saveService() {
-    if (!user) return;
+    if (!user || !resolvedProfileId) return;
     setSaving(true);
     const price = svcPrice !== '' ? parseFloat(svcPrice) : null;
 
@@ -335,7 +362,7 @@ export default function BookingSetupWizardPage() {
         if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); setSaving(false); return; }
       } else {
         const { data } = await (supabase as any).rpc('create_service', {
-          p_business_id: user.id, p_name: svcName.trim(),
+          p_business_id: resolvedProfileId, p_name: svcName.trim(),
           p_description: svcDesc.trim() || null, p_duration_minutes: svcDuration,
           p_price: price, p_price_type: svcPriceType,
           p_capacity: 1, p_booking_type: 'appointment_service', p_currency: svcCurrency,
@@ -343,7 +370,7 @@ export default function BookingSetupWizardPage() {
         if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); setSaving(false); return; }
         const { data: row } = await (supabase as any)
           .from('service_catalog').select('id')
-          .eq('business_id', user.id).order('created_at', { ascending: false }).limit(1).single();
+          .eq('business_id', resolvedProfileId).order('created_at', { ascending: false }).limit(1).single();
         if (row?.id) setSvcId(row.id);
       }
       setSaving(false);
@@ -352,7 +379,7 @@ export default function BookingSetupWizardPage() {
   }
 
   async function saveLocation() {
-    if (!user || !locName.trim()) { toast.error(t('setup.error.nameRequired')); return; }
+    if (!user || !resolvedProfileId || !locName.trim()) { toast.error(t('setup.error.nameRequired')); return; }
     if (!locCity.trim() || !locCountry.trim()) { toast.error(t('setup.error.nameRequired')); return; }
     setSaving(true);
     if (locId) {
@@ -364,14 +391,14 @@ export default function BookingSetupWizardPage() {
       if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); setSaving(false); return; }
     } else {
       const { data } = await (supabase as any).rpc('create_location', {
-        p_business_id: user.id, p_name: locName.trim(),
+        p_business_id: resolvedProfileId, p_name: locName.trim(),
         p_address: locAddress.trim() || null, p_city: locCity.trim(),
         p_country: locCountry.trim(), p_timezone: 'Europe/Sarajevo', p_phone: null, p_is_primary: true,
       });
       if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); setSaving(false); return; }
       const { data: row } = await (supabase as any)
         .from('business_locations').select('id')
-        .eq('business_id', user.id).order('created_at', { ascending: false }).limit(1).single();
+        .eq('business_id', resolvedProfileId).order('created_at', { ascending: false }).limit(1).single();
       if (row?.id) setLocId(row.id);
     }
     setSaving(false);
@@ -415,6 +442,7 @@ export default function BookingSetupWizardPage() {
       p_user_id: selectedStaff.id,
       p_role: staffRole,
       p_location_id: locId,
+      ...(profileId ? { p_business_id: profileId } : {}),
     });
     setSaving(false);
     if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); return; }
@@ -430,6 +458,7 @@ export default function BookingSetupWizardPage() {
       p_max_advance_days:   rules.max_advance_days,
       p_cancellation_hours: rules.cancellation_hours,
       p_slot_interval_min:  rules.slot_interval_min,
+      ...(profileId ? { p_booking_profile_id: profileId } : {}),
     });
     setSaving(false);
     if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); return; }
@@ -515,6 +544,37 @@ export default function BookingSetupWizardPage() {
     setTimeout(() => setCopied(false), 2500);
   }
 
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !resolvedProfileId) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error(t('bookingSetup.profile.logoMax')); return; }
+    setUploadingAvatar(true);
+    try {
+      const compressed = await compressImage(file, 400);
+      const fileName = `booking-profiles/${resolvedProfileId}/${Date.now()}.jpg`;
+      if (avatarUrl) {
+        const oldPath = avatarUrl.split('/avatars/')[1];
+        if (oldPath) await supabase.storage.from('avatars').remove([oldPath]);
+      }
+      const { error: uploadErr } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, compressed, { upsert: true, contentType: 'image/jpeg' });
+      if (uploadErr) throw uploadErr;
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
+      await (supabase as any)
+        .from('booking_profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', resolvedProfileId);
+      setAvatarUrl(publicUrl);
+      toast.success('Logo saved');
+    } catch {
+      toast.error(t('setup.error.saveFailed'));
+    } finally {
+      setUploadingAvatar(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = '';
+    }
+  }
+
   function handleStepSave() {
     if (currentKey === 'profile')  saveProfile();
     if (currentKey === 'service')  saveService();
@@ -526,15 +586,15 @@ export default function BookingSetupWizardPage() {
 
   const [bookingUrl, setBookingUrl] = useState('');
   useEffect(() => {
-    if (svcId && user) {
-      setBookingUrl(`${window.location.origin}/booking/${user.id}/${svcId}`);
+    if (svcId && resolvedProfileId) {
+      setBookingUrl(`${window.location.origin}/booking/${resolvedProfileId}/${svcId}`);
     } else {
       setBookingUrl('');
     }
-  }, [svcId, user]);
+  }, [svcId, resolvedProfileId]);
 
-  const isReady = !!bizName && !!svcId && !!locId;
-  const currentKey: StepKey = STEP_KEYS[step];
+  const isReady = !!bizName && !!locId && (showServiceStep ? !!svcId : true);
+  const currentKey: StepKey = VISIBLE_STEPS[step];
 
   const inputCls = 'w-full border border-border rounded-xl px-4 py-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30';
   const selectCls = 'w-full border border-border rounded-xl px-3 py-3 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30';
@@ -563,7 +623,7 @@ export default function BookingSetupWizardPage() {
           <div className="mb-6 text-center">
             <h1 className="text-2xl font-bold tracking-tight">{t('bookingSetup.title')}</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              {t('bookingSetup.step')} {step + 1} {t('bookingSetup.step.of')} {STEP_COUNT}
+              {t('bookingSetup.step')} {step + 1} {t('bookingSetup.step.of')} {VISIBLE_STEP_COUNT}
               {currentKey !== 'done' && (
                 <span className="font-medium text-foreground">
                   {' '}· {t(`setup.tab.${currentKey === 'service' ? 'services' : currentKey === 'location' ? 'locations' : currentKey}` as Parameters<typeof t>[0])}
@@ -576,7 +636,7 @@ export default function BookingSetupWizardPage() {
           <div className="relative h-1.5 bg-muted rounded-full mb-8 overflow-hidden">
             <div
               className="absolute inset-y-0 left-0 bg-primary rounded-full transition-all duration-500"
-              style={{ width: `${((step + 1) / STEP_COUNT) * 100}%` }}
+              style={{ width: `${((step + 1) / VISIBLE_STEP_COUNT) * 100}%` }}
             />
           </div>
 
@@ -590,6 +650,49 @@ export default function BookingSetupWizardPage() {
                   <h2 className="text-lg font-semibold">{t('setup.profile.heading')}</h2>
                   <p className="text-sm text-muted-foreground mt-0.5">{t('bookingSetup.profile.desc')}</p>
                 </div>
+
+                {/* Logo / avatar upload */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium">{t('bookingSetup.profile.logo')}</label>
+                  <div className="flex items-center gap-4">
+                    <div className="relative w-20 h-20 rounded-2xl border-2 border-dashed border-border bg-muted/40 overflow-hidden flex items-center justify-center shrink-0">
+                      {avatarUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={avatarUrl} alt="logo" className="w-full h-full object-cover" />
+                      ) : (
+                        <Camera className="w-7 h-7 text-muted-foreground/50" />
+                      )}
+                      {uploadingAvatar && (
+                        <div className="absolute inset-0 bg-background/70 flex items-center justify-center">
+                          <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => avatarInputRef.current?.click()}
+                        disabled={uploadingAvatar}
+                        className="flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
+                      >
+                        {uploadingAvatar
+                          ? t('bookingSetup.profile.logoUploading')
+                          : avatarUrl
+                            ? t('bookingSetup.profile.logoChange')
+                            : t('bookingSetup.profile.logoUpload')}
+                      </button>
+                      <p className="text-xs text-muted-foreground">{t('bookingSetup.profile.logoMax')}</p>
+                    </div>
+                    <input
+                      ref={avatarInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleAvatarUpload}
+                    />
+                  </div>
+                </div>
+
                 <div className="flex flex-col gap-1.5">
                   <label className="text-sm font-medium">{t('setup.profile.name')} *</label>
                   <input
@@ -1312,7 +1415,7 @@ export default function BookingSetupWizardPage() {
                     <div className="flex flex-col gap-2">
                       {[
                         { label: t('setup.tab.profile'),   done: !!bizName },
-                        { label: t('setup.tab.services'),  done: !!svcId },
+                        ...(showServiceStep ? [{ label: t('setup.tab.services'),  done: !!svcId }] : []),
                         { label: t('setup.tab.locations'), done: !!locId },
                         { label: t('setup.tab.hours'),     done: dayHours.some((d) => d.open) },
                         { label: t('setup.tab.rules'),     done: true },
