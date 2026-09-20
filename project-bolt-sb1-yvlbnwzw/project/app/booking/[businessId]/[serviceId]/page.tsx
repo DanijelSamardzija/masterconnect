@@ -178,6 +178,7 @@ export default function BookingSlotPickerPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedStaffId = searchParams.get('staffId');
+  const preselectedLocationId = searchParams.get('locationId');
   const { t, language } = useLanguage();
   const locale = langToLocale(language);
   const { user } = useAuth();
@@ -242,7 +243,9 @@ export default function BookingSlotPickerPage() {
         const locs = locRes.data ?? [];
         setLocations(locs);
         if (locs.length > 0) {
-          const primary = locs.find((l: Location) => l.is_primary) ?? locs[0];
+          const primary = preselectedLocationId
+            ? (locs.find((l: Location) => l.id === preselectedLocationId) ?? locs.find((l: Location) => l.is_primary) ?? locs[0])
+            : (locs.find((l: Location) => l.is_primary) ?? locs[0]);
           setSelectedLocationId(primary.id);
           setSelectedTimezone(primary.timezone);
           const hoursRes = await (supabase as any).rpc('get_opening_hours', { p_location_id: primary.id });

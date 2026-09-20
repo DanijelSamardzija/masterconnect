@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
@@ -62,6 +62,8 @@ const BOOKING_TYPE_LABELS: Record<string, string> = {
 export default function BusinessBookingProfilePage() {
   const { businessId } = useParams<{ businessId: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const locationId = searchParams.get('locationId');
   const { t, language } = useLanguage();
   const locale = { sr: 'sr-RS', en: 'en-US', de: 'de-DE', es: 'es-ES', fr: 'fr-FR' }[language] ?? 'en-US';
   const { user } = useAuth();
@@ -103,8 +105,29 @@ export default function BusinessBookingProfilePage() {
           .order('is_primary', { ascending: false }),
       ]);
       setBusiness(bizRes.data ?? null);
-      setServices((svcRes.data as Service[]) ?? []);
-      setLocations((locRes.data as Location[]) ?? []);
+
+      let displayedServices = (svcRes.data as Service[]) ?? [];
+      const allLocs = (locRes.data as Location[]) ?? [];
+
+      if (locationId && displayedServices.length > 0) {
+        const svcIds = displayedServices.map(s => s.id);
+        const { data: svcLocs } = await (supabase as any)
+          .from('service_locations')
+          .select('service_id, location_id')
+          .in('service_id', svcIds);
+        const assignMap = new Map<string, Set<string>>();
+        (svcLocs ?? []).forEach((sl: { service_id: string; location_id: string }) => {
+          if (!assignMap.has(sl.service_id)) assignMap.set(sl.service_id, new Set());
+          assignMap.get(sl.service_id)!.add(sl.location_id);
+        });
+        displayedServices = displayedServices.filter(svc => {
+          const a = assignMap.get(svc.id);
+          return !a || a.size === 0 || a.has(locationId);
+        });
+      }
+
+      setServices(displayedServices);
+      setLocations(locationId ? allLocs.filter(l => l.id === locationId) : allLocs);
       setLoading(false);
 
       // Load follow info + reviews in parallel (non-blocking)
@@ -120,7 +143,7 @@ export default function BusinessBookingProfilePage() {
         setReviewsData(reviewsRes.data as ReviewsData);
       }
     })();
-  }, [businessId]);
+  }, [businessId, locationId]);
 
   async function handleFollow() {
     if (!user) return;
@@ -268,7 +291,7 @@ export default function BusinessBookingProfilePage() {
                 return (
                   <Link
                     key={svc.id}
-                    href={`/booking/${businessId}/${svc.id}`}
+                    href={`/booking/${businessId}/${svc.id}${locationId ? `?locationId=${locationId}` : ''}`}
                     className="flex items-start justify-between gap-3 px-4 py-4 hover:bg-accent/30 transition-colors"
                   >
                     <div className="flex-1 min-w-0">

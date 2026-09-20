@@ -5,82 +5,164 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { ArrowLeft, Search, MapPin, ChevronRight, Scissors } from 'lucide-react';
+import { ArrowLeft, Search, MapPin, ChevronRight, Scissors, Star } from 'lucide-react';
 
-type BizCard = {
-  id: string;
-  name: string;
-  avatar_url: string | null;
-  cities: string[];
-  services: { name: string }[];
+type LocCard = {
+  key: string;
+  bizId: string;
+  locId: string | null;
+  bizName: string;
+  avatarUrl: string | null;
+  address: string | null;
+  city: string | null;
+  avgRating: number | null;
+  reviewCount: number;
+  serviceNames: string[];
 };
 
 export default function TerminiPage() {
   const router = useRouter();
   const { t } = useLanguage();
   const [search, setSearch] = useState('');
-  const [businesses, setBusinesses] = useState<BizCard[]>([]);
+  const [cards, setCards] = useState<LocCard[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       const { data: svcs } = await (supabase as any)
         .from('service_catalog')
-        .select('business_id, name')
-        .eq('is_active', true)
-        .order('name');
+        .select('id, business_id, name')
+        .eq('is_active', true);
 
       if (!svcs?.length) { setLoading(false); return; }
 
-      const bizIds = [...new Set((svcs as any[]).map((s: any) => s.business_id))] as string[];
+      const svcList = svcs as { id: string; business_id: string; name: string }[];
+      const svcIds = svcList.map(s => s.id);
+      const bizIds = [...new Set(svcList.map(s => s.business_id))] as string[];
 
-      const [{ data: profiles }, { data: locs }] = await Promise.all([
+      const [{ data: profiles }, { data: locs }, { data: svcLocs }] = await Promise.all([
         supabase
           .from('profiles')
-          .select('id, name, avatar_url, city')
+          .select('id, name, avatar_url, average_rating, review_count')
           .in('id', bizIds)
           .eq('is_business', true),
         supabase
           .from('business_locations')
-          .select('business_id, city, is_primary')
+          .select('id, business_id, address, city, is_primary')
           .in('business_id', bizIds)
-          .eq('is_active', true),
+          .eq('is_active', true)
+          .order('is_primary', { ascending: false }),
+        (supabase as any)
+          .from('service_locations')
+          .select('service_id, location_id')
+          .in('service_id', svcIds),
       ]);
 
-      // Collect all cities per business, primary first
-      const locCities: Record<string, string[]> = {};
-      [...(locs ?? [])].sort((a: any, b: any) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0))
-        .forEach((l: any) => {
-          if (!l.city) return;
-          if (!locCities[l.business_id]) locCities[l.business_id] = [];
-          if (!locCities[l.business_id].includes(l.city)) locCities[l.business_id].push(l.city);
-        });
-
-      const svcsByBiz: Record<string, { name: string }[]> = {};
-      (svcs as any[]).forEach((s: any) => {
-        if (!svcsByBiz[s.business_id]) svcsByBiz[s.business_id] = [];
-        svcsByBiz[s.business_id].push({ name: s.name });
+      // Build service_locations map: service_id → Set<location_id>
+      const svcLocMap = new Map<string, Set<string>>();
+      (svcLocs ?? []).forEach((sl: { service_id: string; location_id: string }) => {
+        if (!svcLocMap.has(sl.service_id)) svcLocMap.set(sl.service_id, new Set());
+        svcLocMap.get(sl.service_id)!.add(sl.location_id);
       });
 
-      setBusinesses(
-        (profiles ?? []).map((p: any) => {
-          const cities = locCities[p.id] ?? (p.city ? [p.city] : []);
-          return { id: p.id, name: p.name, avatar_url: p.avatar_url, cities, services: svcsByBiz[p.id] ?? [] };
-        })
-      );
+      // Group services by business
+      const svcsByBiz = new Map<string, { id: string; name: string }[]>();
+      svcList.forEach(s => {
+        if (!svcsByBiz.has(s.business_id)) svcsByBiz.set(s.business_id, []);
+        svcsByBiz.get(s.business_id)!.push({ id: s.id, name: s.name });
+      });
+
+      // Group locations by business
+      type LocRow = { id: string; business_id: string; address: string | null; city: string | null; is_primary: boolean };
+      const locsByBiz = new Map<string, LocRow[]>();
+      (locs ?? []).forEach((l: any) => {
+        if (!locsByBiz.has(l.business_id)) locsByBiz.set(l.business_id, []);
+        locsByBiz.get(l.business_id)!.push(l);
+      });
+
+      function servicesAtLocation(bizId: string, locId: string): string[] {
+        return (svcsByBiz.get(bizId) ?? [])
+          .filter(svc => {
+            const assignments = svcLocMap.get(svc.id);
+            return !assignments || assignments.size === 0 || assignments.has(locId);
+          })
+          .map(s => s.name);
+      }
+
+      const result: LocCard[] = [];
+      (profiles ?? []).forEach((p: any) => {
+        const bizLocs = locsByBiz.get(p.id) ?? [];
+        const bizSvcs = svcsByBiz.get(p.id) ?? [];
+        const rating = p.average_rating != null ? Number(p.average_rating) : null;
+        const reviewCount = p.review_count ?? 0;
+
+        if (bizLocs.length === 0) {
+          result.push({
+            key: `${p.id}-noloc`,
+            bizId: p.id,
+            locId: null,
+            bizName: p.name,
+            avatarUrl: p.avatar_url,
+            address: null,
+            city: null,
+            avgRating: rating,
+            reviewCount,
+            serviceNames: bizSvcs.map(s => s.name),
+          });
+        } else if (bizLocs.length === 1) {
+          const loc = bizLocs[0];
+          result.push({
+            key: `${p.id}-${loc.id}`,
+            bizId: p.id,
+            locId: null,
+            bizName: p.name,
+            avatarUrl: p.avatar_url,
+            address: loc.address,
+            city: loc.city,
+            avgRating: rating,
+            reviewCount,
+            serviceNames: servicesAtLocation(p.id, loc.id),
+          });
+        } else {
+          bizLocs.forEach(loc => {
+            result.push({
+              key: `${p.id}-${loc.id}`,
+              bizId: p.id,
+              locId: loc.id,
+              bizName: p.name,
+              avatarUrl: p.avatar_url,
+              address: loc.address,
+              city: loc.city,
+              avgRating: rating,
+              reviewCount,
+              serviceNames: servicesAtLocation(p.id, loc.id),
+            });
+          });
+        }
+      });
+
+      setCards(result);
       setLoading(false);
     })();
   }, []);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return businesses;
-    return businesses.filter(b =>
-      b.name.toLowerCase().includes(q) ||
-      b.cities.some(c => c.toLowerCase().includes(q)) ||
-      b.services.some(s => s.name.toLowerCase().includes(q))
+    if (!q) return cards;
+    return cards.filter(c =>
+      c.bizName.toLowerCase().includes(q) ||
+      (c.city ?? '').toLowerCase().includes(q) ||
+      (c.address ?? '').toLowerCase().includes(q) ||
+      c.serviceNames.some(n => n.toLowerCase().includes(q))
     );
-  }, [businesses, search]);
+  }, [cards, search]);
+
+  function navTo(card: LocCard) {
+    const url = card.locId
+      ? `/booking/${card.bizId}?locationId=${card.locId}`
+      : `/booking/${card.bizId}`;
+    router.push(url);
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -118,32 +200,39 @@ export default function TerminiPage() {
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {filtered.map(biz => (
+            {filtered.map(card => (
               <button
-                key={biz.id}
-                onClick={() => router.push(`/booking/${biz.id}`)}
+                key={card.key}
+                onClick={() => navTo(card)}
                 className="w-full text-left border border-border rounded-xl p-4 bg-card hover:border-primary/50 hover:bg-accent/30 transition-colors flex items-center gap-3"
               >
                 <Avatar className="h-12 w-12 shrink-0">
-                  <AvatarImage src={biz.avatar_url ?? undefined} alt={biz.name} />
+                  <AvatarImage src={card.avatarUrl ?? undefined} alt={card.bizName} />
                   <AvatarFallback className="text-base font-semibold bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300">
-                    {biz.name[0]?.toUpperCase()}
+                    {card.bizName[0]?.toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
 
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm text-foreground truncate">{biz.name}</p>
-                  {biz.cities.length > 0 && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-semibold text-sm text-foreground truncate">{card.bizName}</p>
+                    {card.avgRating != null && card.reviewCount > 0 && (
+                      <span className="flex items-center gap-0.5 text-xs text-amber-600 dark:text-amber-400 font-medium shrink-0">
+                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                        {card.avgRating.toFixed(1)} ({card.reviewCount})
+                      </span>
+                    )}
+                  </div>
+                  {(card.address || card.city) && (
                     <p className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                       <MapPin className="w-3 h-3 shrink-0" />
-                      {biz.cities.slice(0, 3).join(' · ')}
-                      {biz.cities.length > 3 && ` +${biz.cities.length - 3}`}
+                      {[card.address, card.city].filter(Boolean).join(', ')}
                     </p>
                   )}
-                  {biz.services.length > 0 && (
+                  {card.serviceNames.length > 0 && (
                     <p className="text-xs text-muted-foreground mt-1 truncate">
-                      {biz.services.slice(0, 3).map(s => s.name).join(' · ')}
-                      {biz.services.length > 3 && ` +${biz.services.length - 3}`}
+                      {card.serviceNames.slice(0, 3).join(' · ')}
+                      {card.serviceNames.length > 3 && ` +${card.serviceNames.length - 3}`}
                     </p>
                   )}
                 </div>
