@@ -31,7 +31,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Briefcase, Users, UserCircle, MessageCircle, Plus, MoreVertical, Trash2, Send, X, Bookmark, Share2, MapPin, Star, Clock, Sparkles, Zap, Loader2 as Loader, Search, Wrench, CheckCircle, Brain } from 'lucide-react';
+import { Briefcase, Users, UserCircle, MessageCircle, Plus, MoreVertical, Trash2, Send, X, Bookmark, Share2, MapPin, Star, Clock, Sparkles, Zap, Loader2 as Loader, Search, Wrench, CheckCircle, Brain, SlidersHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 import { timeAgo } from '@/lib/utils/date';
 
@@ -988,6 +988,7 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
   const [applicationModalOpen, setApplicationModalOpen] = useState(false);
   const [selectedHiringPost, setSelectedHiringPost] = useState<{ id: string; title: string; ownerId: string } | null>(null);
   const [expandedPosts, setExpandedPosts] = useState<Set<string>>(new Set());
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [searchInput, setSearchInput] = useState(initialSearch);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [totalCount, setTotalCount] = useState(0);
@@ -1388,36 +1389,34 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
   'data-[state=active]:bg-orange-500/5 data-[state=active]:text-orange-600 dark:data-[state=active]:text-orange-400 data-[state=active]:border-orange-300 dark:data-[state=active]:border-orange-500/60 data-[state=active]:shadow-sm';
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-[#111827] dark:via-[#0f1419] dark:to-[#111827] py-8 pb-24">
-      <div className="max-w-5xl mx-auto px-4 space-y-6">
-        <div className="flex items-center justify-between mb-2">
+    <div className="bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-[#111827] dark:via-[#0f1419] dark:to-[#111827] py-5 md:py-8 pb-24">
+      <div className="max-w-5xl mx-auto px-4 space-y-4">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800 dark:text-white">{t('jobs.marketplaceTitle')}</h1>
-            <p className="text-slate-600 dark:text-gray-400 mt-2">{t('jobs.marketplaceSubtitle')}</p>
-            <p className="text-sm text-slate-500 dark:text-gray-500 mt-1 max-w-xl">{t('jobs.seoIntro')}</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white">{t('jobs.marketplaceTitle')}</h1>
+            <p className="text-slate-600 dark:text-gray-400 mt-1">{t('jobs.marketplaceSubtitle')}</p>
+            <p className="hidden md:block text-sm text-slate-500 dark:text-gray-500 mt-1 max-w-xl">{t('jobs.seoIntro')}</p>
           </div>
 
-          <div className="flex items-center gap-2">
-            {profile && (
+          {profile && (
+            <div className="flex gap-2 md:flex-col md:items-end lg:flex-row">
               <Button
                 variant="outline"
-                className="rounded-xl gap-2 border-primary/30 text-primary hover:bg-primary/10"
+                className="flex-1 md:flex-none rounded-xl gap-2 border-primary/30 text-primary hover:bg-primary/10 text-sm"
                 onClick={() => setReverseMatchOpen(true)}
               >
-                <Brain className="h-4 w-4" />
-                <span className="hidden sm:inline">{t('aiMatch.reverse.button')}</span>
+                <Brain className="h-4 w-4 shrink-0" />
+                <span>{t('aiMatch.reverse.button')}</span>
               </Button>
-            )}
-            {profile && (
               <Button
-                className="bg-orange-600 hover:bg-orange-500 dark:bg-orange-600 dark:hover:bg-orange-500 text-white shadow-lg transition-colors rounded-xl"
+                className="flex-1 md:flex-none bg-orange-600 hover:bg-orange-500 dark:bg-orange-600 dark:hover:bg-orange-500 text-white shadow-lg transition-colors rounded-xl text-sm"
                 onClick={() => setShowTypePicker(true)}
               >
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-4 w-4 mr-1.5 shrink-0" />
                 {t('jobs.createPost')}
               </Button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         <Dialog open={showTypePicker} onOpenChange={setShowTypePicker}>
@@ -1528,30 +1527,43 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
             </TabsList>
           </div>
 
-          {/* KEYWORD SEARCH */}
-          <div className="relative mt-4">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-            <input
-              type="text"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder={t('discover.searchKeyword')}
-              className="w-full h-10 pl-9 pr-9 rounded-xl border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-            />
-            {searchInput && (
-              <button
-                onClick={() => { setSearchInput(''); setSearchQuery(''); router.replace('/jobs', { scroll: false }); }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Clear search"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
+          {/* KEYWORD SEARCH + FILTER TOGGLE ROW */}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder={t('discover.searchKeyword')}
+                className="w-full h-10 pl-9 pr-9 rounded-xl border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              />
+              {searchInput && (
+                <button
+                  onClick={() => { setSearchInput(''); setSearchQuery(''); router.replace('/jobs', { scroll: false }); }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+            <button
+              onClick={() => setFiltersOpen(v => !v)}
+              className={`md:hidden flex items-center gap-1.5 px-3 h-10 rounded-xl border text-sm font-medium transition-colors shrink-0 ${
+                filtersOpen || hasActiveFilter
+                  ? 'border-primary/50 bg-primary/10 text-primary'
+                  : 'border-input bg-background text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              {hasActiveFilter && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+            </button>
           </div>
 
-          <Card className="mt-4 bg-card text-card-foreground border border-border rounded-2xl shadow-sm">
-            <CardContent className="pt-6 pb-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Card className={`bg-card text-card-foreground border border-border rounded-2xl shadow-sm ${filtersOpen ? 'block' : 'hidden md:block'}`}>
+            <CardContent className="pt-4 pb-4 md:pt-6 md:pb-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                 <div>
                   <label className="text-xs font-medium text-slate-600 dark:text-gray-300 mb-1.5 block">
                     {t('jobs.filterCity')}
@@ -1593,7 +1605,7 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mt-3 md:mt-4">
                 <div>
                   <label className="text-xs font-medium text-slate-600 dark:text-gray-300 mb-1.5 block">
                     {t('jobs.filterSort')}
@@ -1620,29 +1632,29 @@ function JobsMarketplaceContent({ initialSearch = '' }: { initialSearch?: string
                   </Button>
                 </div>
               </div>
-              <div className="mt-4 flex justify-end">
+              <div className="mt-3 md:mt-4 flex justify-end">
                 <NotifyMeButton category={categoryFilter} city={cityFilter} />
               </div>
             </CardContent>
           </Card>
 
           {activeTab === 'hiring' && (
-            <p className="mt-4 text-sm text-muted-foreground bg-muted/50 border border-border rounded-xl px-4 py-2.5">
+            <p className="mt-2 text-xs text-muted-foreground bg-muted/50 border border-border rounded-xl px-3 py-1.5">
               💼 {t('jobs.infoHiring')}
             </p>
           )}
           {activeTab === 'service-requests' && (
-            <p className="mt-4 text-sm text-muted-foreground bg-muted/50 border border-border rounded-xl px-4 py-2.5">
+            <p className="mt-2 text-xs text-muted-foreground bg-muted/50 border border-border rounded-xl px-3 py-1.5">
               🔍 {t('jobs.infoServiceRequests')}
             </p>
           )}
           {activeTab === 'job-seekers' && (
-            <p className="mt-4 text-sm text-muted-foreground bg-muted/50 border border-border rounded-xl px-4 py-2.5">
+            <p className="mt-2 text-xs text-muted-foreground bg-muted/50 border border-border rounded-xl px-3 py-1.5">
               👤 {t('jobs.infoJobSeekers')}
             </p>
           )}
 
-          <div className="mt-6">
+          <div className="mt-3">
             {loading ? (
               <div className="flex justify-center items-center py-16">
                 <Loader className="h-8 w-8 animate-spin text-orange-600" />
