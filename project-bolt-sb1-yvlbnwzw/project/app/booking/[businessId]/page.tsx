@@ -94,11 +94,14 @@ export default function BusinessBookingProfilePage() {
     (async () => {
       setLoading(true);
       const [bizRes, svcRes, locRes, hoursRes] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select('id, name, avatar_url, live_status, city, category')
+        // Look up booking_profiles (works for both primary and secondary profiles).
+        // Primary: booking_profiles.id === profiles.id.
+        // Secondary: fresh UUID; owner data comes via owner_id → profiles join.
+        (supabase as any)
+          .from('booking_profiles')
+          .select('id, name, avatar_url, profiles!booking_profiles_owner_id_fkey(live_status, city, category)')
           .eq('id', businessId)
-          .eq('is_business', true)
+          .eq('is_active', true)
           .maybeSingle(),
         (supabase as any)
           .from('service_catalog')
@@ -116,7 +119,20 @@ export default function BusinessBookingProfilePage() {
           ? (supabase as any).rpc('get_opening_hours', { p_location_id: locationId })
           : Promise.resolve({ data: [] }),
       ]);
-      setBusiness(bizRes.data ?? null);
+      const bpRow = bizRes.data as {
+        id: string;
+        name: string;
+        avatar_url: string | null;
+        profiles: { live_status: string | null; city: string | null; category: string | null } | null;
+      } | null;
+      setBusiness(bpRow ? {
+        id:          bpRow.id,
+        name:        bpRow.name,
+        avatar_url:  bpRow.avatar_url ?? null,
+        live_status: bpRow.profiles?.live_status ?? null,
+        city:        bpRow.profiles?.city ?? null,
+        category:    bpRow.profiles?.category ?? null,
+      } : null);
       setOpeningHours((hoursRes.data as OpeningHourRow[]) ?? []);
 
       let displayedServices = (svcRes.data as Service[]) ?? [];
