@@ -581,32 +581,8 @@ export default function BookingSlotPickerPage() {
           </div>
         )}
 
-        {/* Location — static when arriving from a location card, picker when multi-location */}
-        {preselectedLocationId && selectedLocation ? (
-          <div className="mb-5">
-            <label className="block text-sm font-medium mb-1.5">{t('booking.location')}</label>
-            <div className="px-3 py-2.5 rounded-xl border border-primary bg-primary/5">
-              <p className="text-sm font-medium">{selectedLocation.name}</p>
-              {(selectedLocation.address || selectedLocation.city) && (
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([selectedLocation.address, selectedLocation.city, selectedLocation.country].filter(Boolean).join(', '))}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:underline hover:text-primary transition-colors"
-                  >
-                    {[selectedLocation.address, selectedLocation.city, selectedLocation.country].filter(Boolean).join(', ')}
-                  </a>
-                </p>
-              )}
-              {selectedLocation.phone && (
-                <a href={`tel:${selectedLocation.phone}`} className="text-xs text-muted-foreground hover:text-primary transition-colors mt-0.5 block">
-                  {selectedLocation.phone}
-                </a>
-              )}
-            </div>
-          </div>
-        ) : locations.length > 1 ? (
+        {/* Location picker — hidden when arriving from a location card (already shown on profile page) */}
+        {!preselectedLocationId && locations.length > 1 ? (
           <div className="mb-5">
             <label className="block text-sm font-medium mb-1.5">{t('booking.location')}</label>
             <div className="flex flex-col gap-2">
