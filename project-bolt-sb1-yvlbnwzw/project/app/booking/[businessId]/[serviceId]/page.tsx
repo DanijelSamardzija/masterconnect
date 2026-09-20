@@ -232,7 +232,7 @@ export default function BookingSlotPickerPage() {
       setLoadingMeta(true);
       try {
         const [bizRes, svcRes, locRes, rulesRes] = await Promise.all([
-          supabase.from('profiles').select('id, name').eq('id', businessId).eq('is_business', true).maybeSingle(),
+          (supabase as any).from('booking_profiles').select('id, name').eq('id', businessId).eq('is_active', true).maybeSingle(),
           (supabase as any).from('service_catalog').select('id, name, description, duration_minutes, capacity, price, price_type, currency').eq('id', serviceId).eq('business_id', businessId).eq('is_active', true).maybeSingle(),
           supabase.from('business_locations').select('id, name, timezone, is_primary, city, country, address, phone').eq('business_id', businessId).eq('is_active', true).order('is_primary', { ascending: false }),
           (supabase as any).from('booking_rules').select('max_advance_days').eq('business_id', businessId).maybeSingle(),
