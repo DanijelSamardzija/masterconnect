@@ -919,7 +919,11 @@ export default function BusinessSetupPage() {
     const result = data as { ok: boolean; error?: string; count?: number } | null;
     setDeactivateProfileLoading(false);
     if (!result?.ok) {
-      toast.error(t('setup.error.saveFailed'));
+      toast.error(
+        result?.error === 'has_active_bookings'
+          ? t('booking.deleteProfile.hasFutureBlock').replace('{count}', String(result.count ?? ''))
+          : t('setup.error.saveFailed')
+      );
       setDeactivateProfileModal(false);
       return;
     }
