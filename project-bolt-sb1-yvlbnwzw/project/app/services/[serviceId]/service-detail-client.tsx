@@ -20,7 +20,7 @@ import { ReviewsModal } from '@/components/reviews-modal';
 import { SharePostModal } from '@/components/share-post-modal';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
-import { Loader2, MapPin, MessageCircle, Star, ChevronLeft, ChevronRight, User, Share2, Edit, Trash2, ImageOff, Calendar } from 'lucide-react';
+import { Loader2, MapPin, MessageCircle, Star, ChevronLeft, ChevronRight, User, Share2, Edit, Trash2, ImageOff, Calendar, AlertTriangle, Info, X } from 'lucide-react';
 import { ContactCard } from '@/components/contact-card';
 import { EditPostModal } from '@/components/edit-post-modal';
 import { isBookingBetaUser } from '@/lib/booking-whitelist';
@@ -86,6 +86,9 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
   const [creatingThread, setCreatingThread] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteFutureCount, setDeleteFutureCount] = useState<number | null>(null);
+  const [deleteCheckLoading, setDeleteCheckLoading] = useState(false);
   const [recentReviews, setRecentReviews] = useState<Array<{
     id: string;
     rating: number;
@@ -197,8 +200,25 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
     } catch {}
   };
 
+  const handleDeleteOpen = async () => {
+    setDeleteModalOpen(true);
+    setDeleteFutureCount(null);
+    if (service?.booking_enabled && service.business_id) {
+      setDeleteCheckLoading(true);
+      const { count } = await supabase
+        .from('bookings')
+        .select('id', { count: 'exact', head: true })
+        .eq('business_id', service.business_id)
+        .in('status', ['pending', 'confirmed'])
+        .gt('starts_at', new Date().toISOString());
+      setDeleteFutureCount(count ?? 0);
+      setDeleteCheckLoading(false);
+    } else {
+      setDeleteFutureCount(0);
+    }
+  };
+
   const handleDelete = async () => {
-    if (!confirm(t('serviceDetail.deleteConfirm'))) return;
     setDeleting(true);
     try {
       const { data: session } = await supabase.auth.getSession();
@@ -217,6 +237,7 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
       toast.error(t('posts.deleteError'));
     } finally {
       setDeleting(false);
+      setDeleteModalOpen(false);
     }
   };
 
@@ -718,7 +739,7 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                       <Edit className="h-3.5 w-3.5" />
                       {t('serviceDetail.editListing')}
                     </Button>
-                    <Button size="sm" variant="outline" className="flex-1 gap-2 border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400" onClick={handleDelete} disabled={deleting}>
+                    <Button size="sm" variant="outline" className="flex-1 gap-2 border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400" onClick={handleDeleteOpen} disabled={deleting}>
                       {deleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
                       {t('serviceDetail.deleteListing')}
                     </Button>
@@ -947,6 +968,76 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
               router.refresh();
             }}
           />
+
+          {/* ── Delete confirmation modal ─────────────────────────────────── */}
+          {deleteModalOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+                onClick={() => { if (!deleting) setDeleteModalOpen(false); }}
+              />
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+                <div className="pointer-events-auto bg-background border border-border rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+                      <h3 className="text-base font-semibold text-foreground">{t('serviceDetail.deleteListing')}</h3>
+                    </div>
+                    <button
+                      onClick={() => setDeleteModalOpen(false)}
+                      disabled={deleting}
+                      className="p-1 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground disabled:opacity-50"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  {deleteCheckLoading ? (
+                    <div className="flex justify-center py-2">
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : deleteFutureCount !== null && deleteFutureCount > 0 ? (
+                    <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-3 flex items-start gap-2">
+                      <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                      <p className="text-sm text-destructive">
+                        {t('serviceDetail.deleteFutureBlock').replace('{count}', String(deleteFutureCount))}
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      {service?.booking_enabled && (
+                        <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 p-3 flex items-start gap-2">
+                          <Info className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                          <p className="text-sm text-amber-700 dark:text-amber-400">{t('serviceDetail.deleteBookingWarning')}</p>
+                        </div>
+                      )}
+                      <p className="text-sm text-muted-foreground">{t('serviceDetail.deleteConfirm')}</p>
+                    </>
+                  )}
+
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      onClick={() => setDeleteModalOpen(false)}
+                      disabled={deleting}
+                      className="flex-1 py-2 px-4 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-accent transition-colors disabled:opacity-50"
+                    >
+                      {t('common.cancel')}
+                    </button>
+                    {!(deleteFutureCount !== null && deleteFutureCount > 0) && !deleteCheckLoading && (
+                      <button
+                        onClick={handleDelete}
+                        disabled={deleting}
+                        className="flex-1 py-2 px-4 rounded-xl bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                      >
+                        {deleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                        {t('serviceDetail.deleteListing')}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </>
       )}
     </>

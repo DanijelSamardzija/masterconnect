@@ -529,7 +529,12 @@ export default function BusinessSetupPage() {
   // Service-location assignment state
   const [serviceLocMap, setServiceLocMap] = useState<Record<string, string[]>>({});
   const [serviceLocSaving, setServiceLocSaving] = useState<string | null>(null);
-  const [deletingSvcId, setDeletingSvcId] = useState<string | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{ svcId: string; svcName: string; postId: string | null } | null>(null);
+  const [deleteModalFutureCount, setDeleteModalFutureCount] = useState<number | null>(null);
+  const [deleteModalLoading, setDeleteModalLoading] = useState(false);
+  const [deactivateProfileModal, setDeactivateProfileModal] = useState(false);
+  const [deactivateProfileLoading, setDeactivateProfileLoading] = useState(false);
+  const [deactivateProfileFutureCount, setDeactivateProfileFutureCount] = useState<number | null>(null);
   const [shareSvcId, setShareSvcId] = useState<string | null>(null);
 
   // ── Load profile on mount ──────────────────────────────────────────────────
@@ -858,12 +863,23 @@ export default function BusinessSetupPage() {
     loadServices();
   }
 
-  function handleDeleteSvc(svcId: string) {
-    setDeletingSvcId(svcId);
+  async function openDeleteModal(svc: ServiceRow) {
+    setDeleteModal({ svcId: svc.id, svcName: svc.name, postId: svc.post_id });
+    setDeleteModalFutureCount(null);
+    setDeleteModalLoading(true);
+    const { count } = await supabase
+      .from('bookings')
+      .select('id', { count: 'exact', head: true })
+      .eq('service_id', svc.id)
+      .in('status', ['pending', 'confirmed'])
+      .gt('starts_at', new Date().toISOString());
+    setDeleteModalFutureCount(count ?? 0);
+    setDeleteModalLoading(false);
   }
 
-  async function confirmDeleteSvc(svcId: string) {
-    const { data } = await (supabase as any).rpc('delete_service', { p_service_id: svcId });
+  async function confirmDeleteModal() {
+    if (!deleteModal) return;
+    const { data } = await (supabase as any).rpc('delete_service', { p_service_id: deleteModal.svcId });
     const result = data as { ok: boolean; error?: string } | null;
     if (!result?.ok) {
       if (result?.error === 'has_active_bookings') {
@@ -871,11 +887,43 @@ export default function BusinessSetupPage() {
       } else {
         toast.error(t('setup.error.saveFailed'));
       }
-      setDeletingSvcId(null);
+      setDeleteModal(null);
       return;
     }
     toast.success(t('setup.services.deleted'));
-    setDeletingSvcId(null);
+    setDeleteModal(null);
+    setDeleteModalFutureCount(null);
+    loadServices();
+  }
+
+  async function openDeactivateProfileModal() {
+    setDeactivateProfileModal(true);
+    setDeactivateProfileFutureCount(null);
+    setDeactivateProfileLoading(true);
+    if (!user) return;
+    const { count } = await supabase
+      .from('bookings')
+      .select('id', { count: 'exact', head: true })
+      .eq('business_id', user.id)
+      .in('status', ['pending', 'confirmed'])
+      .gt('starts_at', new Date().toISOString());
+    setDeactivateProfileFutureCount(count ?? 0);
+    setDeactivateProfileLoading(false);
+  }
+
+  async function handleDeactivateProfile() {
+    setDeactivateProfileLoading(true);
+    const { data } = await (supabase as any).rpc('deactivate_booking_profile');
+    const result = data as { ok: boolean; error?: string; count?: number } | null;
+    setDeactivateProfileLoading(false);
+    if (!result?.ok) {
+      toast.error(t('setup.error.saveFailed'));
+      setDeactivateProfileModal(false);
+      return;
+    }
+    toast.success(t('booking.deleteProfile.success'));
+    setDeactivateProfileModal(false);
+    setIsBusinessActive(false);
     loadServices();
   }
 
@@ -1739,6 +1787,18 @@ export default function BusinessSetupPage() {
                     {profileSaving ? t('setup.profile.saving') : t('setup.profile.save')}
                   </Button>
 
+                  {/* Danger Zone */}
+                  <div className="mt-6 pt-5 border-t border-destructive/20">
+                    <h3 className="text-sm font-semibold text-destructive mb-1">{t('booking.deleteProfile.dangerZone')}</h3>
+                    <p className="text-xs text-muted-foreground mb-3">{t('booking.deleteProfile.dangerZoneDesc')}</p>
+                    <button
+                      onClick={openDeactivateProfileModal}
+                      className="px-4 py-2 rounded-xl border border-destructive/40 text-destructive text-sm font-medium hover:bg-destructive/10 transition-colors"
+                    >
+                      {t('booking.deleteProfile.title')}
+                    </button>
+                  </div>
+
                 </>
 
               )}
@@ -2018,31 +2078,13 @@ export default function BusinessSetupPage() {
                           >
                             {svc.is_active ? t('setup.services.deactivate') : t('setup.services.activate')}
                           </button>
-                          {deletingSvcId === svc.id ? (
-                            <span className="flex items-center gap-1 text-xs">
-                              <span className="text-muted-foreground">{t('setup.services.deleteConfirm')}</span>
-                              <button
-                                onClick={() => confirmDeleteSvc(svc.id)}
-                                className="text-destructive font-medium hover:text-destructive/80 transition-colors"
-                              >
-                                Da
-                              </button>
-                              <button
-                                onClick={() => setDeletingSvcId(null)}
-                                className="text-muted-foreground font-medium hover:text-foreground transition-colors"
-                              >
-                                Ne
-                              </button>
-                            </span>
-                          ) : (
-                            <button
-                              onClick={() => handleDeleteSvc(svc.id)}
-                              className="text-destructive/70 hover:text-destructive p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-xs font-medium"
-                              title={t('setup.services.delete')}
-                            >
-                              {t('setup.services.delete')}
-                            </button>
-                          )}
+                          <button
+                            onClick={() => openDeleteModal(svc)}
+                            className="text-destructive/70 hover:text-destructive p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-xs font-medium"
+                            title={t('setup.services.delete')}
+                          >
+                            {t('setup.services.delete')}
+                          </button>
                         </div>
                       </div>
                       {/* Location assignments — only show when multiple locations exist */}
@@ -3184,6 +3226,140 @@ export default function BusinessSetupPage() {
           onOpenChange={(open) => { if (!open) setShareSvcId(null); }}
           urlPath={`/booking/${user.id}/${shareSvcId}`}
         />
+      )}
+
+      {/* ── Delete Service Modal ─────────────────────────────────────────────── */}
+      {deleteModal && (
+        <>
+          <div
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            onClick={() => { if (!deleteModalLoading) setDeleteModal(null); }}
+          />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+            <div className="pointer-events-auto bg-background border border-border rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+                  <h3 className="text-base font-semibold text-foreground">{t('setup.services.delete')}</h3>
+                </div>
+                <button
+                  onClick={() => setDeleteModal(null)}
+                  className="p-1 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <p className="text-sm font-medium text-foreground">{deleteModal.svcName}</p>
+
+              {deleteModalLoading ? (
+                <div className="flex justify-center py-2">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : deleteModalFutureCount !== null && deleteModalFutureCount > 0 ? (
+                <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-3 flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                  <p className="text-sm text-destructive">
+                    {t('booking.delete.hasFutureBlock').replace('{count}', String(deleteModalFutureCount))}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {deleteModal.postId && (
+                    <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 p-3 flex items-start gap-2">
+                      <Info className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                      <p className="text-sm text-amber-700 dark:text-amber-400">{t('booking.delete.postWillDeactivate')}</p>
+                    </div>
+                  )}
+                  <p className="text-sm text-muted-foreground">{t('booking.delete.serviceWarning')}</p>
+                </>
+              )}
+
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={() => setDeleteModal(null)}
+                  className="flex-1 py-2 px-4 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                >
+                  {t('common.cancel')}
+                </button>
+                {!(deleteModalFutureCount !== null && deleteModalFutureCount > 0) && !deleteModalLoading && (
+                  <button
+                    onClick={confirmDeleteModal}
+                    className="flex-1 py-2 px-4 rounded-xl bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 transition-colors"
+                  >
+                    {t('setup.services.delete')}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── Deactivate Profile Modal ─────────────────────────────────────────── */}
+      {deactivateProfileModal && (
+        <>
+          <div
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            onClick={() => { if (!deactivateProfileLoading) setDeactivateProfileModal(false); }}
+          />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+            <div className="pointer-events-auto bg-background border border-border rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+                  <h3 className="text-base font-semibold text-foreground">{t('booking.deleteProfile.title')}</h3>
+                </div>
+                <button
+                  onClick={() => setDeactivateProfileModal(false)}
+                  className="p-1 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground"
+                  disabled={deactivateProfileLoading}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <p className="text-sm text-muted-foreground">{t('booking.deleteProfile.desc')}</p>
+
+              {deactivateProfileFutureCount === null ? (
+                <div className="flex justify-center py-2">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : deactivateProfileFutureCount > 0 ? (
+                <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-3 flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                  <p className="text-sm text-destructive">
+                    {t('booking.deleteProfile.hasFutureBlock').replace('{count}', String(deactivateProfileFutureCount))}
+                  </p>
+                </div>
+              ) : (
+                <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-3 flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                  <p className="text-sm text-destructive">{t('booking.deleteProfile.warning')}</p>
+                </div>
+              )}
+
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={() => setDeactivateProfileModal(false)}
+                  disabled={deactivateProfileLoading}
+                  className="flex-1 py-2 px-4 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-accent transition-colors disabled:opacity-50"
+                >
+                  {t('common.cancel')}
+                </button>
+                {deactivateProfileFutureCount === 0 && (
+                  <button
+                    onClick={handleDeactivateProfile}
+                    disabled={deactivateProfileLoading}
+                    className="flex-1 py-2 px-4 rounded-xl bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 transition-colors disabled:opacity-50"
+                  >
+                    {deactivateProfileLoading ? t('booking.deleteProfile.checking') : t('booking.deleteProfile.confirm')}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
       )}
     </ProtectedRoute>
   );
