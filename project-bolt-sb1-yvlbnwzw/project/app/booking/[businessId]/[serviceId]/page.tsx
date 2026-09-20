@@ -635,15 +635,15 @@ export default function BookingSlotPickerPage() {
                   const isClosed = periods.length === 0;
                   return (
                     <div key={dow} className="flex items-center px-3 py-2 border-b border-border last:border-0">
-                      <span className="w-28 text-xs font-medium text-foreground shrink-0">
+                      <span className="w-28 text-sm font-medium text-foreground shrink-0">
                         {t(`setup.hours.day.${dow}` as Parameters<typeof t>[0])}
                       </span>
                       {isClosed ? (
-                        <span className="text-xs text-muted-foreground">{t('setup.hours.closed')}</span>
+                        <span className="text-sm text-muted-foreground">{t('setup.hours.closed')}</span>
                       ) : (
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {periods.map((p, i) => (
-                            <span key={i} className="flex items-center gap-1.5 text-xs text-foreground">
+                            <span key={i} className="flex items-center gap-1.5 text-sm text-foreground">
                               {i > 0 && <span className="text-muted-foreground">·</span>}
                               {p.start_time.slice(0, 5)} – {p.end_time.slice(0, 5)}
                             </span>
@@ -1080,7 +1080,7 @@ export default function BookingSlotPickerPage() {
                       onClick={() => setPartySize((n) => Math.min(selectedSlot.capacity_remaining, n + 1))}
                       className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-accent transition-colors text-sm"
                     >+</button>
-                    <span className="text-xs text-muted-foreground ml-1">
+                    <span className="text-sm text-muted-foreground ml-1">
                       / {selectedSlot.capacity_remaining}
                       {' '}<Users className="inline w-3 h-3" />
                     </span>

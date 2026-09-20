@@ -768,7 +768,7 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                       </div>
                     ) : !isOwnerPremium ? (
                       <div className="flex flex-col gap-1.5">
-                        <p className="text-xs text-orange-600 dark:text-orange-400">
+                        <p className="text-sm text-orange-600 dark:text-orange-400">
                           {t('serviceDetail.booking.needsPremium')}
                         </p>
                         <button
@@ -780,7 +780,7 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                       </div>
                     ) : !isBusinessProfile ? (
                       <div className="flex flex-col gap-1.5">
-                        <p className="text-xs text-orange-600 dark:text-orange-400">
+                        <p className="text-sm text-orange-600 dark:text-orange-400">
                           {t('serviceDetail.booking.needsBusiness')}
                         </p>
                         <Link
@@ -795,7 +795,7 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                         <span className="self-start text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400">
                           {t('booking.beta.badge')}
                         </span>
-                        <p className="text-xs text-orange-600 dark:text-orange-400">
+                        <p className="text-sm text-orange-600 dark:text-orange-400">
                           {t('booking.beta.inlineNote')}
                         </p>
                       </div>
@@ -820,7 +820,7 @@ export function ServiceDetailClient({ serviceId, initialData }: Props) {
                     ) : (
                       /* ── Inactive: link to onboarding wizard ── */
                       <div className="flex flex-col gap-1.5">
-                        <p className="text-xs text-orange-600 dark:text-orange-400">
+                        <p className="text-sm text-orange-600 dark:text-orange-400">
                           {t('serviceDetail.booking.desc')}
                         </p>
                         <Link

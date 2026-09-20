@@ -219,7 +219,7 @@ export default function BusinessBookingProfilePage() {
                 <h1 className="text-base font-semibold">{business.name}</h1>
                 {/* Rating chip */}
                 {reviewsData && reviewsData.total_count > 0 && (
-                  <span className="flex items-center gap-0.5 text-xs text-amber-600 dark:text-amber-400 font-medium">
+                  <span className="flex items-center gap-0.5 text-sm text-amber-600 dark:text-amber-400 font-medium">
                     <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                     {reviewsData.avg_rating} ({reviewsData.total_count})
                   </span>
@@ -239,7 +239,7 @@ export default function BusinessBookingProfilePage() {
                   locations.map((loc) => (
                     <div key={loc.id} className="flex flex-col gap-0.5">
                       {[loc.address, loc.city, loc.country].filter(Boolean).length > 0 && (
-                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1 text-sm text-muted-foreground">
                           <MapPin className="w-3 h-3 shrink-0" />
                           <a
                             href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([loc.address, loc.city, loc.country].filter(Boolean).join(', '))}`}
@@ -252,7 +252,7 @@ export default function BusinessBookingProfilePage() {
                         </span>
                       )}
                       {loc.phone && (
-                        <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
                           <Phone className="w-3 h-3 shrink-0" />
                           <a href={`tel:${loc.phone}`} className="hover:text-primary transition-colors">
                             {loc.phone}
@@ -282,7 +282,7 @@ export default function BusinessBookingProfilePage() {
                     </div>
                   ))
                 ) : business.city ? (
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1 text-sm text-muted-foreground">
                     <MapPin className="w-3 h-3 shrink-0" />
                     {business.city}
                   </span>
@@ -312,7 +312,7 @@ export default function BusinessBookingProfilePage() {
             <div className="px-4 pb-3 border-t border-border pt-3">
               <button
                 onClick={() => setHoursOpen(o => !o)}
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Clock className="w-3.5 h-3.5" />
                 <span>{t('setup.hours.heading')}</span>
@@ -325,15 +325,15 @@ export default function BusinessBookingProfilePage() {
                     const isClosed = periods.length === 0;
                     return (
                       <div key={dow} className="flex items-center px-3 py-2 border-b border-border last:border-0">
-                        <span className="w-28 text-xs font-medium text-foreground shrink-0">
+                        <span className="w-28 text-sm font-medium text-foreground shrink-0">
                           {t(`setup.hours.day.${dow}` as Parameters<typeof t>[0])}
                         </span>
                         {isClosed ? (
-                          <span className="text-xs text-muted-foreground">{t('setup.hours.closed')}</span>
+                          <span className="text-sm text-muted-foreground">{t('setup.hours.closed')}</span>
                         ) : (
                           <div className="flex items-center gap-1.5 flex-wrap">
                             {periods.map((p, i) => (
-                              <span key={i} className="flex items-center gap-1.5 text-xs text-foreground">
+                              <span key={i} className="flex items-center gap-1.5 text-sm text-foreground">
                                 {i > 0 && <span className="text-muted-foreground">·</span>}
                                 {p.start_time.slice(0, 5)} – {p.end_time.slice(0, 5)}
                               </span>
@@ -380,11 +380,11 @@ export default function BusinessBookingProfilePage() {
                         )}
                       </div>
                       {svc.description && (
-                        <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
                           {svc.description}
                         </p>
                       )}
-                      <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                      <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {t('booking.duration').replace('{min}', String(svc.duration_minutes))}
@@ -422,13 +422,13 @@ export default function BusinessBookingProfilePage() {
                             <Star key={n} className={`w-3 h-3 ${n <= r.rating ? 'fill-amber-400 text-amber-400' : 'text-border'}`} />
                           ))}
                         </div>
-                        <span className="text-xs font-medium text-foreground">{r.reviewer_name}</span>
+                        <span className="text-sm font-medium text-foreground">{r.reviewer_name}</span>
                         <span className="text-xs text-muted-foreground ml-auto">
                           {new Date(r.created_at).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })}
                         </span>
                       </div>
                       {r.comment && (
-                        <p className="text-xs text-muted-foreground leading-relaxed">{r.comment}</p>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{r.comment}</p>
                       )}
                     </div>
                   ))}

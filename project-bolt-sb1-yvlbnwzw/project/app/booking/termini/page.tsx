@@ -217,20 +217,20 @@ export default function TerminiPage() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-semibold text-sm text-foreground truncate">{card.bizName}</p>
                     {card.avgRating != null && card.reviewCount > 0 && (
-                      <span className="flex items-center gap-0.5 text-xs text-amber-600 dark:text-amber-400 font-medium shrink-0">
+                      <span className="flex items-center gap-0.5 text-sm text-amber-600 dark:text-amber-400 font-medium shrink-0">
                         <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                         {card.avgRating.toFixed(1)} ({card.reviewCount})
                       </span>
                     )}
                   </div>
                   {(card.address || card.city) && (
-                    <p className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                    <p className="flex items-center gap-1 text-sm text-muted-foreground mt-0.5">
                       <MapPin className="w-3 h-3 shrink-0" />
                       {[card.address, card.city].filter(Boolean).join(', ')}
                     </p>
                   )}
                   {card.serviceNames.length > 0 && (
-                    <p className="text-xs text-muted-foreground mt-1 truncate">
+                    <p className="text-sm text-muted-foreground mt-1 truncate">
                       {card.serviceNames.slice(0, 3).join(' · ')}
                       {card.serviceNames.length > 3 && ` +${card.serviceNames.length - 3}`}
                     </p>

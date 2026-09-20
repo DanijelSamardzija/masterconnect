@@ -251,10 +251,10 @@ export default function RequestsDashboard() {
                             <span className="text-xs text-muted-foreground ml-1">({req.quote.price_type})</span>
                           </p>
                           {req.quote.duration_estimate && (
-                            <p className="text-xs text-muted-foreground">{req.quote.duration_estimate}</p>
+                            <p className="text-sm text-muted-foreground">{req.quote.duration_estimate}</p>
                           )}
                           {req.quote.message && (
-                            <p className="text-xs italic text-muted-foreground mt-1">{req.quote.message}</p>
+                            <p className="text-sm italic text-muted-foreground mt-1">{req.quote.message}</p>
                           )}
                           <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full mt-1 inline-block ${
                             req.quote.status === 'accepted' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
@@ -328,7 +328,7 @@ export default function RequestsDashboard() {
             <form onSubmit={submitQuote} className="flex flex-col gap-3">
               {/* Price type chips */}
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-muted-foreground">{t('trade.quote.priceType')}</label>
+                <label className="text-sm font-medium text-muted-foreground">{t('trade.quote.priceType')}</label>
                 <div className="flex gap-2">
                   {(['fixed', 'hourly', 'range'] as const).map((pt) => (
                     <button key={pt} type="button"
@@ -348,7 +348,7 @@ export default function RequestsDashboard() {
               {/* Price + currency */}
               <div className="grid grid-cols-3 gap-2">
                 <div className="col-span-2 flex flex-col gap-1">
-                  <label className="text-xs font-medium text-muted-foreground">
+                  <label className="text-sm font-medium text-muted-foreground">
                     {form.price_type === 'range' ? t('trade.quote.priceFrom') : t('trade.quote.price')}
                   </label>
                   <input type="number" min="0" step="0.01"
@@ -356,7 +356,7 @@ export default function RequestsDashboard() {
                     required className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-muted-foreground">{t('trade.quote.currency')}</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('trade.quote.currency')}</label>
                   <select value={form.currency} onChange={(e) => setForm((f) => ({ ...f, currency: e.target.value }))}
                     className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary">
                     {['BAM', 'EUR', 'RSD', 'USD'].map((c) => <option key={c} value={c}>{c}</option>)}
@@ -366,7 +366,7 @@ export default function RequestsDashboard() {
 
               {form.price_type === 'range' && (
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-muted-foreground">{t('trade.quote.priceTo')}</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('trade.quote.priceTo')}</label>
                   <input type="number" min="0" step="0.01"
                     value={form.price_max} onChange={(e) => setForm((f) => ({ ...f, price_max: e.target.value }))}
                     className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
@@ -375,7 +375,7 @@ export default function RequestsDashboard() {
 
               {/* Duration + scheduled */}
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-muted-foreground">{t('trade.quote.duration')}</label>
+                <label className="text-sm font-medium text-muted-foreground">{t('trade.quote.duration')}</label>
                 <input type="text" placeholder={t('trade.quote.durationPh')}
                   value={form.duration_estimate} onChange={(e) => setForm((f) => ({ ...f, duration_estimate: e.target.value }))}
                   className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
@@ -383,13 +383,13 @@ export default function RequestsDashboard() {
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-muted-foreground">{t('trade.quote.scheduledDate')}</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('trade.quote.scheduledDate')}</label>
                   <input type="date" min={new Date().toISOString().split('T')[0]}
                     value={form.scheduled_date} onChange={(e) => setForm((f) => ({ ...f, scheduled_date: e.target.value }))}
                     className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-muted-foreground">{t('trade.quote.scheduledTime')}</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('trade.quote.scheduledTime')}</label>
                   <TimePicker24h
                     value={form.scheduled_time} onChange={(v) => setForm((f) => ({ ...f, scheduled_time: v }))}
                     className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
@@ -398,7 +398,7 @@ export default function RequestsDashboard() {
 
               {/* Message */}
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-muted-foreground">{t('trade.quote.message')}</label>
+                <label className="text-sm font-medium text-muted-foreground">{t('trade.quote.message')}</label>
                 <textarea rows={3} placeholder={t('trade.quote.messagePh')}
                   value={form.message} onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
                   className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary resize-none" />
