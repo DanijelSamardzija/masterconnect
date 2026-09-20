@@ -7,6 +7,7 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { useBookingProfile, BookingProfileSummary } from '@/lib/contexts/booking-profile-context';
 import { ProtectedRoute } from '@/components/protected-route';
 import { supabase } from '@/lib/supabase/client';
+import { compressImage } from '@/lib/utils/compress-image';
 import {
   Calendar,
   Wrench,
@@ -25,39 +26,46 @@ import {
   Hammer,
   Package,
   ChevronDown,
+  ChevronUp,
   X,
+  Camera,
+  Loader2,
 } from 'lucide-react';
 
 // ─── Profile type helpers ────────────────────────────────────────────────────
 
 const PROFILE_TYPE_COLORS: Record<string, { icon: string; badge: string }> = {
   appointment:   { icon: 'bg-orange-100 dark:bg-orange-950',  badge: 'bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300' },
-  accommodation: { icon: 'bg-purple-100 dark:bg-purple-950',  badge: 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300' },
-  restaurant:    { icon: 'bg-red-100    dark:bg-red-950',      badge: 'bg-red-100    dark:bg-red-900    text-red-700    dark:text-red-300'    },
   tradespeople:  { icon: 'bg-blue-100   dark:bg-blue-950',     badge: 'bg-blue-100   dark:bg-blue-900   text-blue-700   dark:text-blue-300'   },
+  restaurant:    { icon: 'bg-red-100    dark:bg-red-950',      badge: 'bg-red-100    dark:bg-red-900    text-red-700    dark:text-red-300'    },
   food_order:    { icon: 'bg-green-100  dark:bg-green-950',    badge: 'bg-green-100  dark:bg-green-900  text-green-700  dark:text-green-300'  },
+  accommodation: { icon: 'bg-purple-100 dark:bg-purple-950',  badge: 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300' },
+  event:         { icon: 'bg-pink-100   dark:bg-pink-950',     badge: 'bg-pink-100   dark:bg-pink-900   text-pink-700   dark:text-pink-300'   },
 };
 
 function ProfileTypeIcon({ type, className }: { type: string; className?: string }) {
   const cls = className ?? 'w-5 h-5';
   switch (type) {
     case 'appointment':   return <Scissors    className={`${cls} text-orange-600 dark:text-orange-400`} />;
-    case 'accommodation': return <BedDouble   className={`${cls} text-purple-600 dark:text-purple-400`} />;
-    case 'restaurant':    return <Utensils    className={`${cls} text-red-600    dark:text-red-400`}    />;
     case 'tradespeople':  return <Hammer      className={`${cls} text-blue-600   dark:text-blue-400`}   />;
+    case 'restaurant':    return <Utensils    className={`${cls} text-red-600    dark:text-red-400`}    />;
     case 'food_order':    return <Package     className={`${cls} text-green-600  dark:text-green-400`}  />;
+    case 'accommodation': return <BedDouble   className={`${cls} text-purple-600 dark:text-purple-400`} />;
+    case 'event':         return <PartyPopper className={`${cls} text-pink-600   dark:text-pink-400`}   />;
     default:              return <Calendar    className={`${cls} text-muted-foreground`}                />;
   }
 }
 
 // ─── Create Profile Modal ────────────────────────────────────────────────────
 
+// Exact display order per product spec
 const PROFILE_TYPES = [
   'appointment',
-  'accommodation',
-  'restaurant',
   'tradespeople',
+  'restaurant',
   'food_order',
+  'accommodation',
+  'event',
 ] as const;
 
 type ProfileType = typeof PROFILE_TYPES[number];
@@ -72,17 +80,38 @@ function CreateProfileModal({
   const { t } = useLanguage();
   const [name, setName] = useState('');
   const [profileType, setProfileType] = useState<ProfileType>('appointment');
+  const [typeOpen, setTypeOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState('');
   const nameRef = useRef<HTMLInputElement>(null);
+  const avatarRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => { nameRef.current?.focus(); }, []);
+
+  // Close dropdown on outside click
   useEffect(() => {
-    nameRef.current?.focus();
-  }, []);
+    if (!typeOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setTypeOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [typeOpen]);
 
-  // Close on backdrop click
   const handleBackdrop = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) onClose();
+  };
+
+  const handleAvatarPick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -101,13 +130,38 @@ function CreateProfileModal({
         setError(data?.error ?? 'create_failed');
         return;
       }
-      onCreated(data.profile_id!, profileType);
+
+      const profileId = data.profile_id!;
+
+      // Upload avatar if one was picked
+      if (avatarFile) {
+        try {
+          const compressed = await compressImage(avatarFile, 400);
+          const fileName = `booking-profiles/${profileId}/${Date.now()}.jpg`;
+          const { error: uploadErr } = await supabase.storage
+            .from('avatars')
+            .upload(fileName, compressed, { upsert: true, contentType: 'image/jpeg' });
+          if (!uploadErr) {
+            const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
+            await (supabase as any)
+              .from('booking_profiles')
+              .update({ avatar_url: publicUrl })
+              .eq('id', profileId);
+          }
+        } catch {
+          // Avatar upload failing is non-fatal; wizard allows re-upload
+        }
+      }
+
+      onCreated(profileId, profileType);
     } catch {
       setError('create_failed');
     } finally {
       setSubmitting(false);
     }
   };
+
+  const colors = PROFILE_TYPE_COLORS[profileType] ?? PROFILE_TYPE_COLORS.appointment;
 
   return (
     <div
@@ -127,41 +181,95 @@ function CreateProfileModal({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Profile name */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              {t('booking.hub.profileNameLabel')}
-            </label>
-            <input
-              ref={nameRef}
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={t('booking.hub.profileNamePh')}
-              maxLength={80}
-              required
-              className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-            />
+          {/* Avatar + name row */}
+          <div className="flex items-center gap-3">
+            {/* Avatar pick */}
+            <button
+              type="button"
+              onClick={() => avatarRef.current?.click()}
+              className="relative w-14 h-14 rounded-2xl border-2 border-dashed border-border bg-muted/40 flex items-center justify-center shrink-0 overflow-hidden hover:border-primary/60 transition-colors"
+            >
+              {avatarPreview ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={avatarPreview} alt="logo" className="w-full h-full object-cover" />
+              ) : (
+                <Camera className="w-5 h-5 text-muted-foreground/60" />
+              )}
+            </button>
+            <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarPick} />
+
+            {/* Name */}
+            <div className="flex-1 space-y-1">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                {t('booking.hub.profileNameLabel')}
+              </label>
+              <input
+                ref={nameRef}
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={t('booking.hub.profileNamePh')}
+                maxLength={80}
+                required
+                className="w-full px-3 py-2 rounded-xl border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+            </div>
           </div>
 
-          {/* Profile type */}
+          {/* Profile type — custom select */}
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               {t('booking.hub.profileTypeLabel')}
             </label>
-            <div className="relative">
-              <select
-                value={profileType}
-                onChange={(e) => setProfileType(e.target.value as ProfileType)}
-                className="w-full appearance-none px-3 py-2.5 pr-9 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            <div ref={dropdownRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setTypeOpen((o) => !o)}
+                className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${
+                  typeOpen
+                    ? 'border-primary bg-primary/5 text-primary'
+                    : 'border-border bg-background text-foreground hover:border-primary/50'
+                }`}
               >
-                {PROFILE_TYPES.map((pt) => (
-                  <option key={pt} value={pt}>
-                    {t(`booking.hub.type.${pt}`)}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <span className="flex items-center gap-2">
+                  <span className={`p-1 rounded-lg ${colors.icon}`}>
+                    <ProfileTypeIcon type={profileType} className="w-3.5 h-3.5" />
+                  </span>
+                  {t(`booking.hub.type.${profileType}` as Parameters<typeof t>[0])}
+                </span>
+                {typeOpen
+                  ? <ChevronUp className="w-4 h-4 shrink-0 text-primary" />
+                  : <ChevronDown className="w-4 h-4 shrink-0 text-muted-foreground" />}
+              </button>
+
+              {typeOpen && (
+                <div className="absolute z-10 mt-1 w-full bg-card border border-border rounded-xl shadow-lg overflow-hidden">
+                  {PROFILE_TYPES.map((pt) => {
+                    const ptColors = PROFILE_TYPE_COLORS[pt] ?? PROFILE_TYPE_COLORS.appointment;
+                    const isSelected = pt === profileType;
+                    return (
+                      <button
+                        key={pt}
+                        type="button"
+                        onClick={() => { setProfileType(pt); setTypeOpen(false); }}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left transition-colors ${
+                          isSelected
+                            ? 'bg-primary/10 text-primary font-medium'
+                            : 'text-foreground hover:bg-accent'
+                        }`}
+                      >
+                        <span className={`p-1 rounded-lg shrink-0 ${ptColors.icon}`}>
+                          <ProfileTypeIcon type={pt} className="w-3.5 h-3.5" />
+                        </span>
+                        {t(`booking.hub.type.${pt}` as Parameters<typeof t>[0])}
+                        {isSelected && (
+                          <span className="ml-auto w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
@@ -182,8 +290,9 @@ function CreateProfileModal({
             <button
               type="submit"
               disabled={submitting || !name.trim()}
-              className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+              className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
             >
+              {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
               {submitting ? t('booking.hub.creating') : t('booking.hub.createProfileTitle')}
             </button>
           </div>

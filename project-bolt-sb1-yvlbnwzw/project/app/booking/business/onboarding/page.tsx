@@ -102,7 +102,7 @@ export default function BookingSetupWizardPage() {
   const resolvedProfileId = profileId ?? user?.id;
 
   // Show Service step only for appointment/tradespeople types
-  const showServiceStep = !profileType || profileType === 'appointment' || profileType === 'tradespeople';
+  const showServiceStep = !profileType || profileType === 'appointment' || profileType === 'tradespeople' || profileType === 'event';
   const VISIBLE_STEPS = (showServiceStep ? STEP_KEYS : STEP_KEYS.filter((k) => k !== 'service')) as readonly StepKey[];
   const VISIBLE_STEP_COUNT = VISIBLE_STEPS.length;
 

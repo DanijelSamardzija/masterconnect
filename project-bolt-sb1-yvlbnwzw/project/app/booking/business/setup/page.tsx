@@ -330,10 +330,11 @@ const TIMEZONE_OPTIONS: { value: string; label: string }[] = [
 
 const BIZ_CATEGORIES = [
   { key: 'appointment',  emoji: '🗓️', ready: true },
+  { key: 'tradespeople', emoji: '🔧', ready: false },
   { key: 'restaurant',   emoji: '🍽️', ready: false },
   { key: 'food_order',   emoji: '🍔', ready: false },
-  { key: 'tradespeople', emoji: '🔧', ready: false },
   { key: 'accommodation',emoji: '🏠', ready: false },
+  { key: 'event',        emoji: '🎉', ready: false },
 ] as const;
 
 function matchCountryValue(nominatimCountry: string): string {
