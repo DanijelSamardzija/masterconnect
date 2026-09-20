@@ -67,7 +67,7 @@ function CreateProfileModal({
   onCreated,
 }: {
   onClose: () => void;
-  onCreated: (profileId: string) => void;
+  onCreated: (profileId: string, profileType: ProfileType) => void;
 }) {
   const { t } = useLanguage();
   const [name, setName] = useState('');
@@ -101,7 +101,7 @@ function CreateProfileModal({
         setError(data?.error ?? 'create_failed');
         return;
       }
-      onCreated(data.profile_id!);
+      onCreated(data.profile_id!, profileType);
     } catch {
       setError('create_failed');
     } finally {
@@ -317,11 +317,11 @@ export default function BookingPage() {
     router.push('/booking/business/bookings');
   };
 
-  const handleCreated = async (profileId: string) => {
+  const handleCreated = async (profileId: string, profileType: string) => {
     setShowCreate(false);
     await reload();
     setActiveProfileId(profileId);
-    router.push('/booking/business/bookings');
+    router.push(`/booking/business/onboarding?profileId=${profileId}&profileType=${profileType}`);
   };
 
   const CATEGORIES = [
