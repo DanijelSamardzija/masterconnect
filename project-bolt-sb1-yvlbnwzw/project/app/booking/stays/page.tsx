@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useBookingAccess } from '@/lib/hooks/use-booking-access';
+import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
 import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { ChevronRight, Calendar, Users, Moon } from 'lucide-react';
 
@@ -73,6 +74,7 @@ export default function StaysDashboard() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { hasAccess, loading: authLoading } = useBookingAccess();
+  const { activeProfileId } = useBookingProfile();
 
   const [stays, setStays] = useState<Stay[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,12 +82,12 @@ export default function StaysDashboard() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    if (!user) return;
+    if (!user || !activeProfileId) return;
     setLoading(true);
     let query = (supabase as any)
       .from('accommodation_bookings')
       .select('*, unit:accommodation_units(name, unit_type)')
-      .eq('business_id', user.id)
+      .eq('business_id', activeProfileId)
       .order('check_in');
 
     const today = new Date().toISOString().split('T')[0];
@@ -98,7 +100,7 @@ export default function StaysDashboard() {
     const { data } = await query;
     setStays(data ?? []);
     setLoading(false);
-  }, [user, filter]);
+  }, [user, activeProfileId, filter]);
 
   useEffect(() => { load(); }, [load]);
 

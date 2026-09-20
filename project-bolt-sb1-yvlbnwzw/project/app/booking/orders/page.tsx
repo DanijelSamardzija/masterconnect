@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useBookingAccess } from '@/lib/hooks/use-booking-access';
+import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
 import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { ChevronRight, Calendar, ShoppingBag, MapPin, Package } from 'lucide-react';
 
@@ -62,6 +63,7 @@ export default function OrdersDashboard() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { hasAccess, loading: authLoading } = useBookingAccess();
+  const { activeProfileId } = useBookingProfile();
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,18 +72,18 @@ export default function OrdersDashboard() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    if (!user) return;
+    if (!user || !activeProfileId) return;
     setLoading(true);
     const { data } = await (supabase as any)
       .from('food_orders')
       .select('*')
-      .eq('business_id', user.id)
+      .eq('business_id', activeProfileId)
       .gte('created_at', filterDate + 'T00:00:00')
       .lte('created_at', filterDate + 'T23:59:59')
       .order('created_at', { ascending: false });
     setOrders(data ?? []);
     setLoading(false);
-  }, [user, filterDate]);
+  }, [user, activeProfileId, filterDate]);
 
   useEffect(() => { load(); }, [load]);
 

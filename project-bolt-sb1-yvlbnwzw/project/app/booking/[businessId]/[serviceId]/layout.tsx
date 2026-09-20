@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   );
 
   const [bizRes, svcRes] = await Promise.all([
-    supabase.from('profiles').select('name').eq('id', businessId).maybeSingle(),
+    supabase.from('booking_profiles').select('name').eq('id', businessId).eq('is_active', true).maybeSingle(),
     supabase.from('service_catalog')
       .select('name, description, price, price_type, currency, duration_minutes')
       .eq('id', serviceId)

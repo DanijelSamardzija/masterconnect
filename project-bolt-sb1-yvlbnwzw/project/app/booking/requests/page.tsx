@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useBookingAccess } from '@/lib/hooks/use-booking-access';
+import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
 import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
 import { ChevronRight, MapPin, Calendar, X, Send } from 'lucide-react';
@@ -85,6 +86,7 @@ export default function RequestsDashboard() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { hasAccess, loading: authLoading } = useBookingAccess();
+  const { activeProfileId } = useBookingProfile();
 
   const [requests, setRequests] = useState<TradeRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,16 +97,16 @@ export default function RequestsDashboard() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    if (!user) return;
+    if (!user || !activeProfileId) return;
     setLoading(true);
     const { data } = await (supabase as any)
       .from('tradesperson_requests')
       .select('*')
-      .eq('business_id', user.id)
+      .eq('business_id', activeProfileId)
       .order('created_at', { ascending: false });
     setRequests(data ?? []);
     setLoading(false);
-  }, [user]);
+  }, [user, activeProfileId]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -142,7 +144,7 @@ export default function RequestsDashboard() {
     setSubmitting(true);
     const { error } = await (supabase as any).from('tradesperson_quotes').insert({
       request_id: quoteModal,
-      business_id: user?.id,
+      business_id: activeProfileId,
       price_amount: parseFloat(form.price_amount),
       price_type: form.price_type,
       price_max: form.price_type === 'range' && form.price_max ? parseFloat(form.price_max) : null,

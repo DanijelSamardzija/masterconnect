@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useBookingAccess } from '@/lib/hooks/use-booking-access';
+import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
 import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
 import { ChevronRight, Calendar, Users, Clock } from 'lucide-react';
@@ -51,6 +52,7 @@ export default function ReservationsDashboard() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { hasAccess, loading: authLoading } = useBookingAccess();
+  const { activeProfileId } = useBookingProfile();
 
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,17 +60,17 @@ export default function ReservationsDashboard() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    if (!user) return;
+    if (!user || !activeProfileId) return;
     setLoading(true);
     const { data } = await (supabase as any)
       .from('table_reservations')
       .select('*, table:restaurant_tables(name, capacity)')
-      .eq('business_id', user.id)
+      .eq('business_id', activeProfileId)
       .eq('reserved_date', filterDate)
       .order('reserved_time');
     setReservations(data ?? []);
     setLoading(false);
-  }, [user, filterDate]);
+  }, [user, activeProfileId, filterDate]);
 
   useEffect(() => { load(); }, [load]);
 
