@@ -41,11 +41,11 @@ export default function TerminiPage() {
       const bizIds = [...new Set(svcList.map(s => s.business_id))] as string[];
 
       const [{ data: profiles }, { data: locs }, { data: svcLocs }] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select('id, name, avatar_url, average_rating, review_count')
+        (supabase as any)
+          .from('booking_profiles')
+          .select('id, name, avatar_url, profiles!booking_profiles_owner_id_fkey(average_rating, review_count)')
           .in('id', bizIds)
-          .eq('is_business', true),
+          .eq('is_active', true),
         supabase
           .from('business_locations')
           .select('id, business_id, address, city, is_primary')
@@ -93,8 +93,8 @@ export default function TerminiPage() {
       (profiles ?? []).forEach((p: any) => {
         const bizLocs = locsByBiz.get(p.id) ?? [];
         const bizSvcs = svcsByBiz.get(p.id) ?? [];
-        const rating = p.average_rating != null ? Number(p.average_rating) : null;
-        const reviewCount = p.review_count ?? 0;
+        const rating = p.profiles?.average_rating != null ? Number(p.profiles.average_rating) : null;
+        const reviewCount = p.profiles?.review_count ?? 0;
 
         if (bizLocs.length === 0) {
           result.push({
