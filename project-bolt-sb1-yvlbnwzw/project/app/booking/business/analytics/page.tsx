@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/protected-route';
-import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { BarChart3, MapPin, User, Download } from 'lucide-react';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
+import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -107,7 +108,8 @@ function fmtMoney(n: number, currency = 'EUR'): string {
 
 function AnalyticsPageInner() {
   const { t } = useLanguage();
-  const { user, profile } = useAuth();
+  const router = useRouter();
+  const { activeProfileId, loading: profileCtxLoading } = useBookingProfile();
 
   const [period, setPeriod]         = useState<Period>('month');
   const [customFrom, setCustomFrom] = useState(isoDate(new Date()));
@@ -124,34 +126,35 @@ function AnalyticsPageInner() {
     ? allStaff.filter(s => s.locationId === locationId)
     : allStaff;
 
-  // Load locations + staff list — scoped to caller's business
-  const userId = user?.id ?? profile?.id;
+  // Null guard — redirect if no active profile once context finishes loading
   useEffect(() => {
-    if (!userId) return;
+    if (!profileCtxLoading && !activeProfileId) router.replace('/booking');
+  }, [profileCtxLoading, activeProfileId, router]);
+
+  // Load locations + staff list — scoped to activeProfileId
+  useEffect(() => {
+    if (!activeProfileId) return;
     let cancelled = false;
 
+    // Reset filters and data when active profile changes
+    setLocationId('');
+    setStaffId('');
+    setLocations([]);
+    setAllStaff([]);
+    setData(null);
+
     (async () => {
-      const { data: me } = await supabase
-        .from('staff_members')
-        .select('business_id')
-        .eq('user_id', userId)
-        .eq('is_active', true)
-        .in('role', ['owner', 'manager'])
-        .maybeSingle();
-
-      if (!me || cancelled) return;
-
       const [{ data: locs }, { data: sm }] = await Promise.all([
         supabase
           .from('business_locations')
           .select('id, name')
-          .eq('business_id', me.business_id)
+          .eq('business_id', activeProfileId)
           .eq('is_active', true)
           .order('name'),
         supabase
           .from('staff_members')
           .select('id, primary_location_id, profiles!staff_members_user_id_fkey(name)')
-          .eq('business_id', me.business_id)
+          .eq('business_id', activeProfileId)
           .eq('is_active', true)
           .order('id'),
       ]);
@@ -170,9 +173,10 @@ function AnalyticsPageInner() {
     })();
 
     return () => { cancelled = true; };
-  }, [userId]);
+  }, [activeProfileId]);
 
   const load = useCallback(async () => {
+    if (!activeProfileId) return;
     setLoading(true);
     const { from, to } = getPeriodRange(period, customFrom, customTo);
 
@@ -182,15 +186,16 @@ function AnalyticsPageInner() {
       p_date_to:     to,
       p_staff_id:    staffId || null,
       p_service_id:  null,
+      p_business_id: activeProfileId,
     });
 
     setLoading(false);
     if (error || !result) { setData(null); return; }
     setData(result as AnalyticsResult);
-  }, [period, customFrom, customTo, locationId, staffId]);
+  }, [period, customFrom, customTo, locationId, staffId, activeProfileId]);
 
-  // Fire on mount and whenever filters change
-  useEffect(() => { if (userId) load(); }, [userId, load]);
+  // Fire on mount and whenever filters or active profile change
+  useEffect(() => { if (activeProfileId) load(); }, [activeProfileId, load]);
 
   // ── Derived data ──────────────────────────────────────────────────────────
 
@@ -287,6 +292,14 @@ ${staffBlocks}
     win.document.close();
     win.focus();
     setTimeout(() => { win.print(); win.close(); }, 300);
+  }
+
+  if (profileCtxLoading || !activeProfileId) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
   }
 
   if (data?.ok === false && data?.error === 'not_authorized') {
