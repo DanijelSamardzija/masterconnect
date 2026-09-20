@@ -262,7 +262,7 @@ export default function BusinessBookingProfilePage() {
                 className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
                   isFollowing
                     ? 'bg-primary/10 text-primary border-primary/30 hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400'
-                    : 'bg-background text-muted-foreground border-border hover:border-primary hover:text-primary'
+                    : 'bg-primary text-primary-foreground border-primary hover:bg-primary/90'
                 } disabled:opacity-50`}
               >
                 {isFollowing
