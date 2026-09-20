@@ -383,19 +383,19 @@ export async function POST(request: NextRequest) {
 
     if (!booking?.client_id) return NextResponse.json({ ok: true });
 
-    const [clientRes, bizRes, locRes] = await Promise.all([
+    const [clientRes, bpRes, locRes] = await Promise.all([
       db.from('profiles').select('name, email, country').eq('id', booking.client_id).maybeSingle(),
-      db.from('profiles').select('name, email, country').eq('id', booking.business_id).maybeSingle(),
+      db.from('booking_profiles').select('name, owner_id').eq('id', booking.business_id).maybeSingle(),
       db.from('business_locations').select('timezone, name, address, city, country').eq('id', booking.location_id).maybeSingle(),
     ]);
 
     const clientProfile = clientRes.data;
-    const bizProfile    = bizRes.data;
+    const bpData        = bpRes.data;
     if (!clientProfile?.email) return NextResponse.json({ ok: true });
 
     const tz       = locRes.data?.timezone ?? 'UTC';
     const service  = booking.service_name_snapshot ?? '';
-    const business = bizProfile?.name ?? '';
+    const business = bpData?.name ?? '';
     const dt       = fmtDt(booking.starts_at, tz, getLang(clientProfile.country));
 
     // Build a readable location line: "Salon Beograd · Knez Mihailova 5, Beograd"
@@ -420,15 +420,19 @@ export async function POST(request: NextRequest) {
     if (type === 'confirmation' || type === 'reschedule') {
       const clientName = clientProfile.name ?? 'Klijent';
 
+      // owner_id is the actual user UUID (booking_profiles.owner_id),
+      // which may differ from booking.business_id for non-primary profiles.
+      const ownerId = bpData?.owner_id ?? booking.business_id;
+
       // Collect unique recipient emails: owner + assigned staff
-      const recipientIds = new Set<string>([booking.business_id]);
+      const recipientIds = new Set<string>([ownerId]);
       if (booking.staff_member_id) {
         const { data: sm } = await db
           .from('staff_members')
           .select('user_id')
           .eq('id', booking.staff_member_id)
           .maybeSingle();
-        if (sm?.user_id && sm.user_id !== booking.business_id) {
+        if (sm?.user_id && sm.user_id !== ownerId) {
           recipientIds.add(sm.user_id);
         }
       }
