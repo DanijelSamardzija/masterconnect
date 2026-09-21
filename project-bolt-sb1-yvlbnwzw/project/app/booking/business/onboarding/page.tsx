@@ -1128,14 +1128,16 @@ export default function BookingSetupWizardPage() {
                   {selectedStaff && !staffAdded && (
                     <div className="flex flex-col gap-1.5">
                       <label className="text-sm font-medium">{t('setup.staff.inviteRole')}</label>
-                      <select
-                        value={staffRole}
-                        onChange={(e) => setStaffRole(e.target.value as 'manager' | 'worker')}
-                        className={selectCls}
-                      >
-                        <option value="worker">{t('setup.staff.role.worker')}</option>
-                        <option value="manager">{t('setup.staff.role.manager')}</option>
-                      </select>
+                      <div className="rounded-xl overflow-hidden border border-border focus-within:ring-2 focus-within:ring-primary">
+                        <select
+                          value={staffRole}
+                          onChange={(e) => setStaffRole(e.target.value as 'manager' | 'worker')}
+                          className="w-full px-3 py-3 text-sm bg-background focus:outline-none"
+                        >
+                          <option value="worker">{t('setup.staff.role.worker')}</option>
+                          <option value="manager">{t('setup.staff.role.manager')}</option>
+                        </select>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1199,17 +1201,19 @@ export default function BookingSetupWizardPage() {
                         {t('setup.rules.maxAdvance.desc')}
                       </p>
                     )}
-                    <select
-                      value={rules.max_advance_days}
-                      onChange={(e) => setRules((r) => ({ ...r, max_advance_days: Number(e.target.value) }))}
-                      className={selectCls}
-                    >
-                      {[7, 14, 21, 30, 45, 60, 90, 180, 365].map((v) => (
-                        <option key={v} value={v}>
-                          {v === 180 ? t('setup.rules.months6') : v === 365 ? t('setup.rules.year1') : `${v} dana`}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="rounded-xl overflow-hidden border border-border focus-within:ring-2 focus-within:ring-primary">
+                      <select
+                        value={rules.max_advance_days}
+                        onChange={(e) => setRules((r) => ({ ...r, max_advance_days: Number(e.target.value) }))}
+                        className="w-full px-3 py-3 text-sm bg-background focus:outline-none"
+                      >
+                        {[7, 14, 21, 30, 45, 60, 90, 180, 365].map((v) => (
+                          <option key={v} value={v}>
+                            {v === 180 ? t('setup.rules.months6') : v === 365 ? t('setup.rules.year1') : `${v} dana`}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
                   {/* Min notice + Cancellation */}
@@ -1226,17 +1230,19 @@ export default function BookingSetupWizardPage() {
                           {t('setup.rules.minNotice.desc')}
                         </p>
                       )}
-                      <select
-                        value={rules.min_notice_minutes}
-                        onChange={(e) => setRules((r) => ({ ...r, min_notice_minutes: Number(e.target.value) }))}
-                        className={selectCls}
-                      >
-                        {[0, 30, 60, 120, 180, 240, 480, 720, 1440].map((v) => (
-                          <option key={v} value={v}>
-                            {v === 0 ? '0' : v < 60 ? `${v} min` : v < 1440 ? `${v / 60}h` : '24h'}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="rounded-xl overflow-hidden border border-border focus-within:ring-2 focus-within:ring-primary">
+                        <select
+                          value={rules.min_notice_minutes}
+                          onChange={(e) => setRules((r) => ({ ...r, min_notice_minutes: Number(e.target.value) }))}
+                          className="w-full px-3 py-3 text-sm bg-background focus:outline-none"
+                        >
+                          {[0, 30, 60, 120, 180, 240, 480, 720, 1440].map((v) => (
+                            <option key={v} value={v}>
+                              {v === 0 ? '0' : v < 60 ? `${v} min` : v < 1440 ? `${v / 60}h` : '24h'}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                     <div className="flex flex-col gap-1.5">
                       <div className="flex items-center gap-1.5">
@@ -1250,17 +1256,19 @@ export default function BookingSetupWizardPage() {
                           {t('setup.rules.cancellation.desc')}
                         </p>
                       )}
-                      <select
-                        value={rules.cancellation_hours}
-                        onChange={(e) => setRules((r) => ({ ...r, cancellation_hours: Number(e.target.value) }))}
-                        className={selectCls}
-                      >
-                        {[0, 1, 2, 4, 8, 12, 24, 48, 72, 720, 2160].map((v) => (
-                          <option key={v} value={v}>
-                            {v === 0 ? '0' : v === 720 ? t('setup.rules.month1') : v === 2160 ? t('setup.rules.months3') : `${v}h`}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="rounded-xl overflow-hidden border border-border focus-within:ring-2 focus-within:ring-primary">
+                        <select
+                          value={rules.cancellation_hours}
+                          onChange={(e) => setRules((r) => ({ ...r, cancellation_hours: Number(e.target.value) }))}
+                          className="w-full px-3 py-3 text-sm bg-background focus:outline-none"
+                        >
+                          {[0, 1, 2, 4, 8, 12, 24, 48, 72, 720, 2160].map((v) => (
+                            <option key={v} value={v}>
+                              {v === 0 ? '0' : v === 720 ? t('setup.rules.month1') : v === 2160 ? t('setup.rules.months3') : `${v}h`}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                   </div>
 
