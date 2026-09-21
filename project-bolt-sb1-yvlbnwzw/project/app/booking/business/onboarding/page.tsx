@@ -581,14 +581,14 @@ export default function BookingSetupWizardPage() {
     setDayHours((prev) => prev.map((dh) => dh.day === day ? { ...dh, [field]: value } : dh));
   }
 
-  async function finishOnboarding() {
+  async function finishOnboarding(destination = '/booking/business/setup') {
     setSaving(true);
     await (supabase as any)
       .from('booking_profiles')
       .update({ onboarding_done: true })
       .eq('id', resolvedProfileId);
     setSaving(false);
-    router.push('/booking/business/setup');
+    router.push(destination);
   }
 
   async function copyLink() {
@@ -1322,7 +1322,7 @@ export default function BookingSetupWizardPage() {
                         </button>
                       )}
                       <button
-                        onClick={() => router.push('/booking/business/bookings')}
+                        onClick={() => finishOnboarding('/booking/business/bookings')}
                         className="w-full text-sm text-muted-foreground hover:text-foreground border border-border rounded-xl py-3 transition-colors"
                       >
                         {t('bookingSetup.activate.dashboard')}
@@ -1387,7 +1387,7 @@ export default function BookingSetupWizardPage() {
                         </button>
                       ) : (
                         <button
-                          onClick={finishOnboarding}
+                          onClick={() => finishOnboarding()}
                           disabled={saving}
                           className="w-full flex items-center justify-center gap-2 text-sm font-medium bg-primary text-primary-foreground rounded-xl py-3 hover:opacity-90 transition-opacity disabled:opacity-50"
                         >
@@ -1398,7 +1398,7 @@ export default function BookingSetupWizardPage() {
                         </button>
                       )}
                       <button
-                        onClick={() => router.push('/booking/business/bookings')}
+                        onClick={() => finishOnboarding('/booking/business/bookings')}
                         className="w-full text-sm text-muted-foreground hover:text-foreground border border-border rounded-xl py-3 transition-colors"
                       >
                         {t('bookingSetup.activate.dashboard')}
