@@ -230,11 +230,11 @@ function CreateProfileModal({
   );
 }
 
-// ─── Profile Card ────────────────────────────────────────────────────────────
+// ─── Profile Mini Card ───────────────────────────────────────────────────────
 
-function ProfileCard({
+function ProfileMiniCard({
   profile,
-  isActive: isSelected,
+  isActive,
   onClick,
   t,
 }: {
@@ -244,66 +244,35 @@ function ProfileCard({
   t: (key: string) => string;
 }) {
   const colors = PROFILE_TYPE_COLORS[profile.profile_type] ?? PROFILE_TYPE_COLORS.appointment;
-
-  const stats: string[] = [];
-  if (profile.location_count > 0) stats.push(`${profile.location_count} lok.`);
-  if (profile.profile_type === 'accommodation') {
-    if (profile.unit_count > 0) stats.push(`${profile.unit_count} jed.`);
-  } else {
-    if (profile.service_count > 0) stats.push(`${profile.service_count} usl.`);
-  }
-
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-left ${
+      className={`flex flex-col items-center gap-1.5 px-2 py-3 rounded-2xl border-2 shrink-0 w-[90px] transition-all text-center ${
         !profile.is_active
-          ? 'border-border bg-card/60 opacity-70'
-          : isSelected
-          ? 'border-primary bg-primary/5 shadow-sm'
-          : 'border-border bg-card hover:border-primary/50 hover:shadow-sm'
+          ? 'border-border bg-card opacity-60'
+          : isActive
+            ? 'border-primary bg-primary/5'
+            : 'border-border bg-card hover:border-primary/40 hover:bg-accent/50'
       }`}
     >
-      {/* Logo / avatar or type icon */}
-      <div className={`w-12 h-12 rounded-xl shrink-0 overflow-hidden flex items-center justify-center ${colors.icon}`}>
+      <div className={`w-11 h-11 rounded-xl overflow-hidden flex items-center justify-center shrink-0 ${colors.icon}`}>
         {profile.avatar_url
           // eslint-disable-next-line @next/next/no-img-element
           ? <img src={profile.avatar_url} alt={profile.name} className="w-full h-full object-cover" />
-          : <ProfileTypeIcon type={profile.profile_type} className="w-6 h-6" />
+          : <ProfileTypeIcon type={profile.profile_type} className="w-5 h-5" />
         }
       </div>
-
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-base font-bold text-foreground leading-tight truncate">
-            {profile.name}
-          </span>
-          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${colors.badge}`}>
-            {t(`booking.hub.type.${profile.profile_type}`)}
-          </span>
-        </div>
-        <div className="flex items-center gap-2 mt-1 flex-wrap">
-          {stats.length > 0 && (
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <MapPin className="w-3 h-3 shrink-0" />
-              {stats.join(' · ')}
-            </span>
-          )}
-          {!profile.is_active && (
-            <span className="text-xs font-medium px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
-              {t('booking.hub.profileInactive')}
-            </span>
-          )}
-          {profile.is_active && !profile.onboarding_done && (
-            <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400">
-              {t('booking.hub.profileNeedsSetup')}
-            </span>
-          )}
-        </div>
-      </div>
-
-      <ChevronRight className={`w-5 h-5 shrink-0 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
+      <span className="text-[11px] font-semibold text-foreground leading-tight line-clamp-2 w-full px-0.5">
+        {profile.name}
+      </span>
+      <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full leading-none ${colors.badge}`}>
+        {t(`booking.hub.type.${profile.profile_type}`)}
+      </span>
+      {profile.is_active && !profile.onboarding_done && (
+        <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 leading-none">
+          Setup
+        </span>
+      )}
     </button>
   );
 }
@@ -455,33 +424,31 @@ export default function BookingPage() {
         <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
 
           {/* ═══════════════════════════════════════════════════════
-              MOJ BOOKING — lični dashboard
+              MOJ BOOKING — kompaktni horizontalni quick-access
           ═══════════════════════════════════════════════════════ */}
           <section>
-            {/* Section eyebrow */}
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <span className="w-1 h-4 rounded-full bg-primary shrink-0" />
-                <h2 className="text-[11px] font-bold text-primary uppercase tracking-widest">
-                  {t('booking.hub.title')}
-                </h2>
-              </div>
-              {profiles.length > 0 && (
-                <button
-                  onClick={() => setShowCreate(true)}
-                  className="flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  {t('booking.hub.newProfile').replace('+ ', '')}
-                </button>
-              )}
+            {/* Eyebrow */}
+            <div className="flex items-center gap-2 mb-2.5">
+              <span className="w-1 h-3.5 rounded-full bg-primary shrink-0" />
+              <h2 className="text-[11px] font-bold text-primary uppercase tracking-widest">
+                {t('booking.hub.title')}
+              </h2>
             </div>
 
-            {/* Profile list */}
-            {profiles.length > 0 ? (
-              <div className="flex flex-col gap-2.5">
-                {profiles.map((p) => (
-                  <ProfileCard
+            {/* Horizontal scroll row — active profile first, then others, new, moje rezervacije, staff */}
+            <div
+              className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 [&::-webkit-scrollbar]:hidden"
+              style={{ scrollbarWidth: 'none' }}
+            >
+              {/* Profile mini cards — active first */}
+              {[...profiles]
+                .sort((a, b) => {
+                  if (a.id === activeProfileId) return -1;
+                  if (b.id === activeProfileId) return 1;
+                  return 0;
+                })
+                .map((p) => (
+                  <ProfileMiniCard
                     key={p.id}
                     profile={p}
                     isActive={p.id === activeProfileId}
@@ -489,55 +456,51 @@ export default function BookingPage() {
                     t={t}
                   />
                 ))}
-              </div>
-            ) : (
-              /* Empty state — visually distinct from category cards */
-              <div className="rounded-2xl border-2 border-dashed border-primary/30 bg-primary/[0.03] dark:bg-primary/[0.05] px-6 py-10 flex flex-col items-center gap-4 text-center">
-                <div className="w-16 h-16 rounded-2xl bg-orange-100 dark:bg-orange-950 flex items-center justify-center">
-                  <Calendar className="w-8 h-8 text-orange-500 dark:text-orange-400" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-base font-bold text-foreground">{t('booking.hub.noProfiles')}</p>
-                  <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">{t('booking.hub.noProfilesDesc')}</p>
-                </div>
-                <button
-                  onClick={() => setShowCreate(true)}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors shadow-sm"
-                >
-                  <Plus className="w-4 h-4" />
-                  {t('booking.hub.newProfile')}
-                </button>
-              </div>
-            )}
 
-            {/* Staff membership card — belongs to "moj booking" */}
-            {staffBusinessName && (
-              <div className="mt-2.5 bg-card border-2 border-border rounded-2xl p-4 flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-950 flex items-center justify-center shrink-0">
-                  <Calendar className="w-6 h-6 text-orange-500 dark:text-orange-400" />
+              {/* + Novi profil */}
+              <button
+                onClick={() => setShowCreate(true)}
+                className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-2xl border-2 border-dashed border-border hover:border-primary/50 shrink-0 w-[90px] transition-colors text-center"
+              >
+                <div className="w-11 h-11 rounded-xl border-2 border-dashed border-border flex items-center justify-center">
+                  <Plus className="w-5 h-5 text-muted-foreground" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-base font-bold text-foreground truncate">{staffBusinessName}</p>
-                  <p className="text-xs text-muted-foreground mb-2">{t('dashboard.staff.memberDesc')}</p>
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => router.push('/dashboard/staff/bookings')}
-                      className="flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
-                    >
-                      <Calendar className="w-3 h-3" />
-                      {t('booking.staffCard.bookings')}
-                    </button>
-                    <button
-                      onClick={() => router.push('/dashboard/staff/schedule')}
-                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      <Clock className="w-3 h-3" />
-                      {t('schedule.staffView.title')}
-                    </button>
+                <span className="text-[11px] font-medium text-muted-foreground leading-tight">
+                  {t('booking.hub.newProfile').replace('+ ', '')}
+                </span>
+              </button>
+
+              {/* Moje rezervacije */}
+              <button
+                onClick={() => router.push('/booking/my')}
+                className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-2xl border-2 border-border bg-card hover:border-primary/40 hover:bg-accent/50 shrink-0 w-[90px] transition-colors text-center"
+              >
+                <div className="w-11 h-11 rounded-xl bg-orange-100 dark:bg-orange-950 flex items-center justify-center">
+                  <BookMarked className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                </div>
+                <span className="text-[11px] font-semibold text-foreground leading-tight line-clamp-2 w-full px-0.5">
+                  {t('booking.hub.myRes')}
+                </span>
+              </button>
+
+              {/* Staff membership — mini card */}
+              {staffBusinessName && (
+                <button
+                  onClick={() => router.push('/dashboard/staff/bookings')}
+                  className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-2xl border-2 border-border bg-card hover:border-primary/40 hover:bg-accent/50 shrink-0 w-[90px] transition-colors text-center"
+                >
+                  <div className="w-11 h-11 rounded-xl bg-orange-100 dark:bg-orange-950 flex items-center justify-center">
+                    <Calendar className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                   </div>
-                </div>
-              </div>
-            )}
+                  <span className="text-[11px] font-semibold text-foreground leading-tight line-clamp-2 w-full px-0.5">
+                    {staffBusinessName}
+                  </span>
+                  <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 leading-none">
+                    {t('booking.hub.staffBadge')}
+                  </span>
+                </button>
+              )}
+            </div>
           </section>
 
           {/* ═══════════════════════════════════════════════════════

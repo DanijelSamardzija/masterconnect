@@ -1862,6 +1862,7 @@ export default {
   'booking.hub.myBizDesc': 'Manage your services',
   'booking.hub.myRes': 'My Reservations',
   'booking.hub.myResDesc': 'Upcoming appointments',
+  'booking.hub.staffBadge': 'Staff',
   'booking.hub.searchPh': 'Find what you need...',
   'booking.hub.soon': 'Soon',
   'booking.hub.marketplace': 'Book a service',

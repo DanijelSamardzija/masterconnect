@@ -1862,6 +1862,7 @@ export default {
   'booking.hub.myBizDesc': 'Upravljaj uslugama',
   'booking.hub.myRes': 'Moje rezervacije',
   'booking.hub.myResDesc': 'Predstojeći termini',
+  'booking.hub.staffBadge': 'Osoblje',
   'booking.hub.searchPh': 'Nađi šta ti treba...',
   'booking.hub.soon': 'Uskoro',
   'booking.hub.marketplace': 'Rezerviši uslugu',
