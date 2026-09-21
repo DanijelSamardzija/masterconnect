@@ -294,6 +294,8 @@ export default function BookingPage() {
   const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(false);
   const [staffBusinessName, setStaffBusinessName] = useState<string | null>(null);
+  const [staffBusinessAvatar, setStaffBusinessAvatar] = useState<string | null>(null);
+  const [staffRole, setStaffRole] = useState<string | null>(null);
 
   // Ensure first render is identical on server and client to prevent hydration mismatch (#418/#423)
   useEffect(() => { setMounted(true); }, []);
@@ -317,10 +319,12 @@ export default function BookingPage() {
       if (!membership) return;
       const { data: biz } = await (supabase as any)
         .from('booking_profiles')
-        .select('name')
+        .select('name, avatar_url')
         .eq('id', membership.business_id)
         .single();
       setStaffBusinessName(biz?.name ?? null);
+      setStaffBusinessAvatar(biz?.avatar_url ?? null);
+      setStaffRole(membership.role);
     })();
   }, [user]);
 
@@ -456,14 +460,18 @@ export default function BookingPage() {
                     onClick={() => router.push('/dashboard/staff/bookings')}
                     className="flex flex-col items-center justify-center gap-1.5 px-2 py-3 rounded-2xl border-2 border-border bg-card hover:border-primary/40 hover:bg-accent/50 shrink-0 w-[90px] transition-colors text-center"
                   >
-                    <div className="w-11 h-11 rounded-xl bg-orange-100 dark:bg-orange-950 flex items-center justify-center">
-                      <Calendar className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                    <div className="w-11 h-11 rounded-xl overflow-hidden bg-orange-100 dark:bg-orange-950 flex items-center justify-center shrink-0">
+                      {staffBusinessAvatar
+                        // eslint-disable-next-line @next/next/no-img-element
+                        ? <img src={staffBusinessAvatar} alt={staffBusinessName} className="w-full h-full object-cover" />
+                        : <Calendar className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                      }
                     </div>
                     <span className="text-[11px] font-semibold text-foreground leading-tight line-clamp-2 w-full px-0.5">
                       {staffBusinessName}
                     </span>
                     <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 leading-none">
-                      {t('booking.hub.staffBadge')}
+                      {t(`booking.hub.staffRole.${staffRole ?? 'worker'}` as Parameters<typeof t>[0])}
                     </span>
                   </button>
                 )}
@@ -491,14 +499,18 @@ export default function BookingPage() {
                     onClick={() => router.push('/dashboard/staff/bookings')}
                     className="flex flex-col items-center justify-center gap-1.5 px-2 py-3 rounded-2xl border-2 border-border bg-card hover:border-primary/40 hover:bg-accent/50 shrink-0 w-[90px] transition-colors text-center"
                   >
-                    <div className="w-11 h-11 rounded-xl bg-orange-100 dark:bg-orange-950 flex items-center justify-center">
-                      <Calendar className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                    <div className="w-11 h-11 rounded-xl overflow-hidden bg-orange-100 dark:bg-orange-950 flex items-center justify-center shrink-0">
+                      {staffBusinessAvatar
+                        // eslint-disable-next-line @next/next/no-img-element
+                        ? <img src={staffBusinessAvatar} alt={staffBusinessName} className="w-full h-full object-cover" />
+                        : <Calendar className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                      }
                     </div>
                     <span className="text-[11px] font-semibold text-foreground leading-tight line-clamp-2 w-full px-0.5">
                       {staffBusinessName}
                     </span>
                     <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 leading-none">
-                      {t('booking.hub.staffBadge')}
+                      {t(`booking.hub.staffRole.${staffRole ?? 'worker'}` as Parameters<typeof t>[0])}
                     </span>
                   </button>
                 )}
