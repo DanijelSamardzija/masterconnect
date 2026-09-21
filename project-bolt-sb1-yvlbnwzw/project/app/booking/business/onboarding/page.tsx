@@ -1186,80 +1186,6 @@ export default function BookingSetupWizardPage() {
                     </div>
                   </div>
 
-                  {/* Slot interval */}
-                  <div className="flex flex-col gap-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <label className="text-sm font-medium">{t('setup.rules.slotInterval')}</label>
-                      <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'slot' ? null : 'slot')} className="text-muted-foreground/80 hover:text-primary transition-colors">
-                        <Info className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                    {activeRuleInfo === 'slot' && (
-                      <p className="text-xs text-muted-foreground leading-relaxed bg-muted/40 px-3 py-2 rounded-lg border border-border/50">
-                        {t('setup.rules.slotInterval.desc')}
-                      </p>
-                    )}
-                    <select
-                      value={rules.slot_interval_min}
-                      onChange={(e) => setRules((r) => ({ ...r, slot_interval_min: Number(e.target.value) }))}
-                      className={selectCls}
-                    >
-                      {[15, 30, 45, 60].map((v) => <option key={v} value={v}>{v} min</option>)}
-                    </select>
-                  </div>
-
-                  {/* Cancellation + Min notice */}
-                  <div className="flex gap-3">
-                    <div className="flex flex-col gap-1.5 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <label className="text-xs font-medium text-muted-foreground">{t('setup.rules.cancellation')}</label>
-                        <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'cancel' ? null : 'cancel')} className="text-muted-foreground/80 hover:text-primary transition-colors">
-                          <Info className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                      {activeRuleInfo === 'cancel' && (
-                        <p className="text-[11px] text-muted-foreground leading-relaxed bg-muted/40 px-3 py-2 rounded-lg border border-border/50">
-                          {t('setup.rules.cancellation.desc')}
-                        </p>
-                      )}
-                      <select
-                        value={rules.cancellation_hours}
-                        onChange={(e) => setRules((r) => ({ ...r, cancellation_hours: Number(e.target.value) }))}
-                        className={selectCls}
-                      >
-                        {[1, 2, 4, 6, 12, 24, 48, 720, 2160].map((v) => (
-                          <option key={v} value={v}>
-                            {v === 720 ? t('setup.rules.month1') : v === 2160 ? t('setup.rules.months3') : `${v}h`}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="flex flex-col gap-1.5 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <label className="text-xs font-medium text-muted-foreground">{t('setup.rules.minNotice')}</label>
-                        <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'notice' ? null : 'notice')} className="text-muted-foreground/80 hover:text-primary transition-colors">
-                          <Info className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                      {activeRuleInfo === 'notice' && (
-                        <p className="text-[11px] text-muted-foreground leading-relaxed bg-muted/40 px-3 py-2 rounded-lg border border-border/50">
-                          {t('setup.rules.minNotice.desc')}
-                        </p>
-                      )}
-                      <select
-                        value={rules.min_notice_minutes}
-                        onChange={(e) => setRules((r) => ({ ...r, min_notice_minutes: Number(e.target.value) }))}
-                        className={selectCls}
-                      >
-                        {[15, 30, 60, 120, 240, 480, 1440].map((v) => (
-                          <option key={v} value={v}>
-                            {v < 60 ? `${v} min` : v === 60 ? '1h' : v < 1440 ? `${v / 60}h` : '24h'}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
                   {/* Max advance */}
                   <div className="flex flex-col gap-1.5">
                     <div className="flex items-center gap-1.5">
@@ -1278,12 +1204,64 @@ export default function BookingSetupWizardPage() {
                       onChange={(e) => setRules((r) => ({ ...r, max_advance_days: Number(e.target.value) }))}
                       className={selectCls}
                     >
-                      {[7, 14, 30, 60, 90, 180, 365].map((v) => (
+                      {[7, 14, 21, 30, 45, 60, 90, 180, 365].map((v) => (
                         <option key={v} value={v}>
                           {v === 180 ? t('setup.rules.months6') : v === 365 ? t('setup.rules.year1') : `${v} dana`}
                         </option>
                       ))}
                     </select>
+                  </div>
+
+                  {/* Min notice + Cancellation */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <label className="text-sm font-medium">{t('setup.rules.minNotice')}</label>
+                        <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'notice' ? null : 'notice')} className="text-muted-foreground/80 hover:text-primary transition-colors">
+                          <Info className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      {activeRuleInfo === 'notice' && (
+                        <p className="text-xs text-muted-foreground leading-relaxed bg-muted/40 px-3 py-2 rounded-lg border border-border/50">
+                          {t('setup.rules.minNotice.desc')}
+                        </p>
+                      )}
+                      <select
+                        value={rules.min_notice_minutes}
+                        onChange={(e) => setRules((r) => ({ ...r, min_notice_minutes: Number(e.target.value) }))}
+                        className={selectCls}
+                      >
+                        {[0, 30, 60, 120, 180, 240, 480, 720, 1440].map((v) => (
+                          <option key={v} value={v}>
+                            {v === 0 ? '0' : v < 60 ? `${v} min` : v < 1440 ? `${v / 60}h` : '24h'}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <label className="text-sm font-medium">{t('setup.rules.cancellation')}</label>
+                        <button type="button" onClick={() => setActiveRuleInfo(activeRuleInfo === 'cancel' ? null : 'cancel')} className="text-muted-foreground/80 hover:text-primary transition-colors">
+                          <Info className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      {activeRuleInfo === 'cancel' && (
+                        <p className="text-xs text-muted-foreground leading-relaxed bg-muted/40 px-3 py-2 rounded-lg border border-border/50">
+                          {t('setup.rules.cancellation.desc')}
+                        </p>
+                      )}
+                      <select
+                        value={rules.cancellation_hours}
+                        onChange={(e) => setRules((r) => ({ ...r, cancellation_hours: Number(e.target.value) }))}
+                        className={selectCls}
+                      >
+                        {[0, 1, 2, 4, 8, 12, 24, 48, 72, 720, 2160].map((v) => (
+                          <option key={v} value={v}>
+                            {v === 0 ? '0' : v === 720 ? t('setup.rules.month1') : v === 2160 ? t('setup.rules.months3') : `${v}h`}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
                 </div>
