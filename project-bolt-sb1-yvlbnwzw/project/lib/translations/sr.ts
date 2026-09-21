@@ -1895,6 +1895,7 @@ export default {
   'booking.hub.noProfiles': 'Nema profila',
   'booking.hub.noProfilesDesc': 'Kreirajte prvi booking profil da počnete upravljati terminima.',
   'booking.hub.createProfileTitle': 'Novi booking profil',
+  'booking.hub.logoLabel': 'Logo',
   'booking.hub.profileNameLabel': 'Naziv profila',
   'booking.hub.profileNamePh': 'npr. Moj salon',
   'booking.hub.profileTypeLabel': 'Tip profila',

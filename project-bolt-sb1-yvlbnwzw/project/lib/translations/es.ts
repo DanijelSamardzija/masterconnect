@@ -1813,6 +1813,7 @@ export default {
   'booking.hub.noProfiles': 'Sin perfiles',
   'booking.hub.noProfilesDesc': 'Crea tu primer perfil de reservas para gestionar citas.',
   'booking.hub.createProfileTitle': 'Nuevo perfil de reservas',
+  'booking.hub.logoLabel': 'Logo',
   'booking.hub.profileNameLabel': 'Nombre del perfil',
   'booking.hub.profileNamePh': 'ej. Mi Salón',
   'booking.hub.profileTypeLabel': 'Tipo de perfil',

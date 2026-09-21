@@ -1895,6 +1895,7 @@ export default {
   'booking.hub.noProfiles': 'No profiles yet',
   'booking.hub.noProfilesDesc': 'Create your first booking profile to start managing appointments.',
   'booking.hub.createProfileTitle': 'New Booking Profile',
+  'booking.hub.logoLabel': 'Logo',
   'booking.hub.profileNameLabel': 'Profile name',
   'booking.hub.profileNamePh': 'e.g. My Salon',
   'booking.hub.profileTypeLabel': 'Profile type',

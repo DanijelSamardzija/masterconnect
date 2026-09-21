@@ -1820,6 +1820,7 @@ export default {
   'booking.hub.noProfiles': 'Aucun profil',
   'booking.hub.noProfilesDesc': 'Créez votre premier profil de réservation pour gérer vos rendez-vous.',
   'booking.hub.createProfileTitle': 'Nouveau profil de réservation',
+  'booking.hub.logoLabel': 'Logo',
   'booking.hub.profileNameLabel': 'Nom du profil',
   'booking.hub.profileNamePh': 'ex. Mon Salon',
   'booking.hub.profileTypeLabel': 'Type de profil',

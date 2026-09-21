@@ -183,25 +183,30 @@ function CreateProfileModal({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Avatar + name row */}
-          <div className="flex items-center gap-3">
-            {/* Avatar pick */}
-            <button
-              type="button"
-              onClick={() => avatarRef.current?.click()}
-              className="relative w-14 h-14 rounded-2xl border-2 border-dashed border-border bg-muted/40 flex items-center justify-center shrink-0 overflow-hidden hover:border-primary/60 transition-colors"
-            >
-              {avatarPreview ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={avatarPreview} alt="logo" className="w-full h-full object-cover" />
-              ) : (
-                <Camera className="w-5 h-5 text-muted-foreground/60" />
-              )}
-            </button>
+          {/* Avatar + name row — symmetric: both sides have label above control */}
+          <div className="flex items-start gap-3">
+            {/* Logo column */}
+            <div className="flex flex-col gap-1 shrink-0">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                {t('booking.hub.logoLabel')}
+              </span>
+              <button
+                type="button"
+                onClick={() => avatarRef.current?.click()}
+                className="relative w-14 h-14 rounded-2xl border-2 border-dashed border-border bg-muted/40 flex items-center justify-center overflow-hidden hover:border-primary/60 transition-colors group"
+              >
+                {avatarPreview ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={avatarPreview} alt="logo" className="w-full h-full object-cover" />
+                ) : (
+                  <Camera className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary/60 transition-colors" />
+                )}
+              </button>
+            </div>
             <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarPick} />
 
-            {/* Name */}
-            <div className="flex-1 space-y-1">
+            {/* Name column */}
+            <div className="flex-1 flex flex-col gap-1">
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 {t('booking.hub.profileNameLabel')}
               </label>
