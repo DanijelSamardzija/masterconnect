@@ -245,7 +245,7 @@ function ProfileMiniCard({
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center gap-1.5 px-2 py-3 rounded-2xl border-2 shrink-0 w-[90px] transition-all text-center ${
+      className={`flex flex-col items-center justify-center gap-1.5 px-2 py-3 rounded-2xl border-2 shrink-0 w-[90px] transition-all text-center ${
         !profile.is_active
           ? 'border-border bg-card opacity-60'
           : isActive
@@ -446,7 +446,7 @@ export default function BookingPage() {
               className="overflow-x-auto -mx-4 [&::-webkit-scrollbar]:hidden"
               style={{ scrollbarWidth: 'none' }}
             >
-              <div className="flex gap-2 px-4 pb-1 w-max min-w-full justify-center items-start">
+              <div className="flex gap-2 px-4 pb-1 w-max min-w-full justify-center items-stretch">
 
                 {/* ── Business profiles section ── */}
 
@@ -454,7 +454,7 @@ export default function BookingPage() {
                 {staffBusinessName && profiles.length === 0 && (
                   <button
                     onClick={() => router.push('/dashboard/staff/bookings')}
-                    className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-2xl border-2 border-border bg-card hover:border-primary/40 hover:bg-accent/50 shrink-0 w-[90px] transition-colors text-center"
+                    className="flex flex-col items-center justify-center gap-1.5 px-2 py-3 rounded-2xl border-2 border-border bg-card hover:border-primary/40 hover:bg-accent/50 shrink-0 w-[90px] transition-colors text-center"
                   >
                     <div className="w-11 h-11 rounded-xl bg-orange-100 dark:bg-orange-950 flex items-center justify-center">
                       <Calendar className="w-5 h-5 text-orange-600 dark:text-orange-400" />
@@ -489,7 +489,7 @@ export default function BookingPage() {
                 {staffBusinessName && profiles.length > 0 && (
                   <button
                     onClick={() => router.push('/dashboard/staff/bookings')}
-                    className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-2xl border-2 border-border bg-card hover:border-primary/40 hover:bg-accent/50 shrink-0 w-[90px] transition-colors text-center"
+                    className="flex flex-col items-center justify-center gap-1.5 px-2 py-3 rounded-2xl border-2 border-border bg-card hover:border-primary/40 hover:bg-accent/50 shrink-0 w-[90px] transition-colors text-center"
                   >
                     <div className="w-11 h-11 rounded-xl bg-orange-100 dark:bg-orange-950 flex items-center justify-center">
                       <Calendar className="w-5 h-5 text-orange-600 dark:text-orange-400" />
@@ -513,7 +513,7 @@ export default function BookingPage() {
                 {/* Moje rezervacije */}
                 <button
                   onClick={() => router.push('/booking/my')}
-                  className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-2xl border-2 border-border bg-card hover:border-primary/40 hover:bg-accent/50 shrink-0 w-[90px] transition-colors text-center"
+                  className="flex flex-col items-center justify-center gap-1.5 px-2 py-3 rounded-2xl border-2 border-border bg-card hover:border-primary/40 hover:bg-accent/50 shrink-0 w-[90px] transition-colors text-center"
                 >
                   <div className="w-11 h-11 rounded-xl bg-orange-100 dark:bg-orange-950 flex items-center justify-center">
                     <BookMarked className="w-5 h-5 text-orange-600 dark:text-orange-400" />
@@ -526,7 +526,7 @@ export default function BookingPage() {
                 {/* + Novi profil */}
                 <button
                   onClick={() => setShowCreate(true)}
-                  className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-2xl border-2 border-dashed border-border hover:border-primary/50 shrink-0 w-[90px] transition-colors text-center"
+                  className="flex flex-col items-center justify-center gap-1.5 px-2 py-3 rounded-2xl border-2 border-dashed border-border hover:border-primary/50 shrink-0 w-[90px] transition-colors text-center"
                 >
                   <div className="w-11 h-11 rounded-xl border-2 border-dashed border-border flex items-center justify-center">
                     <Plus className="w-5 h-5 text-muted-foreground" />
