@@ -2229,6 +2229,7 @@ export default {
   'trade.service.price_type.quote': 'By quote (most common)',
   'trade.service.price_type.hourly': 'Per hour',
   'trade.service.price_type.fixed': 'Fixed price',
+  'trade.service.price_type.project': 'Project price (lump sum)',
   'trade.service.price_from': 'Starting price (optional)',
   'trade.service.save': 'Save service',
   'trade.service.saved': 'Service saved',

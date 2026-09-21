@@ -2219,6 +2219,7 @@ export default {
   'trade.service.price_type.quote': 'Nach Angebot (häufigste)',
   'trade.service.price_type.hourly': 'Pro Stunde',
   'trade.service.price_type.fixed': 'Festpreis',
+  'trade.service.price_type.project': 'Projektpreis (Pauschalpreis)',
   'trade.service.price_from': 'Ab-Preis (optional)',
   'trade.service.save': 'Leistung speichern',
   'trade.service.saved': 'Leistung gespeichert',

@@ -2229,6 +2229,7 @@ export default {
   'trade.service.price_type.quote': 'Po procjeni (najčešće)',
   'trade.service.price_type.hourly': 'Po satu',
   'trade.service.price_type.fixed': 'Fiksna cijena',
+  'trade.service.price_type.project': 'Projektna cijena (paušal)',
   'trade.service.price_from': 'Cijena od (opciono)',
   'trade.service.save': 'Sačuvaj uslugu',
   'trade.service.saved': 'Usluga sačuvana',

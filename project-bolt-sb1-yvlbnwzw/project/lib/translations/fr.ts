@@ -2154,6 +2154,7 @@ export default {
   'trade.service.price_type.quote': 'Sur devis (le plus courant)',
   'trade.service.price_type.hourly': 'À l\'heure',
   'trade.service.price_type.fixed': 'Prix fixe',
+  'trade.service.price_type.project': 'Prix projet (forfait)',
   'trade.service.price_from': 'Prix à partir de (optionnel)',
   'trade.service.save': 'Enregistrer le service',
   'trade.service.saved': 'Service enregistré',

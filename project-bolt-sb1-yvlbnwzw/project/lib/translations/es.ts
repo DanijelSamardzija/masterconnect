@@ -2147,6 +2147,7 @@ export default {
   'trade.service.price_type.quote': 'Por presupuesto (más común)',
   'trade.service.price_type.hourly': 'Por hora',
   'trade.service.price_type.fixed': 'Precio fijo',
+  'trade.service.price_type.project': 'Precio por proyecto (suma fija)',
   'trade.service.price_from': 'Precio desde (opcional)',
   'trade.service.save': 'Guardar servicio',
   'trade.service.saved': 'Servicio guardado',
