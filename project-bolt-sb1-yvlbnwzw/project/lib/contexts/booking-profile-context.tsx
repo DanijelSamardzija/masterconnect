@@ -24,6 +24,10 @@ export type BookingProfileContextValue = {
   setActiveProfileId: (id: string) => void;
   loading: boolean;
   reload: () => Promise<void>;
+  // Writes preferredId to sessionStorage BEFORE reloading so resolveActiveId
+  // picks it up. Use this after creating a new profile to avoid the stale-closure
+  // bug where setActiveProfileId sees the old profiles[] list and bails.
+  reloadWithPreferred: (preferredId: string) => Promise<void>;
 };
 
 const SESSION_KEY = 'bk_active_profile';
@@ -35,6 +39,7 @@ const BookingProfileContext = createContext<BookingProfileContextValue>({
   setActiveProfileId: () => {},
   loading: true,
   reload: async () => {},
+  reloadWithPreferred: async () => {},
 });
 
 function readStoredProfileId(): string | null {
@@ -135,6 +140,13 @@ export function BookingProfileProvider({ children }: { children: React.ReactNode
     writeStoredProfileId(id);
   }, [profiles]);
 
+  // Write preferred id to sessionStorage BEFORE reloading so that
+  // loadProfiles → resolveActiveId picks it up even before React re-renders.
+  const reloadWithPreferred = useCallback(async (preferredId: string) => {
+    writeStoredProfileId(preferredId);
+    await loadProfiles();
+  }, [loadProfiles]);
+
   const activeProfile = profiles.find((p) => p.id === activeProfileId) ?? null;
 
   return (
@@ -146,6 +158,7 @@ export function BookingProfileProvider({ children }: { children: React.ReactNode
         setActiveProfileId,
         loading,
         reload: loadProfiles,
+        reloadWithPreferred,
       }}
     >
       {children}

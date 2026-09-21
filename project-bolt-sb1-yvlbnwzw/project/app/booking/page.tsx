@@ -316,6 +316,7 @@ export default function BookingPage() {
     setActiveProfileId,
     loading: profilesLoading,
     reload,
+    reloadWithPreferred,
   } = useBookingProfile();
 
   const [search, setSearch] = useState('');
@@ -368,8 +369,10 @@ export default function BookingPage() {
 
   const handleCreated = async (profileId: string, profileType: string) => {
     setShowCreate(false);
-    await reload();
-    setActiveProfileId(profileId);
+    // reloadWithPreferred writes profileId to sessionStorage BEFORE fetching,
+    // so resolveActiveId picks up the new profile instead of the old one.
+    // (setActiveProfileId alone would fail: stale closure sees old profiles[])
+    await reloadWithPreferred(profileId);
     const params = new URLSearchParams({ profileId, profileType });
     router.push(`/booking/business/onboarding?${params.toString()}`);
   };
