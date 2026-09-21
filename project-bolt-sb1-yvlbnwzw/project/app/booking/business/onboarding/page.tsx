@@ -1041,9 +1041,6 @@ export default function BookingSetupWizardPage() {
                 <div>
                   <h2 className="text-lg font-semibold">{t('bookingSetup.staff.search.heading')}</h2>
                   <p className="text-sm text-muted-foreground mt-0.5">{t('bookingSetup.staff.desc')}</p>
-                  <span className="inline-block mt-2 text-xs text-primary font-medium bg-primary/10 px-2.5 py-1 rounded-full">
-                    {t('bookingSetup.staff.free')}
-                  </span>
                 </div>
 
                 <div className="flex flex-col gap-4">
