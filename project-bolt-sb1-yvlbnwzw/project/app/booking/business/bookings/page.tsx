@@ -323,14 +323,15 @@ function OwnerBookingsContent() {
   };
 
   const fetchServiceStats = useCallback(async (locId?: string) => {
-    if (!profile) return;
+    if (!profile || !activeProfileId) return;
     setServiceStatsLoaded(false);
     const { data } = await (supabase as any).rpc('get_business_service_stats_by_location', {
       p_location_id: locId || null,
+      p_business_id: activeProfileId,
     });
     if (Array.isArray(data)) setServiceStats(data);
     setServiceStatsLoaded(true);
-  }, [profile]);
+  }, [profile, activeProfileId]);
 
   const fetchSlots = useCallback(async () => {
     const slotLocId = selectedLocId || locationId;
