@@ -1807,7 +1807,7 @@ export default {
   'booking.termini.searchPh': 'Rechercher salons, cabinets...',
   'booking.termini.noResults': 'Aucun résultat pour cette recherche',
   'booking.termini.empty': 'Aucun établissement disponible',
-  'booking.hub.cat.majstori': 'Artisans',
+  'booking.hub.cat.majstori': 'Artisans & Entreprises',
   'booking.hub.cat.majstoriDesc': 'Réparations, rénovation, installations — envoyer une demande',
   'booking.hub.cat.restorani': 'Restaurants & Cafés',
   'booking.hub.cat.restoraniDesc': 'Réserver une table — dîner, déjeuner, café entre amis',

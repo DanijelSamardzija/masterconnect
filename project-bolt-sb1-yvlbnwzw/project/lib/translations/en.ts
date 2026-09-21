@@ -1882,7 +1882,7 @@ export default {
   'booking.termini.cat.clinic': 'Clinics',
   'booking.termini.cat.fitness': 'Fitness',
   'booking.termini.cat.wellness': 'Wellness',
-  'booking.hub.cat.majstori': 'Tradespeople',
+  'booking.hub.cat.majstori': 'Tradespeople & Companies',
   'booking.hub.cat.majstoriDesc': 'Repairs, renovation, installations — send a request',
   'booking.hub.cat.restorani': 'Restaurants & Cafés',
   'booking.hub.cat.restoraniDesc': 'Reserve a table — dinner, lunch, coffee with friends',

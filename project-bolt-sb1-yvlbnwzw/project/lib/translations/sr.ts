@@ -1882,7 +1882,7 @@ export default {
   'booking.termini.cat.clinic': 'Ordinacije',
   'booking.termini.cat.fitness': 'Fitnes',
   'booking.termini.cat.wellness': 'Wellness',
-  'booking.hub.cat.majstori': 'Majstori i zanati',
+  'booking.hub.cat.majstori': 'Majstori i Firme',
   'booking.hub.cat.majstoriDesc': 'Popravka, renovacija, instalacije — pošalji zahtjev',
   'booking.hub.cat.restorani': 'Restorani i kafići',
   'booking.hub.cat.restoraniDesc': 'Rezerviši sto — večera, ručak, kafa s društvom',

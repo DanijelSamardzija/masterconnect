@@ -1872,7 +1872,7 @@ export default {
   'booking.termini.cat.clinic': 'Praxen',
   'booking.termini.cat.fitness': 'Fitness',
   'booking.termini.cat.wellness': 'Wellness',
-  'booking.hub.cat.majstori': 'Handwerker',
+  'booking.hub.cat.majstori': 'Handwerker & Firmen',
   'booking.hub.cat.majstoriDesc': 'Reparatur, Renovierung, Installationen — Anfrage senden',
   'booking.hub.cat.restorani': 'Restaurants & Cafés',
   'booking.hub.cat.restoraniDesc': 'Tisch reservieren — Abendessen, Mittagessen, Kaffee',
