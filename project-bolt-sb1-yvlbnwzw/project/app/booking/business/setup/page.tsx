@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ProtectedRoute } from '@/components/protected-route';
 import { supabase } from '@/lib/supabase/client';
@@ -411,6 +411,9 @@ export default function BusinessSetupPage() {
   const [bizName, setBizName] = useState('');
   const [bizCategory, setBizCategory] = useState<string>('');
   const [timezone, setTimezone] = useState('Europe/Sarajevo');
+  const [logoUrl, setLogoUrl] = useState<string>('');
+  const [logoUploading, setLogoUploading] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const [isBusinessActive, setIsBusinessActive] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileSaving, setProfileSaving] = useState(false);
@@ -566,7 +569,7 @@ export default function BusinessSetupPage() {
       setProfileLoading(true);
       const [bpRes, locRes, notifRes] = await Promise.all([
         // Booking profile data (name, active state, type) — comes from booking_profiles
-        (supabase as any).from('booking_profiles').select('name, is_active, profile_type').eq('id', activeProfileId).single() as Promise<{ data: { name: string; is_active: boolean; profile_type: string } | null; error: unknown }>,
+        (supabase as any).from('booking_profiles').select('name, is_active, profile_type, logo_url').eq('id', activeProfileId).single() as Promise<{ data: { name: string; is_active: boolean; profile_type: string; logo_url: string | null } | null; error: unknown }>,
         // Primary location timezone for this booking profile
         supabase.from('business_locations').select('timezone').eq('business_id', activeProfileId).eq('is_primary', true).maybeSingle(),
         // Notification prefs — owner-level, stays on profiles table
@@ -576,6 +579,7 @@ export default function BusinessSetupPage() {
         setBizName(bpRes.data.name ?? '');
         setIsBusinessActive(bpRes.data.is_active ?? false);
         setBizCategory(bpRes.data.profile_type ?? '');
+        setLogoUrl(bpRes.data.logo_url ?? '');
         const prefs = notifRes.data?.notification_prefs ?? {};
         setNotifPrefs({
           push_enabled:         prefs.push_enabled         !== false,
@@ -777,6 +781,37 @@ export default function BusinessSetupPage() {
     toast.success(t('setup.profile.saved'));
     // Reload profile context so the nav chip reflects the new name
     reloadProfileCtx();
+  }
+
+  // ── Logo upload / remove ───────────────────────────────────────────────────
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !user || !activeProfileId) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error('Maksimalna veličina fajla je 5 MB'); return; }
+    setLogoUploading(true);
+    const path = `${user.id}/${activeProfileId}`;
+    const { error: upErr } = await supabase.storage
+      .from('booking-logos')
+      .upload(path, file, { upsert: true, contentType: file.type });
+    if (upErr) { toast.error('Greška pri uploadu'); setLogoUploading(false); return; }
+    const { data: { publicUrl } } = supabase.storage.from('booking-logos').getPublicUrl(path);
+    const urlWithBust = `${publicUrl}?t=${Date.now()}`;
+    await (supabase as any).from('booking_profiles')
+      .update({ logo_url: urlWithBust })
+      .eq('id', activeProfileId);
+    setLogoUrl(urlWithBust);
+    setLogoUploading(false);
+    toast.success(t('setup.profile.saved'));
+    if (logoInputRef.current) logoInputRef.current.value = '';
+  }
+
+  async function handleLogoRemove() {
+    if (!user || !activeProfileId) return;
+    await supabase.storage.from('booking-logos').remove([`${user.id}/${activeProfileId}`]);
+    await (supabase as any).from('booking_profiles')
+      .update({ logo_url: null })
+      .eq('id', activeProfileId);
+    setLogoUrl('');
   }
 
   // ── Notification prefs save ────────────────────────────────────────────────
@@ -1787,8 +1822,6 @@ export default function BusinessSetupPage() {
           {/* ── Tab: Profile ─────────────────────────────────────────────── */}
           {activeTab === 'profile' && (
             <div className="flex flex-col gap-5">
-              <p className="text-sm text-muted-foreground">{t('setup.profile.desc')}</p>
-
               {/* Inactive profile banner */}
               {!profileLoading && !isBusinessActive && (
                 <div className="rounded-2xl border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20 p-4 flex items-start gap-3">
@@ -1812,61 +1845,64 @@ export default function BusinessSetupPage() {
                 </div>
               ) : (
                 <>
-                  {/* Business category picker */}
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs font-medium text-muted-foreground">{t('setup.bizCategory.label')}</label>
-                    <p className="text-xs text-muted-foreground -mt-1">{t('setup.bizCategory.help')}</p>
-                    <div className="flex flex-col gap-2 mt-1">
-                      {BIZ_CATEGORIES.map(({ key, emoji, ready }) => {
-                        const isSelected = bizCategory === key;
-                        return (
+                  {/* Business type — read-only chip */}
+                  {bizCategory && (() => {
+                    const cat = BIZ_CATEGORIES.find(c => c.key === bizCategory);
+                    if (!cat) return null;
+                    return (
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-medium text-muted-foreground">{t('setup.profile.bizType')}</label>
+                        <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-border bg-muted/30 w-fit">
+                          <span className="text-lg leading-none">{cat.emoji}</span>
+                          <span className="text-sm font-medium text-foreground">
+                            {t(`setup.bizCategory.${cat.key}.name` as Parameters<typeof t>[0])}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Logo upload */}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">{t('setup.profile.logo')}</label>
+                    <div className="flex items-center gap-4">
+                      <div className="w-20 h-20 rounded-2xl border border-border overflow-hidden bg-muted flex items-center justify-center shrink-0">
+                        {logoUrl
+                          ? <img src={logoUrl} alt="logo" className="w-full h-full object-cover" />
+                          : <span className="text-3xl select-none">🏢</span>
+                        }
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <input
+                          ref={logoInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleLogoUpload}
+                          className="hidden"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => logoInputRef.current?.click()}
+                          disabled={logoUploading}
+                          className="px-3 py-1.5 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-accent transition-colors disabled:opacity-50"
+                        >
+                          {logoUploading
+                            ? t('setup.profile.logoUploading')
+                            : logoUrl
+                              ? t('setup.profile.logoChange')
+                              : t('setup.profile.logoUpload')
+                          }
+                        </button>
+                        {logoUrl && !logoUploading && (
                           <button
-                            key={key}
                             type="button"
-                            disabled={!ready}
-                            onClick={() => ready && setBizCategory(key)}
-                            className={`w-full text-left rounded-xl border p-3.5 transition-all ${
-                              isSelected
-                                ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                                : ready
-                                  ? 'border-border hover:border-primary/50 hover:bg-accent/40'
-                                  : 'border-border bg-muted/30 opacity-60 cursor-not-allowed'
-                            }`}
+                            onClick={handleLogoRemove}
+                            className="px-3 py-1.5 rounded-xl text-sm text-destructive hover:bg-destructive/10 transition-colors text-left"
                           >
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex items-start gap-3">
-                                <span className="text-2xl leading-none mt-0.5">{emoji}</span>
-                                <div className="flex flex-col gap-0.5">
-                                  <span className={`text-sm font-semibold ${isSelected ? 'text-primary' : 'text-foreground'}`}>
-                                    {t(`setup.bizCategory.${key}.name` as Parameters<typeof t>[0])}
-                                  </span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {t(`setup.bizCategory.${key}.desc` as Parameters<typeof t>[0])}
-                                  </span>
-                                  <span className="text-xs text-muted-foreground/70 mt-1">
-                                    {t(`setup.bizCategory.${key}.examples` as Parameters<typeof t>[0])}
-                                  </span>
-                                  {key === 'restaurant' && (
-                                    <span className="text-xs text-amber-600 dark:text-amber-400 mt-1.5 flex items-start gap-1">
-                                      <span className="shrink-0">💡</span>
-                                      {t('setup.bizCategory.restaurant.note')}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                              <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full mt-0.5 ${
-                                ready
-                                  ? isSelected
-                                    ? 'bg-primary text-primary-foreground'
-                                    : 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400'
-                                  : 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
-                              }`}>
-                                {ready ? t('setup.bizCategory.ready') : t('setup.bizCategory.comingSoon')}
-                              </span>
-                            </div>
+                            {t('setup.profile.logoRemove')}
                           </button>
-                        );
-                      })}
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -1882,14 +1918,6 @@ export default function BusinessSetupPage() {
                       <p className="text-xs text-muted-foreground mt-1">{t('setup.profile.nameHelp')}</p>
                       <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">{t('setup.profile.nameNote')}</p>
                     </>
-                  )}
-
-                  {labelInput(t('setup.profile.timezone'),
-                    <TimezoneSelect
-                      value={timezone}
-                      onChange={setTimezone}
-                      className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
                   )}
 
                   <Button
