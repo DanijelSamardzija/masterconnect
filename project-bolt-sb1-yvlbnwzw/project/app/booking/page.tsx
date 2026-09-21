@@ -365,6 +365,11 @@ function ProfileCard({
               {t('booking.hub.profileInactive')}
             </span>
           )}
+          {profile.is_active && !profile.onboarding_done && (
+            <span className="text-xs font-medium px-1.5 py-0.5 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400">
+              {t('booking.hub.profileNeedsSetup')}
+            </span>
+          )}
         </div>
       </div>
 
@@ -422,6 +427,13 @@ export default function BookingPage() {
       // Deactivated → go to setup so the owner can reactivate
       setActiveProfileId(profile.id);
       router.push('/booking/business/setup');
+      return;
+    }
+    if (!profile.onboarding_done) {
+      // Incomplete onboarding (browser Back mid-wizard) → resume
+      setActiveProfileId(profile.id);
+      const params = new URLSearchParams({ profileId: profile.id, profileType: profile.profile_type });
+      router.push(`/booking/business/onboarding?${params.toString()}`);
       return;
     }
     setActiveProfileId(profile.id);

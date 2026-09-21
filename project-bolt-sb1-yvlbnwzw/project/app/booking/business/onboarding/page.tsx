@@ -539,6 +539,16 @@ export default function BookingSetupWizardPage() {
     setDayHours((prev) => prev.map((dh) => dh.day === day ? { ...dh, [field]: value } : dh));
   }
 
+  async function finishOnboarding() {
+    setSaving(true);
+    await (supabase as any)
+      .from('booking_profiles')
+      .update({ onboarding_done: true })
+      .eq('id', resolvedProfileId);
+    setSaving(false);
+    router.push('/booking/business/bookings');
+  }
+
   async function copyLink() {
     if (!bookingUrl) return;
     await navigator.clipboard.writeText(bookingUrl);
@@ -1434,7 +1444,7 @@ export default function BookingSetupWizardPage() {
                     </div>
 
                     <div className="flex flex-col gap-2 pt-2">
-                      {postId && (
+                      {postId ? (
                         <button
                           onClick={async () => {
                             setSaving(true);
@@ -1442,8 +1452,13 @@ export default function BookingSetupWizardPage() {
                               p_post_id: postId,
                               p_enabled: true,
                             });
+                            if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); setSaving(false); return; }
+                            // Mark onboarding complete on explicit activation
+                            await (supabase as any)
+                              .from('booking_profiles')
+                              .update({ onboarding_done: true })
+                              .eq('id', resolvedProfileId);
                             setSaving(false);
-                            if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); return; }
                             setBookingActivated(true);
                           }}
                           disabled={saving}
@@ -1454,14 +1469,18 @@ export default function BookingSetupWizardPage() {
                             : <Check className="w-4 h-4" />}
                           {t('bookingSetup.done.activateButton')}
                         </button>
+                      ) : (
+                        <button
+                          onClick={finishOnboarding}
+                          disabled={saving}
+                          className="w-full flex items-center justify-center gap-2 text-sm font-medium bg-primary text-primary-foreground rounded-xl py-3 hover:opacity-90 transition-opacity disabled:opacity-50"
+                        >
+                          {saving
+                            ? <Loader2 className="w-4 h-4 animate-spin" />
+                            : <Check className="w-4 h-4" />}
+                          {t('bookingSetup.done.finishButton')}
+                        </button>
                       )}
-                      <button
-                        onClick={() => router.push('/booking/business/setup')}
-                        className="w-full flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-xl py-3 transition-colors"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                        {t('bookingSetup.activate.goToSetup')}
-                      </button>
                       <button
                         onClick={() => router.push('/dashboard')}
                         className="w-full text-sm text-muted-foreground hover:text-foreground border border-border rounded-xl py-3 transition-colors"

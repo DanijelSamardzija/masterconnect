@@ -6,10 +6,11 @@ import { useAuth } from '@/lib/contexts/auth-context';
 
 export type BookingProfileSummary = {
   id: string;
-  profile_type: 'appointment' | 'accommodation' | 'restaurant' | 'tradespeople' | 'food_order';
+  profile_type: 'appointment' | 'accommodation' | 'restaurant' | 'tradespeople' | 'food_order' | 'event';
   name: string;
   avatar_url: string | null;
   is_active: boolean;
+  onboarding_done: boolean;
   location_count: number;
   service_count: number;
   unit_count: number;
@@ -65,10 +66,12 @@ function resolveActiveId(
   if (!profiles.length) return null;
   const active = profiles.filter((p) => p.is_active);
   if (!active.length) return null;
-  // Prefer stored/requested id if it is still a valid active profile
+  // Honour the stored/requested id regardless of onboarding_done so that a
+  // mid-onboarding profile stays selected after a browser-back.
   if (candidateId && active.some((p) => p.id === candidateId)) return candidateId;
-  // Fall back to first active profile — deterministic, no user.id assumption
-  return active[0].id;
+  // Default: prefer a profile that has finished onboarding; fall back to any active.
+  const done = active.filter((p) => p.onboarding_done);
+  return (done.length > 0 ? done : active)[0].id;
 }
 
 export function BookingProfileProvider({ children }: { children: React.ReactNode }) {
