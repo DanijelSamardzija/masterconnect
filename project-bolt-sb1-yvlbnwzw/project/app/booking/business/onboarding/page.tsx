@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ProtectedRoute } from '@/components/protected-route';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/contexts/auth-context';
+import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
 import { Check, Copy, ExternalLink, ChevronLeft, Loader2, X, AlertTriangle, Info, Camera } from 'lucide-react';
@@ -124,6 +125,7 @@ function matchCountryValue(nominatimCountry: string): string {
 export default function BookingSetupWizardPage() {
   const { t, language } = useLanguage();
   const { user } = useAuth();
+  const { reloadWithPreferred } = useBookingProfile();
   const router = useRouter();
   const searchParams = useSearchParams();
   const postId      = searchParams.get('postId');
@@ -582,11 +584,15 @@ export default function BookingSetupWizardPage() {
   }
 
   async function finishOnboarding(destination = '/booking/business/setup') {
+    if (!resolvedProfileId) return;
     setSaving(true);
     await (supabase as any)
       .from('booking_profiles')
       .update({ onboarding_done: true })
       .eq('id', resolvedProfileId);
+    // Refresh context so activeProfileId stays on this profile when navigating
+    // away. Without this, a stale context could resolve to the oldest profile.
+    await reloadWithPreferred(resolvedProfileId);
     setSaving(false);
     router.push(destination);
   }
