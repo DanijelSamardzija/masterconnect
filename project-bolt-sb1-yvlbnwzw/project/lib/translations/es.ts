@@ -2253,6 +2253,53 @@ export default {
   'trade.quote.durationPh': 'p.ej. 2–3 horas, 1 día laborable',
   'trade.quote.message': 'Mensaje al cliente',
 
+  // ── Trade Owner Dashboard ──────────────────────────────────────────────────
+  'trade.nav.overview':    'Resumen',
+  'trade.nav.jobs':        'Trabajos',
+  'trade.nav.clients':     'Clientes',
+  'trade.nav.staff':       'Personal',
+  'trade.nav.emergency':   'Urgencias',
+  'trade.nav.analytics':   'Analítica',
+  'trade.nav.docs':        'Documentos',
+  'trade.nav.settings':    'Configuración',
+  'trade.nav.publicPage':  'Página pública',
+  'trade.nav.requests':    'Solicitudes',
+
+  'trade.dashboard.overview.title':    'Resumen',
+  'trade.dashboard.overview.requests': 'Solicitudes',
+  'trade.dashboard.overview.services': 'Servicios',
+  'trade.dashboard.overview.staff':    'Personal',
+  'trade.dashboard.overview.active':   'activos',
+  'trade.dashboard.overview.total':    'total',
+  'trade.dashboard.overview.new':      'nuevas',
+  'trade.dashboard.overview.pending':  'pendientes',
+  'trade.dashboard.overview.noActivity': 'Sin actividad en los últimos 30 días.',
+
+  'trade.dashboard.jobs.title':        'Órdenes de trabajo',
+  'trade.dashboard.jobs.placeholder':  'Gestión de órdenes de trabajo — próximamente.',
+
+  'trade.dashboard.clients.title':       'Clientes',
+  'trade.dashboard.clients.placeholder': 'Base de datos de clientes — próximamente.',
+
+  'trade.dashboard.staff.title':       'Equipo',
+  'trade.dashboard.staff.empty':       'No hay personal activo.',
+  'trade.dashboard.staff.role.owner':   'Propietario',
+  'trade.dashboard.staff.role.manager': 'Gerente',
+  'trade.dashboard.staff.role.worker':  'Trabajador',
+
+  'trade.dashboard.emergency.title':       'Urgencias',
+  'trade.dashboard.emergency.placeholder': 'Gestión de llamadas urgentes — próximamente.',
+
+  'trade.dashboard.analytics.title':       'Analítica',
+  'trade.dashboard.analytics.placeholder': 'Informes y estadísticas — próximamente.',
+
+  'trade.dashboard.docs.title':       'Documentos',
+  'trade.dashboard.docs.placeholder': 'Plantillas y documentos — próximamente.',
+
+  'trade.dashboard.settings.title': 'Configuración',
+  'trade.dashboard.settings.desc':  'Gestione su perfil, servicios, ubicación, horarios y personal.',
+  'trade.dashboard.settings.goToSetup': 'Ir a configuración',
+
   // ── Accommodation system ───────────────────────────────────────────────────
   'acc.setup.tab': 'Alojamiento',
   'acc.setup.title': 'Unidades de alojamiento',

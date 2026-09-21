@@ -346,7 +346,11 @@ export default function BookingPage() {
       return;
     }
     setActiveProfileId(profile.id);
-    router.push('/booking/business/bookings');
+    router.push(
+      profile.profile_type === 'tradespeople'
+        ? `/booking/trade/${profile.id}`
+        : '/booking/business/bookings'
+    );
   };
 
   const handleCreated = async (profileId: string, profileType: string) => {

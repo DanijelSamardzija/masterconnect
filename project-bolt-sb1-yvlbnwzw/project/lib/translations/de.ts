@@ -2325,6 +2325,53 @@ export default {
   'trade.quote.durationPh': 'z.B. 2–3 Stunden, 1 Arbeitstag',
   'trade.quote.message': 'Nachricht an den Kunden',
 
+  // ── Trade Owner Dashboard ──────────────────────────────────────────────────
+  'trade.nav.overview':    'Übersicht',
+  'trade.nav.jobs':        'Aufträge',
+  'trade.nav.clients':     'Kunden',
+  'trade.nav.staff':       'Mitarbeiter',
+  'trade.nav.emergency':   'Notfälle',
+  'trade.nav.analytics':   'Analytik',
+  'trade.nav.docs':        'Dokumente',
+  'trade.nav.settings':    'Einstellungen',
+  'trade.nav.publicPage':  'Öffentliche Seite',
+  'trade.nav.requests':    'Anfragen',
+
+  'trade.dashboard.overview.title':    'Übersicht',
+  'trade.dashboard.overview.requests': 'Anfragen',
+  'trade.dashboard.overview.services': 'Leistungen',
+  'trade.dashboard.overview.staff':    'Mitarbeiter',
+  'trade.dashboard.overview.active':   'aktiv',
+  'trade.dashboard.overview.total':    'gesamt',
+  'trade.dashboard.overview.new':      'neue',
+  'trade.dashboard.overview.pending':  'ausstehend',
+  'trade.dashboard.overview.noActivity': 'Keine Aktivität in den letzten 30 Tagen.',
+
+  'trade.dashboard.jobs.title':        'Arbeitsaufträge',
+  'trade.dashboard.jobs.placeholder':  'Auftragsverwaltung — demnächst.',
+
+  'trade.dashboard.clients.title':       'Kunden',
+  'trade.dashboard.clients.placeholder': 'Kundendatenbank — demnächst.',
+
+  'trade.dashboard.staff.title':       'Team',
+  'trade.dashboard.staff.empty':       'Keine aktiven Mitarbeiter.',
+  'trade.dashboard.staff.role.owner':   'Inhaber',
+  'trade.dashboard.staff.role.manager': 'Manager',
+  'trade.dashboard.staff.role.worker':  'Mitarbeiter',
+
+  'trade.dashboard.emergency.title':       'Notfalleinsätze',
+  'trade.dashboard.emergency.placeholder': 'Notfallverwaltung — demnächst.',
+
+  'trade.dashboard.analytics.title':       'Analytik',
+  'trade.dashboard.analytics.placeholder': 'Berichte und Statistiken — demnächst.',
+
+  'trade.dashboard.docs.title':       'Dokumente',
+  'trade.dashboard.docs.placeholder': 'Vorlagen und Dokumente — demnächst.',
+
+  'trade.dashboard.settings.title': 'Einstellungen',
+  'trade.dashboard.settings.desc':  'Verwalten Sie Profil, Leistungen, Standort, Öffnungszeiten und Mitarbeiter.',
+  'trade.dashboard.settings.goToSetup': 'Zu den Einstellungen',
+
   // ── Accommodation system ───────────────────────────────────────────────────
   'acc.setup.tab': 'Unterkunft',
   'acc.setup.title': 'Unterkunftseinheiten',

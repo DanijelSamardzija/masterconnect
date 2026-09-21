@@ -2335,6 +2335,53 @@ export default {
   'trade.quote.durationPh': 'npr. 2–3 sata, 1 radni dan',
   'trade.quote.message': 'Poruka klijentu',
 
+  // ── Trade Owner Dashboard ──────────────────────────────────────────────────
+  'trade.nav.overview':    'Pregled',
+  'trade.nav.jobs':        'Poslovi',
+  'trade.nav.clients':     'Klijenti',
+  'trade.nav.staff':       'Radnici',
+  'trade.nav.emergency':   'Hitne',
+  'trade.nav.analytics':   'Analitika',
+  'trade.nav.docs':        'Dokumentacija',
+  'trade.nav.settings':    'Podešavanja',
+  'trade.nav.publicPage':  'Javna stranica',
+  'trade.nav.requests':    'Zahtjevi',
+
+  'trade.dashboard.overview.title':    'Pregled',
+  'trade.dashboard.overview.requests': 'Zahtjevi',
+  'trade.dashboard.overview.services': 'Usluge',
+  'trade.dashboard.overview.staff':    'Radnici',
+  'trade.dashboard.overview.active':   'aktivnih',
+  'trade.dashboard.overview.total':    'ukupno',
+  'trade.dashboard.overview.new':      'novih',
+  'trade.dashboard.overview.pending':  'na čekanju',
+  'trade.dashboard.overview.noActivity': 'Nema aktivnosti u poslijednjih 30 dana.',
+
+  'trade.dashboard.jobs.title':        'Radni nalozi',
+  'trade.dashboard.jobs.placeholder':  'Upravljanje radnim nalozima — uskoro.',
+
+  'trade.dashboard.clients.title':       'Klijenti',
+  'trade.dashboard.clients.placeholder': 'Baza klijenata — uskoro.',
+
+  'trade.dashboard.staff.title':       'Tim',
+  'trade.dashboard.staff.empty':       'Nema aktivnih radnika.',
+  'trade.dashboard.staff.role.owner':   'Vlasnik',
+  'trade.dashboard.staff.role.manager': 'Menadžer',
+  'trade.dashboard.staff.role.worker':  'Radnik',
+
+  'trade.dashboard.emergency.title':       'Hitne intervencije',
+  'trade.dashboard.emergency.placeholder': 'Upravljanje hitnim pozivima — uskoro.',
+
+  'trade.dashboard.analytics.title':       'Analitika',
+  'trade.dashboard.analytics.placeholder': 'Izvještaji i statistike — uskoro.',
+
+  'trade.dashboard.docs.title':       'Dokumentacija',
+  'trade.dashboard.docs.placeholder': 'Predlošci i dokumenti — uskoro.',
+
+  'trade.dashboard.settings.title': 'Podešavanja',
+  'trade.dashboard.settings.desc':  'Upravljajte profilom, uslugama, lokacijom, radnim vremenom i osobljem.',
+  'trade.dashboard.settings.goToSetup': 'Idi na podešavanja',
+
   // ── Accommodation system ───────────────────────────────────────────────────
   'acc.setup.tab': 'Smještaj',
   'acc.setup.title': 'Smještajne jedinice',

@@ -2335,6 +2335,53 @@ export default {
   'trade.quote.durationPh': 'e.g. 2–3 hours, 1 working day',
   'trade.quote.message': 'Message to client',
 
+  // ── Trade Owner Dashboard ──────────────────────────────────────────────────
+  'trade.nav.overview':    'Overview',
+  'trade.nav.jobs':        'Jobs',
+  'trade.nav.clients':     'Clients',
+  'trade.nav.staff':       'Staff',
+  'trade.nav.emergency':   'Emergency',
+  'trade.nav.analytics':   'Analytics',
+  'trade.nav.docs':        'Documents',
+  'trade.nav.settings':    'Settings',
+  'trade.nav.publicPage':  'Public page',
+  'trade.nav.requests':    'Requests',
+
+  'trade.dashboard.overview.title':    'Overview',
+  'trade.dashboard.overview.requests': 'Requests',
+  'trade.dashboard.overview.services': 'Services',
+  'trade.dashboard.overview.staff':    'Staff',
+  'trade.dashboard.overview.active':   'active',
+  'trade.dashboard.overview.total':    'total',
+  'trade.dashboard.overview.new':      'new',
+  'trade.dashboard.overview.pending':  'pending',
+  'trade.dashboard.overview.noActivity': 'No activity in the last 30 days.',
+
+  'trade.dashboard.jobs.title':        'Work Orders',
+  'trade.dashboard.jobs.placeholder':  'Work order management — coming soon.',
+
+  'trade.dashboard.clients.title':       'Clients',
+  'trade.dashboard.clients.placeholder': 'Client database — coming soon.',
+
+  'trade.dashboard.staff.title':       'Team',
+  'trade.dashboard.staff.empty':       'No active staff members.',
+  'trade.dashboard.staff.role.owner':   'Owner',
+  'trade.dashboard.staff.role.manager': 'Manager',
+  'trade.dashboard.staff.role.worker':  'Worker',
+
+  'trade.dashboard.emergency.title':       'Emergency Calls',
+  'trade.dashboard.emergency.placeholder': 'Emergency call management — coming soon.',
+
+  'trade.dashboard.analytics.title':       'Analytics',
+  'trade.dashboard.analytics.placeholder': 'Reports and statistics — coming soon.',
+
+  'trade.dashboard.docs.title':       'Documents',
+  'trade.dashboard.docs.placeholder': 'Templates and documents — coming soon.',
+
+  'trade.dashboard.settings.title': 'Settings',
+  'trade.dashboard.settings.desc':  'Manage your profile, services, location, hours and staff.',
+  'trade.dashboard.settings.goToSetup': 'Go to settings',
+
   // ── Accommodation system ───────────────────────────────────────────────────
   'acc.setup.tab': 'Accommodation',
   'acc.setup.title': 'Accommodation Units',
