@@ -126,7 +126,7 @@ export default function BookingSetupWizardPage() {
   const [svcDuration, setSvcDuration] = useState(60);
   const [svcPrice, setSvcPrice] = useState('');
   const [svcPriceType, setSvcPriceType] = useState('fixed');
-  const [svcCurrency, setSvcCurrency] = useState('BAM');
+  const [svcCurrency, setSvcCurrency] = useState('EUR');
   const [postTitle, setPostTitle] = useState('');
   const [bookingActivated, setBookingActivated] = useState(false);
 
@@ -786,33 +786,26 @@ export default function BookingSetupWizardPage() {
                     </div>
                   </div>
                   {svcPriceType !== 'free' && svcPriceType !== 'negotiable' && (
-                    <div className="flex gap-3">
-                      <div className="flex flex-col gap-1.5 flex-1">
-                        <label className="text-sm font-medium">{t('setup.services.price')}</label>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-sm font-medium">{t('setup.services.price')}</label>
+                      <div className="flex rounded-xl overflow-hidden border border-border focus-within:ring-2 focus-within:ring-primary">
+                        <select
+                          value={svcCurrency}
+                          onChange={(e) => setSvcCurrency(e.target.value)}
+                          className="px-2 py-3 text-sm bg-muted border-r border-border focus:outline-none shrink-0 w-[76px]"
+                        >
+                          {(['EUR','USD','RSD','BAM','CHF','GBP','HUF','CZK','PLN','MKD','ALL','CAD','AUD','NOK','SEK','DKK'] as const).map((c) => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
+                        </select>
                         <input
                           type="number"
                           value={svcPrice}
                           onChange={(e) => setSvcPrice(e.target.value)}
                           min="0"
                           placeholder="0"
-                          className={inputCls}
+                          className="flex-1 px-3 py-3 text-sm bg-background focus:outline-none min-w-0"
                         />
-                      </div>
-                      <div className="flex flex-col gap-1.5 w-24">
-                        <label className="text-sm font-medium">{t('setup.services.currency')}</label>
-                        <select
-                          value={svcCurrency}
-                          onChange={(e) => setSvcCurrency(e.target.value)}
-                          className={selectCls}
-                        >
-                          <option>BAM</option>
-                          <option>EUR</option>
-                          <option>RSD</option>
-                          <option>USD</option>
-                          <option>CHF</option>
-                          <option>GBP</option>
-                          <option>HRK</option>
-                        </select>
                       </div>
                     </div>
                   )}
