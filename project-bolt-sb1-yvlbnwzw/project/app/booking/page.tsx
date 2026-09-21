@@ -7,7 +7,6 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { useBookingProfile, BookingProfileSummary } from '@/lib/contexts/booking-profile-context';
 import { ProtectedRoute } from '@/components/protected-route';
 import { supabase } from '@/lib/supabase/client';
-import { compressImage } from '@/lib/utils/compress-image';
 import {
   Calendar,
   Wrench,
@@ -28,7 +27,6 @@ import {
   ChevronDown,
   ChevronUp,
   X,
-  Camera,
   Loader2,
 } from 'lucide-react';
 
@@ -75,21 +73,14 @@ function CreateProfileModal({
   onCreated,
 }: {
   onClose: () => void;
-  onCreated: (profileId: string, profileType: ProfileType, name: string, avatarUrl?: string) => void;
+  onCreated: (profileId: string, profileType: ProfileType) => void;
 }) {
   const { t } = useLanguage();
-  const [name, setName] = useState('');
   const [profileType, setProfileType] = useState<ProfileType>('appointment');
   const [typeOpen, setTypeOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState('');
-  const nameRef = useRef<HTMLInputElement>(null);
-  const avatarRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => { nameRef.current?.focus(); }, []);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -107,21 +98,15 @@ function CreateProfileModal({
     if (e.target === e.currentTarget) onClose();
   };
 
-  const handleAvatarPick = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setAvatarFile(file);
-    setAvatarPreview(URL.createObjectURL(file));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
     setSubmitting(true);
     setError(null);
     try {
+      // Placeholder name — user will set the real name in the onboarding Profile step
+      const placeholderName = t(`booking.hub.type.${profileType}` as Parameters<typeof t>[0]);
       const { data, error: rpcError } = await (supabase as any).rpc('create_booking_profile', {
-        p_name: name.trim(),
+        p_name: placeholderName,
         p_profile_type: profileType,
         p_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Sarajevo',
       }) as { data: { ok: boolean; profile_id?: string; error?: string } | null; error: unknown };
@@ -131,31 +116,7 @@ function CreateProfileModal({
         return;
       }
 
-      const profileId = data.profile_id!;
-      let uploadedAvatarUrl: string | undefined;
-
-      // Upload avatar if one was picked
-      if (avatarFile) {
-        try {
-          const compressed = await compressImage(avatarFile, 400);
-          const fileName = `booking-profiles/${profileId}/${Date.now()}.jpg`;
-          const { error: uploadErr } = await supabase.storage
-            .from('avatars')
-            .upload(fileName, compressed, { upsert: true, contentType: 'image/jpeg' });
-          if (!uploadErr) {
-            const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
-            await (supabase as any)
-              .from('booking_profiles')
-              .update({ avatar_url: publicUrl })
-              .eq('id', profileId);
-            uploadedAvatarUrl = publicUrl;
-          }
-        } catch {
-          // Avatar upload failing is non-fatal; wizard allows re-upload
-        }
-      }
-
-      onCreated(profileId, profileType, name.trim(), uploadedAvatarUrl);
+      onCreated(data.profile_id!, profileType);
     } catch {
       setError('create_failed');
     } finally {
@@ -183,46 +144,6 @@ function CreateProfileModal({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Avatar + name row — symmetric: both sides have label above control */}
-          <div className="flex items-start gap-3">
-            {/* Logo column */}
-            <div className="flex flex-col gap-1 shrink-0">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                {t('booking.hub.logoLabel')}
-              </span>
-              <button
-                type="button"
-                onClick={() => avatarRef.current?.click()}
-                className="relative w-14 h-14 rounded-2xl border-2 border-dashed border-border bg-muted/40 flex items-center justify-center overflow-hidden hover:border-primary/60 transition-colors group"
-              >
-                {avatarPreview ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={avatarPreview} alt="logo" className="w-full h-full object-cover" />
-                ) : (
-                  <Camera className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary/60 transition-colors" />
-                )}
-              </button>
-            </div>
-            <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarPick} />
-
-            {/* Name column */}
-            <div className="flex-1 flex flex-col gap-1">
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                {t('booking.hub.profileNameLabel')}
-              </label>
-              <input
-                ref={nameRef}
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder={t('booking.hub.profileNamePh')}
-                maxLength={80}
-                required
-                className="w-full px-3 py-2 rounded-xl border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              />
-            </div>
-          </div>
-
           {/* Profile type — custom select */}
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -296,7 +217,7 @@ function CreateProfileModal({
             </button>
             <button
               type="submit"
-              disabled={submitting || !name.trim()}
+              disabled={submitting}
               className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
             >
               {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -445,12 +366,11 @@ export default function BookingPage() {
     router.push('/booking/business/bookings');
   };
 
-  const handleCreated = async (profileId: string, profileType: string, name: string, avatarUrl?: string) => {
+  const handleCreated = async (profileId: string, profileType: string) => {
     setShowCreate(false);
     await reload();
     setActiveProfileId(profileId);
-    const params = new URLSearchParams({ profileId, profileType, initialName: name });
-    if (avatarUrl) params.set('initialAvatarUrl', avatarUrl);
+    const params = new URLSearchParams({ profileId, profileType });
     router.push(`/booking/business/onboarding?${params.toString()}`);
   };
 

@@ -558,12 +558,14 @@ export default function BookingSetupWizardPage() {
 
   async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file || !resolvedProfileId) return;
+    if (!file || !resolvedProfileId || !user) return;
     if (file.size > 5 * 1024 * 1024) { toast.error(t('bookingSetup.profile.logoMax')); return; }
     setUploadingAvatar(true);
     try {
       const compressed = await compressImage(file, 400);
-      const fileName = `booking-profiles/${resolvedProfileId}/${Date.now()}.jpg`;
+      // Path starts with user.id so it satisfies the storage INSERT/DELETE policy:
+      // foldername(name)[1] = auth.uid()
+      const fileName = `${user.id}/booking-profiles/${resolvedProfileId}/${Date.now()}.jpg`;
       if (avatarUrl) {
         const oldPath = avatarUrl.split('/avatars/')[1];
         if (oldPath) await supabase.storage.from('avatars').remove([oldPath]);
