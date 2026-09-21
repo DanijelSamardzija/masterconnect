@@ -10,7 +10,7 @@ import { useBookingAccess } from '@/lib/hooks/use-booking-access';
 import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
 import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
-import { ChevronRight, ChevronLeft, Plus, Pencil, X, CheckCircle2, MapPin, ExternalLink, AlertTriangle, Check, Loader2, Info, Copy, Share2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Plus, Pencil, X, CheckCircle2, MapPin, ExternalLink, AlertTriangle, Check, Loader2, Info, Copy, Share2, Trash2 } from 'lucide-react';
 import { TimePicker24h } from '@/components/ui/time-picker-24h';
 import { SharePostModal } from '@/components/share-post-modal';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
@@ -542,6 +542,12 @@ export default function BusinessSetupPage() {
   const [deactivateProfileModal, setDeactivateProfileModal] = useState(false);
   const [deactivateProfileLoading, setDeactivateProfileLoading] = useState(false);
   const [deactivateProfileFutureCount, setDeactivateProfileFutureCount] = useState<number | null>(null);
+  const [deleteProfileModal, setDeleteProfileModal] = useState(false);
+  const [deleteProfileStep, setDeleteProfileStep] = useState<1 | 2>(1);
+  const [deleteProfileConfirmName, setDeleteProfileConfirmName] = useState('');
+  const [deleteProfileLoading, setDeleteProfileLoading] = useState(false);
+  const [deleteProfileHasBookings, setDeleteProfileHasBookings] = useState(false);
+  const [deleteProfileBookingCount, setDeleteProfileBookingCount] = useState(0);
   const [reactivateProfileModal, setReactivateProfileModal] = useState(false);
   const [reactivateProfileLoading, setReactivateProfileLoading] = useState(false);
   const [shareSvcId, setShareSvcId] = useState<string | null>(null);
@@ -953,6 +959,47 @@ export default function BusinessSetupPage() {
     setIsBusinessActive(false);
     reloadProfileCtx();
     loadServices();
+  }
+
+  function openDeleteProfileModal() {
+    setDeleteProfileStep(1);
+    setDeleteProfileConfirmName('');
+    setDeleteProfileHasBookings(false);
+    setDeleteProfileBookingCount(0);
+    setDeleteProfileModal(true);
+  }
+
+  function closeDeleteProfileModal() {
+    if (deleteProfileLoading) return;
+    setDeleteProfileModal(false);
+    setDeleteProfileStep(1);
+    setDeleteProfileConfirmName('');
+    setDeleteProfileHasBookings(false);
+    setDeleteProfileBookingCount(0);
+  }
+
+  async function handlePermanentDeleteProfile() {
+    if (!activeProfileId) return;
+    setDeleteProfileLoading(true);
+    const { data } = await (supabase as any).rpc('delete_booking_profile', {
+      p_booking_profile_id: activeProfileId,
+    });
+    const result = data as { ok: boolean; error?: string; count?: number } | null;
+    setDeleteProfileLoading(false);
+    if (!result?.ok) {
+      if (result?.error === 'has_bookings') {
+        setDeleteProfileBookingCount(result.count ?? 0);
+        setDeleteProfileHasBookings(true);
+      } else {
+        toast.error(t('setup.error.saveFailed'));
+        closeDeleteProfileModal();
+      }
+      return;
+    }
+    toast.success(t('booking.permanentDelete.success'));
+    closeDeleteProfileModal();
+    reloadProfileCtx();
+    router.replace('/booking');
   }
 
   async function handleReactivateProfile() {
@@ -1858,12 +1905,21 @@ export default function BusinessSetupPage() {
                     <div className="mt-6 pt-5 border-t border-destructive/20">
                       <h3 className="text-sm font-semibold text-destructive mb-1">{t('booking.deleteProfile.dangerZone')}</h3>
                       <p className="text-xs text-muted-foreground mb-3">{t('booking.deleteProfile.dangerZoneDesc')}</p>
-                      <button
-                        onClick={openDeactivateProfileModal}
-                        className="px-4 py-2 rounded-xl border border-destructive/40 text-destructive text-sm font-medium hover:bg-destructive/10 transition-colors"
-                      >
-                        {t('booking.deleteProfile.title')}
-                      </button>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={openDeactivateProfileModal}
+                          className="px-4 py-2 rounded-xl border border-destructive/40 text-destructive text-sm font-medium hover:bg-destructive/10 transition-colors"
+                        >
+                          {t('booking.deleteProfile.title')}
+                        </button>
+                        <button
+                          onClick={openDeleteProfileModal}
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-destructive/10 border border-destructive/40 text-destructive text-sm font-medium hover:bg-destructive/20 transition-colors"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          {t('booking.permanentDelete.button')}
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -3472,6 +3528,132 @@ export default function BusinessSetupPage() {
                   </button>
                 )}
               </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── Permanent Delete Profile Modal ──────────────────────────────────── */}
+      {deleteProfileModal && (
+        <>
+          <div
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            onClick={closeDeleteProfileModal}
+          />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+            <div className="pointer-events-auto bg-background border border-border rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4">
+
+              {/* Header */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Trash2 className="h-5 w-5 text-destructive shrink-0" />
+                  <h3 className="text-base font-semibold text-foreground">{t('booking.permanentDelete.title')}</h3>
+                </div>
+                <button
+                  onClick={closeDeleteProfileModal}
+                  className="p-1 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground"
+                  disabled={deleteProfileLoading}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Step 1: Warning */}
+              {deleteProfileStep === 1 && (
+                <>
+                  <p className="text-sm text-muted-foreground">{t('booking.permanentDelete.step1Desc')}</p>
+
+                  <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-3 flex flex-col gap-2">
+                    <p className="text-xs font-semibold text-destructive">{t('booking.permanentDelete.willDelete')}</p>
+                    <ul className="flex flex-col gap-1">
+                      {(['item1', 'item2', 'item3'] as const).map(key => (
+                        <li key={key} className="flex items-start gap-1.5 text-xs text-destructive">
+                          <span className="mt-0.5 shrink-0">•</span>
+                          <span>{t(`booking.permanentDelete.${key}`)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground italic">{t('booking.permanentDelete.postsNote')}</p>
+
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      onClick={closeDeleteProfileModal}
+                      className="flex-1 py-2 px-4 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                    >
+                      {t('common.cancel')}
+                    </button>
+                    <button
+                      onClick={() => setDeleteProfileStep(2)}
+                      className="flex-1 py-2 px-4 rounded-xl border border-destructive/40 bg-destructive/10 text-destructive text-sm font-medium hover:bg-destructive/20 transition-colors"
+                    >
+                      {t('booking.permanentDelete.continue')}
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* Step 2: Name confirmation (or has_bookings error) */}
+              {deleteProfileStep === 2 && (
+                <>
+                  {deleteProfileHasBookings ? (
+                    <>
+                      <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-3 flex items-start gap-2">
+                        <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                        <p className="text-sm text-destructive">
+                          {t('booking.permanentDelete.hasBookings').replace('{count}', String(deleteProfileBookingCount))}
+                        </p>
+                      </div>
+                      <div className="flex gap-2 pt-1">
+                        <button
+                          onClick={closeDeleteProfileModal}
+                          className="flex-1 py-2 px-4 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                        >
+                          {t('common.cancel')}
+                        </button>
+                        <button
+                          onClick={() => { closeDeleteProfileModal(); openDeactivateProfileModal(); }}
+                          className="flex-1 py-2 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+                        >
+                          {t('booking.permanentDelete.offerDeactivate')}
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm text-muted-foreground">{t('booking.permanentDelete.step2Desc')}</p>
+                      <p className="text-sm font-medium text-foreground">&ldquo;{bizName}&rdquo;</p>
+                      <input
+                        type="text"
+                        value={deleteProfileConfirmName}
+                        onChange={e => setDeleteProfileConfirmName(e.target.value)}
+                        placeholder={bizName}
+                        className="w-full border border-border rounded-xl px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-destructive"
+                        autoComplete="off"
+                      />
+                      <div className="flex gap-2 pt-1">
+                        <button
+                          onClick={() => { setDeleteProfileStep(1); setDeleteProfileConfirmName(''); }}
+                          disabled={deleteProfileLoading}
+                          className="flex-1 py-2 px-4 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-accent transition-colors disabled:opacity-50"
+                        >
+                          {t('common.back')}
+                        </button>
+                        <button
+                          onClick={handlePermanentDeleteProfile}
+                          disabled={deleteProfileLoading || deleteProfileConfirmName !== bizName}
+                          className="flex-1 py-2 px-4 rounded-xl bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                        >
+                          {deleteProfileLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                          {deleteProfileLoading ? t('booking.permanentDelete.deleting') : t('booking.permanentDelete.confirm')}
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+
             </div>
           </div>
         </>
