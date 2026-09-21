@@ -17,7 +17,7 @@ type TradeService = {
   sort_order: number;
 };
 
-const PRICE_TYPES = ['quote', 'hourly', 'fixed'] as const;
+const PRICE_TYPES = ['quote', 'hourly', 'fixed', 'project'] as const;
 
 function labelInput(label: string, children: React.ReactNode) {
   return (

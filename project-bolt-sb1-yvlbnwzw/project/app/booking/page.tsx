@@ -339,7 +339,10 @@ export default function BookingPage() {
       // Incomplete onboarding (browser Back mid-wizard) → resume
       setActiveProfileId(profile.id);
       const params = new URLSearchParams({ profileId: profile.id, profileType: profile.profile_type });
-      router.push(`/booking/business/onboarding?${params.toString()}`);
+      const onboardingPath = profile.profile_type === 'tradespeople'
+        ? '/booking/trade/onboarding'
+        : '/booking/business/onboarding';
+      router.push(`${onboardingPath}?${params.toString()}`);
       return;
     }
     setActiveProfileId(profile.id);
@@ -353,7 +356,10 @@ export default function BookingPage() {
     // (setActiveProfileId alone would fail: stale closure sees old profiles[])
     await reloadWithPreferred(profileId);
     const params = new URLSearchParams({ profileId, profileType });
-    router.push(`/booking/business/onboarding?${params.toString()}`);
+    const onboardingPath = profileType === 'tradespeople'
+      ? '/booking/trade/onboarding'
+      : '/booking/business/onboarding';
+    router.push(`${onboardingPath}?${params.toString()}`);
   };
 
   const CATEGORIES = [
@@ -371,7 +377,6 @@ export default function BookingPage() {
       iconBg: 'bg-blue-100 dark:bg-blue-950',
       title: t('booking.hub.cat.majstori'),
       desc: t('booking.hub.cat.majstoriDesc'),
-      soon: true,
     },
     {
       key: 'restorani',
