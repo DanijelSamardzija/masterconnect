@@ -1864,6 +1864,7 @@ export default {
   'booking.hub.myResDesc': 'Predstojeći termini',
   'booking.hub.searchPh': 'Nađi šta ti treba...',
   'booking.hub.soon': 'Uskoro',
+  'booking.hub.marketplace': 'Rezerviši uslugu',
   'booking.hub.comingSoonTitle': 'Booking — uskoro',
   'booking.hub.comingSoonDesc': 'Ova stranica je u pripremi. Uskoro će biti dostupna svim korisnicima.',
   'booking.hub.backHome': 'Nazad na početnu',

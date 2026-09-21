@@ -1787,6 +1787,7 @@ export default {
   'booking.hub.myResDesc': 'Próximas citas',
   'booking.hub.searchPh': 'Encuentra lo que necesitas...',
   'booking.hub.soon': 'Próximamente',
+  'booking.hub.marketplace': 'Reservar un servicio',
   'booking.hub.comingSoonTitle': 'Booking — próximamente',
   'booking.hub.comingSoonDesc': 'Esta página está en preparación. Pronto estará disponible para todos los usuarios.',
   'booking.hub.backHome': 'Volver al inicio',

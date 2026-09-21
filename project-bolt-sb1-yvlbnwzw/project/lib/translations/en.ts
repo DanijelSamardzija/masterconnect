@@ -1864,6 +1864,7 @@ export default {
   'booking.hub.myResDesc': 'Upcoming appointments',
   'booking.hub.searchPh': 'Find what you need...',
   'booking.hub.soon': 'Soon',
+  'booking.hub.marketplace': 'Book a service',
   'booking.hub.comingSoonTitle': 'Booking — coming soon',
   'booking.hub.comingSoonDesc': 'This page is being prepared. It will be available to all users soon.',
   'booking.hub.backHome': 'Back to home',
