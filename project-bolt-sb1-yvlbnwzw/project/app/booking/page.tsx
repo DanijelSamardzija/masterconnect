@@ -17,9 +17,7 @@ import {
   ChevronRight,
   Search,
   BookMarked,
-  Clock,
   Plus,
-  MapPin,
   Scissors,
   Utensils,
   Hammer,
@@ -292,9 +290,13 @@ export default function BookingPage() {
     reloadWithPreferred,
   } = useBookingProfile();
 
+  const [mounted, setMounted] = useState(false);
   const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(false);
   const [staffBusinessName, setStaffBusinessName] = useState<string | null>(null);
+
+  // Ensure first render is identical on server and client to prevent hydration mismatch (#418/#423)
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     if (!authLoading && !user) router.push('/login');
@@ -408,7 +410,7 @@ export default function BookingPage() {
       c.desc.toLowerCase().includes(search.toLowerCase())
   );
 
-  const loading = authLoading || profilesLoading;
+  const loading = !mounted || authLoading || profilesLoading;
 
   if (loading) {
     return (
@@ -435,71 +437,109 @@ export default function BookingPage() {
               </h2>
             </div>
 
-            {/* Horizontal scroll row — active profile first, then others, new, moje rezervacije, staff */}
+            {/*
+              Outer div: overflow-x-auto, edge-to-edge with -mx-4.
+              Inner div: w-max min-w-full justify-center → centered when few cards,
+              scrollable when many cards overflow the viewport.
+            */}
             <div
-              className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 [&::-webkit-scrollbar]:hidden"
+              className="overflow-x-auto -mx-4 [&::-webkit-scrollbar]:hidden"
               style={{ scrollbarWidth: 'none' }}
             >
-              {/* Profile mini cards — active first */}
-              {[...profiles]
-                .sort((a, b) => {
-                  if (a.id === activeProfileId) return -1;
-                  if (b.id === activeProfileId) return 1;
-                  return 0;
-                })
-                .map((p) => (
-                  <ProfileMiniCard
-                    key={p.id}
-                    profile={p}
-                    isActive={p.id === activeProfileId}
-                    onClick={() => handleProfileClick(p)}
-                    t={t}
-                  />
-                ))}
+              <div className="flex gap-2 px-4 pb-1 w-max min-w-full justify-center items-start">
 
-              {/* + Novi profil */}
-              <button
-                onClick={() => setShowCreate(true)}
-                className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-2xl border-2 border-dashed border-border hover:border-primary/50 shrink-0 w-[90px] transition-colors text-center"
-              >
-                <div className="w-11 h-11 rounded-xl border-2 border-dashed border-border flex items-center justify-center">
-                  <Plus className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <span className="text-[11px] font-medium text-muted-foreground leading-tight">
-                  {t('booking.hub.newProfile').replace('+ ', '')}
-                </span>
-              </button>
+                {/* ── Business profiles section ── */}
 
-              {/* Moje rezervacije */}
-              <button
-                onClick={() => router.push('/booking/my')}
-                className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-2xl border-2 border-border bg-card hover:border-primary/40 hover:bg-accent/50 shrink-0 w-[90px] transition-colors text-center"
-              >
-                <div className="w-11 h-11 rounded-xl bg-orange-100 dark:bg-orange-950 flex items-center justify-center">
-                  <BookMarked className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                </div>
-                <span className="text-[11px] font-semibold text-foreground leading-tight line-clamp-2 w-full px-0.5">
-                  {t('booking.hub.myRes')}
-                </span>
-              </button>
+                {/* Staff card FIRST — only when user has no own profiles */}
+                {staffBusinessName && profiles.length === 0 && (
+                  <button
+                    onClick={() => router.push('/dashboard/staff/bookings')}
+                    className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-2xl border-2 border-border bg-card hover:border-primary/40 hover:bg-accent/50 shrink-0 w-[90px] transition-colors text-center"
+                  >
+                    <div className="w-11 h-11 rounded-xl bg-orange-100 dark:bg-orange-950 flex items-center justify-center">
+                      <Calendar className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                    </div>
+                    <span className="text-[11px] font-semibold text-foreground leading-tight line-clamp-2 w-full px-0.5">
+                      {staffBusinessName}
+                    </span>
+                    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 leading-none">
+                      {t('booking.hub.staffBadge')}
+                    </span>
+                  </button>
+                )}
 
-              {/* Staff membership — mini card */}
-              {staffBusinessName && (
+                {/* Own profile cards — active first */}
+                {[...profiles]
+                  .sort((a, b) => {
+                    if (a.id === activeProfileId) return -1;
+                    if (b.id === activeProfileId) return 1;
+                    return 0;
+                  })
+                  .map((p) => (
+                    <ProfileMiniCard
+                      key={p.id}
+                      profile={p}
+                      isActive={p.id === activeProfileId}
+                      onClick={() => handleProfileClick(p)}
+                      t={t}
+                    />
+                  ))}
+
+                {/* Staff card AFTER own profiles — when user has both */}
+                {staffBusinessName && profiles.length > 0 && (
+                  <button
+                    onClick={() => router.push('/dashboard/staff/bookings')}
+                    className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-2xl border-2 border-border bg-card hover:border-primary/40 hover:bg-accent/50 shrink-0 w-[90px] transition-colors text-center"
+                  >
+                    <div className="w-11 h-11 rounded-xl bg-orange-100 dark:bg-orange-950 flex items-center justify-center">
+                      <Calendar className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                    </div>
+                    <span className="text-[11px] font-semibold text-foreground leading-tight line-clamp-2 w-full px-0.5">
+                      {staffBusinessName}
+                    </span>
+                    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 leading-none">
+                      {t('booking.hub.staffBadge')}
+                    </span>
+                  </button>
+                )}
+
+                {/* Thin vertical separator between business and personal cards */}
+                {(profiles.length > 0 || !!staffBusinessName) && (
+                  <div className="w-px self-stretch bg-border/60 mx-0.5 my-2 shrink-0" />
+                )}
+
+                {/* ── Personal section ── */}
+
+                {/* Moje rezervacije */}
                 <button
-                  onClick={() => router.push('/dashboard/staff/bookings')}
+                  onClick={() => router.push('/booking/my')}
                   className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-2xl border-2 border-border bg-card hover:border-primary/40 hover:bg-accent/50 shrink-0 w-[90px] transition-colors text-center"
                 >
                   <div className="w-11 h-11 rounded-xl bg-orange-100 dark:bg-orange-950 flex items-center justify-center">
-                    <Calendar className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                    <BookMarked className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                   </div>
                   <span className="text-[11px] font-semibold text-foreground leading-tight line-clamp-2 w-full px-0.5">
-                    {staffBusinessName}
-                  </span>
-                  <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 leading-none">
-                    {t('booking.hub.staffBadge')}
+                    {t('booking.hub.myRes')}
                   </span>
                 </button>
-              )}
+
+                {/* + Novi profil */}
+                <button
+                  onClick={() => setShowCreate(true)}
+                  className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-2xl border-2 border-dashed border-border hover:border-primary/50 shrink-0 w-[90px] transition-colors text-center"
+                >
+                  <div className="w-11 h-11 rounded-xl border-2 border-dashed border-border flex items-center justify-center">
+                    <Plus className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <span className="text-[11px] font-medium text-muted-foreground leading-tight">
+                    {t('booking.hub.newProfile').replace('+ ', '')}
+                  </span>
+                  <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary leading-none">
+                    Buking
+                  </span>
+                </button>
+
+              </div>
             </div>
           </section>
 
@@ -515,21 +555,6 @@ export default function BookingPage() {
               </span>
               <div className="flex-1 h-px bg-border" />
             </div>
-
-            {/* Moje rezervacije */}
-            <button
-              onClick={() => router.push('/booking/my')}
-              className="w-full flex items-center gap-3 p-3.5 rounded-xl bg-card border border-border hover:border-primary/50 hover:bg-accent transition-colors text-left"
-            >
-              <div className="p-2 bg-orange-100 dark:bg-orange-950 rounded-lg shrink-0">
-                <BookMarked className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-foreground leading-tight">{t('booking.hub.myRes')}</p>
-                <p className="text-xs text-muted-foreground mt-0.5 leading-tight">{t('booking.hub.myResDesc')}</p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
-            </button>
 
             {/* Search */}
             <div className="relative">
