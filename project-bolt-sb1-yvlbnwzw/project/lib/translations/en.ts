@@ -1868,7 +1868,7 @@ export default {
   'booking.hub.staffRole.owner': 'Owner',
   'booking.hub.searchPh': 'Find what you need...',
   'booking.hub.soon': 'Soon',
-  'booking.hub.marketplace': 'Book a service',
+  'booking.hub.marketplace': 'Find what you need',
   'booking.hub.comingSoonTitle': 'Booking — coming soon',
   'booking.hub.comingSoonDesc': 'This page is being prepared. It will be available to all users soon.',
   'booking.hub.backHome': 'Back to home',

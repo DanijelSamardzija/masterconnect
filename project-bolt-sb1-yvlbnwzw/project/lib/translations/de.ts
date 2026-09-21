@@ -1858,7 +1858,7 @@ export default {
   'booking.hub.staffRole.owner': 'Inhaber',
   'booking.hub.searchPh': 'Finde was du brauchst...',
   'booking.hub.soon': 'Demnächst',
-  'booking.hub.marketplace': 'Service buchen',
+  'booking.hub.marketplace': 'Finde was du brauchst',
   'booking.hub.comingSoonTitle': 'Booking — demnächst',
   'booking.hub.comingSoonDesc': 'Diese Seite wird vorbereitet. Sie wird bald für alle Benutzer verfügbar sein.',
   'booking.hub.backHome': 'Zurück zur Startseite',
