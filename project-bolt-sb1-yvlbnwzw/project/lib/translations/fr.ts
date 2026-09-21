@@ -2616,7 +2616,12 @@ export default {
   'trade.settings.serviceAreasPh':    'ex. Paris, Lyon, Marseille (séparées par des virgules)',
   'trade.settings.publicProfile':     'Profil public',
   'trade.settings.publicProfileDesc': 'Ces informations sont visibles par les clients sur la marketplace.',
-  'trade.settings.saved':             'Enregistré.',
+  'trade.settings.saved':                   'Enregistré.',
+  'trade.settings.marketplace.listed':      'Afficher sur la marketplace',
+  'trade.settings.marketplace.listedDesc':  'Votre entreprise apparaît dans le répertoire public des artisans.',
+
+  'trade.public.price.quote':  'Sur devis',
+  'trade.public.price.from':   'À partir de',
 
   // ── Accommodation system ───────────────────────────────────────────────────
   'acc.setup.tab': 'Hébergement',

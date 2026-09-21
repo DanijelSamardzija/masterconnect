@@ -175,7 +175,7 @@ export function TradeOwnerNav({
             </button>
           ))}
           <button
-            onClick={() => router.push(`/booking/${profileId}`)}
+            onClick={() => router.push(`/booking/majstori/${profileId}`)}
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground whitespace-nowrap py-2 px-2 rounded-lg hover:bg-accent transition-colors"
           >
             <ExternalLink className="h-3.5 w-3.5" />

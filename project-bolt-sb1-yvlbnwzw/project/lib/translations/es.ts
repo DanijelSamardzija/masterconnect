@@ -2609,7 +2609,12 @@ export default {
   'trade.settings.serviceAreasPh':    'p. ej. Madrid, Barcelona, Valencia (separadas por coma)',
   'trade.settings.publicProfile':     'Perfil público',
   'trade.settings.publicProfileDesc': 'Esta información se muestra a los clientes en el marketplace.',
-  'trade.settings.saved':             'Guardado.',
+  'trade.settings.saved':                   'Guardado.',
+  'trade.settings.marketplace.listed':      'Mostrar en el marketplace',
+  'trade.settings.marketplace.listedDesc':  'Su empresa aparece en el directorio público de profesionales.',
+
+  'trade.public.price.quote':  'A negociar',
+  'trade.public.price.from':   'Desde',
 
   // ── Accommodation system ───────────────────────────────────────────────────
   'acc.setup.tab': 'Alojamiento',

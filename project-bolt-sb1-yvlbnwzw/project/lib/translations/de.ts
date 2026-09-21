@@ -2681,7 +2681,12 @@ export default {
   'trade.settings.serviceAreasPh':    'z. B. Berlin, Hamburg, München (kommagetrennt)',
   'trade.settings.publicProfile':     'Öffentliches Profil',
   'trade.settings.publicProfileDesc': 'Diese Angaben werden Kunden im öffentlichen Marktplatz angezeigt.',
-  'trade.settings.saved':             'Gespeichert.',
+  'trade.settings.saved':                   'Gespeichert.',
+  'trade.settings.marketplace.listed':      'Im Marktplatz anzeigen',
+  'trade.settings.marketplace.listedDesc':  'Ihr Betrieb erscheint im öffentlichen Handwerkerverzeichnis.',
+
+  'trade.public.price.quote':  'Auf Anfrage',
+  'trade.public.price.from':   'Ab',
 
   // ── Accommodation system ───────────────────────────────────────────────────
   'acc.setup.tab': 'Unterkunft',

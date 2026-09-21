@@ -2691,7 +2691,12 @@ export default {
   'trade.settings.serviceAreasPh':    'e.g. Sarajevo, Mostar, Zenica (comma-separated)',
   'trade.settings.publicProfile':     'Public profile',
   'trade.settings.publicProfileDesc': 'This information is shown to clients on the public marketplace.',
-  'trade.settings.saved':             'Saved.',
+  'trade.settings.saved':                   'Saved.',
+  'trade.settings.marketplace.listed':      'Show on marketplace',
+  'trade.settings.marketplace.listedDesc':  'Your business appears in the public tradesperson directory.',
+
+  'trade.public.price.quote':  'By negotiation',
+  'trade.public.price.from':   'From',
 
   // ── Accommodation system ───────────────────────────────────────────────────
   'acc.setup.tab': 'Accommodation',

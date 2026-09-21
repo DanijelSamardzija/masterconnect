@@ -8,7 +8,7 @@ import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
 import { TradeDashboardLayout } from '@/components/trade/TradeDashboardLayout';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
-import { Settings, ChevronRight, Loader2, Globe } from 'lucide-react';
+import { Settings, ChevronRight, Loader2, Globe, Store } from 'lucide-react';
 
 export default function TradeSettingsPage({ params }: { params: Promise<{ profileId: string }> }) {
   const { profileId } = use(params);
@@ -20,6 +20,8 @@ export default function TradeSettingsPage({ params }: { params: Promise<{ profil
   const [currentName, setCurrentName] = useState('');
   const [description, setDescription] = useState('');
   const [serviceAreaInput, setServiceAreaInput] = useState('');
+  const [isMarketplaceListed, setIsMarketplaceListed] = useState(true);
+  const [togglingMarketplace, setTogglingMarketplace] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -34,15 +36,33 @@ export default function TradeSettingsPage({ params }: { params: Promise<{ profil
     setLoading(true);
     // Read name directly (owner RLS allows this) to satisfy upsert_trade_profile's name_required
     const [profileResp, publicResp] = await Promise.all([
-      (supabase as any).from('booking_profiles').select('name').eq('id', profileId).single(),
+      (supabase as any).from('booking_profiles').select('name, is_marketplace_listed').eq('id', profileId).single(),
       (supabase as any).rpc('get_public_trade_profile', { p_business_id: profileId }),
     ]);
     if (profileResp.data?.name) setCurrentName(profileResp.data.name);
+    if (typeof profileResp.data?.is_marketplace_listed === 'boolean') {
+      setIsMarketplaceListed(profileResp.data.is_marketplace_listed);
+    }
     if (publicResp.data?.ok) {
       setDescription(publicResp.data.profile.description ?? '');
       setServiceAreaInput((publicResp.data.profile.service_area_cities ?? []).join(', '));
     }
     setLoading(false);
+  }
+
+  async function toggleMarketplace(val: boolean) {
+    setTogglingMarketplace(true);
+    const { data } = await (supabase as any).rpc('set_marketplace_listed', {
+      p_business_id: profileId,
+      p_listed:      val,
+    });
+    if (data?.ok) {
+      setIsMarketplaceListed(val);
+      toast.success(t('trade.settings.saved'));
+    } else {
+      toast.error(data?.error ?? 'error');
+    }
+    setTogglingMarketplace(false);
   }
 
   async function savePublicInfo() {
@@ -90,6 +110,37 @@ export default function TradeSettingsPage({ params }: { params: Promise<{ profil
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
+          </div>
+        </div>
+
+        {/* Marketplace visibility toggle */}
+        <div className="p-4 rounded-xl border border-border bg-card">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-2.5">
+              <div className="p-2 rounded-xl bg-green-100 dark:bg-green-950 shrink-0 mt-0.5">
+                <Store className="w-4 h-4 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">
+                  {t('trade.settings.marketplace.listed')}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {t('trade.settings.marketplace.listedDesc')}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => toggleMarketplace(!isMarketplaceListed)}
+              disabled={togglingMarketplace || loading}
+              className={`relative w-11 h-6 rounded-full transition-colors shrink-0 mt-0.5 ${
+                isMarketplaceListed ? 'bg-primary' : 'bg-muted'
+              } disabled:opacity-50`}
+              aria-label={t('trade.settings.marketplace.listed')}
+            >
+              <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                isMarketplaceListed ? 'translate-x-5' : 'translate-x-0'
+              }`} />
+            </button>
           </div>
         </div>
 

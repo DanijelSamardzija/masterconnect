@@ -33,6 +33,22 @@ type Profile = {
   services: Service[];
 };
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatPrice(svc: Service, t: (k: string) => string): string {
+  if (svc.price_type === 'quote' || svc.price == null) {
+    return t('trade.public.price.quote');
+  }
+  const sym = svc.currency ?? '';
+  const val = Number(svc.price) % 1 === 0
+    ? Number(svc.price).toLocaleString('bs-BA')
+    : Number(svc.price).toLocaleString('bs-BA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (svc.price_type === 'hourly') {
+    return `${t('trade.public.price.from')} ${val} ${sym}/h`;
+  }
+  return `${t('trade.public.price.from')} ${val} ${sym}`;
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function PublicTradeProfilePage({
@@ -169,13 +185,9 @@ export default function PublicTradeProfilePage({
                 <div key={svc.id} className="border border-border rounded-xl p-3 bg-card">
                   <div className="flex items-start justify-between gap-2">
                     <p className="text-sm font-medium text-foreground">{svc.name}</p>
-                    {svc.price != null && (
-                      <span className="text-sm font-semibold text-primary shrink-0">
-                        {svc.price_type === 'hourly'
-                          ? `${svc.price} ${svc.currency ?? ''}/h`
-                          : `${svc.price} ${svc.currency ?? ''}`}
-                      </span>
-                    )}
+                    <span className="text-sm font-semibold text-primary shrink-0 text-right">
+                      {formatPrice(svc, t)}
+                    </span>
                   </div>
                   {svc.description && (
                     <p className="text-xs text-muted-foreground mt-0.5">{svc.description}</p>
