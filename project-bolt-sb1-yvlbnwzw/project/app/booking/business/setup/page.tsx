@@ -10,7 +10,7 @@ import { useBookingAccess } from '@/lib/hooks/use-booking-access';
 import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
 import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
-import { ChevronRight, ChevronLeft, Plus, Pencil, X, CheckCircle2, MapPin, ExternalLink, AlertTriangle, Check, Loader2, Info, Copy, Share2, Trash2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Plus, Pencil, X, CheckCircle2, MapPin, ExternalLink, AlertTriangle, Check, Loader2, Info, Copy, Share2, Trash2, Camera } from 'lucide-react';
 import { TimePicker24h } from '@/components/ui/time-picker-24h';
 import { SharePostModal } from '@/components/share-post-modal';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
@@ -411,7 +411,7 @@ export default function BusinessSetupPage() {
   const [bizName, setBizName] = useState('');
   const [bizCategory, setBizCategory] = useState<string>('');
   const [timezone, setTimezone] = useState('Europe/Sarajevo');
-  const [logoUrl, setLogoUrl] = useState<string>('');
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
   const [logoUploading, setLogoUploading] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const [isBusinessActive, setIsBusinessActive] = useState(false);
@@ -569,7 +569,7 @@ export default function BusinessSetupPage() {
       setProfileLoading(true);
       const [bpRes, locRes, notifRes] = await Promise.all([
         // Booking profile data (name, active state, type) — comes from booking_profiles
-        (supabase as any).from('booking_profiles').select('name, is_active, profile_type, logo_url').eq('id', activeProfileId).single() as Promise<{ data: { name: string; is_active: boolean; profile_type: string; logo_url: string | null } | null; error: unknown }>,
+        (supabase as any).from('booking_profiles').select('name, is_active, profile_type, avatar_url').eq('id', activeProfileId).single() as Promise<{ data: { name: string; is_active: boolean; profile_type: string } | null; error: unknown }>,
         // Primary location timezone for this booking profile
         supabase.from('business_locations').select('timezone').eq('business_id', activeProfileId).eq('is_primary', true).maybeSingle(),
         // Notification prefs — owner-level, stays on profiles table
@@ -579,7 +579,7 @@ export default function BusinessSetupPage() {
         setBizName(bpRes.data.name ?? '');
         setIsBusinessActive(bpRes.data.is_active ?? false);
         setBizCategory(bpRes.data.profile_type ?? '');
-        setLogoUrl(bpRes.data.logo_url ?? '');
+        setAvatarUrl((bpRes.data as any).avatar_url ?? '');
         const prefs = notifRes.data?.notification_prefs ?? {};
         setNotifPrefs({
           push_enabled:         prefs.push_enabled         !== false,
@@ -787,31 +787,44 @@ export default function BusinessSetupPage() {
   async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !user || !activeProfileId) return;
-    if (file.size > 5 * 1024 * 1024) { toast.error('Maksimalna veličina fajla je 5 MB'); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error(t('bookingSetup.profile.logoMax')); return; }
     setLogoUploading(true);
-    const path = `${user.id}/${activeProfileId}`;
-    const { error: upErr } = await supabase.storage
-      .from('booking-logos')
-      .upload(path, file, { upsert: true, contentType: file.type });
-    if (upErr) { toast.error('Greška pri uploadu'); setLogoUploading(false); return; }
-    const { data: { publicUrl } } = supabase.storage.from('booking-logos').getPublicUrl(path);
-    const urlWithBust = `${publicUrl}?t=${Date.now()}`;
-    await (supabase as any).from('booking_profiles')
-      .update({ logo_url: urlWithBust })
-      .eq('id', activeProfileId);
-    setLogoUrl(urlWithBust);
-    setLogoUploading(false);
-    toast.success(t('setup.profile.saved'));
-    if (logoInputRef.current) logoInputRef.current.value = '';
+    try {
+      const { compressImage } = await import('@/lib/utils/compress-image');
+      const compressed = await compressImage(file, 400);
+      const path = `${user.id}/booking-profiles/${activeProfileId}/${Date.now()}.jpg`;
+      if (avatarUrl) {
+        const oldPath = avatarUrl.split('/avatars/')[1]?.split('?')[0];
+        if (oldPath) await supabase.storage.from('avatars').remove([oldPath]);
+      }
+      const { error: upErr } = await supabase.storage
+        .from('avatars')
+        .upload(path, compressed, { upsert: true, contentType: 'image/jpeg' });
+      if (upErr) throw upErr;
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path);
+      await (supabase as any).from('booking_profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', activeProfileId);
+      setAvatarUrl(publicUrl);
+      toast.success(t('setup.profile.saved'));
+    } catch {
+      toast.error(t('setup.error.saveFailed'));
+    } finally {
+      setLogoUploading(false);
+      if (logoInputRef.current) logoInputRef.current.value = '';
+    }
   }
 
   async function handleLogoRemove() {
     if (!user || !activeProfileId) return;
-    await supabase.storage.from('booking-logos').remove([`${user.id}/${activeProfileId}`]);
+    if (avatarUrl) {
+      const oldPath = avatarUrl.split('/avatars/')[1]?.split('?')[0];
+      if (oldPath) await supabase.storage.from('avatars').remove([oldPath]);
+    }
     await (supabase as any).from('booking_profiles')
-      .update({ logo_url: null })
+      .update({ avatar_url: null })
       .eq('id', activeProfileId);
-    setLogoUrl('');
+    setAvatarUrl('');
   }
 
   // ── Notification prefs save ────────────────────────────────────────────────
@@ -1845,32 +1858,50 @@ export default function BusinessSetupPage() {
                 </div>
               ) : (
                 <>
-                  {/* Business type — read-only chip */}
+                  {/* Business type — read-only full card */}
                   {bizCategory && (() => {
                     const cat = BIZ_CATEGORIES.find(c => c.key === bizCategory);
                     if (!cat) return null;
                     return (
-                      <div className="flex flex-col gap-1">
+                      <div className="flex flex-col gap-1.5">
                         <label className="text-xs font-medium text-muted-foreground">{t('setup.profile.bizType')}</label>
-                        <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-border bg-muted/30 w-fit">
-                          <span className="text-lg leading-none">{cat.emoji}</span>
-                          <span className="text-sm font-medium text-foreground">
-                            {t(`setup.bizCategory.${cat.key}.name` as Parameters<typeof t>[0])}
-                          </span>
+                        <div className="w-full text-left rounded-xl border border-primary bg-primary/5 ring-1 ring-primary p-3.5 cursor-default">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start gap-3">
+                              <span className="text-2xl leading-none mt-0.5">{cat.emoji}</span>
+                              <div className="flex flex-col gap-0.5">
+                                <span className="text-sm font-semibold text-primary">
+                                  {t(`setup.bizCategory.${cat.key}.name` as Parameters<typeof t>[0])}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {t(`setup.bizCategory.${cat.key}.desc` as Parameters<typeof t>[0])}
+                                </span>
+                                <span className="text-xs text-muted-foreground/70 mt-1">
+                                  {t(`setup.bizCategory.${cat.key}.examples` as Parameters<typeof t>[0])}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     );
                   })()}
 
                   {/* Logo upload */}
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-medium text-muted-foreground">{t('setup.profile.logo')}</label>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium">{t('bookingSetup.profile.logo')}</label>
                     <div className="flex items-center gap-4">
-                      <div className="w-20 h-20 rounded-2xl border border-border overflow-hidden bg-muted flex items-center justify-center shrink-0">
-                        {logoUrl
-                          ? <img src={logoUrl} alt="logo" className="w-full h-full object-cover" />
-                          : <span className="text-3xl select-none">🏢</span>
+                      <div className="relative w-20 h-20 rounded-2xl border-2 border-dashed border-border bg-muted/40 overflow-hidden flex items-center justify-center shrink-0">
+                        {avatarUrl
+                          // eslint-disable-next-line @next/next/no-img-element
+                          ? <img src={avatarUrl} alt="logo" className="w-full h-full object-cover" />
+                          : <Camera className="w-7 h-7 text-muted-foreground/50" />
                         }
+                        {logoUploading && (
+                          <div className="absolute inset-0 bg-background/70 flex items-center justify-center">
+                            <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                          </div>
+                        )}
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <input
@@ -1884,20 +1915,21 @@ export default function BusinessSetupPage() {
                           type="button"
                           onClick={() => logoInputRef.current?.click()}
                           disabled={logoUploading}
-                          className="px-3 py-1.5 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-accent transition-colors disabled:opacity-50"
+                          className="flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
                         >
                           {logoUploading
-                            ? t('setup.profile.logoUploading')
-                            : logoUrl
-                              ? t('setup.profile.logoChange')
-                              : t('setup.profile.logoUpload')
+                            ? t('bookingSetup.profile.logoUploading')
+                            : avatarUrl
+                              ? t('bookingSetup.profile.logoChange')
+                              : t('bookingSetup.profile.logoUpload')
                           }
                         </button>
-                        {logoUrl && !logoUploading && (
+                        <p className="text-xs text-muted-foreground">{t('bookingSetup.profile.logoMax')}</p>
+                        {avatarUrl && !logoUploading && (
                           <button
                             type="button"
                             onClick={handleLogoRemove}
-                            className="px-3 py-1.5 rounded-xl text-sm text-destructive hover:bg-destructive/10 transition-colors text-left"
+                            className="text-xs text-destructive hover:text-destructive/80 transition-colors text-left"
                           >
                             {t('setup.profile.logoRemove')}
                           </button>
