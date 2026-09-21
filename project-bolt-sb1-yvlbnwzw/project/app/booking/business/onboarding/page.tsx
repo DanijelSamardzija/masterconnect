@@ -588,7 +588,7 @@ export default function BookingSetupWizardPage() {
       .update({ onboarding_done: true })
       .eq('id', resolvedProfileId);
     setSaving(false);
-    router.push('/booking/business/bookings');
+    router.push('/booking/business/setup');
   }
 
   async function copyLink() {
@@ -1314,7 +1314,7 @@ export default function BookingSetupWizardPage() {
                         </button>
                       )}
                       <button
-                        onClick={() => router.push('/dashboard')}
+                        onClick={() => router.push('/booking/business/bookings')}
                         className="w-full text-sm text-muted-foreground hover:text-foreground border border-border rounded-xl py-3 transition-colors"
                       >
                         {t('bookingSetup.activate.dashboard')}
@@ -1390,7 +1390,7 @@ export default function BookingSetupWizardPage() {
                         </button>
                       )}
                       <button
-                        onClick={() => router.push('/dashboard')}
+                        onClick={() => router.push('/booking/business/bookings')}
                         className="w-full text-sm text-muted-foreground hover:text-foreground border border-border rounded-xl py-3 transition-colors"
                       >
                         {t('bookingSetup.activate.dashboard')}
