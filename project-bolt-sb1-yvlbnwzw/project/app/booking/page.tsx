@@ -381,6 +381,7 @@ export default function BookingPage() {
       iconBg: 'bg-blue-100 dark:bg-blue-950',
       title: t('booking.hub.cat.majstori'),
       desc: t('booking.hub.cat.majstoriDesc'),
+      href: '/booking/majstori',
     },
     {
       key: 'restorani',
