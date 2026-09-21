@@ -73,6 +73,39 @@ const DEFAULT_RULES: Rules = {
 
 const DURATIONS = [15, 20, 30, 45, 60, 75, 90, 120, 150, 180];
 
+const TIMEZONE_OPTIONS: { value: string; label: string }[] = [
+  { value: 'Europe/Sarajevo',    label: 'Sarajevo (Europe/Sarajevo)' },
+  { value: 'Europe/Belgrade',    label: 'Beograd (Europe/Belgrade)' },
+  { value: 'Europe/Zagreb',      label: 'Zagreb (Europe/Zagreb)' },
+  { value: 'Europe/Ljubljana',   label: 'Ljubljana (Europe/Ljubljana)' },
+  { value: 'Europe/Skopje',      label: 'Skoplje (Europe/Skopje)' },
+  { value: 'Europe/Podgorica',   label: 'Podgorica (Europe/Podgorica)' },
+  { value: 'Europe/Tirane',      label: 'Tirana (Europe/Tirane)' },
+  { value: 'Europe/Sofia',       label: 'Sofija (Europe/Sofia)' },
+  { value: 'Europe/Bucharest',   label: 'Bukurešt (Europe/Bucharest)' },
+  { value: 'Europe/Athens',      label: 'Atina (Europe/Athens)' },
+  { value: 'Europe/Vienna',      label: 'Beč (Europe/Vienna)' },
+  { value: 'Europe/Berlin',      label: 'Berlin (Europe/Berlin)' },
+  { value: 'Europe/Zurich',      label: 'Cirih (Europe/Zurich)' },
+  { value: 'Europe/Prague',      label: 'Prag (Europe/Prague)' },
+  { value: 'Europe/Warsaw',      label: 'Varšava (Europe/Warsaw)' },
+  { value: 'Europe/Budapest',    label: 'Budimpešta (Europe/Budapest)' },
+  { value: 'Europe/Paris',       label: 'Pariz (Europe/Paris)' },
+  { value: 'Europe/Rome',        label: 'Rim (Europe/Rome)' },
+  { value: 'Europe/Madrid',      label: 'Madrid (Europe/Madrid)' },
+  { value: 'Europe/London',      label: 'London (Europe/London)' },
+  { value: 'Europe/Istanbul',    label: 'Istanbul (Europe/Istanbul)' },
+  { value: 'Asia/Dubai',         label: 'Dubai (Asia/Dubai)' },
+  { value: 'America/New_York',   label: 'New York (America/New_York)' },
+  { value: 'America/Los_Angeles',label: 'Los Angeles (America/Los_Angeles)' },
+  { value: 'Australia/Sydney',   label: 'Sidnej (Australia/Sydney)' },
+];
+
+function getBrowserTimezone(): string {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Sarajevo'; }
+  catch { return 'Europe/Sarajevo'; }
+}
+
 function matchCountryValue(nominatimCountry: string): string {
   if (!nominatimCountry) return '';
   const lower = nominatimCountry.toLowerCase().trim();
@@ -136,6 +169,8 @@ export default function BookingSetupWizardPage() {
   const [locAddress, setLocAddress] = useState('');
   const [locCity, setLocCity] = useState('');
   const [locCountry, setLocCountry] = useState('');
+  const [locTimezone, setLocTimezone] = useState(getBrowserTimezone());
+  const [locPhone, setLocPhone] = useState('');
 
   // Step 3 — Hours
   const [dayHours, setDayHours] = useState<DayHour[]>(DEFAULT_HOURS);
@@ -254,7 +289,7 @@ export default function BookingSetupWizardPage() {
 
     const { data: locs } = await (supabase as any)
       .from('business_locations')
-      .select('id, name, address, city, country')
+      .select('id, name, address, city, country, timezone, phone')
       .eq('business_id', resolvedProfileId)
       .eq('is_active', true)
       .order('is_primary', { ascending: false })
@@ -266,6 +301,8 @@ export default function BookingSetupWizardPage() {
       setLocAddress(loc.address ?? '');
       setLocCity(loc.city ?? '');
       setLocCountry(loc.country ?? '');
+      setLocTimezone(loc.timezone || getBrowserTimezone());
+      setLocPhone(loc.phone ?? '');
 
       const { data: closuresData } = await (supabase as any).rpc('get_business_closures', {
         p_location_id: loc.id,
@@ -388,14 +425,19 @@ export default function BookingSetupWizardPage() {
       const { data } = await (supabase as any).rpc('update_location', {
         p_location_id: locId, p_name: locName.trim(),
         p_address: locAddress.trim() || null, p_city: locCity.trim(),
-        p_country: locCountry.trim(), p_timezone: 'Europe/Sarajevo', p_phone: null,
+        p_country: locCountry.trim(),
+        p_timezone: locTimezone || 'Europe/Sarajevo',
+        p_phone: locPhone.trim() || null,
       });
       if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); setSaving(false); return; }
     } else {
       const { data } = await (supabase as any).rpc('create_location', {
         p_business_id: resolvedProfileId, p_name: locName.trim(),
         p_address: locAddress.trim() || null, p_city: locCity.trim(),
-        p_country: locCountry.trim(), p_timezone: 'Europe/Sarajevo', p_phone: null, p_is_primary: true,
+        p_country: locCountry.trim(),
+        p_timezone: locTimezone || 'Europe/Sarajevo',
+        p_phone: locPhone.trim() || null,
+        p_is_primary: true,
       });
       if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); setSaving(false); return; }
       const { data: row } = await (supabase as any)
@@ -844,6 +886,16 @@ export default function BookingSetupWizardPage() {
                       className={inputCls}
                     />
                   </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium">{t('setup.locations.phone')}</label>
+                    <input
+                      type="tel"
+                      value={locPhone}
+                      onChange={(e) => setLocPhone(e.target.value)}
+                      placeholder="+387 61 000 000"
+                      className={inputCls}
+                    />
+                  </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="flex flex-col gap-1.5">
                       <label className="text-sm font-medium">{t('setup.locations.city')} *</label>
@@ -872,6 +924,20 @@ export default function BookingSetupWizardPage() {
                           <option key={c.value} value={c.value}>
                             {language === 'sr' ? c.sr : language === 'de' ? c.de : c.en}
                           </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium">{t('setup.locations.timezone')}</label>
+                    <div className="rounded-xl overflow-hidden border border-border focus-within:ring-2 focus-within:ring-primary">
+                      <select
+                        value={locTimezone}
+                        onChange={(e) => setLocTimezone(e.target.value)}
+                        className="w-full px-3 py-3 text-sm bg-background focus:outline-none"
+                      >
+                        {TIMEZONE_OPTIONS.map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
                         ))}
                       </select>
                     </div>
