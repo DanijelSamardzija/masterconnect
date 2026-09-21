@@ -1217,7 +1217,7 @@ export default function BookingSetupWizardPage() {
                   </div>
 
                   {/* Min notice + Cancellation */}
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-3 items-end">
                     <div className="flex flex-col gap-1.5">
                       <div className="flex items-center gap-1.5">
                         <label className="text-sm font-medium">{t('setup.rules.minNotice')}</label>
