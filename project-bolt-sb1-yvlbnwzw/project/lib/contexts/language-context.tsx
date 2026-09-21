@@ -25,15 +25,17 @@ const LanguageContext = createContext<LanguageContextType>({
   t: (key: string) => key,
 });
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language>(() => {
-    if (typeof window === 'undefined') return 'en';
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('language');
-      if (saved && VALID.includes(saved as Language)) return saved as Language;
-    } catch {}
-    return 'en';
-  });
+export function LanguageProvider({
+  children,
+  initialLang,
+}: {
+  children: React.ReactNode;
+  initialLang?: Language;
+}) {
+  // initialLang comes from the server (middleware x-lang header) so both
+  // server and client agree on the first render → no hydration mismatch.
+  // The useEffect below then overrides with the user's stored preference.
+  const [language, setLanguageState] = useState<Language>(initialLang ?? 'sr');
   const [translations, setTranslations] = useState<Record<string, string | readonly string[]>>(en);
 
   useEffect(() => {

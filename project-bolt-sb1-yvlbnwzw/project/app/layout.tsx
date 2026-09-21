@@ -93,7 +93,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const lang = headers().get('x-lang') ?? 'sr';
+  const lang = (headers().get('x-lang') ?? 'sr') as 'en' | 'sr' | 'de' | 'es' | 'fr';
   return (
     <html lang={lang} suppressHydrationWarning className="h-dvh">
       <head>
@@ -122,7 +122,7 @@ export default function RootLayout({
         >
           Preskoči na sadržaj
         </a>
-        <LanguageProvider>
+        <LanguageProvider initialLang={lang}>
           <AuthProvider>
             <PostHogProvider>
             <GuestGateProvider>
