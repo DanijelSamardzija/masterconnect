@@ -75,7 +75,7 @@ function CreateProfileModal({
   onCreated,
 }: {
   onClose: () => void;
-  onCreated: (profileId: string, profileType: ProfileType) => void;
+  onCreated: (profileId: string, profileType: ProfileType, name: string, avatarUrl?: string) => void;
 }) {
   const { t } = useLanguage();
   const [name, setName] = useState('');
@@ -132,6 +132,7 @@ function CreateProfileModal({
       }
 
       const profileId = data.profile_id!;
+      let uploadedAvatarUrl: string | undefined;
 
       // Upload avatar if one was picked
       if (avatarFile) {
@@ -147,13 +148,14 @@ function CreateProfileModal({
               .from('booking_profiles')
               .update({ avatar_url: publicUrl })
               .eq('id', profileId);
+            uploadedAvatarUrl = publicUrl;
           }
         } catch {
           // Avatar upload failing is non-fatal; wizard allows re-upload
         }
       }
 
-      onCreated(profileId, profileType);
+      onCreated(profileId, profileType, name.trim(), uploadedAvatarUrl);
     } catch {
       setError('create_failed');
     } finally {
@@ -426,11 +428,13 @@ export default function BookingPage() {
     router.push('/booking/business/bookings');
   };
 
-  const handleCreated = async (profileId: string, profileType: string) => {
+  const handleCreated = async (profileId: string, profileType: string, name: string, avatarUrl?: string) => {
     setShowCreate(false);
     await reload();
     setActiveProfileId(profileId);
-    router.push(`/booking/business/onboarding?profileId=${profileId}&profileType=${profileType}`);
+    const params = new URLSearchParams({ profileId, profileType, initialName: name });
+    if (avatarUrl) params.set('initialAvatarUrl', avatarUrl);
+    router.push(`/booking/business/onboarding?${params.toString()}`);
   };
 
   const CATEGORIES = [

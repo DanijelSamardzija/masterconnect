@@ -93,9 +93,11 @@ export default function BookingSetupWizardPage() {
   const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const postId    = searchParams.get('postId');
-  const profileId = searchParams.get('profileId');   // secondary profile UUID; null = primary
-  const profileType = searchParams.get('profileType'); // profile_type of the target profile
+  const postId      = searchParams.get('postId');
+  const profileId   = searchParams.get('profileId');    // secondary profile UUID; null = primary
+  const profileType = searchParams.get('profileType');  // profile_type of the target profile
+  const initialName      = searchParams.get('initialName') ?? '';
+  const initialAvatarUrl = searchParams.get('initialAvatarUrl') ?? '';
 
   // Primary profile: user.id === booking_profiles.id (backward compat)
   // Secondary profile: explicit UUID from URL param
@@ -111,9 +113,9 @@ export default function BookingSetupWizardPage() {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  // Step 0 — Profile
-  const [bizName, setBizName] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('');
+  // Step 0 — Profile (pre-seeded from CreateProfileModal via URL params)
+  const [bizName, setBizName] = useState(initialName);
+  const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
