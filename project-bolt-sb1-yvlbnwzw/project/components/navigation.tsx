@@ -310,7 +310,7 @@ export function Navigation() {
           </Link>
 
           <div className="hidden md:flex items-center gap-1">
-            {user && BOOKING_ALLOWED_IDS.includes(user.id) && (
+            {mounted && user && BOOKING_ALLOWED_IDS.includes(user.id) && (
               <Link href="/booking">
                 <Button variant="ghost" size="sm" className={desktopNavClass('/booking')}>
                   <Calendar className="h-4 w-4" />
@@ -612,7 +612,7 @@ export function Navigation() {
                   <Separator />
 
                   <>
-                    {user && BOOKING_ALLOWED_IDS.includes(user.id) && (
+                    {mounted && user && BOOKING_ALLOWED_IDS.includes(user.id) && (
                       <Link href="/booking" onClick={closeMobileMenu}>
                         <Button variant="ghost" className={mobileNavClass('/booking')}>
                           <Calendar className="h-4 w-4" />
