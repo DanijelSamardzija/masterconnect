@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { ChevronLeft, ChevronRight, Clock, MapPin } from 'lucide-react';
 
 type Slot            = { slot_start: string; slot_end: string; available: boolean };
-type StaffOption     = { staff_member_id: string; name: string };
+type StaffOption     = { staff_member_id: string; name: string; location_id: string | null };
 type StaffAbsenceRow = { date_from: string; date_to: string; reason: string };
 type StaffShiftDay   = { is_off: boolean; off_reason: string | null };
 
@@ -67,6 +67,9 @@ function BusinessRescheduleContent() {
   const [staffOptions, setStaffOptions]   = useState<StaffOption[]>([]);
   // selectedStaffId drives slot/break/absence fetching; starts as the booking's current staff
   const [selectedStaffId, setSelectedStaffId] = useState(staffId);
+  // Track selected staff's location (may differ from booking's original locationId)
+  const [selectedLocId, setSelectedLocId] = useState(locationId);
+  const [locMap, setLocMap]               = useState<Record<string, LocationInfo>>({});
 
   const [week, setWeek]               = useState<Date>(weekMonday(new Date()));
   const [selectedDay, setSelectedDay] = useState('');
@@ -78,45 +81,70 @@ function BusinessRescheduleContent() {
   const [staffShiftDays, setStaffShiftDays] = useState<Record<string, StaffShiftDay>>({});
   const [confirming, setConfirming]   = useState(false);
 
-  // Load service name + location + staff for this location
+  // Load service name + location + staff (with their locations) for this business
   useEffect(() => {
-    if (!serviceId || !locationId) return;
+    if (!serviceId || !locationId || !businessId) return;
     (async () => {
-      const [svcRes, locRes, staffRes] = await Promise.all([
+      const [svcRes, staffRes, smRes] = await Promise.all([
         (supabase as any).from('service_catalog').select('name, duration_minutes').eq('id', serviceId).maybeSingle(),
-        supabase.from('business_locations').select('id, name, address, city, country, timezone').eq('id', locationId).maybeSingle(),
         (supabase as any).rpc('get_staff_for_service', { p_service_id: serviceId, p_location_id: locationId }),
+        supabase.from('staff_members').select('id, primary_location_id').eq('business_id', businessId).eq('is_active', true),
       ]);
       if (svcRes.data) { setServiceName(svcRes.data.name ?? ''); setServiceDuration(svcRes.data.duration_minutes ?? 0); }
-      if (locRes.data) setLocation(locRes.data as LocationInfo);
-      const members = ((staffRes.data ?? []) as any[]).map((s: any) => ({
+
+      // Build staff_id → primary_location_id map
+      const smLocMap: Record<string, string | null> = {};
+      for (const sm of (smRes.data ?? []) as { id: string; primary_location_id: string | null }[]) {
+        smLocMap[sm.id] = sm.primary_location_id;
+      }
+
+      const members: StaffOption[] = ((staffRes.data ?? []) as any[]).map((s: any) => ({
         staff_member_id: s.staff_member_id,
         name: s.name,
+        location_id: smLocMap[s.staff_member_id] ?? null,
       }));
       setStaffOptions(members);
+
+      // Collect all unique location IDs needed and fetch them
+      const locIds = [...new Set([locationId, ...members.map(m => m.location_id).filter((id): id is string => !!id)])];
+      const locsData = await supabase
+        .from('business_locations')
+        .select('id, name, address, city, country, timezone')
+        .in('id', locIds);
+      const newLocMap: Record<string, LocationInfo> = {};
+      for (const l of (locsData.data ?? []) as LocationInfo[]) {
+        newLocMap[l.id] = l;
+      }
+      setLocMap(newLocMap);
+      setLocation(newLocMap[locationId] ?? null);
+
       // Keep initial selection if that staff is in the list; otherwise pick first
       const inList = members.some((s: StaffOption) => s.staff_member_id === staffId);
-      if (!inList && members.length > 0) setSelectedStaffId(members[0].staff_member_id);
+      if (!inList && members.length > 0) {
+        const firstMember = members[0];
+        setSelectedStaffId(firstMember.staff_member_id);
+        setSelectedLocId(firstMember.location_id ?? locationId);
+      }
       setLoading(false);
     })();
-  }, [serviceId, locationId, staffId]);
+  }, [serviceId, locationId, businessId, staffId]);
 
-  // Fetch slots whenever week / selected staff changes
+  // Fetch slots whenever week / selected staff / selected location changes
   const fetchSlots = useCallback(async () => {
-    if (!businessId || !locationId || !serviceId) return;
+    if (!businessId || !selectedLocId || !serviceId) return;
     setSlotsLoading(true);
     setSlots([]);
     setSlotStart('');
     const { data } = await (supabase as any).rpc('get_available_slots', {
       p_business_id:     businessId,
-      p_location_id:     locationId,
+      p_location_id:     selectedLocId,
       p_service_id:      serviceId,
       p_week_start:      toDateKey(week),
       p_staff_member_id: selectedStaffId || null,
     });
     setSlots(data ?? []);
     setSlotsLoading(false);
-  }, [businessId, locationId, serviceId, selectedStaffId, week]);
+  }, [businessId, selectedLocId, serviceId, selectedStaffId, week]);
 
   useEffect(() => { fetchSlots(); }, [fetchSlots]);
 
@@ -254,16 +282,16 @@ function BusinessRescheduleContent() {
                 </div>
               </div>
 
-              {/* Location — read-only */}
-              {location && (
+              {/* Location — updates when selected staff is at a different location */}
+              {(locMap[selectedLocId] ?? location) && (
                 <div>
                   <label className="block text-xs text-muted-foreground mb-1.5">{t('booking.location')}</label>
                   <div className="px-4 py-3 rounded-xl border border-primary bg-primary/5">
-                    <p className="text-sm font-medium">{location.name}</p>
-                    {(location.address || location.city) && (
+                    <p className="text-sm font-medium">{(locMap[selectedLocId] ?? location)?.name}</p>
+                    {((locMap[selectedLocId] ?? location)?.address || (locMap[selectedLocId] ?? location)?.city) && (
                       <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
                         <MapPin className="w-3 h-3 shrink-0" />
-                        {[location.address, location.city, location.country].filter(Boolean).join(', ')}
+                        {[(locMap[selectedLocId] ?? location)?.address, (locMap[selectedLocId] ?? location)?.city, (locMap[selectedLocId] ?? location)?.country].filter(Boolean).join(', ')}
                       </p>
                     )}
                   </div>
@@ -279,7 +307,11 @@ function BusinessRescheduleContent() {
                       <button
                         key={s.staff_member_id}
                         type="button"
-                        onClick={() => { setSelectedStaffId(s.staff_member_id); setSlotStart(''); }}
+                        onClick={() => {
+                          setSelectedStaffId(s.staff_member_id);
+                          setSelectedLocId(s.location_id ?? locationId);
+                          setSlotStart('');
+                        }}
                         className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                           selectedStaffId === s.staff_member_id
                             ? 'bg-primary text-primary-foreground border-primary'
