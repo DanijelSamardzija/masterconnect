@@ -231,15 +231,6 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         cta: 'View calendar',
         footer: 'Log in to GigZone to view details and manage your bookings.',
       },
-      owner_cancelled_staff: {
-        subject: `Owner cancelled your appointment — ${p.service}`,
-        title: 'Owner cancelled your appointment',
-        body: `<strong>${p.business}</strong> has cancelled your appointment for <strong>${p.service}</strong>${p.clientName ? `. Client: <strong>${p.clientName}</strong>` : ''}.`,
-        dateLabel: 'Cancelled appointment',
-        locationLabel: 'Location',
-        cta: 'View schedule',
-        footer: 'If you have any questions, contact the owner.',
-      },
     },
     de: {
       confirmation: {
