@@ -126,7 +126,7 @@ function OwnerScheduleContent() {
     if (!profileCtxLoading && !activeProfileId) router.replace('/booking');
   }, [profileCtxLoading, activeProfileId, router]);
 
-  const [weekStart, setWeekStart] = useState<Date>(() => addDays(getMondayOf(new Date()), 7));
+  const [weekStart, setWeekStart] = useState<Date>(() => getMondayOf(new Date()));
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
   const [monthDate, setMonthDate] = useState<Date>(() => {
     const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), 1);

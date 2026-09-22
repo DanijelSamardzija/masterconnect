@@ -85,7 +85,7 @@ function StaffScheduleContent() {
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
-  const [weekDate, setWeekDate] = useState<Date>(() => addDays(getMonday(new Date()), 7));
+  const [weekDate, setWeekDate] = useState<Date>(() => getMonday(new Date()));
   const [infoOpen, setInfoOpen] = useState(false);
   const [shifts, setShifts] = useState<ShiftRow[]>([]);
   const [loading, setLoading] = useState(true);
