@@ -118,9 +118,10 @@ function addDays(d: Date, n: number): Date {
 }
 
 function formatTime(isoStr: string, tz: string): string {
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat('sr-Latn-RS', {
     hour: '2-digit',
     minute: '2-digit',
+    hour12: false,
     timeZone: tz,
   }).format(new Date(isoStr));
 }
