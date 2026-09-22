@@ -742,6 +742,7 @@ export default function BusinessSetupPage() {
     if (activeTab === 'services') { loadServices(); loadPostListings(); loadLocations(); loadServiceLocationAssignments(); }
     if (activeTab === 'locations') loadLocations();
     if (activeTab === 'staff') { loadStaff(); loadLocations(); loadServices(); }
+    if (activeTab === 'notifications') loadStaff();
     if (activeTab === 'rules') loadRules();
     if (activeTab === 'hours') {
       setHoursLoading(true); // show spinner immediately while finding primary location
@@ -2696,6 +2697,11 @@ export default function BusinessSetupPage() {
                   </button>
                 </div>
 
+                {/* Master toggle hint */}
+                <p className="text-[11px] text-muted-foreground bg-muted/50 rounded-lg px-3 py-2 leading-snug">
+                  {t('notifPrefs.masterHint')}
+                </p>
+
                 {/* Quiet hours toggle */}
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -2743,32 +2749,38 @@ export default function BusinessSetupPage() {
                     <p className="text-[11px] text-muted-foreground">{t('notifPrefs.eventsDesc')}</p>
                   </div>
                   {/* Booking events with separate in-app + email toggles */}
-                  {([
-                    {
-                      pushKey: 'notify_new_booking'   as const,
-                      emailKey: 'notify_new_booking_email' as const,
-                      label: t('notifPrefs.newBooking'),
-                      desc: t('notifPrefs.newBookingDesc'),
-                      pushDesc: 'Obavještenje u zvonu kad klijent direktno zakaže',
-                      emailDesc: 'Email kad klijent direktno zakaže',
-                    },
-                    {
-                      pushKey: 'notify_staff_booking'  as const,
-                      emailKey: 'notify_staff_booking_email' as const,
-                      label: t('notifPrefs.staffBooking'),
-                      desc: t('notifPrefs.staffBookingDesc'),
-                      pushDesc: 'Obavještenje u zvonu kad klijent zakaže kod radnika',
-                      emailDesc: 'Email kad klijent zakaže kod radnika',
-                    },
-                    {
-                      pushKey: 'notify_cancellation'       as const,
-                      emailKey: 'notify_cancellation_email' as const,
-                      label: t('notifPrefs.cancellation'),
-                      desc: t('notifPrefs.cancellationDesc'),
-                      pushDesc: 'Obavještenje u zvonu kad klijent otkaže termin',
-                      emailDesc: 'Email kad klijent otkaže termin',
-                    },
-                  ]).map(({ pushKey, emailKey, label, desc, pushDesc, emailDesc }) => (
+                  {(() => {
+                    const hasNonOwnerActiveStaff = staffMembers.some(sm => sm.is_active && sm.role !== 'owner');
+                    const rows = [
+                      {
+                        pushKey: 'notify_new_booking'   as const,
+                        emailKey: 'notify_new_booking_email' as const,
+                        label: t('notifPrefs.newBooking'),
+                        desc: t('notifPrefs.newBookingDesc'),
+                        pushDesc: 'Obavještenje u zvonu kad klijent direktno zakaže',
+                        emailDesc: 'Email kad klijent direktno zakaže',
+                        show: true,
+                      },
+                      {
+                        pushKey: 'notify_staff_booking'  as const,
+                        emailKey: 'notify_staff_booking_email' as const,
+                        label: t('notifPrefs.staffBooking'),
+                        desc: t('notifPrefs.staffBookingDesc'),
+                        pushDesc: 'Obavještenje u zvonu kad klijent zakaže kod radnika',
+                        emailDesc: 'Email kad klijent zakaže kod radnika',
+                        show: staffLoading || hasNonOwnerActiveStaff,
+                      },
+                      {
+                        pushKey: 'notify_cancellation'       as const,
+                        emailKey: 'notify_cancellation_email' as const,
+                        label: t('notifPrefs.cancellation'),
+                        desc: t('notifPrefs.cancellationDesc'),
+                        pushDesc: 'Obavještenje u zvonu kad klijent otkaže termin',
+                        emailDesc: 'Email kad klijent otkaže termin',
+                        show: true,
+                      },
+                    ];
+                    return rows.filter(r => r.show).map(({ pushKey, emailKey, label, desc, pushDesc, emailDesc }) => (
                     <div key={pushKey} className="space-y-2">
                       <div>
                         <p className="text-xs font-medium">{label}</p>
@@ -2809,7 +2821,8 @@ export default function BusinessSetupPage() {
                         </div>
                       </div>
                     </div>
-                  ))}
+                  ));
+                  })()}
 
                   {/* Other events with single toggle */}
                   {([
