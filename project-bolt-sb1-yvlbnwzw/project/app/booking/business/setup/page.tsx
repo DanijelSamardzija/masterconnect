@@ -469,6 +469,10 @@ export default function BusinessSetupPage() {
   const [svcCapacity, setSvcCapacity] = useState('1');
   const [svcBookingType, setSvcBookingType] = useState<string>('appointment_service');
   const [svcSaving, setSvcSaving] = useState(false);
+  // per-location price overrides while editing: { [locationId]: { price, price_type, currency } | null }
+  type LocOverride = { price: string; price_type: string; currency: string };
+  const [svcLocOverrides, setSvcLocOverrides] = useState<Record<string, LocOverride | null>>({});
+  const [locOverrideSaving, setLocOverrideSaving] = useState(false);
 
   // ── Booking Rules state ────────────────────────────────────────────────────
   const [rules, setRules] = useState<BookingRules>({
@@ -881,10 +885,11 @@ export default function BusinessSetupPage() {
     setSvcName(''); setSvcDesc(''); setSvcDuration('60');
     setSvcPrice(''); setSvcPriceType('fixed'); setSvcCurrency('BAM'); setSvcCapacity('1');
     setSvcBookingType('appointment_service');
+    setSvcLocOverrides({});
     setShowSvcForm(true);
   }
 
-  function openEditSvc(svc: ServiceRow) {
+  async function openEditSvc(svc: ServiceRow) {
     setEditingSvc(svc);
     setSvcName(svc.name);
     setSvcDesc(svc.description ?? '');
@@ -894,12 +899,22 @@ export default function BusinessSetupPage() {
     setSvcCurrency(svc.currency || 'BAM');
     setSvcCapacity(String(svc.capacity));
     setSvcBookingType(svc.booking_type);
+    const { data: ovRows } = await (supabase as any)
+      .from('service_location_overrides')
+      .select('location_id, price, price_type, currency')
+      .eq('service_id', svc.id);
+    const ovMap: Record<string, LocOverride> = {};
+    for (const row of ((ovRows ?? []) as { location_id: string; price: number | null; price_type: string; currency: string }[])) {
+      ovMap[row.location_id] = { price: row.price !== null ? String(row.price) : '', price_type: row.price_type, currency: row.currency };
+    }
+    setSvcLocOverrides(ovMap);
     setShowSvcForm(true);
   }
 
   function closeSvcForm() {
     setShowSvcForm(false);
     setEditingSvc(null);
+    setSvcLocOverrides({});
   }
 
   async function handleSaveSvc() {
@@ -940,6 +955,20 @@ export default function BusinessSetupPage() {
       if (!result?.ok) { toast.error(t('setup.error.saveFailed')); setSvcSaving(false); return; }
     }
 
+    if (editingSvc) {
+      const overridesList = Object.entries(svcLocOverrides)
+        .filter(([, v]) => v !== null && v !== undefined)
+        .map(([locId, v]) => ({
+          location_id: locId,
+          price: (v!.price_type === 'fixed' || v!.price_type === 'from') ? (parseFloat(v!.price) || null) : null,
+          price_type: v!.price_type,
+          currency: v!.currency,
+        }));
+      await (supabase as any).rpc('save_service_location_overrides', {
+        p_service_id: editingSvc.id,
+        p_overrides: overridesList,
+      });
+    }
     setSvcSaving(false);
     toast.success(t('setup.profile.saved'));
     closeSvcForm();
@@ -2201,6 +2230,72 @@ export default function BusinessSetupPage() {
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">{t('setup.services.priceHelp')}</p>
                     </>
+                  )}
+
+                  {editingSvc && locations.filter(l => l.is_active).length > 1 && (
+                    <div className="border-t border-border pt-3 mt-1">
+                      <p className="text-xs font-semibold mb-1">{t('setup.services.locPrices')}</p>
+                      <p className="text-xs text-muted-foreground mb-3">{t('setup.services.locPricesHint')}</p>
+                      <div className="flex flex-col gap-3">
+                        {locations.filter(l => l.is_active).map(loc => {
+                          const ov = svcLocOverrides[loc.id];
+                          const enabled = ov !== null && ov !== undefined;
+                          return (
+                            <div key={loc.id} className="flex flex-col gap-1.5">
+                              <label className="flex items-center gap-2 cursor-pointer select-none">
+                                <input
+                                  type="checkbox"
+                                  checked={enabled}
+                                  onChange={e => {
+                                    if (e.target.checked) {
+                                      setSvcLocOverrides(prev => ({ ...prev, [loc.id]: { price: '', price_type: 'fixed', currency: svcCurrency } }));
+                                    } else {
+                                      setSvcLocOverrides(prev => { const n = { ...prev }; delete n[loc.id]; return n; });
+                                    }
+                                  }}
+                                  className="rounded"
+                                />
+                                <span className="text-sm font-medium">{loc.name}</span>
+                              </label>
+                              {enabled && (
+                                <div className="ml-6 flex flex-col gap-1.5">
+                                  <select
+                                    value={ov!.price_type}
+                                    onChange={e => setSvcLocOverrides(prev => ({ ...prev, [loc.id]: { ...prev[loc.id]!, price_type: e.target.value } }))}
+                                    className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                                  >
+                                    {PRICE_TYPES.map(pt => (
+                                      <option key={pt} value={pt}>{t(`setup.services.ptype.${pt}`)}</option>
+                                    ))}
+                                  </select>
+                                  {(ov!.price_type === 'fixed' || ov!.price_type === 'from') && (
+                                    <div className="flex rounded-lg overflow-hidden border border-border focus-within:ring-2 focus-within:ring-primary">
+                                      <select
+                                        value={ov!.currency}
+                                        onChange={e => setSvcLocOverrides(prev => ({ ...prev, [loc.id]: { ...prev[loc.id]!, currency: e.target.value } }))}
+                                        className="px-2 py-2 text-sm bg-muted border-r border-border focus:outline-none shrink-0 w-[72px]"
+                                      >
+                                        {CURRENCIES.map(c => (
+                                          <option key={c} value={c}>{c}</option>
+                                        ))}
+                                      </select>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={ov!.price}
+                                        onChange={e => setSvcLocOverrides(prev => ({ ...prev, [loc.id]: { ...prev[loc.id]!, price: e.target.value } }))}
+                                        className="px-3 py-2 text-sm bg-background flex-1 focus:outline-none min-w-0"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   )}
 
                   <div className="flex gap-2 pt-1">

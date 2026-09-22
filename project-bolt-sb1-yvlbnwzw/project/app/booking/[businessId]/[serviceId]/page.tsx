@@ -226,6 +226,17 @@ export default function BookingSlotPickerPage() {
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
 
   const [shareOpen, setShareOpen] = useState(false);
+  const [locPriceOverride, setLocPriceOverride] = useState<{ price: number | null; price_type: string; currency: string } | null>(null);
+
+  async function fetchLocOverride(locId: string) {
+    const { data } = await (supabase as any)
+      .from('service_location_overrides')
+      .select('price, price_type, currency')
+      .eq('service_id', serviceId)
+      .eq('location_id', locId)
+      .maybeSingle();
+    setLocPriceOverride((data as { price: number | null; price_type: string; currency: string } | null) ?? null);
+  }
 
   useEffect(() => {
     if (!businessId || !serviceId) return;
@@ -249,6 +260,7 @@ export default function BookingSlotPickerPage() {
             : (locs.find((l: Location) => l.is_primary) ?? locs[0]);
           setSelectedLocationId(primary.id);
           setSelectedTimezone(primary.timezone);
+          fetchLocOverride(primary.id);
           const hoursRes = await (supabase as any).rpc('get_opening_hours', { p_location_id: primary.id });
           setOpeningHours((hoursRes.data as OpeningHourRow[]) ?? []);
           const closuresRes = await (supabase as any).rpc('public_get_business_closures', { p_location_id: primary.id });
@@ -392,6 +404,7 @@ export default function BookingSlotPickerPage() {
     if (!loc) return;
     setSelectedLocationId(locId);
     setSelectedTimezone(loc.timezone);
+    fetchLocOverride(locId);
     (supabase as any).rpc('get_opening_hours', { p_location_id: locId })
       .then(({ data }: { data: OpeningHourRow[] | null }) => setOpeningHours(data ?? []));
     (supabase as any).rpc('public_get_business_closures', { p_location_id: locId })
@@ -569,14 +582,17 @@ export default function BookingSlotPickerPage() {
               <Clock className="w-3.5 h-3.5" />
               {t('booking.duration').replace('{min}', String(service.duration_minutes))}
             </span>
-            {service.price && service.price > 0 && service.price_type !== 'negotiable' && (
-              <span className="font-medium text-foreground">
-                {service.price} {service.currency ?? ''}
-              </span>
-            )}
-            {service.price_type === 'negotiable' && (
-              <span>{t('booking.priceNegotiable')}</span>
-            )}
+            {(() => {
+              const p = locPriceOverride ?? { price: service.price, price_type: service.price_type, currency: service.currency };
+              if (p.price_type === 'negotiable') return <span>{t('booking.priceNegotiable')}</span>;
+              if (p.price_type === 'free') return <span>{t('setup.services.ptype.free')}</span>;
+              if (p.price && p.price > 0) return (
+                <span className="font-medium text-foreground">
+                  {p.price_type === 'from' && `${t('booking.priceFrom')} `}{p.price} {p.currency ?? ''}
+                </span>
+              );
+              return null;
+            })()}
           </div>
         </div>
 
