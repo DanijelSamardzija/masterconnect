@@ -457,6 +457,16 @@ function OwnerBookingsContent() {
       return;
     }
     toast.success(t('ownerBookings.reassigned'));
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      fetch('/api/booking/notify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ type: 'staff_assigned', booking_id: reassignBookingId }),
+      }).catch(() => {});
+    });
     setBookings(prev => prev.map(b => b.id === reassignBookingId ? { ...b, staff_member_id: reassignStaffId } : b));
     setReassignOpen(false);
     setReassignBookingId(null);

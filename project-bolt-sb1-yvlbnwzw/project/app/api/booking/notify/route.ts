@@ -22,9 +22,10 @@ const FRENCH  = ['France','Belgium','Belgique','Canada','Luxembourg'];
 
 type Lang = 'sr' | 'de' | 'en' | 'es' | 'fr';
 // confirmation / cancellation / reschedule = client emails
-// new_booking  = business owner/staff email when new booking arrives
-// reminder     = client reminder email (called from cron)
-type EmailType = 'confirmation' | 'cancellation' | 'reschedule' | 'new_booking' | 'reminder' | 'client_rescheduled';
+// new_booking     = business notification when client self-books
+// staff_assigned  = staff notification when owner assigns a booking to them
+// reminder        = client reminder email (called from cron)
+type EmailType = 'confirmation' | 'cancellation' | 'reschedule' | 'new_booking' | 'staff_assigned' | 'reminder' | 'client_rescheduled';
 
 function getLang(country: string | null | undefined): Lang {
   if (BALKAN.includes(country ?? ''))  return 'sr';
@@ -102,6 +103,15 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         cta: 'Pregledaj termin',
         footer: 'Ako nisi u mogućnosti doći, možeš otkazati putem linka iznad.',
       },
+      staff_assigned: {
+        subject: `Dodijeljen termin — ${p.service}`,
+        title: 'Imate novi termin 📋',
+        body: `<strong>${p.clientName ?? 'Klijent'}</strong> ima zakazan termin za <strong>${p.service}</strong>.`,
+        dateLabel: 'Termin',
+        locationLabel: 'Lokacija',
+        cta: 'Otvori raspored',
+        footer: 'Prijavite se na GigZone da vidite detalje termina.',
+      },
     },
     en: {
       confirmation: {
@@ -157,6 +167,15 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         locationLabel: 'Location',
         cta: 'View appointment',
         footer: "If you can't make it, use the button above to cancel.",
+      },
+      staff_assigned: {
+        subject: `Appointment assigned — ${p.service}`,
+        title: 'New appointment assigned 📋',
+        body: `<strong>${p.clientName ?? 'A client'}</strong> has an appointment booked for <strong>${p.service}</strong>.`,
+        dateLabel: 'Appointment',
+        locationLabel: 'Location',
+        cta: 'View schedule',
+        footer: 'Log in to GigZone to see appointment details.',
       },
     },
     de: {
@@ -214,6 +233,15 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         cta: 'Termin ansehen',
         footer: 'Falls du nicht kommen kannst, nutze den Button oben zum Stornieren.',
       },
+      staff_assigned: {
+        subject: `Termin zugeteilt — ${p.service}`,
+        title: 'Neuer Termin 📋',
+        body: `<strong>${p.clientName ?? 'Ein Kunde'}</strong> hat einen Termin für <strong>${p.service}</strong> gebucht.`,
+        dateLabel: 'Termin',
+        locationLabel: 'Standort',
+        cta: 'Kalender ansehen',
+        footer: 'Melde dich bei GigZone an, um die Termindetails zu sehen.',
+      },
     },
     es: {
       confirmation: {
@@ -270,6 +298,15 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         cta: 'Ver mi cita',
         footer: 'Si no puedes asistir, usa el botón de arriba para cancelar.',
       },
+      staff_assigned: {
+        subject: `Cita asignada — ${p.service}`,
+        title: 'Nueva cita asignada 📋',
+        body: `<strong>${p.clientName ?? 'Un cliente'}</strong> tiene una cita para <strong>${p.service}</strong>.`,
+        dateLabel: 'Cita',
+        locationLabel: 'Ubicación',
+        cta: 'Ver agenda',
+        footer: 'Inicia sesión en GigZone para ver los detalles de la cita.',
+      },
     },
     fr: {
       confirmation: {
@@ -325,6 +362,15 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         locationLabel: 'Lieu',
         cta: 'Voir mon rendez-vous',
         footer: "Si vous ne pouvez pas venir, utilisez le bouton ci-dessus pour annuler.",
+      },
+      staff_assigned: {
+        subject: `Rendez-vous attribué — ${p.service}`,
+        title: 'Nouveau rendez-vous 📋',
+        body: `<strong>${p.clientName ?? 'Un client'}</strong> a un rendez-vous pour <strong>${p.service}</strong>.`,
+        dateLabel: 'Rendez-vous',
+        locationLabel: 'Lieu',
+        cta: 'Voir le planning',
+        footer: 'Connectez-vous à GigZone pour voir les détails du rendez-vous.',
       },
     },
   };
@@ -390,7 +436,7 @@ export async function POST(request: NextRequest) {
     const bookingId: string = body.booking_id;
 
     if (!type || !bookingId) return NextResponse.json({ ok: true });
-    if (!['confirmation', 'cancellation', 'reschedule', 'reminder', 'client_rescheduled'].includes(type)) return NextResponse.json({ ok: true });
+    if (!['confirmation', 'cancellation', 'reschedule', 'reminder', 'client_rescheduled', 'staff_assigned'].includes(type)) return NextResponse.json({ ok: true });
     if (!process.env.BREVO_API_KEY) return NextResponse.json({ ok: true });
 
     const db = createClient(
@@ -462,20 +508,49 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (!recipientEmail) return NextResponse.json({ ok: true });
-
-    const tz       = locRes.data?.timezone ?? 'UTC';
-    const service  = booking.service_name_snapshot ?? '';
-    const business = bpRes.data?.name ?? '';
-    const dt       = fmtDt(booking.starts_at, tz, getLang(recipientCountry));
-
-    const locData = locRes.data;
+    // Common variables used by all branches below
+    const tz          = locRes.data?.timezone ?? 'UTC';
+    const service     = booking.service_name_snapshot ?? '';
+    const business    = bpRes.data?.name ?? '';
+    const ownerId     = bpRes.data?.owner_id ?? null;
+    const locData     = locRes.data;
     const locationLine = locData
       ? [locData.name, [locData.address, locData.city, locData.country].filter(Boolean).join(', ')].filter(Boolean).join(' · ')
       : undefined;
 
-    // ── Email to client / guest ────────────────────────────────────────────────
-    const recipientLang      = getLang(recipientCountry);
+    // ── staff_assigned: internal notification to staff, no client email ────────
+    // Called after owner assigns (new booking) or reassigns (existing booking).
+    if (type === 'staff_assigned') {
+      if (!ownerId || user.id !== ownerId || !booking.staff_member_id) {
+        return NextResponse.json({ ok: true });
+      }
+      const { data: sm } = await db
+        .from('staff_members').select('user_id')
+        .eq('id', booking.staff_member_id).maybeSingle();
+      if (!sm?.user_id || sm.user_id === user.id) return NextResponse.json({ ok: true });
+      const { data: sp } = await db
+        .from('profiles').select('name, email, country')
+        .eq('id', sm.user_id).maybeSingle();
+      if (!sp?.email) return NextResponse.json({ ok: true });
+      const clientName = recipientName ?? (isGuest ? 'Gost' : 'Klijent');
+      const rLang      = getLang(sp.country);
+      const rFirstName = sp.name?.split(' ')[0] || 'there';
+      const rDt        = fmtDt(booking.starts_at, tz, rLang);
+      const rContent   = content('staff_assigned', rLang, { firstName: rFirstName, service, business, dt: rDt, clientName });
+      await sendEmail({
+        to: sp.email,
+        subject: rContent.subject,
+        replyTo: 'support@gigzone.app',
+        html: buildHtml(rContent, rFirstName, rDt, locationLine, 'https://gigzone.app/booking/business/bookings'),
+      });
+      return NextResponse.json({ ok: true });
+    }
+
+    // ── Client / guest email ───────────────────────────────────────────────────
+    if (!recipientEmail) return NextResponse.json({ ok: true });
+
+    const dt             = fmtDt(booking.starts_at, tz, getLang(recipientCountry));
+    const recipientLang  = getLang(recipientCountry);
     const recipientFirstName = recipientName?.split(' ')[0] || 'there';
     const recipientContent   = content(type, recipientLang, { firstName: recipientFirstName, service, business, dt });
 
@@ -486,50 +561,72 @@ export async function POST(request: NextRequest) {
       html: buildHtml(recipientContent, recipientFirstName, dt, locationLine, ctaUrl),
     });
 
-    // ── Email to business owner + assigned staff (new booking OR client reschedule) ─
-    // Guest bookings also notify the business owner — they need to know about new guest bookings.
+    // ── Business notification (confirmation / reschedule) ─────────────────────
+    // Rules:
+    //   callerIsClient  → owner + assigned staff get new_booking / client_rescheduled
+    //   callerIsOwner   → assigned staff gets staff_assigned (confirmation) or client_rescheduled (reschedule)
+    //   callerIsStaff   → no business email (owner sees everything in their panel)
     if (type === 'confirmation' || type === 'reschedule') {
-      const clientName = recipientName ?? (isGuest ? 'Gost' : 'Klijent');
+      const clientName    = recipientName ?? (isGuest ? 'Gost' : 'Klijent');
+      const callerIsClient = !!booking.client_id && user.id === booking.client_id;
+      const callerIsOwner  = !!ownerId && user.id === ownerId;
 
-      const ownerId = bpRes.data?.owner_id ?? booking.business_id;
-      const recipientIds = new Set<string>([ownerId]);
-      if (booking.staff_member_id) {
+      if (callerIsClient) {
+        // Client self-booked or rescheduled → notify owner + assigned staff
+        const bizType   = type === 'reschedule' ? 'client_rescheduled' : 'new_booking';
+        const notifyIds = new Set<string>();
+        if (ownerId) notifyIds.add(ownerId);
+        if (booking.staff_member_id) {
+          const { data: sm } = await db
+            .from('staff_members').select('user_id')
+            .eq('id', booking.staff_member_id).maybeSingle();
+          if (sm?.user_id && sm.user_id !== ownerId) notifyIds.add(sm.user_id);
+        }
+        for (const rid of notifyIds) {
+          const { data: rp } = await db
+            .from('profiles').select('name, email, country')
+            .eq('id', rid).maybeSingle();
+          if (!rp?.email) continue;
+          const rLang      = getLang(rp.country);
+          const rFirstName = rp.name?.split(' ')[0] || 'there';
+          const rDt        = fmtDt(booking.starts_at, tz, rLang);
+          const rescheduleReason = bizType === 'client_rescheduled' && (booking as any).internal_notes?.includes('[Pomjeranje termina]')
+            ? (booking as any).internal_notes.replace('[Pomjeranje termina]', '').trim()
+            : undefined;
+          const rContent = content(bizType, rLang, { firstName: rFirstName, service, business, dt: rDt, clientName, reason: rescheduleReason });
+          await sendEmail({
+            to: rp.email,
+            subject: rContent.subject,
+            replyTo: 'support@gigzone.app',
+            html: buildHtml(rContent, rFirstName, rDt, locationLine, 'https://gigzone.app/booking/business/bookings'),
+          });
+        }
+      } else if (callerIsOwner && booking.staff_member_id) {
+        // Owner created/rescheduled → assigned staff notified
+        // confirmation → staff_assigned; reschedule → client_rescheduled (time changed)
+        const bizType = type === 'confirmation' ? 'staff_assigned' : 'client_rescheduled';
         const { data: sm } = await db
-          .from('staff_members')
-          .select('user_id')
-          .eq('id', booking.staff_member_id)
-          .maybeSingle();
-        if (sm?.user_id && sm.user_id !== ownerId) {
-          recipientIds.add(sm.user_id);
+          .from('staff_members').select('user_id')
+          .eq('id', booking.staff_member_id).maybeSingle();
+        if (sm?.user_id && sm.user_id !== user.id) {
+          const { data: rp } = await db
+            .from('profiles').select('name, email, country')
+            .eq('id', sm.user_id).maybeSingle();
+          if (rp?.email) {
+            const rLang      = getLang(rp.country);
+            const rFirstName = rp.name?.split(' ')[0] || 'there';
+            const rDt        = fmtDt(booking.starts_at, tz, rLang);
+            const rContent   = content(bizType, rLang, { firstName: rFirstName, service, business, dt: rDt, clientName });
+            await sendEmail({
+              to: rp.email,
+              subject: rContent.subject,
+              replyTo: 'support@gigzone.app',
+              html: buildHtml(rContent, rFirstName, rDt, locationLine, 'https://gigzone.app/booking/business/bookings'),
+            });
+          }
         }
       }
-      // Don't notify the person who created the booking about their own action
-      recipientIds.delete(user.id);
-
-      for (const recipientId of recipientIds) {
-        const { data: recipientProfile } = await db
-          .from('profiles')
-          .select('name, email, country')
-          .eq('id', recipientId)
-          .maybeSingle();
-        if (!recipientProfile?.email) continue;
-
-        const rLang      = getLang(recipientProfile.country);
-        const rFirstName = recipientProfile.name?.split(' ')[0] || 'there';
-        const rDt        = fmtDt(booking.starts_at, tz, rLang);
-        const bizEmailType = type === 'reschedule' ? 'client_rescheduled' : 'new_booking';
-        const rescheduleReason = type === 'reschedule' && (booking as any).internal_notes?.includes('[Pomjeranje termina]')
-          ? (booking as any).internal_notes.replace('[Pomjeranje termina]', '').trim()
-          : undefined;
-        const rContent = content(bizEmailType, rLang, { firstName: rFirstName, service, business, dt: rDt, clientName, reason: rescheduleReason });
-
-        await sendEmail({
-          to: recipientProfile.email,
-          subject: rContent.subject,
-          replyTo: 'support@gigzone.app',
-          html: buildHtml(rContent, rFirstName, rDt, locationLine, 'https://gigzone.app/booking/business/bookings'),
-        });
-      }
+      // else: callerIsStaff → no business email
     }
 
     return NextResponse.json({ ok: true });
