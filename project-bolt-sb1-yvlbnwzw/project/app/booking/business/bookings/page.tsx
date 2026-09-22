@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/protected-route';
 import { useAuth } from '@/lib/contexts/auth-context';
@@ -10,7 +10,7 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   ChevronLeft, ChevronRight, Calendar, Users, CheckCircle2, XCircle,
-  Clock, AlertCircle, Plus, Trash2, MapPin, Copy,
+  Clock, AlertCircle, Plus, Trash2, MapPin, Copy, ChevronDown,
 } from 'lucide-react';
 import { isBookingBetaUser } from '@/lib/booking-whitelist';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
@@ -107,6 +107,8 @@ function OwnerBookingsContent() {
     return 'upcoming';
   });
   const [staffFilter, setStaffFilter] = useState<string>('all');
+  const [staffDropOpen, setStaffDropOpen] = useState(false);
+  const staffDropRef = useRef<HTMLDivElement>(null);
   const [isOwner, setIsOwner]     = useState<boolean | null>(null);
   const [staffMemberId, setStaffMemberId] = useState<string | null>(null);
   const [staffBizId, setStaffBizId]       = useState<string | null>(null);
@@ -175,6 +177,17 @@ function OwnerBookingsContent() {
     if (staffMemberId && staffBizId) fetchStaffBookings();
   }, [staffMemberId, staffBizId]);
 
+  // Close staff dropdown on outside click
+  useEffect(() => {
+    function handleOutsideClick(e: MouseEvent) {
+      if (staffDropRef.current && !staffDropRef.current.contains(e.target as Node)) {
+        setStaffDropOpen(false);
+      }
+    }
+    if (staffDropOpen) document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [staffDropOpen]);
+
   // Fetch slots whenever week, service, staff, location, or modal-open changes
   useEffect(() => {
     const slotLocId = selectedLocId || locationId;
@@ -224,11 +237,16 @@ function OwnerBookingsContent() {
     if (!profile || !activeProfileId) return;
     // 1. Check if logged-in user is owner/manager of the ACTIVE booking profile
     const { data: ownerData } = await (supabase as any)
-      .from('staff_members').select('role')
+      .from('staff_members').select('id, role')
       .eq('business_id', activeProfileId).eq('user_id', profile.id)
       .eq('is_active', true).in('role', ['owner', 'manager'])
       .limit(1).maybeSingle();
-    if (ownerData) { setIsOwner(true); return; }
+    if (ownerData) {
+      setIsOwner(true);
+      setStaffMemberId(ownerData.id);
+      setStaffFilter(ownerData.id);
+      return;
+    }
 
     // 2. Not owner — check if user is a non-owner staff member of the ACTIVE profile
     const { data: smData } = await (supabase as any)
@@ -887,15 +905,42 @@ function OwnerBookingsContent() {
             ? staff.filter(s => s.locationId === selectedLocId)
             : staff;
           if (visibleStaff.length <= 1) return null;
+          const allOptions = [{ id: 'all', name: t('ownerBookings.filterStaff.all') }, ...visibleStaff.map(s => ({ id: s.id, name: s.name }))];
+          const selectedLabel = allOptions.find(o => o.id === staffFilter)?.name ?? t('ownerBookings.filterStaff.all');
           return (
             <div className="flex items-center gap-2">
               <Users className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-              <select value={staffFilter} onChange={e => setStaffFilter(e.target.value)}
-                className="flex-1 border border-border rounded-xl px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
-              >
-                <option value="all">{t('ownerBookings.filterStaff.all')}</option>
-                {visibleStaff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-              </select>
+              <div ref={staffDropRef} className="relative flex-1">
+                <button
+                  type="button"
+                  onClick={() => setStaffDropOpen(o => !o)}
+                  className="w-full flex items-center justify-between border border-border rounded-xl px-3 py-2 text-sm bg-background text-foreground hover:border-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <span>{selectedLabel}</span>
+                  <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${staffDropOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {staffDropOpen && (
+                  <div
+                    className="absolute z-50 top-full mt-1 left-0 right-0 bg-background border border-border rounded-xl shadow-lg overflow-hidden"
+                    onMouseLeave={() => {}}
+                  >
+                    {allOptions.map(o => (
+                      <button
+                        key={o.id}
+                        type="button"
+                        onClick={() => { setStaffFilter(o.id); setStaffDropOpen(false); }}
+                        className={`w-full text-left px-3 py-2.5 text-sm transition-colors ${
+                          staffFilter === o.id
+                            ? 'bg-primary text-primary-foreground font-medium'
+                            : 'hover:bg-primary/10 hover:text-primary'
+                        }`}
+                      >
+                        {o.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           );
         })()}
