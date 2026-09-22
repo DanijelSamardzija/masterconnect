@@ -2,6 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { sendEmail } from '@/lib/brevo';
 
+async function getAuthUser(request: NextRequest) {
+  const header = request.headers.get('Authorization') ?? '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+  if (!token) return null;
+  const anonClient = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { global: { headers: { Authorization: `Bearer ${token}` } } },
+  );
+  const { data: { user }, error } = await anonClient.auth.getUser();
+  return error || !user ? null : user;
+}
+
 const BALKAN  = ['Serbia','Srbija','Croatia','Hrvatska','Bosnia and Herzegovina','Bosna i Hercegovina','Montenegro','Crna Gora','Slovenia','Slovenija','North Macedonia','Sjeverna Makedonija'];
 const GERMAN  = ['Germany','Deutschland','Austria','Österreich','Switzerland','Schweiz'];
 const SPANISH = ['Spain','España','Mexico','México','Argentina','Colombia','Chile','Peru','Perú','Venezuela','Ecuador','Bolivia','Paraguay','Uruguay'];
@@ -362,6 +375,9 @@ function buildHtml(c: ContentResult, firstName: string, dt: string, locationLine
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getAuthUser(request);
+    if (!user) return NextResponse.json({ ok: true });
+
     const body = await request.json();
     const type: EmailType = body.type;
     const bookingId: string = body.booking_id;
@@ -382,6 +398,18 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (!booking?.client_id) return NextResponse.json({ ok: true });
+
+    // Verify caller is the booking's client or an active staff member of the business
+    if (user.id !== booking.client_id) {
+      const { data: staffCheck } = await db
+        .from('staff_members')
+        .select('id')
+        .eq('business_id', booking.business_id)
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle();
+      if (!staffCheck) return NextResponse.json({ ok: true });
+    }
 
     const [clientRes, bpRes, locRes] = await Promise.all([
       db.from('profiles').select('name, email, country').eq('id', booking.client_id).maybeSingle(),

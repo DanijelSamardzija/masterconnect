@@ -386,11 +386,16 @@ function OwnerBookingsContent() {
     setActionLoading(null);
     if (error || data?.ok === false) { toast.error(data?.error || 'Greška'); return; }
     toast.success(t('ownerBookings.cancelled'));
-    fetch('/api/booking/notify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'cancellation', booking_id: cancelBookingId }),
-    }).catch(() => {});
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      fetch('/api/booking/notify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ type: 'cancellation', booking_id: cancelBookingId }),
+      }).catch(() => {});
+    });
     if (isOwner) {
       setBookings(prev => prev.filter(b => b.id !== cancelBookingId));
     } else {

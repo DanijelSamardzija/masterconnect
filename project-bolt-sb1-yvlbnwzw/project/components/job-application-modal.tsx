@@ -262,13 +262,13 @@ export function JobApplicationModal({ open, onOpenChange, postId, postTitle, pos
               sr: `${applicantName} se prijavio/la na tvoj oglas`,
             };
 
-            await supabase.from('notifications').insert({
-              user_id: postOwnerId,
-              type: 'message',
-              action_type: 'application_received',
-              title: applicationTitles[ownerLang] ?? applicationTitles.sr,
-              body: postTitle ? `"${postTitle}"${bio.trim() ? ' — ' + bio.trim().slice(0, 80) : ''}` : bio.trim().slice(0, 100),
-              meta: { thread_id: threadId, sender_id: user.id, actor_name: applicantName },
+            await (supabase as any).rpc('send_notification', {
+              p_user_id:     postOwnerId,
+              p_type:        'message',
+              p_action_type: 'application_received',
+              p_title:       applicationTitles[ownerLang] ?? applicationTitles.sr,
+              p_body:        postTitle ? `"${postTitle}"${bio.trim() ? ' — ' + bio.trim().slice(0, 80) : ''}` : bio.trim().slice(0, 100),
+              p_meta:        { thread_id: threadId, sender_id: user.id, actor_name: applicantName },
             });
           }
         } catch (msgErr) {

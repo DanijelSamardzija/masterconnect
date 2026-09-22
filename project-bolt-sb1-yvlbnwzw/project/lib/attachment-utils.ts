@@ -61,7 +61,7 @@ export const uploadFile = async (
   userId: string,
   onProgress?: (progress: number) => void,
   bucketName: 'message-attachments' | 'post-media' = 'message-attachments'
-): Promise<{ url: string; path: string } | null> => {
+): Promise<{ url: string | null; path: string } | null> => {
   const fileExt = file.name.split('.').pop();
   const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
@@ -85,14 +85,18 @@ export const uploadFile = async (
     return null;
   }
 
-  const { data: { publicUrl } } = supabase.storage
-    .from(bucketName)
-    .getPublicUrl(data.path);
+  // message-attachments is a private bucket — getPublicUrl produces a dead URL.
+  // Callers must use /api/storage/signed-url to generate access URLs.
+  let publicUrl: string | null = null;
+  if (bucketName !== 'message-attachments') {
+    const { data: { publicUrl: u } } = supabase.storage.from(bucketName).getPublicUrl(data.path);
+    publicUrl = u;
+  }
 
   devLog('[UPLOAD] Upload successful:', {
     bucket: bucketName,
     path: data.path,
-    url: publicUrl
+    url: publicUrl,
   });
 
   return {
@@ -103,13 +107,23 @@ export const uploadFile = async (
 
 export const extractStoragePathFromUrl = (url: string, bucketName: string): string | null => {
   try {
-    const bucketPath = `/storage/v1/object/public/${bucketName}/`;
-    const index = url.indexOf(bucketPath);
-    if (index === -1) return null;
+    // Public bucket: /storage/v1/object/public/{bucket}/{path}
+    const publicPath = `/storage/v1/object/public/${bucketName}/`;
+    const publicIdx = url.indexOf(publicPath);
+    if (publicIdx !== -1) return url.substring(publicIdx + publicPath.length);
 
-    return url.substring(index + bucketPath.length);
-  } catch (error) {
-    console.error('Error extracting storage path:', error);
+    // Authenticated/private bucket: /storage/v1/object/authenticated/{bucket}/{path}
+    const authPath = `/storage/v1/object/authenticated/${bucketName}/`;
+    const authIdx = url.indexOf(authPath);
+    if (authIdx !== -1) return url.substring(authIdx + authPath.length);
+
+    // Signed URL: /storage/v1/object/sign/{bucket}/{path}?token=...
+    const signPath = `/storage/v1/object/sign/${bucketName}/`;
+    const signIdx = url.indexOf(signPath);
+    if (signIdx !== -1) return url.substring(signIdx + signPath.length).split('?')[0];
+
+    return null;
+  } catch {
     return null;
   }
 };

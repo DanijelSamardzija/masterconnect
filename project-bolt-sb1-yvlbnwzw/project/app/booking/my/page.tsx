@@ -140,11 +140,16 @@ export default function MyBookingsPage() {
       return;
     }
     toast.success(t('booking.cancelSuccess'));
-    fetch('/api/booking/notify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'cancellation', booking_id: cancelTarget }),
-    }).catch(() => {});
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      fetch('/api/booking/notify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ type: 'cancellation', booking_id: cancelTarget }),
+      }).catch(() => {});
+    });
     setCancelTarget(null);
     setCancelReason('');
     setUpcoming((prev) => prev.filter((b) => b.id !== cancelTarget));

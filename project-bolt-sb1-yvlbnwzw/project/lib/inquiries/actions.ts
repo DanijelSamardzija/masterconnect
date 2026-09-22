@@ -80,13 +80,13 @@ export async function createInquiry(params: CreateInquiryParams): Promise<Inquir
     sr: `${senderName} ti je poslao/la upit`,
   };
 
-  await supabase.from('notifications').insert({
-    user_id:     receiverId,
-    type:        'inquiry',
-    action_type: 'inquiry_received',
-    title:       inquiryReceivedTitles[receiverLang] ?? inquiryReceivedTitles.sr,
-    body:        `"${subjectMeta.title}" — ${message.slice(0, 100)}`,
-    meta: {
+  await (supabase as any).rpc('send_notification', {
+    p_user_id:     receiverId,
+    p_type:        'inquiry',
+    p_action_type: 'inquiry_received',
+    p_title:       inquiryReceivedTitles[receiverLang] ?? inquiryReceivedTitles.sr,
+    p_body:        `"${subjectMeta.title}" — ${message.slice(0, 100)}`,
+    p_meta: {
       inquiry_id:   inquiry.id,
       thread_id:    thread.id,
       subject_type: subjectType,
@@ -165,13 +165,13 @@ export async function acceptInquiry(inquiryId: string): Promise<{ ok: boolean; e
     sr: `${receiverName} je prihvatio/la vaš upit za „${subjectTitle}"`,
   };
 
-  await supabase.from('notifications').insert({
-    user_id:     inquiry.sender_id,
-    type:        'inquiry',
-    action_type: 'inquiry_accepted',
-    title:       acceptedTitles[senderLang] ?? acceptedTitles.sr,
-    body:        acceptedBodies[senderLang] ?? acceptedBodies.sr,
-    meta: { inquiry_id: inquiryId, thread_id: inquiry.thread_id, actor_name: receiverName },
+  await (supabase as any).rpc('send_notification', {
+    p_user_id:     inquiry.sender_id,
+    p_type:        'inquiry',
+    p_action_type: 'inquiry_accepted',
+    p_title:       acceptedTitles[senderLang] ?? acceptedTitles.sr,
+    p_body:        acceptedBodies[senderLang] ?? acceptedBodies.sr,
+    p_meta:        { inquiry_id: inquiryId, thread_id: inquiry.thread_id, actor_name: receiverName },
   });
 
   return { ok: true };
@@ -235,13 +235,13 @@ export async function declineInquiry(inquiryId: string): Promise<{ ok: boolean; 
     sr: `${receiverName} je odbio/la vaš upit za „${subjectTitle}"`,
   };
 
-  await supabase.from('notifications').insert({
-    user_id:     inquiry.sender_id,
-    type:        'inquiry',
-    action_type: 'inquiry_declined',
-    title:       declinedTitles[senderLang] ?? declinedTitles.sr,
-    body:        declinedBodies[senderLang] ?? declinedBodies.sr,
-    meta: { inquiry_id: inquiryId, thread_id: inquiry.thread_id, actor_name: receiverName },
+  await (supabase as any).rpc('send_notification', {
+    p_user_id:     inquiry.sender_id,
+    p_type:        'inquiry',
+    p_action_type: 'inquiry_declined',
+    p_title:       declinedTitles[senderLang] ?? declinedTitles.sr,
+    p_body:        declinedBodies[senderLang] ?? declinedBodies.sr,
+    p_meta:        { inquiry_id: inquiryId, thread_id: inquiry.thread_id, actor_name: receiverName },
   });
 
   return { ok: true };

@@ -438,11 +438,16 @@ export default function BookingSlotPickerPage() {
     const msg = result.status === 'confirmed' ? t('booking.successConfirmed') : t('booking.successPending');
     toast.success(msg);
     if (result.booking_id) {
-      fetch('/api/booking/notify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'confirmation', booking_id: result.booking_id }),
-      }).catch(() => {});
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        fetch('/api/booking/notify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+          },
+          body: JSON.stringify({ type: 'confirmation', booking_id: result.booking_id }),
+        }).catch(() => {});
+      });
     }
   }
 

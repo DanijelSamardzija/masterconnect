@@ -6,6 +6,30 @@ const PUBLIC_PATHS = ['/jobs', '/services', '/invest'];
 // UUID v4 pattern — detail pages (services, jobs) use UUIDs and have canonical URLs without lang prefix
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+// Routes that require an authenticated session.
+// Public booking pages (/booking/, /booking/[businessId]/*, /booking/majstori/*, etc.) are excluded.
+const BOOKING_AUTH_PREFIXES = [
+  '/booking/business',
+  '/booking/trade',
+  '/booking/my',
+  '/booking/orders',
+  '/booking/stays',
+  '/booking/reservations',
+  '/booking/requests',
+];
+
+function requiresAuth(pathname: string): boolean {
+  return BOOKING_AUTH_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + '/'));
+}
+
+// Lightweight session presence check — looks for any Supabase auth cookie.
+// Full JWT validation happens at the page/RPC layer; this is a UX-layer guard.
+function hasAuthCookie(request: NextRequest): boolean {
+  return request.cookies.getAll().some(
+    ({ name }) => name.startsWith('sb-') && name.includes('-auth-token'),
+  );
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -16,6 +40,17 @@ export function middleware(request: NextRequest) {
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set('x-lang', langSegment);
     return NextResponse.next({ request: { headers: requestHeaders } });
+  }
+
+  // Protected booking routes — redirect to login if no session cookie present
+  if (requiresAuth(pathname)) {
+    if (!hasAuthCookie(request)) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      url.searchParams.set('redirect', pathname);
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next();
   }
 
   // Only redirect known public SEO paths
@@ -44,6 +79,20 @@ export const config = {
     '/services/:path*',
     '/invest',
     '/invest/:path*',
+    '/booking/business',
+    '/booking/business/:path*',
+    '/booking/trade',
+    '/booking/trade/:path*',
+    '/booking/my',
+    '/booking/my/:path*',
+    '/booking/orders',
+    '/booking/orders/:path*',
+    '/booking/stays',
+    '/booking/stays/:path*',
+    '/booking/reservations',
+    '/booking/reservations/:path*',
+    '/booking/requests',
+    '/booking/requests/:path*',
     '/sr/:path*',
     '/en/:path*',
     '/de/:path*',

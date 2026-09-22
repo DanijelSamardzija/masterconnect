@@ -189,11 +189,16 @@ function ClientRescheduleContent() {
       return;
     }
     toast.success(t('booking.rescheduled'));
-    fetch('/api/booking/notify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'reschedule', booking_id: bookingId }),
-    }).catch(() => {});
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      fetch('/api/booking/notify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ type: 'reschedule', booking_id: bookingId }),
+      }).catch(() => {});
+    });
     router.push('/booking/my');
   }
 
