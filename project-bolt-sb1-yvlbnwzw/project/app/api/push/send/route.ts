@@ -472,12 +472,15 @@ async function processPush(body: any) {
                     ${dtStr ? `<p style="color:#888;margin:0 0 20px;font-size:14px">📅 ${dtStr}</p>` : '<div style="margin-bottom:20px"></div>'}`;
         ctaText  = eL.bkgConfirmedCta;
       } else if (action_type === 'booking_cancelled') {
-        subject  = subject || eL.bkgCancelledHeading;
-        heading  = eL.bkgCancelledHeading;
-        bodyHtml = `<p style="color:#555;margin:0 0 8px">${eL.bkgCancelledBody(bizName)}</p>
+        // skip_push_email = true means /api/booking/notify already handles the email
+        if (!meta?.skip_push_email) {
+          subject  = subject || eL.bkgCancelledHeading;
+          heading  = eL.bkgCancelledHeading;
+          bodyHtml = `<p style="color:#555;margin:0 0 8px">${eL.bkgCancelledBody(bizName)}</p>
                     ${svcName ? `<p style="color:#333;font-weight:600;margin:0 0 4px">${svcName}</p>` : ''}
                     ${dtStr ? `<p style="color:#888;margin:0 0 20px;font-size:14px">📅 ${dtStr}</p>` : '<div style="margin-bottom:20px"></div>'}`;
-        ctaText  = eL.bkgCancelledCta;
+          ctaText  = eL.bkgCancelledCta;
+        }
       } else if (action_type === 'booking_completed') {
         subject  = subject || eL.bkgCompletedHeading;
         heading  = eL.bkgCompletedHeading;

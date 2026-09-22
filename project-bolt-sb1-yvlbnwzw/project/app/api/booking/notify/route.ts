@@ -25,7 +25,7 @@ type Lang = 'sr' | 'de' | 'en' | 'es' | 'fr';
 // new_booking     = business notification when client self-books
 // staff_assigned  = staff notification when owner assigns a booking to them
 // reminder        = client reminder email (called from cron)
-type EmailType = 'confirmation' | 'cancellation' | 'reschedule' | 'new_booking' | 'staff_assigned' | 'staff_added_booking' | 'reminder' | 'client_rescheduled' | 'client_cancelled';
+type EmailType = 'confirmation' | 'cancellation' | 'reschedule' | 'new_booking' | 'staff_assigned' | 'staff_added_booking' | 'owner_cancelled_staff' | 'reminder' | 'client_rescheduled' | 'client_cancelled';
 
 function getLang(country: string | null | undefined): Lang {
   if (BALKAN.includes(country ?? ''))  return 'sr';
@@ -61,11 +61,20 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       cancellation: {
         subject: `Rezervacija otkazana — ${p.service}`,
         title: 'Rezervacija otkazana',
-        body: `Tvoja rezervacija za <strong>${p.service}</strong> kod <strong>${p.business}</strong> je otkazana.`,
+        body: `Tvoja rezervacija za <strong>${p.service}</strong> kod <strong>${p.business}</strong>${p.staffName ? `, radnik: <strong>${p.staffName}</strong>,` : ''} je otkazana.`,
         dateLabel: 'Otkazani termin',
         locationLabel: 'Lokacija',
         cta: 'Zakaži novi termin',
         footer: 'Žao nam je! Slobodno zakaži novi termin kada ti odgovara.',
+      },
+      owner_cancelled_staff: {
+        subject: `Vlasnik otkazao termin — ${p.service}`,
+        title: 'Vlasnik je otkazao vaš termin',
+        body: `<strong>${p.business}</strong> je otkazao/la vaš termin za <strong>${p.service}</strong>${p.clientName ? `. Klijent: <strong>${p.clientName}</strong>` : ''}.`,
+        dateLabel: 'Otkazani termin',
+        locationLabel: 'Lokacija',
+        cta: 'Otvori raspored',
+        footer: 'Za pitanja kontaktirajte vlasnika.',
       },
       reschedule: {
         subject: `Termin premješten — ${p.service}`,
@@ -144,11 +153,20 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       cancellation: {
         subject: `Booking cancelled — ${p.service}`,
         title: 'Booking cancelled',
-        body: `Your booking for <strong>${p.service}</strong> at <strong>${p.business}</strong> has been cancelled.`,
+        body: `Your booking for <strong>${p.service}</strong> at <strong>${p.business}</strong>${p.staffName ? `, staff: <strong>${p.staffName}</strong>,` : ''} has been cancelled.`,
         dateLabel: 'Cancelled appointment',
         locationLabel: 'Location',
         cta: 'Book again',
         footer: "We're sorry! Feel free to book a new appointment at any time.",
+      },
+      owner_cancelled_staff: {
+        subject: `Owner cancelled your appointment — ${p.service}`,
+        title: 'Owner cancelled your appointment',
+        body: `<strong>${p.business}</strong> has cancelled your appointment for <strong>${p.service}</strong>${p.clientName ? `. Client: <strong>${p.clientName}</strong>` : ''}.`,
+        dateLabel: 'Cancelled appointment',
+        locationLabel: 'Location',
+        cta: 'View schedule',
+        footer: 'If you have any questions, contact the owner.',
       },
       reschedule: {
         subject: `Appointment rescheduled — ${p.service}`,
@@ -213,6 +231,15 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         cta: 'View calendar',
         footer: 'Log in to GigZone to view details and manage your bookings.',
       },
+      owner_cancelled_staff: {
+        subject: `Owner cancelled your appointment — ${p.service}`,
+        title: 'Owner cancelled your appointment',
+        body: `<strong>${p.business}</strong> has cancelled your appointment for <strong>${p.service}</strong>${p.clientName ? `. Client: <strong>${p.clientName}</strong>` : ''}.`,
+        dateLabel: 'Cancelled appointment',
+        locationLabel: 'Location',
+        cta: 'View schedule',
+        footer: 'If you have any questions, contact the owner.',
+      },
     },
     de: {
       confirmation: {
@@ -227,11 +254,20 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       cancellation: {
         subject: `Buchung storniert — ${p.service}`,
         title: 'Buchung storniert',
-        body: `Deine Buchung für <strong>${p.service}</strong> bei <strong>${p.business}</strong> wurde storniert.`,
+        body: `Deine Buchung für <strong>${p.service}</strong> bei <strong>${p.business}</strong>${p.staffName ? `, Mitarbeiter: <strong>${p.staffName}</strong>,` : ''} wurde storniert.`,
         dateLabel: 'Stornierter Termin',
         locationLabel: 'Standort',
         cta: 'Neu buchen',
         footer: 'Es tut uns leid! Du kannst jederzeit einen neuen Termin buchen.',
+      },
+      owner_cancelled_staff: {
+        subject: `Inhaber hat Termin storniert — ${p.service}`,
+        title: 'Inhaber hat Ihren Termin storniert',
+        body: `<strong>${p.business}</strong> hat Ihren Termin für <strong>${p.service}</strong>${p.clientName ? ` storniert. Kunde: <strong>${p.clientName}</strong>` : ' storniert'}.`,
+        dateLabel: 'Stornierter Termin',
+        locationLabel: 'Standort',
+        cta: 'Kalender ansehen',
+        footer: 'Bei Fragen wenden Sie sich bitte an den Inhaber.',
       },
       reschedule: {
         subject: `Termin verschoben — ${p.service}`,
@@ -310,11 +346,20 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       cancellation: {
         subject: `Reserva cancelada — ${p.service}`,
         title: 'Reserva cancelada',
-        body: `Tu reserva para <strong>${p.service}</strong> en <strong>${p.business}</strong> ha sido cancelada.`,
+        body: `Tu reserva para <strong>${p.service}</strong> en <strong>${p.business}</strong>${p.staffName ? `, empleado: <strong>${p.staffName}</strong>,` : ''} ha sido cancelada.`,
         dateLabel: 'Cita cancelada',
         locationLabel: 'Ubicación',
         cta: 'Reservar de nuevo',
         footer: '¡Lo sentimos! Puedes reservar una nueva cita cuando quieras.',
+      },
+      owner_cancelled_staff: {
+        subject: `El propietario canceló tu cita — ${p.service}`,
+        title: 'El propietario canceló tu cita',
+        body: `<strong>${p.business}</strong> ha cancelado tu cita para <strong>${p.service}</strong>${p.clientName ? `. Cliente: <strong>${p.clientName}</strong>` : ''}.`,
+        dateLabel: 'Cita cancelada',
+        locationLabel: 'Ubicación',
+        cta: 'Ver agenda',
+        footer: 'Si tienes alguna pregunta, contacta al propietario.',
       },
       reschedule: {
         subject: `Cita reprogramada — ${p.service}`,
@@ -393,11 +438,20 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       cancellation: {
         subject: `Réservation annulée — ${p.service}`,
         title: 'Réservation annulée',
-        body: `Votre réservation pour <strong>${p.service}</strong> chez <strong>${p.business}</strong> a été annulée.`,
+        body: `Votre réservation pour <strong>${p.service}</strong> chez <strong>${p.business}</strong>${p.staffName ? `, employé : <strong>${p.staffName}</strong>,` : ''} a été annulée.`,
         dateLabel: 'Rendez-vous annulé',
         locationLabel: 'Lieu',
         cta: 'Prendre un nouveau rendez-vous',
         footer: 'Nous sommes désolés ! Vous pouvez réserver à tout moment.',
+      },
+      owner_cancelled_staff: {
+        subject: `Le propriétaire a annulé votre rendez-vous — ${p.service}`,
+        title: 'Le propriétaire a annulé votre rendez-vous',
+        body: `<strong>${p.business}</strong> a annulé votre rendez-vous pour <strong>${p.service}</strong>${p.clientName ? `. Client : <strong>${p.clientName}</strong>` : ''}.`,
+        dateLabel: 'Rendez-vous annulé',
+        locationLabel: 'Lieu',
+        cta: 'Voir le planning',
+        footer: 'Pour toute question, contactez le propriétaire.',
       },
       reschedule: {
         subject: `Rendez-vous déplacé — ${p.service}`,
@@ -526,7 +580,7 @@ export async function POST(request: NextRequest) {
     const bookingId: string = body.booking_id;
 
     if (!type || !bookingId) return NextResponse.json({ ok: true });
-    if (!['confirmation', 'cancellation', 'reschedule', 'reminder', 'client_rescheduled', 'staff_assigned', 'staff_added_booking'].includes(type)) return NextResponse.json({ ok: true });
+    if (!['confirmation', 'cancellation', 'reschedule', 'reminder', 'client_rescheduled', 'staff_assigned', 'staff_added_booking', 'owner_cancelled_staff'].includes(type)) return NextResponse.json({ ok: true });
     if (!process.env.BREVO_API_KEY) return NextResponse.json({ ok: true });
 
     const db = createClient(
@@ -753,6 +807,31 @@ export async function POST(request: NextRequest) {
       replyTo: 'support@gigzone.app',
       html: buildHtml(recipientContent, recipientFirstName, dt, locationLine, ctaUrl),
     });
+
+    // ── Owner cancelled → also email the assigned staff member ────────────────
+    if (type === 'cancellation' && ownerId && user.id === ownerId && booking.staff_member_id) {
+      const { data: smCan } = await db
+        .from('staff_members').select('user_id')
+        .eq('id', booking.staff_member_id).maybeSingle();
+      if (smCan?.user_id && smCan.user_id !== ownerId) {
+        const { data: spCan } = await db
+          .from('profiles').select('name, email, country')
+          .eq('id', smCan.user_id).maybeSingle();
+        if (spCan?.email) {
+          const clientName = recipientName ?? (isGuest ? 'Gost' : undefined);
+          const sLang      = getLang(spCan.country);
+          const sFirst     = spCan.name?.split(' ')[0] || 'there';
+          const sDt        = fmtDt(booking.starts_at, tz, sLang);
+          const sCont      = content('owner_cancelled_staff', sLang, { firstName: sFirst, service, business, dt: sDt, clientName });
+          await sendEmail({
+            to: spCan.email,
+            subject: sCont.subject,
+            replyTo: 'support@gigzone.app',
+            html: buildHtml(sCont, sFirst, sDt, locationLine, 'https://gigzone.app/booking/business/bookings'),
+          });
+        }
+      }
+    }
 
     // ── Business notification (confirmation / reschedule) ─────────────────────
     // Rules:
