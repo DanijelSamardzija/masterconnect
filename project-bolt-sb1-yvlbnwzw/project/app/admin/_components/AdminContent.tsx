@@ -183,7 +183,7 @@ export function AdminContent() {
       supabase.from('reports').select('*', { count: 'exact', head: true }),
       supabase.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'open'),
       supabase.from('threads').select('*', { count: 'exact', head: true }),
-      supabase.from('support_messages').select('*', { count: 'exact', head: true }).eq('status', 'open'),
+      supabase.from('support_messages').select('*', { count: 'exact', head: true }).in('status', ['open', 'in_progress']),
     ]);
     setStats({
       users: userCount || 0,
