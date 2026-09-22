@@ -1940,6 +1940,7 @@ export default {
   'booking.price': 'Preis',
   'booking.priceNegotiable': 'Verhandelbar',
   'booking.priceFree': 'Kostenlos',
+  'booking.priceFrom': 'ab',
   'booking.status.pending': 'Wartet auf Bestätigung',
   'booking.status.confirmed': 'Bestätigt',
   'booking.status.cancelled': 'Storniert',

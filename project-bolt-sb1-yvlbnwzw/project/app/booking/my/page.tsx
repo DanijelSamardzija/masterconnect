@@ -10,7 +10,7 @@ import { langToLocale } from '@/lib/utils/locale';
 import { useBookingAccess } from '@/lib/hooks/use-booking-access';
 import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
-import { Calendar, Clock, X, ChevronRight, ChevronLeft, Star, CalendarClock } from 'lucide-react';
+import { Calendar, Clock, X, ChevronRight, ChevronLeft, Star, CalendarClock, MapPin, Phone, Tag, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -37,7 +37,8 @@ type Booking = {
   notes: string | null;
   business_id: string | null;
   business: { name: string; id?: string } | null;
-  location: { name: string } | null;
+  location: { name: string; phone: string | null } | null;
+  service: { price: number | null; price_type: string | null } | null;
 };
 
 function StatusBadge({ status, t }: { status: string; t: (k: string) => string }) {
@@ -100,17 +101,18 @@ export default function MyBookingsPage() {
     async function load() {
       setLoading(true);
       const now = new Date().toISOString();
+      const sel = 'id, service_name_snapshot, service_id, staff_member_id, location_id, starts_at, ends_at, status, party_size, notes, business_id, business:business_id(name), location:location_id(name, phone), service:service_id(price, price_type)';
       const [upRes, pastRes] = await Promise.all([
         supabase
           .from('bookings')
-          .select('id, service_name_snapshot, service_id, staff_member_id, location_id, starts_at, ends_at, status, party_size, notes, business_id, business:business_id(name), location:location_id(name)')
+          .select(sel)
           .eq('client_id', user!.id)
           .not('status', 'in', '(cancelled,completed,no_show)')
           .gte('starts_at', now)
           .order('starts_at'),
         supabase
           .from('bookings')
-          .select('id, service_name_snapshot, service_id, staff_member_id, location_id, starts_at, ends_at, status, party_size, notes, business_id, business:business_id(name), location:location_id(name)')
+          .select(sel)
           .eq('client_id', user!.id)
           .or(`status.in.(cancelled,completed,no_show),starts_at.lt.${now}`)
           .order('starts_at', { ascending: false })
@@ -355,6 +357,17 @@ export default function MyBookingsPage() {
   );
 }
 
+function formatPrice(service: Booking['service'], t: (k: string) => string): string | null {
+  if (!service) return null;
+  const { price, price_type } = service;
+  if (price_type === 'free') return t('booking.priceFree');
+  if (price_type === 'negotiable') return t('booking.priceNegotiable');
+  if (price == null) return null;
+  const formatted = new Intl.NumberFormat('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(price);
+  if (price_type === 'from') return `${t('booking.priceFrom')} ${formatted} €`;
+  return `${formatted} €`;
+}
+
 function BookingCard({
   booking: b,
   t,
@@ -370,35 +383,62 @@ function BookingCard({
   onReview?: () => void;
   onReschedule?: () => void;
 }) {
+  const loc = b.location as any;
+  const priceStr = formatPrice(b.service, t);
+
   return (
-    <div className="border border-border rounded-xl p-4 flex flex-col gap-2">
+    <div className="border border-border rounded-xl p-4 flex flex-col gap-2.5">
+      {/* Header: service name + status */}
       <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <p className="font-medium text-sm truncate">
-            {b.service_name_snapshot ?? t('booking.service')}
-          </p>
-          {b.business && (
-            <p className="text-sm text-muted-foreground">{(b.business as any).name}</p>
-          )}
-        </div>
+        <p className="font-semibold text-sm leading-snug">
+          {b.service_name_snapshot ?? t('booking.service')}
+        </p>
         <StatusBadge status={b.status} t={t} />
       </div>
-      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-        <Calendar className="w-3 h-3" />
-        {formatDt(b.starts_at, locale)}{b.ends_at ? ` – ${formatTime(b.ends_at)}` : ''}
-      </div>
-      {b.location && (
-        <p className="text-sm text-muted-foreground">{(b.location as any).name}</p>
+
+      {/* Business */}
+      {b.business && (
+        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <Building2 className="w-3.5 h-3.5 shrink-0" />
+          <span>{(b.business as any).name}</span>
+        </div>
       )}
+
+      {/* Date */}
+      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+        <Calendar className="w-3.5 h-3.5 shrink-0" />
+        <span>{formatDt(b.starts_at, locale)}{b.ends_at ? ` – ${formatTime(b.ends_at)}` : ''}</span>
+      </div>
+
+      {/* Location + phone */}
+      {loc && (
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <MapPin className="w-3.5 h-3.5 shrink-0" />
+            <span>{loc.name}</span>
+          </div>
+          {loc.phone && (
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground pl-5">
+              <Phone className="w-3 h-3 shrink-0" />
+              <a href={`tel:${loc.phone}`} className="hover:text-primary transition-colors">{loc.phone}</a>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Price */}
+      {priceStr && (
+        <div className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+          <Tag className="w-3.5 h-3.5 shrink-0 text-primary" />
+          <span>{priceStr}</span>
+        </div>
+      )}
+
+      {/* Actions */}
       {(onCancel || onReview || onReschedule) && (
-        <div className="flex flex-wrap gap-2 mt-1">
+        <div className="flex flex-wrap gap-2 pt-0.5 border-t border-border mt-0.5">
           {onReschedule && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 px-2"
-              onClick={onReschedule}
-            >
+            <Button variant="outline" size="sm" className="h-7 px-2" onClick={onReschedule}>
               <CalendarClock className="w-3.5 h-3.5 mr-1" />
               {t('booking.reschedule')}
             </Button>
@@ -407,7 +447,7 @@ function BookingCard({
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 text-destructive hover:text-destructive hover:bg-destructive/10 px-2 -ml-2"
+              className="h-7 text-destructive hover:text-destructive hover:bg-destructive/10 px-2"
               onClick={onCancel}
             >
               <X className="w-3.5 h-3.5 mr-1" />

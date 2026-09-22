@@ -1950,6 +1950,7 @@ export default {
   'booking.price': 'Cijena',
   'booking.priceNegotiable': 'Po dogovoru',
   'booking.priceFree': 'Besplatno',
+  'booking.priceFrom': 'od',
   'booking.status.pending': 'Čeka potvrdu',
   'booking.status.confirmed': 'Potvrđena',
   'booking.status.cancelled': 'Otkazana',

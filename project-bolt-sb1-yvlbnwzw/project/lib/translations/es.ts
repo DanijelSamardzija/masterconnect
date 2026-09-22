@@ -1868,6 +1868,7 @@ export default {
   'booking.price': 'Precio',
   'booking.priceNegotiable': 'Negociable',
   'booking.priceFree': 'Gratis',
+  'booking.priceFrom': 'desde',
   'booking.status.pending': 'Pendiente de confirmación',
   'booking.status.confirmed': 'Confirmada',
   'booking.status.cancelled': 'Cancelada',

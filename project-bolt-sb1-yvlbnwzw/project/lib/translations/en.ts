@@ -1950,6 +1950,7 @@ export default {
   'booking.price': 'Price',
   'booking.priceNegotiable': 'Negotiable',
   'booking.priceFree': 'Free',
+  'booking.priceFrom': 'from',
   'booking.status.pending': 'Pending confirmation',
   'booking.status.confirmed': 'Confirmed',
   'booking.status.cancelled': 'Cancelled',
