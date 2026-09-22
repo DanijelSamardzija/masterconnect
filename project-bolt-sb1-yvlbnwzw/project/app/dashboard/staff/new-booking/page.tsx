@@ -425,16 +425,16 @@ export default function StaffNewBookingPage() {
                     (() => {
                       const daySlots = slotsByDay[selectedDay];
                       const dayBreak = breaks[selectedDay];
-                      const fmt = (iso: string) => new Intl.DateTimeFormat('en-GB', {
-                        hour: '2-digit', minute: '2-digit', timeZone: tz,
+                      const fmt = (iso: string) => new Intl.DateTimeFormat('sr-Latn-RS', {
+                        hour: '2-digit', minute: '2-digit', hour12: false, timeZone: tz,
                       }).format(new Date(iso));
                       const breakStart = dayBreak?.break_start.slice(0, 5);
                       const breakEnd   = dayBreak?.break_end.slice(0, 5);
                       const before = dayBreak ? daySlots.filter(s => fmt(s.slot_start) < breakStart!) : daySlots;
                       const after  = dayBreak ? daySlots.filter(s => fmt(s.slot_start) >= breakEnd!)  : [];
                       const SlotBtn = ({ sl }: { sl: Slot }) => {
-                        const timeStr = new Intl.DateTimeFormat(undefined, {
-                          hour: '2-digit', minute: '2-digit', timeZone: tz,
+                        const timeStr = new Intl.DateTimeFormat('sr-Latn-RS', {
+                          hour: '2-digit', minute: '2-digit', hour12: false, timeZone: tz,
                         }).format(new Date(sl.slot_start));
                         const isChosen = slotStart === sl.slot_start;
                         return (
