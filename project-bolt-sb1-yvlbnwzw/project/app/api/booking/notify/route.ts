@@ -899,8 +899,59 @@ export async function POST(request: NextRequest) {
             });
           }
         }
+      } else if (type === 'reschedule' && !callerIsClient && !callerIsOwner) {
+        // Staff rescheduled → notify client (bell) + notify owner (bell + email per prefs)
+        const clientName = recipientName ?? (isGuest ? 'Gost' : 'Klijent');
+        const { data: staffProfile } = await db.from('profiles').select('name').eq('id', user.id).maybeSingle();
+        const staffRName = staffProfile?.name ?? 'Radnik';
+        const reschedDt  = fmtDt(booking.starts_at, tz, 'sr');
+
+        // Bell for registered client
+        if (booking.client_id) {
+          await db.from('notifications').insert({
+            user_id:     booking.client_id,
+            type:        'booking',
+            action_type: 'booking_rescheduled',
+            title:       'Termin premješten',
+            body:        `${business} je premjestio/la tvoj termin za ${service} · ${reschedDt}`,
+            meta:        { booking_id: bookingId, business_name: business, service_name: service, starts_at: booking.starts_at, skip_push_email: true },
+          });
+        }
+
+        // Owner bell + email
+        if (ownerId) {
+          const { data: ownerP } = await db
+            .from('profiles').select('name, email, country, notification_prefs')
+            .eq('id', ownerId).maybeSingle();
+          if (ownerP) {
+            const ownerPrefs = (ownerP.notification_prefs as Record<string, unknown>) || {};
+
+            if (ownerPrefs.notify_reschedule !== false) {
+              await db.from('notifications').insert({
+                user_id:     ownerId,
+                type:        'booking',
+                action_type: 'booking_rescheduled',
+                title:       `${staffRName} je premjestio/la termin`,
+                body:        `${service} · ${reschedDt}${clientName ? ' · ' + clientName : ''}`,
+                meta:        { booking_id: bookingId, business_name: business, service_name: service, starts_at: booking.starts_at },
+              });
+            }
+
+            if (ownerPrefs.notify_reschedule_email !== false && ownerP.email) {
+              const oLang      = getLang(ownerP.country);
+              const oFirst     = ownerP.name?.split(' ')[0] || 'there';
+              const oDt        = fmtDt(booking.starts_at, tz, oLang);
+              const oCont      = content('client_rescheduled', oLang, { firstName: oFirst, service, business, dt: oDt, clientName, staffName });
+              await sendEmail({
+                to:      ownerP.email,
+                subject: oCont.subject,
+                replyTo: 'support@gigzone.app',
+                html:    buildHtml(oCont, oFirst, oDt, locationLine, 'https://gigzone.app/booking/business/bookings'),
+              });
+            }
+          }
+        }
       }
-      // else: callerIsStaff → no business email
     }
 
     return NextResponse.json({ ok: true });

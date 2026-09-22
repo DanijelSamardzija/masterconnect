@@ -434,6 +434,7 @@ export default function BusinessSetupPage() {
     notify_cancellation: boolean;
     notify_cancellation_email: boolean;
     notify_reschedule: boolean;
+    notify_reschedule_email: boolean;
   };
   const [notifPrefs, setNotifPrefs] = useState<NotifPrefs>({
     push_enabled: true,
@@ -450,6 +451,7 @@ export default function BusinessSetupPage() {
     notify_cancellation: true,
     notify_cancellation_email: true,
     notify_reschedule: true,
+    notify_reschedule_email: true,
   });
   const [notifPrefsSaving, setNotifPrefsSaving] = useState(false);
 
@@ -606,6 +608,7 @@ export default function BusinessSetupPage() {
           notify_cancellation:               prefs.notify_cancellation               !== false,
           notify_cancellation_email:   prefs.notify_cancellation_email   !== false,
           notify_reschedule:           prefs.notify_reschedule           !== false,
+          notify_reschedule_email:     prefs.notify_reschedule_email     !== false,
         });
       }
       // Load saved timezone from primary location; fall back to browser timezone for new users
@@ -864,6 +867,7 @@ export default function BusinessSetupPage() {
         notify_cancellation:               notifPrefs.notify_cancellation,
         notify_cancellation_email:   notifPrefs.notify_cancellation_email,
         notify_reschedule:           notifPrefs.notify_reschedule,
+        notify_reschedule_email:     notifPrefs.notify_reschedule_email,
       },
     });
     setNotifPrefsSaving(false);
@@ -2796,6 +2800,15 @@ export default function BusinessSetupPage() {
                         emailDesc: 'Email kad klijent otkaže termin',
                         show: true,
                       },
+                      {
+                        pushKey: 'notify_reschedule'       as const,
+                        emailKey: 'notify_reschedule_email' as const,
+                        label: t('notifPrefs.reschedule'),
+                        desc: t('notifPrefs.rescheduleDesc'),
+                        pushDesc: 'Obavještenje u zvonu kad radnik premjesti termin',
+                        emailDesc: 'Email kad radnik premjesti termin',
+                        show: staffLoading || hasNonOwnerActiveStaff,
+                      },
                     ];
                     return rows.filter(r => r.show).map(({ pushKey, emailKey, label, desc, pushDesc, emailDesc }) => (
                     <div key={pushKey} className="space-y-2">
@@ -2841,24 +2854,6 @@ export default function BusinessSetupPage() {
                   ));
                   })()}
 
-                  {/* Other events with single toggle */}
-                  {([
-                    { key: 'notify_reschedule', label: t('notifPrefs.reschedule'), desc: t('notifPrefs.rescheduleDesc') },
-                  ] as const).map(({ key, label, desc }) => (
-                    <div key={key} className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-xs font-medium">{label}</p>
-                        <p className="text-[11px] text-muted-foreground leading-tight">{desc}</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setNotifPrefs(p => ({ ...p, [key]: !p[key] }))}
-                        className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 mt-0.5 ${notifPrefs[key] ? 'bg-primary' : 'bg-muted'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${notifPrefs[key] ? 'translate-x-4' : 'translate-x-0.5'}`} />
-                      </button>
-                    </div>
-                  ))}
                 </div>
 
                 <Button

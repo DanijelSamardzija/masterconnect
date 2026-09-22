@@ -11,7 +11,7 @@ import { StaffBookingNav } from '@/components/booking/staff-booking-nav';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   Calendar, Clock, Users, Plus, Ban,
-  CheckCircle2, AlertCircle, XCircle
+  CheckCircle2, AlertCircle, XCircle, CalendarClock
 } from 'lucide-react';
 
 type StaffBooking = {
@@ -20,6 +20,7 @@ type StaffBooking = {
   ends_at: string;
   status: string;
   service_name: string;
+  service_id: string | null;
   duration_minutes: number;
   client_name: string | null;
   client_phone: string | null;
@@ -27,6 +28,10 @@ type StaffBooking = {
   guest_phone: string | null;
   guest_email: string | null;
   location_name: string | null;
+  location_id: string | null;
+  location_timezone: string | null;
+  staff_member_id: string | null;
+  business_id: string | null;
   notes: string | null;
   party_size: number;
 };
@@ -35,7 +40,7 @@ type Permissions = {
   can_set_hours: boolean;
   can_create_bookings: boolean;
   can_cancel_bookings: boolean;
-
+  can_reschedule_bookings: boolean;
 };
 
 type ActiveFilter = 'upcoming' | 'pending' | 'all' | 'past';
@@ -44,7 +49,7 @@ const DEFAULT_PERMS: Permissions = {
   can_set_hours: false,
   can_create_bookings: false,
   can_cancel_bookings: false,
-
+  can_reschedule_bookings: false,
 };
 
 export default function StaffBookingsPage() {
@@ -78,9 +83,10 @@ export default function StaffBookingsPage() {
         .maybeSingle();
       if (data?.permissions) {
         setPermissions({
-          can_set_hours:       !!data.permissions.can_set_hours,
-          can_create_bookings: !!data.permissions.can_create_bookings,
-          can_cancel_bookings: !!data.permissions.can_cancel_bookings,
+          can_set_hours:           !!data.permissions.can_set_hours,
+          can_create_bookings:     !!data.permissions.can_create_bookings,
+          can_cancel_bookings:     !!data.permissions.can_cancel_bookings,
+          can_reschedule_bookings: !!data.permissions.can_reschedule_bookings,
         });
       }
     })();
@@ -147,6 +153,19 @@ export default function StaffBookingsPage() {
     setAllBookings(prev => prev.map(b => b.booking_id === cancelId ? { ...b, status: 'cancelled' } : b));
     setCancelId(null);
     setCancelReason('');
+  };
+
+  const openReschedule = (b: StaffBooking) => {
+    const params = new URLSearchParams({
+      bookingId:  b.booking_id,
+      serviceId:  b.service_id  ?? '',
+      staffId:    b.staff_member_id ?? '',
+      locationId: b.location_id ?? '',
+      businessId: b.business_id ?? '',
+      tz:         b.location_timezone ?? 'UTC',
+      role:       'staff',
+    });
+    router.push(`/booking/business/reschedule?${params.toString()}`);
   };
 
   const hasAnyAction = permissions.can_create_bookings;
@@ -288,15 +307,26 @@ export default function StaffBookingsPage() {
                       </p>
                     )}
 
-                    {permissions.can_cancel_bookings && ['pending', 'confirmed'].includes(b.status) && new Date(b.starts_at) > new Date() && (
+                    {(permissions.can_cancel_bookings || permissions.can_reschedule_bookings) && ['pending', 'confirmed'].includes(b.status) && new Date(b.starts_at) > new Date() && (
                       <div className="flex items-center gap-2 pt-2 border-t border-border">
-                        <button
-                          onClick={() => { setCancelId(b.booking_id); setCancelReason(''); }}
-                          className="flex items-center gap-1.5 bg-red-100 hover:bg-red-200 dark:bg-red-950 dark:hover:bg-red-900 text-red-600 dark:text-red-400 rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
-                        >
-                          <XCircle className="h-3.5 w-3.5" />
-                          {t('ownerBookings.cancel')}
-                        </button>
+                        {permissions.can_reschedule_bookings && (
+                          <button
+                            onClick={() => openReschedule(b)}
+                            className="flex items-center gap-1.5 bg-blue-100 hover:bg-blue-200 dark:bg-blue-950 dark:hover:bg-blue-900 text-blue-600 dark:text-blue-400 rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
+                          >
+                            <CalendarClock className="h-3.5 w-3.5" />
+                            {t('ownerBookings.reschedule')}
+                          </button>
+                        )}
+                        {permissions.can_cancel_bookings && (
+                          <button
+                            onClick={() => { setCancelId(b.booking_id); setCancelReason(''); }}
+                            className="flex items-center gap-1.5 bg-red-100 hover:bg-red-200 dark:bg-red-950 dark:hover:bg-red-900 text-red-600 dark:text-red-400 rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
+                          >
+                            <XCircle className="h-3.5 w-3.5" />
+                            {t('ownerBookings.cancel')}
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>
