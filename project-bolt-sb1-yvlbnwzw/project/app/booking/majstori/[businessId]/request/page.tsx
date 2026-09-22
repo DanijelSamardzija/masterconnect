@@ -3,6 +3,7 @@
 import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { friendlyError } from '@/lib/utils/friendly-error';
 import { supabase } from '@/lib/supabase/client';
 import { ChevronLeft, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
@@ -74,7 +75,7 @@ export default function PublicRequestPage({
     if (data?.ok) {
       setToken(data.tracking_token);
     } else {
-      setError(data?.error ?? 'error');
+      setError(friendlyError(data?.error, t));
     }
     setSubmitting(false);
   }

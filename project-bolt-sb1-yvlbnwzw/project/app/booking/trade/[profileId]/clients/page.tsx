@@ -3,6 +3,7 @@
 import { use, useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { friendlyError } from '@/lib/utils/friendly-error';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
 import { TradeDashboardLayout } from '@/components/trade/TradeDashboardLayout';
@@ -85,7 +86,7 @@ function AddClientForm({
     });
     setSaving(false);
     if (!data?.ok) {
-      toast.error(data?.error ?? 'error');
+      toast.error(friendlyError(data?.error, t));
       return;
     }
     toast.success(t('trade.clients.saved'));
@@ -113,16 +114,16 @@ function AddClientForm({
         )}
         {row(t('trade.clients.email'),
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-            placeholder="email@example.com" className={inputCls} />
+            placeholder={t('trade.clients.emailPh')} className={inputCls} />
         )}
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        {row('WhatsApp',
+        {row(t('trade.clients.whatsapp'),
           <input type="tel" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)}
             placeholder={t('trade.clients.phonePh')} className={inputCls} />
         )}
-        {row('Viber',
+        {row(t('trade.clients.viber'),
           <input type="tel" value={viber} onChange={(e) => setViber(e.target.value)}
             placeholder={t('trade.clients.phonePh')} className={inputCls} />
         )}

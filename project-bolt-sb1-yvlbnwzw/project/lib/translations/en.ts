@@ -3,6 +3,12 @@ export default {
   'site.name': 'GigZone',
   'site.tagline': 'Connect with skilled professionals worldwide',
 
+  // Common errors (used by friendlyError helper)
+  'common.error.generic':       'Something went wrong. Please try again.',
+  'common.error.unauthorized':  'You need to be signed in to continue.',
+  'common.error.forbidden':     'You don\'t have permission for this action.',
+  'common.error.notFound':      'The requested item was not found.',
+
   // System messages
   'systemMessage.jobCreated': '📋 Customer posted this job',
   'systemMessage.proContacted': '👋 Professional contacted customer',
@@ -2392,6 +2398,7 @@ export default {
   'trade.clients.phone':          'Phone',
   'trade.clients.phonePh':        '+44 7700 900000',
   'trade.clients.email':          'Email',
+  'trade.clients.emailPh':        'email@example.com',
   'trade.clients.whatsapp':       'WhatsApp',
   'trade.clients.viber':          'Viber',
   'trade.clients.address':        'Address',
@@ -2451,6 +2458,7 @@ export default {
   'trade.jobs.new':            'New job',
   'trade.jobs.newTitle':       'New work order',
   'trade.jobs.statusAll':      'All',
+  'trade.jobs.viewDetail':     'View details',
   'trade.jobs.statusPending':     'Pending',
   'trade.jobs.statusConfirmed':   'Confirmed',
   'trade.jobs.statusInProgress':  'In progress',

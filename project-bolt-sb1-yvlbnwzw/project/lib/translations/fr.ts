@@ -2,6 +2,12 @@ export default {
   'site.name': 'GigZone',
   'site.tagline': 'Connectez-vous avec des professionnels qualifiés dans le monde entier',
 
+  // Common errors (used by friendlyError helper)
+  'common.error.generic':       'Une erreur est survenue. Veuillez réessayer.',
+  'common.error.unauthorized':  'Vous devez être connecté pour continuer.',
+  'common.error.forbidden':     'Vous n\'avez pas la permission d\'effectuer cette action.',
+  'common.error.notFound':      'L\'élément demandé est introuvable.',
+
   'systemMessage.jobCreated': '📋 Le client a publié ce travail',
   'systemMessage.proContacted': '👋 Le professionnel a contacté le client',
   'systemMessage.jobCompleted': '✅ Travail marqué comme terminé',
@@ -2317,6 +2323,7 @@ export default {
   'trade.clients.phone':          'Téléphone',
   'trade.clients.phonePh':        '+33 6 00 00 00 00',
   'trade.clients.email':          'Email',
+  'trade.clients.emailPh':        'email@exemple.fr',
   'trade.clients.whatsapp':       'WhatsApp',
   'trade.clients.viber':          'Viber',
   'trade.clients.address':        'Adresse',
@@ -2376,6 +2383,7 @@ export default {
   'trade.jobs.new':            'Nouvelle mission',
   'trade.jobs.newTitle':       'Nouveau bon de travail',
   'trade.jobs.statusAll':      'Tous',
+  'trade.jobs.viewDetail':     'Voir les détails',
   'trade.jobs.statusPending':     'En attente',
   'trade.jobs.statusConfirmed':   'Confirmé',
   'trade.jobs.statusInProgress':  'En cours',

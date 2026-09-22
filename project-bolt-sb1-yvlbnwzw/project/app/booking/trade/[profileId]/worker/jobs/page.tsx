@@ -3,6 +3,7 @@
 import { use, useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { friendlyError } from '@/lib/utils/friendly-error';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
 import { TradeWorkerLayout } from '@/components/trade/TradeWorkerLayout';
@@ -42,7 +43,7 @@ type MyJob = {
 };
 
 const STATUS_TABS: { key: JobStatus | 'all'; labelKey: string }[] = [
-  { key: 'all',         labelKey: 'trade.jobs.filterAll' },
+  { key: 'all',         labelKey: 'trade.jobs.statusAll' },
   { key: 'pending',     labelKey: 'trade.jobs.status_pending' },
   { key: 'confirmed',   labelKey: 'trade.jobs.status_confirmed' },
   { key: 'in_progress', labelKey: 'trade.jobs.status_in_progress' },
@@ -159,7 +160,7 @@ export default function WorkerJobsPage({
       toast.success(t('trade.worker.statusUpdated'));
       load(activeTab);
     } else {
-      toast.error(data?.error ?? 'error');
+      toast.error(friendlyError(data?.error, t));
     }
     setActingId(null);
   }

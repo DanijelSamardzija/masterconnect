@@ -3,6 +3,12 @@ export default {
   'site.name': 'GigZone',
   'site.tagline': 'Povežite se sa stručnim profesionalcima širom sveta',
 
+  // Common errors (used by friendlyError helper)
+  'common.error.generic':       'Došlo je do greške. Pokušajte ponovo.',
+  'common.error.unauthorized':  'Morate biti prijavljeni da nastavite.',
+  'common.error.forbidden':     'Nemate dozvolu za ovu radnju.',
+  'common.error.notFound':      'Tražena stavka nije pronađena.',
+
   // System messages
   'systemMessage.jobCreated': '📋 Klijent je postavio ovaj posao',
   'systemMessage.proContacted': '👋 Profesionalac je kontaktirao klijenta',
@@ -2392,6 +2398,7 @@ export default {
   'trade.clients.phone':          'Telefon',
   'trade.clients.phonePh':        '+387 61 123 456',
   'trade.clients.email':          'Email',
+  'trade.clients.emailPh':        'email@primjer.ba',
   'trade.clients.whatsapp':       'WhatsApp',
   'trade.clients.viber':          'Viber',
   'trade.clients.address':        'Adresa',
@@ -2451,6 +2458,7 @@ export default {
   'trade.jobs.new':            'Novi nalog',
   'trade.jobs.newTitle':       'Novi radni nalog',
   'trade.jobs.statusAll':      'Svi',
+  'trade.jobs.viewDetail':     'Detalji',
   'trade.jobs.statusPending':     'Na čekanju',
   'trade.jobs.statusConfirmed':   'Potvrđen',
   'trade.jobs.statusInProgress':  'U toku',

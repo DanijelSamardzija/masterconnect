@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState, useCallback } from 'react';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { friendlyError } from '@/lib/utils/friendly-error';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
 import { TradeDashboardLayout } from '@/components/trade/TradeDashboardLayout';
@@ -146,7 +147,7 @@ export default function TradeAnalyticsPage({ params }: { params: Promise<{ profi
     if (res?.ok) {
       setData(res as AnalyticsResult);
     } else {
-      setError(res?.error ?? 'error');
+      setError(friendlyError(res?.error, t));
     }
     setLoading(false);
   }, [profileId, user, period, customFrom, customTo]);

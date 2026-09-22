@@ -4,6 +4,12 @@ export default {
   'site.tagline': 'Verbinde dich mit erfahrenen Fachleuten weltweit',
 
   // System messages
+  // Common errors (used by friendlyError helper)
+  'common.error.generic':       'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
+  'common.error.unauthorized':  'Bitte melden Sie sich an, um fortzufahren.',
+  'common.error.forbidden':     'Sie haben keine Berechtigung für diese Aktion.',
+  'common.error.notFound':      'Das gesuchte Element wurde nicht gefunden.',
+
   'systemMessage.jobCreated': '📋 Kunde hat diesen Auftrag gepostet',
   'systemMessage.proContacted': '👋 Fachmann hat Kunden kontaktiert',
   'systemMessage.jobCompleted': '✅ Auftrag als abgeschlossen markiert',
@@ -2382,6 +2388,7 @@ export default {
   'trade.clients.phone':          'Telefon',
   'trade.clients.phonePh':        '+49 170 1234567',
   'trade.clients.email':          'E-Mail',
+  'trade.clients.emailPh':        'email@beispiel.de',
   'trade.clients.whatsapp':       'WhatsApp',
   'trade.clients.viber':          'Viber',
   'trade.clients.address':        'Adresse',
@@ -2441,6 +2448,7 @@ export default {
   'trade.jobs.new':            'Neuer Auftrag',
   'trade.jobs.newTitle':       'Neuer Arbeitsauftrag',
   'trade.jobs.statusAll':      'Alle',
+  'trade.jobs.viewDetail':     'Details ansehen',
   'trade.jobs.statusPending':     'Ausstehend',
   'trade.jobs.statusConfirmed':   'Bestätigt',
   'trade.jobs.statusInProgress':  'In Bearbeitung',
