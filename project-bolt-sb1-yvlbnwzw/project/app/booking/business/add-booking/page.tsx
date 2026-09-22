@@ -224,6 +224,18 @@ export default function OwnerAddBookingPage() {
       return;
     }
     toast.success(t('ownerBookings.add.success'));
+    if (data?.booking_id && guestEmail.trim()) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        fetch('/api/booking/notify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+          },
+          body: JSON.stringify({ type: 'confirmation', booking_id: data.booking_id }),
+        }).catch(() => {});
+      });
+    }
     router.push('/booking/business/bookings');
   }
 

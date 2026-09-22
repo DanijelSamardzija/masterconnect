@@ -529,6 +529,18 @@ function OwnerBookingsContent() {
     setAddLoading(false);
     if (error || data?.ok === false) { toast.error(data?.error || 'Greška'); return; }
     toast.success(t('ownerBookings.add.success'));
+    if (data?.booking_id && addEmail.trim()) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        fetch('/api/booking/notify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+          },
+          body: JSON.stringify({ type: 'confirmation', booking_id: data.booking_id }),
+        }).catch(() => {});
+      });
+    }
     setAddOpen(false);
     fetchBookings();
   };
