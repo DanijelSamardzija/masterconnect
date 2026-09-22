@@ -9,8 +9,9 @@ import { TradeDashboardLayout } from '@/components/trade/TradeDashboardLayout';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import {
-  ArrowLeft, Loader2, Plus, Trash2, Settings2, Check, X,
+  ArrowLeft, Loader2, Plus, Trash2, Settings2, Check, X, Printer, Download,
 } from 'lucide-react';
+import { toCsv, downloadCsv } from '@/lib/utils/export-utils';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -146,6 +147,20 @@ export default function DocEditorPage({
     );
   }
 
+  function exportTableCsv() {
+    if (!doc || doc.doc_type !== 'table') return;
+    const rows = doc.rows as TableRow[];
+    const date = new Date().toISOString().slice(0, 10);
+    const csv = toCsv(
+      doc.schema.map(c => c.name),
+      rows.map(row => doc.schema.map(c => {
+        const v = row[c.id];
+        return v === null || v === undefined ? '' : String(v);
+      })),
+    );
+    downloadCsv(`${doc.title}-${date}.csv`, csv);
+  }
+
   return (
     <TradeDashboardLayout profileId={profileId} active="docs">
       {/* Header */}
@@ -164,6 +179,13 @@ export default function DocEditorPage({
             placeholder={t('trade.docs.editTitle')}
           />
         </div>
+        <button
+          onClick={() => window.print()}
+          className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted transition-colors shrink-0"
+          title={t('trade.export.print')}
+        >
+          <Printer className="w-4 h-4" />
+        </button>
         {saving && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground shrink-0" />}
       </div>
 
@@ -194,16 +216,28 @@ export default function DocEditorPage({
               <Settings2 className="w-3.5 h-3.5" />
               {t('trade.docs.table.editColumns')}
             </button>
-            <button
-              onClick={() => {
-                const rows = [...(doc.rows as TableRow[]), emptyRow(doc.schema)];
-                saveRows(rows);
-              }}
-              className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              {t('trade.docs.table.addRow')}
-            </button>
+            <div className="flex items-center gap-3">
+              {(doc.rows as TableRow[]).length > 0 && (
+                <button
+                  onClick={exportTableCsv}
+                  className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  title={t('trade.export.csvDoc')}
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  {t('trade.export.csv')}
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  const rows = [...(doc.rows as TableRow[]), emptyRow(doc.schema)];
+                  saveRows(rows);
+                }}
+                className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                {t('trade.docs.table.addRow')}
+              </button>
+            </div>
           </div>
 
           {showColEditor && (

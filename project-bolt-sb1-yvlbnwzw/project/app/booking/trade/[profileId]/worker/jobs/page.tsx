@@ -20,7 +20,9 @@ import {
   PauseCircle,
   RotateCcw,
   AlertTriangle,
+  Download,
 } from 'lucide-react';
+import { toCsv, downloadCsv } from '@/lib/utils/export-utils';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -173,11 +175,41 @@ export default function WorkerJobsPage({
     });
   }
 
+  function exportCsv() {
+    if (!jobs.length) return;
+    const date = new Date().toISOString().slice(0, 10);
+    const csv = toCsv(
+      ['Title', 'Status', 'Priority', 'Client', 'Scheduled Start', 'Location', 'Created'],
+      jobs.map(j => [
+        j.title,
+        j.status,
+        j.priority,
+        j.client_name,
+        j.scheduled_start,
+        j.location,
+        j.created_at,
+      ]),
+    );
+    downloadCsv(`my-jobs-${activeTab}-${date}.csv`, csv);
+  }
+
   return (
     <TradeWorkerLayout profileId={profileId} active="jobs">
-      <h1 className="text-lg font-bold text-foreground mb-4">
-        {t('trade.worker.myJobs')}
-      </h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-lg font-bold text-foreground">
+          {t('trade.worker.myJobs')}
+        </h1>
+        {jobs.length > 0 && (
+          <button
+            onClick={exportCsv}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            title={t('trade.export.csvJobs')}
+          >
+            <Download className="w-3.5 h-3.5" />
+            {t('trade.export.csv')}
+          </button>
+        )}
+      </div>
 
       {/* Status filter */}
       <div className="flex gap-1.5 overflow-x-auto pb-1 mb-4 scrollbar-none">

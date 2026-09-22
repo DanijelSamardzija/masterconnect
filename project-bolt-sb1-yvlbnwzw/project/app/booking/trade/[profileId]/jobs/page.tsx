@@ -21,7 +21,9 @@ import {
   Circle,
   PauseCircle,
   XCircle,
+  Download,
 } from 'lucide-react';
+import { toCsv, downloadCsv } from '@/lib/utils/export-utils';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -163,18 +165,50 @@ export default function TradeJobsPage({ params }: { params: Promise<{ profileId:
 
   const isEmpty = !loading && jobs.length === 0;
 
+  function exportCsv() {
+    if (!jobs.length) return;
+    const date = new Date().toISOString().slice(0, 10);
+    const csv = toCsv(
+      ['Title', 'Status', 'Priority', 'Client', 'Assigned To', 'Scheduled Start', 'Scheduled End', 'Location', 'Created'],
+      jobs.map(j => [
+        j.title,
+        j.status,
+        j.priority,
+        j.client_name,
+        j.assigned_name,
+        j.scheduled_start,
+        j.scheduled_end,
+        j.location,
+        j.created_at,
+      ]),
+    );
+    downloadCsv(`jobs-${activeTab}-${date}.csv`, csv);
+  }
+
   return (
     <TradeDashboardLayout profileId={profileId} active="jobs">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-lg font-bold text-foreground">{t('trade.dashboard.jobs.title')}</h1>
-        <button
-          onClick={() => router.push(`/booking/trade/${profileId}/jobs/new`)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          {t('trade.jobs.new')}
-        </button>
+        <div className="flex items-center gap-2">
+          {jobs.length > 0 && (
+            <button
+              onClick={exportCsv}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              title={t('trade.export.csvJobs')}
+            >
+              <Download className="w-3.5 h-3.5" />
+              {t('trade.export.csv')}
+            </button>
+          )}
+          <button
+            onClick={() => router.push(`/booking/trade/${profileId}/jobs/new`)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            {t('trade.jobs.new')}
+          </button>
+        </div>
       </div>
 
       {/* Status tabs */}

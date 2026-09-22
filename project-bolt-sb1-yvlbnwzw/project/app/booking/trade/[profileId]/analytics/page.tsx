@@ -9,8 +9,9 @@ import { TradeDashboardLayout } from '@/components/trade/TradeDashboardLayout';
 import { supabase } from '@/lib/supabase/client';
 import {
   BarChart3, TrendingUp, Wrench, FileText, AlertCircle, Loader2,
-  BanknoteIcon, Package, Fuel, ClipboardList, Zap,
+  BanknoteIcon, Package, Fuel, ClipboardList, Zap, Download,
 } from 'lucide-react';
+import { toCsvRow, downloadCsv } from '@/lib/utils/export-utils';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -176,9 +177,73 @@ export default function TradeAnalyticsPage({ params }: { params: Promise<{ profi
   const s = data?.summary;
   const currency = data?.currency ?? 'BAM';
 
+  function exportCsv() {
+    if (!data || !s) return;
+    function row(...cells: (string | number | null | undefined)[]): string {
+      return toCsvRow(cells);
+    }
+    const lines: string[] = ['﻿'];
+    lines.push(row('Metric', 'Value'));
+    lines.push(row(t('trade.analytics.summary.totalJobs'), s.total_jobs));
+    lines.push(row(t('trade.analytics.summary.completed'), s.completed));
+    lines.push(row(t('trade.analytics.summary.cancelled'), s.cancelled));
+    lines.push(row(t('trade.analytics.summary.inProgress'), s.in_progress));
+    lines.push(row(t('trade.analytics.summary.invoiced'), s.invoiced));
+    if (data.can_view_financials) {
+      lines.push(row(t('trade.analytics.summary.revenue'), s.total_revenue !== null ? `${s.total_revenue} ${currency}` : ''));
+      lines.push(row(t('trade.analytics.summary.grossProfit'), s.gross_profit !== null ? `${s.gross_profit} ${currency}` : ''));
+      lines.push(row(t('trade.analytics.summary.laborCost'), s.total_labor_cost !== null ? `${s.total_labor_cost} ${currency}` : ''));
+      lines.push(row(t('trade.analytics.summary.materialsCost'), s.total_materials_cost !== null ? `${s.total_materials_cost} ${currency}` : ''));
+      lines.push(row(t('trade.analytics.summary.expenses'), s.total_expenses !== null ? `${s.total_expenses} ${currency}` : ''));
+    }
+    if (data.by_status.length > 0) {
+      lines.push('');
+      lines.push(row(t('trade.analytics.byStatus.title'), ''));
+      lines.push(row('Status', 'Count'));
+      for (const r of data.by_status) lines.push(row(r.status, r.count));
+    }
+    if (data.by_origin_type.length > 0) {
+      lines.push('');
+      lines.push(row(t('trade.analytics.byOrigin.title'), ''));
+      lines.push(row('Origin', 'Count'));
+      for (const r of data.by_origin_type) lines.push(row(r.origin_type, r.count));
+    }
+    if (data.can_view_financials && data.expenses_by_type?.length) {
+      lines.push('');
+      lines.push(row(t('trade.analytics.expensesByType.title'), ''));
+      lines.push(row('Type', 'Total'));
+      for (const r of data.expenses_by_type) lines.push(row(r.expense_type, `${r.total} ${currency}`));
+    }
+    lines.push('');
+    lines.push(row(t('trade.analytics.funnel.title'), ''));
+    lines.push(row('Stage', 'Count'));
+    const f = data.request_funnel;
+    lines.push(row(t('trade.analytics.funnel.total'), f.total));
+    lines.push(row(t('trade.analytics.funnel.open'), f.open));
+    lines.push(row(t('trade.analytics.funnel.quoted'), f.quoted));
+    lines.push(row(t('trade.analytics.funnel.accepted'), f.accepted));
+    lines.push(row(t('trade.analytics.funnel.completed'), f.completed));
+    lines.push(row(t('trade.analytics.funnel.cancelled'), f.cancelled));
+    lines.push(row(t('trade.analytics.funnel.emergency'), data.emergency_requests));
+    const date = new Date().toISOString().slice(0, 10);
+    downloadCsv(`analytics-${date}.csv`, lines.join('\r\n'));
+  }
+
   return (
     <TradeDashboardLayout profileId={profileId} active="analytics">
-      <h1 className="text-lg font-bold text-foreground mb-4">{t('trade.analytics.title')}</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-lg font-bold text-foreground">{t('trade.analytics.title')}</h1>
+        {data && (
+          <button
+            onClick={exportCsv}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            title={t('trade.export.csvAnalytics')}
+          >
+            <Download className="w-3.5 h-3.5" />
+            {t('trade.export.csv')}
+          </button>
+        )}
+      </div>
 
       {/* Period picker */}
       <div className="flex flex-wrap gap-2 mb-4">

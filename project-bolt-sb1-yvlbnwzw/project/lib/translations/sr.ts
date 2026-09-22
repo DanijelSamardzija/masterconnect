@@ -2717,6 +2717,13 @@ export default {
   'trade.review.writeReview':    'Napiši recenziju',
   'trade.review.prompt':         'Kako je bio servis?',
 
+  // ── Export ────────────────────────────────────────────────────────────────
+  'trade.export.csv':            'CSV',
+  'trade.export.csvAnalytics':   'Izvezi analitiku (CSV)',
+  'trade.export.csvJobs':        'Izvezi poslove (CSV)',
+  'trade.export.csvDoc':         'Izvezi tabelu (CSV)',
+  'trade.export.print':          'Štampaj / PDF',
+
   // ── Accommodation system ───────────────────────────────────────────────────
   'acc.setup.tab': 'Smještaj',
   'acc.setup.title': 'Smještajne jedinice',

@@ -2642,6 +2642,13 @@ export default {
   'trade.review.writeReview':    'Écrire un avis',
   'trade.review.prompt':         'Comment était le service ?',
 
+  // ── Export ────────────────────────────────────────────────────────────────
+  'trade.export.csv':            'CSV',
+  'trade.export.csvAnalytics':   'Exporter l\'analyse (CSV)',
+  'trade.export.csvJobs':        'Exporter les tâches (CSV)',
+  'trade.export.csvDoc':         'Exporter le tableau (CSV)',
+  'trade.export.print':          'Imprimer / PDF',
+
   // ── Accommodation system ───────────────────────────────────────────────────
   'acc.setup.tab': 'Hébergement',
   'acc.setup.title': 'Unités d\'hébergement',
