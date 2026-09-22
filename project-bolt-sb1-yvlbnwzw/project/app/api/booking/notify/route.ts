@@ -43,7 +43,7 @@ function fmtDt(iso: string, tz: string, lang: Lang): string {
   }).format(new Date(iso));
 }
 
-type ContentParams = { firstName: string; service: string; business: string; dt: string; clientName?: string; reason?: string };
+type ContentParams = { firstName: string; service: string; business: string; dt: string; clientName?: string; reason?: string; staffName?: string };
 type ContentResult = { subject: string; title: string; body: string; dateLabel: string; locationLabel: string; cta: string; footer: string };
 
 function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
@@ -52,7 +52,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       confirmation: {
         subject: `Rezervacija potvrđena — ${p.service}`,
         title: 'Rezervacija kreirana ✅',
-        body: `Tvoja rezervacija za <strong>${p.service}</strong> kod <strong>${p.business}</strong> je uspješno kreirana.`,
+        body: `Tvoja rezervacija za <strong>${p.service}</strong> kod <strong>${p.business}</strong>${p.staffName ? ` sa radnikom <strong>${p.staffName}</strong>` : ''} je uspješno kreirana.`,
         dateLabel: 'Termin',
         locationLabel: 'Lokacija',
         cta: 'Pregledaj termin',
@@ -70,7 +70,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       reschedule: {
         subject: `Termin premješten — ${p.service}`,
         title: 'Termin premješten 🗓️',
-        body: `Tvoja rezervacija za <strong>${p.service}</strong> kod <strong>${p.business}</strong> je premještena.`,
+        body: `Tvoja rezervacija za <strong>${p.service}</strong> kod <strong>${p.business}</strong>${p.staffName ? ` sa radnikom <strong>${p.staffName}</strong>` : ''} je premještena.`,
         dateLabel: 'Novi termin',
         locationLabel: 'Lokacija',
         cta: 'Pregledaj termin',
@@ -97,7 +97,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       reminder: {
         subject: `Podsjetnik — termin sutra: ${p.service}`,
         title: 'Termin sutra ⏰',
-        body: `Podsjećamo te da imaš termin za <strong>${p.service}</strong> kod <strong>${p.business}</strong>.`,
+        body: `Podsjećamo te da imaš termin za <strong>${p.service}</strong> kod <strong>${p.business}</strong>${p.staffName ? ` sa radnikom <strong>${p.staffName}</strong>` : ''}.`,
         dateLabel: 'Termin',
         locationLabel: 'Lokacija',
         cta: 'Pregledaj termin',
@@ -117,7 +117,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       confirmation: {
         subject: `Booking confirmed — ${p.service}`,
         title: 'Booking confirmed ✅',
-        body: `Your booking for <strong>${p.service}</strong> at <strong>${p.business}</strong> has been created.`,
+        body: `Your booking for <strong>${p.service}</strong> at <strong>${p.business}</strong>${p.staffName ? ` with <strong>${p.staffName}</strong>` : ''} has been created.`,
         dateLabel: 'Appointment',
         locationLabel: 'Location',
         cta: 'View appointment',
@@ -135,7 +135,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       reschedule: {
         subject: `Appointment rescheduled — ${p.service}`,
         title: 'Appointment rescheduled 🗓️',
-        body: `Your booking for <strong>${p.service}</strong> at <strong>${p.business}</strong> has been moved.`,
+        body: `Your booking for <strong>${p.service}</strong> at <strong>${p.business}</strong>${p.staffName ? ` with <strong>${p.staffName}</strong>` : ''} has been moved.`,
         dateLabel: 'New appointment',
         locationLabel: 'Location',
         cta: 'View appointment',
@@ -162,7 +162,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       reminder: {
         subject: `Reminder — appointment tomorrow: ${p.service}`,
         title: 'Appointment tomorrow ⏰',
-        body: `This is a reminder that you have an appointment for <strong>${p.service}</strong> at <strong>${p.business}</strong>.`,
+        body: `This is a reminder that you have an appointment for <strong>${p.service}</strong> at <strong>${p.business}</strong>${p.staffName ? ` with <strong>${p.staffName}</strong>` : ''}.`,
         dateLabel: 'Appointment',
         locationLabel: 'Location',
         cta: 'View appointment',
@@ -182,7 +182,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       confirmation: {
         subject: `Buchung bestätigt — ${p.service}`,
         title: 'Buchung bestätigt ✅',
-        body: `Deine Buchung für <strong>${p.service}</strong> bei <strong>${p.business}</strong> wurde erfolgreich erstellt.`,
+        body: `Deine Buchung für <strong>${p.service}</strong> bei <strong>${p.business}</strong>${p.staffName ? ` mit <strong>${p.staffName}</strong>` : ''} wurde erfolgreich erstellt.`,
         dateLabel: 'Termin',
         locationLabel: 'Standort',
         cta: 'Termin ansehen',
@@ -200,7 +200,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       reschedule: {
         subject: `Termin verschoben — ${p.service}`,
         title: 'Termin verschoben 🗓️',
-        body: `Deine Buchung für <strong>${p.service}</strong> bei <strong>${p.business}</strong> wurde verschoben.`,
+        body: `Deine Buchung für <strong>${p.service}</strong> bei <strong>${p.business}</strong>${p.staffName ? ` mit <strong>${p.staffName}</strong>` : ''} wurde verschoben.`,
         dateLabel: 'Neuer Termin',
         locationLabel: 'Standort',
         cta: 'Termin ansehen',
@@ -227,7 +227,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       reminder: {
         subject: `Erinnerung — Termin morgen: ${p.service}`,
         title: 'Termin morgen ⏰',
-        body: `Erinnerung: Du hast morgen einen Termin für <strong>${p.service}</strong> bei <strong>${p.business}</strong>.`,
+        body: `Erinnerung: Du hast morgen einen Termin für <strong>${p.service}</strong> bei <strong>${p.business}</strong>${p.staffName ? ` mit <strong>${p.staffName}</strong>` : ''}.`,
         dateLabel: 'Termin',
         locationLabel: 'Standort',
         cta: 'Termin ansehen',
@@ -247,7 +247,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       confirmation: {
         subject: `Reserva confirmada — ${p.service}`,
         title: 'Reserva confirmada ✅',
-        body: `Tu reserva para <strong>${p.service}</strong> en <strong>${p.business}</strong> ha sido creada con éxito.`,
+        body: `Tu reserva para <strong>${p.service}</strong> en <strong>${p.business}</strong>${p.staffName ? ` con <strong>${p.staffName}</strong>` : ''} ha sido creada con éxito.`,
         dateLabel: 'Cita',
         locationLabel: 'Ubicación',
         cta: 'Ver mi cita',
@@ -265,7 +265,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       reschedule: {
         subject: `Cita reprogramada — ${p.service}`,
         title: 'Cita reprogramada 🗓️',
-        body: `Tu reserva para <strong>${p.service}</strong> en <strong>${p.business}</strong> ha sido reprogramada.`,
+        body: `Tu reserva para <strong>${p.service}</strong> en <strong>${p.business}</strong>${p.staffName ? ` con <strong>${p.staffName}</strong>` : ''} ha sido reprogramada.`,
         dateLabel: 'Nueva cita',
         locationLabel: 'Ubicación',
         cta: 'Ver mi cita',
@@ -292,7 +292,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       reminder: {
         subject: `Recordatorio — cita mañana: ${p.service}`,
         title: 'Cita mañana ⏰',
-        body: `Recordatorio: tienes una cita para <strong>${p.service}</strong> en <strong>${p.business}</strong>.`,
+        body: `Recordatorio: tienes una cita para <strong>${p.service}</strong> en <strong>${p.business}</strong>${p.staffName ? ` con <strong>${p.staffName}</strong>` : ''}.`,
         dateLabel: 'Cita',
         locationLabel: 'Ubicación',
         cta: 'Ver mi cita',
@@ -312,7 +312,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       confirmation: {
         subject: `Réservation confirmée — ${p.service}`,
         title: 'Réservation confirmée ✅',
-        body: `Votre réservation pour <strong>${p.service}</strong> chez <strong>${p.business}</strong> a bien été créée.`,
+        body: `Votre réservation pour <strong>${p.service}</strong> chez <strong>${p.business}</strong>${p.staffName ? ` avec <strong>${p.staffName}</strong>` : ''} a bien été créée.`,
         dateLabel: 'Rendez-vous',
         locationLabel: 'Lieu',
         cta: 'Voir mon rendez-vous',
@@ -330,7 +330,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       reschedule: {
         subject: `Rendez-vous déplacé — ${p.service}`,
         title: 'Rendez-vous déplacé 🗓️',
-        body: `Votre réservation pour <strong>${p.service}</strong> chez <strong>${p.business}</strong> a été déplacée.`,
+        body: `Votre réservation pour <strong>${p.service}</strong> chez <strong>${p.business}</strong>${p.staffName ? ` avec <strong>${p.staffName}</strong>` : ''} a été déplacée.`,
         dateLabel: 'Nouveau rendez-vous',
         locationLabel: 'Lieu',
         cta: 'Voir mon rendez-vous',
@@ -357,7 +357,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       reminder: {
         subject: `Rappel — rendez-vous demain : ${p.service}`,
         title: 'Rendez-vous demain ⏰',
-        body: `Rappel : vous avez un rendez-vous pour <strong>${p.service}</strong> chez <strong>${p.business}</strong>.`,
+        body: `Rappel : vous avez un rendez-vous pour <strong>${p.service}</strong> chez <strong>${p.business}</strong>${p.staffName ? ` avec <strong>${p.staffName}</strong>` : ''}.`,
         dateLabel: 'Rendez-vous',
         locationLabel: 'Lieu',
         cta: 'Voir mon rendez-vous',
@@ -549,10 +549,24 @@ export async function POST(request: NextRequest) {
     // ── Client / guest email ───────────────────────────────────────────────────
     if (!recipientEmail) return NextResponse.json({ ok: true });
 
+    // Fetch staff name to include in client email body
+    let staffName: string | undefined;
+    if (booking.staff_member_id) {
+      const { data: smForClient } = await db
+        .from('staff_members').select('user_id')
+        .eq('id', booking.staff_member_id).maybeSingle();
+      if (smForClient?.user_id) {
+        const { data: spForClient } = await db
+          .from('profiles').select('name')
+          .eq('id', smForClient.user_id).maybeSingle();
+        staffName = spForClient?.name ?? undefined;
+      }
+    }
+
     const dt             = fmtDt(booking.starts_at, tz, getLang(recipientCountry));
     const recipientLang  = getLang(recipientCountry);
     const recipientFirstName = recipientName?.split(' ')[0] || 'there';
-    const recipientContent   = content(type, recipientLang, { firstName: recipientFirstName, service, business, dt });
+    const recipientContent   = content(type, recipientLang, { firstName: recipientFirstName, service, business, dt, staffName });
 
     await sendEmail({
       to: recipientEmail,
