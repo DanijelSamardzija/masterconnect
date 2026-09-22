@@ -3,12 +3,14 @@
 import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/language-context';
+import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import {
   Clock, CheckCircle, XCircle, Loader2, AlertCircle,
-  ChevronLeft, RefreshCw,
+  ChevronLeft, RefreshCw, Star,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { TradeReviewModal } from '@/components/trade/TradeReviewModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -64,12 +66,15 @@ export default function TrackingPage({
   const { token } = use(params);
   const { t } = useLanguage();
   const router = useRouter();
+  const { user } = useAuth();
 
   const [request, setRequest] = useState<TrackingRequest | null>(null);
   const [quote, setQuote] = useState<TrackingQuote | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [acting, setActing] = useState(false);
+  const [canReview, setCanReview] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -89,6 +94,12 @@ export default function TrackingPage({
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
+
+  useEffect(() => {
+    if (!user || !request?.business_id || request.status !== 'completed') return;
+    (supabase as any).rpc('can_review_business', { p_business_id: request.business_id })
+      .then(({ data }: { data: any }) => { if (data?.can_review) setCanReview(true); });
+  }, [user, request?.business_id, request?.status]);
 
   async function respondToQuote(quoteId: string, action: 'accepted' | 'rejected') {
     setActing(true);
@@ -284,7 +295,34 @@ export default function TrackingPage({
             <p className="text-sm text-muted-foreground">{t('trade.request.tracking.open')}</p>
           </div>
         )}
+
+        {/* Review prompt — shown when job completed and user can review */}
+        {canReview && request.status === 'completed' && (
+          <div className="border border-amber-200 dark:border-amber-800 rounded-2xl p-4 bg-amber-50/50 dark:bg-amber-950/20">
+            <div className="flex items-center gap-2 mb-2">
+              <Star className="w-4 h-4 text-amber-500" />
+              <p className="text-sm font-semibold text-foreground">{t('trade.review.prompt')}</p>
+            </div>
+            <p className="text-xs text-muted-foreground mb-3">{request.business_name}</p>
+            <button
+              onClick={() => setReviewOpen(true)}
+              className="px-4 py-2 rounded-xl bg-amber-500 text-white text-xs font-semibold hover:bg-amber-600 transition-colors"
+            >
+              {t('trade.review.writeReview')}
+            </button>
+          </div>
+        )}
       </div>
+
+      {request && (
+        <TradeReviewModal
+          businessId={request.business_id}
+          businessName={request.business_name}
+          open={reviewOpen}
+          onOpenChange={setReviewOpen}
+          onReviewed={() => setCanReview(false)}
+        />
+      )}
     </div>
   );
 }

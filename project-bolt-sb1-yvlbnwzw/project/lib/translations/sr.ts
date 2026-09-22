@@ -2708,6 +2708,15 @@ export default {
   'trade.public.price.from':   'Od',
   'trade.public.shareProfile': 'Podijeli profil',
 
+  'trade.review.title':          'Napiši recenziju',
+  'trade.review.commentPh':      'Podijelite iskustvo (opcionalno)',
+  'trade.review.submit':         'Pošalji recenziju',
+  'trade.review.submitted':      'Recenzija poslana. Hvala!',
+  'trade.review.alreadyReviewed':'Već ste ocijenili ovaj biznis.',
+  'trade.review.noContact':      'Možete ocijeniti samo biznise s kojima ste surađivali.',
+  'trade.review.writeReview':    'Napiši recenziju',
+  'trade.review.prompt':         'Kako je bio servis?',
+
   // ── Accommodation system ───────────────────────────────────────────────────
   'acc.setup.tab': 'Smještaj',
   'acc.setup.title': 'Smještajne jedinice',

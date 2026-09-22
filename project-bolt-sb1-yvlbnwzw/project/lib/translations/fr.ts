@@ -2633,6 +2633,15 @@ export default {
   'trade.public.price.from':   'À partir de',
   'trade.public.shareProfile': 'Partager le profil',
 
+  'trade.review.title':          'Écrire un avis',
+  'trade.review.commentPh':      'Partagez votre expérience (facultatif)',
+  'trade.review.submit':         'Soumettre l\'avis',
+  'trade.review.submitted':      'Avis envoyé. Merci !',
+  'trade.review.alreadyReviewed':'Vous avez déjà évalué cette entreprise.',
+  'trade.review.noContact':      'Vous ne pouvez évaluer que les entreprises avec lesquelles vous avez travaillé.',
+  'trade.review.writeReview':    'Écrire un avis',
+  'trade.review.prompt':         'Comment était le service ?',
+
   // ── Accommodation system ───────────────────────────────────────────────────
   'acc.setup.tab': 'Hébergement',
   'acc.setup.title': 'Unités d\'hébergement',

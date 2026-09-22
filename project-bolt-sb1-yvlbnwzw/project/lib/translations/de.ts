@@ -2698,6 +2698,15 @@ export default {
   'trade.public.price.from':   'Ab',
   'trade.public.shareProfile': 'Profil teilen',
 
+  'trade.review.title':          'Bewertung schreiben',
+  'trade.review.commentPh':      'Erfahrung teilen (optional)',
+  'trade.review.submit':         'Bewertung absenden',
+  'trade.review.submitted':      'Bewertung gesendet. Danke!',
+  'trade.review.alreadyReviewed':'Sie haben dieses Unternehmen bereits bewertet.',
+  'trade.review.noContact':      'Sie können nur Unternehmen bewerten, mit denen Sie gearbeitet haben.',
+  'trade.review.writeReview':    'Bewertung schreiben',
+  'trade.review.prompt':         'Wie war der Service?',
+
   // ── Accommodation system ───────────────────────────────────────────────────
   'acc.setup.tab': 'Unterkunft',
   'acc.setup.title': 'Unterkunftseinheiten',

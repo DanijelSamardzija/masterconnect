@@ -2626,6 +2626,15 @@ export default {
   'trade.public.price.from':   'Desde',
   'trade.public.shareProfile': 'Compartir perfil',
 
+  'trade.review.title':          'Escribir reseña',
+  'trade.review.commentPh':      'Comparte tu experiencia (opcional)',
+  'trade.review.submit':         'Enviar reseña',
+  'trade.review.submitted':      'Reseña enviada. ¡Gracias!',
+  'trade.review.alreadyReviewed':'Ya has valorado este negocio.',
+  'trade.review.noContact':      'Solo puedes valorar negocios con los que has trabajado.',
+  'trade.review.writeReview':    'Escribir reseña',
+  'trade.review.prompt':         '¿Cómo fue el servicio?',
+
   // ── Accommodation system ───────────────────────────────────────────────────
   'acc.setup.tab': 'Alojamiento',
   'acc.setup.title': 'Unidades de alojamiento',
