@@ -55,6 +55,7 @@ import { translateNotification } from '@/lib/notification-translations';
 const BOOKING_ALLOWED_IDS = [
   '1fa3b3fb-9fcc-43fe-a242-3415d7119a75',
   '3bddb236-a206-452f-8734-cfab73973161',
+  'e1f6bf17-ec4a-4184-bc1b-af9a8c4954c2', // Bojan Kis (test client)
 ];
 
 export function Navigation() {
