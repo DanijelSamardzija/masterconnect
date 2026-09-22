@@ -2717,6 +2717,29 @@ export default {
   'trade.review.writeReview':    'Napiši recenziju',
   'trade.review.prompt':         'Kako je bio servis?',
 
+  // ── Send document via chat ────────────────────────────────────────────────
+  'trade.send.title':            'Pošalji klijentu',
+  'trade.send.selectClient':     'Odaberi klijenta',
+  'trade.send.noLinkedClients':  'Nema klijenata povezanih s GigZone nalogom. Otvori karticu klijenta i poveži nalog.',
+  'trade.send.messageLabel':     'Poruka (opciono)',
+  'trade.send.messagePh':        'Npr.: Račun za august',
+  'trade.send.send':             'Pošalji',
+  'trade.send.sending':          'Slanje…',
+  'trade.send.success':          'Dokument poslan kroz chat',
+  'trade.send.viewChat':         'Otvori chat',
+  'trade.send.uploadFailed':     'Učitavanje fajla nije uspjelo',
+  'trade.send.threadFailed':     'Nije moguće otvoriti chat',
+
+  // ── GigZone link ──────────────────────────────────────────────────────────
+  'trade.link.title':            'GigZone nalog',
+  'trade.link.linked':           'Povezan',
+  'trade.link.unlink':           'Ukloni vezu',
+  'trade.link.emailPh':          'Email GigZone naloga',
+  'trade.link.link':             'Poveži',
+  'trade.link.notFound':         'Nema GigZone naloga s ovim emailom',
+  'trade.link.linked.success':   'Nalog je povezan',
+  'trade.link.unlinked.success': 'Veza uklonjena',
+
   // ── Export ────────────────────────────────────────────────────────────────
   'trade.export.csv':            'CSV',
   'trade.export.csvAnalytics':   'Izvezi analitiku (CSV)',

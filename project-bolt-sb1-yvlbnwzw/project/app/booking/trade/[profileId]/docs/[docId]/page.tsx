@@ -9,9 +9,10 @@ import { TradeDashboardLayout } from '@/components/trade/TradeDashboardLayout';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import {
-  ArrowLeft, Loader2, Plus, Trash2, Settings2, Check, X, Printer, Download,
+  ArrowLeft, Loader2, Plus, Trash2, Settings2, Check, X, Printer, Download, Send,
 } from 'lucide-react';
 import { toCsv, downloadCsv } from '@/lib/utils/export-utils';
+import { SendDocModal } from '@/components/trade/SendDocModal';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -72,6 +73,7 @@ export default function DocEditorPage({
   const [saving, setSaving]         = useState(false);
   const [showColEditor, setShowColEditor] = useState(false);
   const [dirty, setDirty]           = useState(false);
+  const [sendOpen, setSendOpen]     = useState(false);
 
   useEffect(() => {
     setActiveProfileId(profileId);
@@ -180,6 +182,13 @@ export default function DocEditorPage({
           />
         </div>
         <button
+          onClick={() => setSendOpen(true)}
+          className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted transition-colors shrink-0"
+          title={t('trade.send.title')}
+        >
+          <Send className="w-4 h-4" />
+        </button>
+        <button
           onClick={() => window.print()}
           className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted transition-colors shrink-0"
           title={t('trade.export.print')}
@@ -258,6 +267,13 @@ export default function DocEditorPage({
           />
         </>
       )}
+
+      <SendDocModal
+        doc={doc}
+        profileId={profileId}
+        open={sendOpen}
+        onOpenChange={setSendOpen}
+      />
     </TradeDashboardLayout>
   );
 }

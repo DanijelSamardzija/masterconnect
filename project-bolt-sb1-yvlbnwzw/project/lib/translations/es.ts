@@ -2635,6 +2635,29 @@ export default {
   'trade.review.writeReview':    'Escribir reseña',
   'trade.review.prompt':         '¿Cómo fue el servicio?',
 
+  // ── Send document via chat ────────────────────────────────────────────────
+  'trade.send.title':            'Enviar al cliente',
+  'trade.send.selectClient':     'Seleccionar cliente',
+  'trade.send.noLinkedClients':  'Sin clientes vinculados a una cuenta GigZone. Abre la tarjeta del cliente para vincular.',
+  'trade.send.messageLabel':     'Mensaje (opcional)',
+  'trade.send.messagePh':        'Ej.: Factura de agosto',
+  'trade.send.send':             'Enviar',
+  'trade.send.sending':          'Enviando…',
+  'trade.send.success':          'Documento enviado por chat',
+  'trade.send.viewChat':         'Ver chat',
+  'trade.send.uploadFailed':     'Error al subir el archivo',
+  'trade.send.threadFailed':     'No se pudo abrir el chat',
+
+  // ── GigZone link ──────────────────────────────────────────────────────────
+  'trade.link.title':            'Cuenta GigZone',
+  'trade.link.linked':           'Vinculado',
+  'trade.link.unlink':           'Desvincular',
+  'trade.link.emailPh':          'Email de la cuenta GigZone',
+  'trade.link.link':             'Vincular',
+  'trade.link.notFound':         'No se encontró ninguna cuenta GigZone con este email',
+  'trade.link.linked.success':   'Cuenta vinculada',
+  'trade.link.unlinked.success': 'Cuenta desvinculada',
+
   // ── Export ────────────────────────────────────────────────────────────────
   'trade.export.csv':            'CSV',
   'trade.export.csvAnalytics':   'Exportar análisis (CSV)',

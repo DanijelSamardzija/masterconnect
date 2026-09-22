@@ -2717,6 +2717,29 @@ export default {
   'trade.review.writeReview':    'Write a review',
   'trade.review.prompt':         'How was the service?',
 
+  // ── Send document via chat ────────────────────────────────────────────────
+  'trade.send.title':            'Send to client',
+  'trade.send.selectClient':     'Select client',
+  'trade.send.noLinkedClients':  'No clients linked to a GigZone account. Open a client card to link one.',
+  'trade.send.messageLabel':     'Message (optional)',
+  'trade.send.messagePh':        'E.g.: Invoice for August',
+  'trade.send.send':             'Send',
+  'trade.send.sending':          'Sending…',
+  'trade.send.success':          'Document sent via chat',
+  'trade.send.viewChat':         'View chat',
+  'trade.send.uploadFailed':     'File upload failed',
+  'trade.send.threadFailed':     'Could not open chat thread',
+
+  // ── GigZone link ──────────────────────────────────────────────────────────
+  'trade.link.title':            'GigZone account',
+  'trade.link.linked':           'Linked',
+  'trade.link.unlink':           'Remove link',
+  'trade.link.emailPh':          'GigZone account email',
+  'trade.link.link':             'Link',
+  'trade.link.notFound':         'No GigZone account found with this email',
+  'trade.link.linked.success':   'Account linked',
+  'trade.link.unlinked.success': 'Account unlinked',
+
   // ── Export ────────────────────────────────────────────────────────────────
   'trade.export.csv':            'CSV',
   'trade.export.csvAnalytics':   'Export analytics (CSV)',

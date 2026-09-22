@@ -22,6 +22,8 @@ import {
   Wrench,
   Briefcase,
   Package,
+  Link,
+  Unlink,
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -46,6 +48,8 @@ type TradeClient = {
   address: string | null;
   notes: string | null;
   tags: string[];
+  linked_user_id: string | null;
+  linked_user_name: string | null;
   created_at: string;
   updated_at: string;
   assets: Asset[];
@@ -351,6 +355,9 @@ export default function TradeClientPage({
   const [showAssetForm, setShowAssetForm] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [deletingClient, setDeletingClient] = useState(false);
+  const [linkEmail, setLinkEmail] = useState('');
+  const [linking, setLinking] = useState(false);
+  const [unlinking, setUnlinking] = useState(false);
 
   useEffect(() => {
     if (!user || !clientId) return;
@@ -411,6 +418,35 @@ export default function TradeClientPage({
     if (!data?.ok) { toast.error(data?.error ?? 'error'); return; }
     toast.success(t('trade.assets.deleted'));
     setClient((prev) => prev ? { ...prev, assets: prev.assets.filter((a) => a.id !== assetId) } : prev);
+  }
+
+  async function handleLink() {
+    if (!linkEmail.trim()) return;
+    setLinking(true);
+    const { data } = await (supabase as any).rpc('link_trade_client_to_user', {
+      p_client_id: clientId,
+      p_email:     linkEmail.trim(),
+    });
+    setLinking(false);
+    if (!data?.ok) {
+      const errKey = data?.error === 'user_not_found' ? 'trade.link.notFound' : 'common.error.generic';
+      toast.error(t(errKey as Parameters<typeof t>[0]));
+      return;
+    }
+    toast.success(t('trade.link.linked.success'));
+    setLinkEmail('');
+    setClient((prev) => prev ? { ...prev, linked_user_id: data.user_id, linked_user_name: data.name } : prev);
+  }
+
+  async function handleUnlink() {
+    setUnlinking(true);
+    const { data } = await (supabase as any).rpc('unlink_trade_client_from_user', {
+      p_client_id: clientId,
+    });
+    setUnlinking(false);
+    if (!data?.ok) { toast.error(data?.error ?? 'error'); return; }
+    toast.success(t('trade.link.unlinked.success'));
+    setClient((prev) => prev ? { ...prev, linked_user_id: null, linked_user_name: null } : prev);
   }
 
   if (loading) {
@@ -542,6 +578,56 @@ export default function TradeClientPage({
                 <p className="text-sm text-foreground whitespace-pre-line">{client.notes}</p>
               </div>
             )}
+
+            {/* GigZone Link */}
+            <div className="mt-3 pt-3 border-t border-border">
+              <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
+                <Link className="w-3 h-3" />
+                {t('trade.link.title')}
+              </p>
+              {client.linked_user_id ? (
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-950 flex items-center justify-center shrink-0">
+                      <span className="text-[10px] font-bold text-green-700 dark:text-green-300">
+                        {(client.linked_user_name ?? '?').charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">{client.linked_user_name}</p>
+                      <p className="text-xs text-green-600 dark:text-green-400">{t('trade.link.linked')}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleUnlink}
+                    disabled={unlinking}
+                    className="shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                    title={t('trade.link.unlink')}
+                  >
+                    {unlinking ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Unlink className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    value={linkEmail}
+                    onChange={e => setLinkEmail(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') handleLink(); }}
+                    placeholder={t('trade.link.emailPh')}
+                    className="flex-1 px-3 py-2 rounded-xl border border-border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                  />
+                  <button
+                    onClick={handleLink}
+                    disabled={linking || !linkEmail.trim()}
+                    className="px-3 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors flex items-center gap-1.5"
+                  >
+                    {linking ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Link className="w-3.5 h-3.5" />}
+                    {t('trade.link.link')}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </>
       )}
