@@ -157,18 +157,91 @@ function ProfileSwitcher() {
 export function BusinessBookingNav({ active }: { active?: BusinessBookingTab }) {
   const router = useRouter();
   const { t } = useLanguage();
-  // activeProfileId is the single source of truth — no profile.id from useAuth
   const { activeProfileId } = useBookingProfile();
   const [sharePicker, setSharePicker] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
+  const navRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!navOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) setNavOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [navOpen]);
+
+  const activeItem = NAV_ITEMS.find(i => i.tab === active);
+  const activeLabel = activeItem ? t(activeItem.labelKey as Parameters<typeof t>[0]) : t('ownerBookings.navLabel' as Parameters<typeof t>[0]);
+  const activeIcon  = activeItem?.icon ?? <Calendar className="h-3.5 w-3.5" />;
 
   return (
     <>
-      {/* Profile switcher — renders above the tab row */}
       <div className="mb-3">
         <ProfileSwitcher />
       </div>
 
-      <div className="flex items-start gap-2 mb-4">
+      {/* ── Mobile dropdown ───────────────────────────────────────────────── */}
+      <div className="md:hidden mb-4" ref={navRef}>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => router.push('/booking')}
+            className="p-2 rounded-xl hover:bg-accent transition-colors text-muted-foreground shrink-0"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => setNavOpen(v => !v)}
+            className="flex-1 flex items-center gap-2 px-3 py-2 rounded-xl border border-border bg-card hover:border-primary/40 hover:bg-accent transition-colors text-left"
+          >
+            <span className="text-primary">{activeIcon}</span>
+            <span className="flex-1 text-sm font-semibold text-foreground truncate">{activeLabel}</span>
+            <ChevronDown className={`h-4 w-4 text-muted-foreground shrink-0 transition-transform ${navOpen ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
+
+        {navOpen && (
+          <div className="mt-1 bg-card border border-border rounded-xl shadow-lg py-1 overflow-hidden z-40 relative">
+            {NAV_ITEMS.map(({ tab, href, labelKey, icon }) => (
+              <button
+                key={tab}
+                onClick={() => { router.push(href); setNavOpen(false); }}
+                className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm transition-colors text-left ${
+                  active === tab
+                    ? 'font-semibold text-primary bg-primary/5'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                }`}
+              >
+                {icon}
+                {t(labelKey as Parameters<typeof t>[0])}
+                {active === tab && <Check className="h-3.5 w-3.5 ml-auto shrink-0" />}
+              </button>
+            ))}
+            {activeProfileId && (
+              <>
+                <div className="mx-3 my-1 border-t border-border" />
+                <button
+                  onClick={() => { setSharePicker(true); setNavOpen(false); }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors text-left"
+                >
+                  <Share2 className="h-3.5 w-3.5" />
+                  {t('booking.shareService')}
+                </button>
+                <button
+                  onClick={() => { router.push(`/booking/${activeProfileId}`); setNavOpen(false); }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors text-left"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  {t('dashboard.services.bookingPage')}
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── Desktop horizontal tabs ───────────────────────────────────────── */}
+      <div className="hidden md:flex items-start gap-2 mb-4">
         <button
           onClick={() => router.push('/booking')}
           className="p-2 rounded-xl hover:bg-accent transition-colors text-muted-foreground shrink-0 mt-0.5"
@@ -190,7 +263,6 @@ export function BusinessBookingNav({ active }: { active?: BusinessBookingTab }) 
               {t(labelKey as Parameters<typeof t>[0])}
             </button>
           ))}
-          {/* Share and public link use activeProfileId — never user.id or profile.id */}
           {activeProfileId && (
             <>
               <button
