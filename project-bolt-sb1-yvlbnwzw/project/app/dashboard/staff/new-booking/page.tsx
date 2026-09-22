@@ -233,18 +233,22 @@ export default function StaffNewBookingPage() {
       return;
     }
     toast.success(t('staffBooking.success'));
-    if (data?.booking_id && guestEmail.trim()) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`;
+      // Notify owner that staff added a booking
+      fetch('/api/booking/notify', {
+        method: 'POST', headers,
+        body: JSON.stringify({ type: 'staff_added_booking', booking_id: data.booking_id }),
+      }).catch(() => {});
+      // Confirm email to guest if they provided an email
+      if (guestEmail.trim()) {
         fetch('/api/booking/notify', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
-          },
+          method: 'POST', headers,
           body: JSON.stringify({ type: 'confirmation', booking_id: data.booking_id }),
         }).catch(() => {});
-      });
-    }
+      }
+    });
     router.push('/dashboard/staff/bookings');
   }
 

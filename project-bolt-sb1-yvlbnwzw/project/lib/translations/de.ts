@@ -168,6 +168,8 @@ export default {
   'notifPrefs.newBookingDesc': 'Wenn ein Kunde einen Termin bucht, der mir zugewiesen ist',
   'notifPrefs.staffBooking': 'Neue Buchung bei einem Mitarbeiter',
   'notifPrefs.staffBookingDesc': 'Wenn ein Kunde einen Termin bucht, der einem Mitarbeiter zugewiesen ist',
+  'notifPrefs.staffAdded': 'Mitarbeiter hat Termin gebucht',
+  'notifPrefs.staffAddedDesc': 'Wenn ein Mitarbeiter manuell einen Termin aus seinem Panel hinzufügt',
   'notifPrefs.cancellation': 'Buchungsstornierung',
   'notifPrefs.cancellationDesc': 'Wenn ein Kunde oder Mitarbeiter eine Buchung storniert',
   'notifPrefs.reschedule': 'Buchungsverschiebung',

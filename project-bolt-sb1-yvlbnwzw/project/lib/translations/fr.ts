@@ -158,6 +158,8 @@ export default {
   'notifPrefs.newBookingDesc': 'Quand un client réserve un rendez-vous qui m\'est assigné',
   'notifPrefs.staffBooking': 'Nouvelle réservation chez un employé',
   'notifPrefs.staffBookingDesc': 'Quand un client réserve un rendez-vous assigné à un de vos employés',
+  'notifPrefs.staffAdded': "L'employé a ajouté une réservation",
+  'notifPrefs.staffAddedDesc': "Quand un employé ajoute manuellement une réservation depuis son panneau",
   'notifPrefs.cancellation': 'Annulation de réservation',
   'notifPrefs.cancellationDesc': 'Quand un client ou un employé annule une réservation',
   'notifPrefs.reschedule': 'Report de réservation',

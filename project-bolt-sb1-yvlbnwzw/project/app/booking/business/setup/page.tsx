@@ -429,6 +429,8 @@ export default function BusinessSetupPage() {
     notify_new_booking_email: boolean;
     notify_staff_booking: boolean;
     notify_staff_booking_email: boolean;
+    notify_staff_added_booking: boolean;
+    notify_staff_added_booking_email: boolean;
     notify_cancellation: boolean;
     notify_cancellation_email: boolean;
     notify_reschedule: boolean;
@@ -443,6 +445,8 @@ export default function BusinessSetupPage() {
     notify_new_booking_email: true,
     notify_staff_booking: true,
     notify_staff_booking_email: true,
+    notify_staff_added_booking: true,
+    notify_staff_added_booking_email: true,
     notify_cancellation: true,
     notify_cancellation_email: true,
     notify_reschedule: true,
@@ -595,9 +599,11 @@ export default function BusinessSetupPage() {
           quiet_to:             prefs.quiet_to             ?? '07:00',
           notify_new_booking:          prefs.notify_new_booking          !== false,
           notify_new_booking_email:    prefs.notify_new_booking_email    !== false,
-          notify_staff_booking:        prefs.notify_staff_booking        !== false,
-          notify_staff_booking_email:  prefs.notify_staff_booking_email  !== false,
-          notify_cancellation:         prefs.notify_cancellation         !== false,
+          notify_staff_booking:              prefs.notify_staff_booking              !== false,
+          notify_staff_booking_email:        prefs.notify_staff_booking_email        !== false,
+          notify_staff_added_booking:        prefs.notify_staff_added_booking        !== false,
+          notify_staff_added_booking_email:  prefs.notify_staff_added_booking_email  !== false,
+          notify_cancellation:               prefs.notify_cancellation               !== false,
           notify_cancellation_email:   prefs.notify_cancellation_email   !== false,
           notify_reschedule:           prefs.notify_reschedule           !== false,
         });
@@ -851,9 +857,11 @@ export default function BusinessSetupPage() {
         quiet_tz:             timezone || 'Europe/Sarajevo',
         notify_new_booking:          notifPrefs.notify_new_booking,
         notify_new_booking_email:    notifPrefs.notify_new_booking_email,
-        notify_staff_booking:        notifPrefs.notify_staff_booking,
-        notify_staff_booking_email:  notifPrefs.notify_staff_booking_email,
-        notify_cancellation:         notifPrefs.notify_cancellation,
+        notify_staff_booking:              notifPrefs.notify_staff_booking,
+        notify_staff_booking_email:        notifPrefs.notify_staff_booking_email,
+        notify_staff_added_booking:        notifPrefs.notify_staff_added_booking,
+        notify_staff_added_booking_email:  notifPrefs.notify_staff_added_booking_email,
+        notify_cancellation:               notifPrefs.notify_cancellation,
         notify_cancellation_email:   notifPrefs.notify_cancellation_email,
         notify_reschedule:           notifPrefs.notify_reschedule,
       },
@@ -2768,6 +2776,15 @@ export default function BusinessSetupPage() {
                         desc: t('notifPrefs.staffBookingDesc'),
                         pushDesc: 'Obavještenje u zvonu kad klijent zakaže kod radnika',
                         emailDesc: 'Email kad klijent zakaže kod radnika',
+                        show: staffLoading || hasNonOwnerActiveStaff,
+                      },
+                      {
+                        pushKey: 'notify_staff_added_booking'       as const,
+                        emailKey: 'notify_staff_added_booking_email' as const,
+                        label: t('notifPrefs.staffAdded'),
+                        desc: t('notifPrefs.staffAddedDesc'),
+                        pushDesc: 'Obavještenje u zvonu kad radnik ručno doda termin',
+                        emailDesc: 'Email kad radnik ručno doda termin',
                         show: staffLoading || hasNonOwnerActiveStaff,
                       },
                       {

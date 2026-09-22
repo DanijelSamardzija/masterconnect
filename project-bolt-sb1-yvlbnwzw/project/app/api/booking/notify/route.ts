@@ -25,7 +25,7 @@ type Lang = 'sr' | 'de' | 'en' | 'es' | 'fr';
 // new_booking     = business notification when client self-books
 // staff_assigned  = staff notification when owner assigns a booking to them
 // reminder        = client reminder email (called from cron)
-type EmailType = 'confirmation' | 'cancellation' | 'reschedule' | 'new_booking' | 'staff_assigned' | 'reminder' | 'client_rescheduled' | 'client_cancelled';
+type EmailType = 'confirmation' | 'cancellation' | 'reschedule' | 'new_booking' | 'staff_assigned' | 'staff_added_booking' | 'reminder' | 'client_rescheduled' | 'client_cancelled';
 
 function getLang(country: string | null | undefined): Lang {
   if (BALKAN.includes(country ?? ''))  return 'sr';
@@ -121,6 +121,15 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         cta: 'Pregledaj kalendar',
         footer: 'Termin je slobodan i može se ponovo zakazati.',
       },
+      staff_added_booking: {
+        subject: `Radnik je zakazao termin — ${p.service}`,
+        title: `${p.staffName ?? 'Radnik'} je zakazao termin`,
+        body: `<strong>${p.staffName ?? 'Radnik'}</strong> je zakazao termin za <strong>${p.service}</strong>${p.clientName ? `. Klijent: <strong>${p.clientName}</strong>` : ''}.`,
+        dateLabel: 'Termin',
+        locationLabel: 'Lokacija',
+        cta: 'Pregledaj kalendar',
+        footer: 'Prijavite se na GigZone da vidite detalje i upravljate rezervacijama.',
+      },
     },
     en: {
       confirmation: {
@@ -195,6 +204,15 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         cta: 'View calendar',
         footer: 'The slot is now free and can be rebooked.',
       },
+      staff_added_booking: {
+        subject: `Staff added a booking — ${p.service}`,
+        title: `${p.staffName ?? 'Staff'} added a booking`,
+        body: `<strong>${p.staffName ?? 'A staff member'}</strong> added a booking for <strong>${p.service}</strong>${p.clientName ? `. Client: <strong>${p.clientName}</strong>` : ''}.`,
+        dateLabel: 'Appointment',
+        locationLabel: 'Location',
+        cta: 'View calendar',
+        footer: 'Log in to GigZone to view details and manage your bookings.',
+      },
     },
     de: {
       confirmation: {
@@ -259,6 +277,15 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         locationLabel: 'Standort',
         cta: 'Kalender ansehen',
         footer: 'Der Termin ist frei und kann neu gebucht werden.',
+      },
+      staff_added_booking: {
+        subject: `Mitarbeiter hat einen Termin gebucht — ${p.service}`,
+        title: `${p.staffName ?? 'Mitarbeiter'} hat einen Termin gebucht`,
+        body: `<strong>${p.staffName ?? 'Ein Mitarbeiter'}</strong> hat einen Termin für <strong>${p.service}</strong>${p.clientName ? ` gebucht. Kunde: <strong>${p.clientName}</strong>` : ' gebucht'}.`,
+        dateLabel: 'Termin',
+        locationLabel: 'Standort',
+        cta: 'Kalender ansehen',
+        footer: 'Melde dich bei GigZone an, um Details zu sehen und Buchungen zu verwalten.',
       },
       staff_assigned: {
         subject: `Neuer Termin vom Inhaber — ${p.service}`,
@@ -343,6 +370,15 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         cta: 'Ver calendario',
         footer: 'El horario está disponible y puede volver a reservarse.',
       },
+      staff_added_booking: {
+        subject: `El empleado agendó una cita — ${p.service}`,
+        title: `${p.staffName ?? 'El empleado'} agendó una cita`,
+        body: `<strong>${p.staffName ?? 'Un empleado'}</strong> agendó una cita para <strong>${p.service}</strong>${p.clientName ? `. Cliente: <strong>${p.clientName}</strong>` : ''}.`,
+        dateLabel: 'Cita',
+        locationLabel: 'Ubicación',
+        cta: 'Ver calendario',
+        footer: 'Inicia sesión en GigZone para ver los detalles y gestionar tus reservas.',
+      },
     },
     fr: {
       confirmation: {
@@ -417,6 +453,15 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         cta: 'Voir le calendrier',
         footer: 'Le créneau est libre et peut être réservé à nouveau.',
       },
+      staff_added_booking: {
+        subject: `L'employé a planifié un rendez-vous — ${p.service}`,
+        title: `${p.staffName ?? "L'employé"} a planifié un rendez-vous`,
+        body: `<strong>${p.staffName ?? 'Un employé'}</strong> a planifié un rendez-vous pour <strong>${p.service}</strong>${p.clientName ? `. Client : <strong>${p.clientName}</strong>` : ''}.`,
+        dateLabel: 'Rendez-vous',
+        locationLabel: 'Lieu',
+        cta: 'Voir le calendrier',
+        footer: 'Connectez-vous à GigZone pour voir les détails et gérer vos réservations.',
+      },
     },
   };
 
@@ -481,7 +526,7 @@ export async function POST(request: NextRequest) {
     const bookingId: string = body.booking_id;
 
     if (!type || !bookingId) return NextResponse.json({ ok: true });
-    if (!['confirmation', 'cancellation', 'reschedule', 'reminder', 'client_rescheduled', 'staff_assigned'].includes(type)) return NextResponse.json({ ok: true });
+    if (!['confirmation', 'cancellation', 'reschedule', 'reminder', 'client_rescheduled', 'staff_assigned', 'staff_added_booking'].includes(type)) return NextResponse.json({ ok: true });
     if (!process.env.BREVO_API_KEY) return NextResponse.json({ ok: true });
 
     const db = createClient(
@@ -587,6 +632,46 @@ export async function POST(request: NextRequest) {
         subject: rContent.subject,
         replyTo: 'support@gigzone.app',
         html: buildHtml(rContent, rFirstName, rDt, locationLine, 'https://gigzone.app/booking/business/bookings'),
+      });
+      return NextResponse.json({ ok: true });
+    }
+
+    // ── staff_added_booking: staff manually created a booking → notify owner ─────
+    // Called from staff new-booking page after successful staff_create_booking RPC.
+    if (type === 'staff_added_booking') {
+      if (!ownerId) return NextResponse.json({ ok: true });
+      // Verify caller is a non-owner staff member of this business
+      const { data: smCheck } = await db
+        .from('staff_members').select('id, user_id')
+        .eq('business_id', booking.business_id)
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle();
+      if (!smCheck || user.id === ownerId) return NextResponse.json({ ok: true });
+
+      const { data: staffProfile } = await db
+        .from('profiles').select('name')
+        .eq('id', user.id).maybeSingle();
+      const staffName = staffProfile?.name ?? undefined;
+      const clientName = recipientName ?? (booking.guest_name ?? undefined);
+
+      const { data: op } = await db
+        .from('profiles').select('name, email, country, notification_prefs')
+        .eq('id', ownerId).maybeSingle();
+      if (!op?.email) return NextResponse.json({ ok: true });
+
+      const prefs = (op.notification_prefs as Record<string, unknown>) || {};
+      if (prefs.notify_staff_added_booking_email === false) return NextResponse.json({ ok: true });
+
+      const oLang      = getLang(op.country);
+      const oFirstName = op.name?.split(' ')[0] || 'there';
+      const oDt        = fmtDt(booking.starts_at, tz, oLang);
+      const oContent   = content('staff_added_booking', oLang, { firstName: oFirstName, service, business, dt: oDt, staffName, clientName });
+      await sendEmail({
+        to: op.email,
+        subject: oContent.subject,
+        replyTo: 'support@gigzone.app',
+        html: buildHtml(oContent, oFirstName, oDt, locationLine, 'https://gigzone.app/booking/business/bookings'),
       });
       return NextResponse.json({ ok: true });
     }

@@ -168,6 +168,8 @@ export default {
   'notifPrefs.newBookingDesc': 'Kad klijent zakaže termin koji je dodijeljen meni',
   'notifPrefs.staffBooking': 'Nova rezervacija kod radnika',
   'notifPrefs.staffBookingDesc': 'Kad klijent zakaže termin dodijeljen nekom od radnika',
+  'notifPrefs.staffAdded': 'Radnik dodao termin',
+  'notifPrefs.staffAddedDesc': 'Kad radnik ručno doda termin klijentu iz svog panela',
   'notifPrefs.cancellation': 'Otkazivanje termina',
   'notifPrefs.cancellationDesc': 'Kad klijent ili radnik otkaže termin',
   'notifPrefs.reschedule': 'Premještanje termina',

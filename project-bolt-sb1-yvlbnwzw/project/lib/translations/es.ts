@@ -158,6 +158,8 @@ export default {
   'notifPrefs.newBookingDesc': 'Cuando un cliente reserva una cita asignada a mí',
   'notifPrefs.staffBooking': 'Nueva reserva con un empleado',
   'notifPrefs.staffBookingDesc': 'Cuando un cliente reserva una cita asignada a uno de tus empleados',
+  'notifPrefs.staffAdded': 'Empleado agregó una cita',
+  'notifPrefs.staffAddedDesc': 'Cuando un empleado agrega manualmente una cita desde su panel',
   'notifPrefs.cancellation': 'Cancelación de reserva',
   'notifPrefs.cancellationDesc': 'Cuando un cliente o empleado cancela una reserva',
   'notifPrefs.reschedule': 'Cambio de fecha de reserva',

@@ -168,6 +168,8 @@ export default {
   'notifPrefs.newBookingDesc': 'When a client books an appointment assigned to me',
   'notifPrefs.staffBooking': 'New booking with a staff member',
   'notifPrefs.staffBookingDesc': 'When a client books an appointment assigned to one of your staff',
+  'notifPrefs.staffAdded': 'Staff added a booking',
+  'notifPrefs.staffAddedDesc': 'When a staff member manually adds a booking from their panel',
   'notifPrefs.cancellation': 'Booking cancellation',
   'notifPrefs.cancellationDesc': 'When a client or staff member cancels a booking',
   'notifPrefs.reschedule': 'Booking reschedule',
