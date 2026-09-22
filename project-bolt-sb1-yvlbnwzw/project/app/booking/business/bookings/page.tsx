@@ -125,6 +125,7 @@ function OwnerBookingsContent() {
   const [cancelOpen, setCancelOpen]           = useState(false);
   const [deleteOpen, setDeleteOpen]           = useState(false);
   const [deleteBookingId, setDeleteBookingId] = useState<string | null>(null);
+  const [deleteBookingStatus, setDeleteBookingStatus] = useState<string>('');
   const [cancelBookingId, setCancelBookingId] = useState<string | null>(null);
   const [cancelReason, setCancelReason]       = useState('');
 
@@ -306,6 +307,7 @@ function OwnerBookingsContent() {
       .select('id, starts_at, ends_at, service_id, service_name_snapshot, status, staff_member_id, location_id, location:location_id(name), notes, internal_notes, client_id, guest_name, guest_phone, guest_email, profiles!bookings_client_id_fkey(name, phone)')
       .eq('business_id', staffBizId)
       .eq('staff_member_id', staffMemberId)
+      .is('deleted_at', null)
       .gte('starts_at', new Date().toISOString())
       .in('status', ['pending', 'confirmed'])
       .order('starts_at', { ascending: true })
@@ -325,7 +327,8 @@ function OwnerBookingsContent() {
     let query = (supabase as any)
       .from('bookings')
       .select('id, starts_at, ends_at, service_id, service_name_snapshot, status, staff_member_id, location_id, location:location_id(name), notes, internal_notes, client_id, guest_name, guest_phone, guest_email, profiles!bookings_client_id_fkey(name, phone)')
-      .eq('business_id', activeProfileId);
+      .eq('business_id', activeProfileId)
+      .is('deleted_at', null);
     if (filter === 'upcoming')
       query = query.gte('starts_at', new Date().toISOString()).in('status', ['pending', 'confirmed']);
     else if (filter === 'pending')
@@ -459,6 +462,7 @@ function OwnerBookingsContent() {
     setBookings(prev => prev.filter(b => b.id !== deleteBookingId));
     setDeleteOpen(false);
     setDeleteBookingId(null);
+    setDeleteBookingStatus('');
   };
 
   const handleReassign = async () => {
@@ -1078,7 +1082,7 @@ function OwnerBookingsContent() {
                   {isDeletable && (
                     <div className="flex items-center gap-2 pt-1 border-t border-border">
                       <button
-                        onClick={() => { setDeleteBookingId(b.id); setDeleteOpen(true); }}
+                        onClick={() => { setDeleteBookingId(b.id); setDeleteBookingStatus(b.status); setDeleteOpen(true); }}
                         disabled={!!actionLoading}
                         className="flex items-center justify-center gap-1.5 bg-muted hover:bg-red-100 dark:hover:bg-red-950 disabled:opacity-50 text-muted-foreground hover:text-red-600 dark:hover:text-red-400 rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
                       >
@@ -1331,7 +1335,7 @@ function OwnerBookingsContent() {
       </Dialog>
 
       {/* ── Delete modal ─────────────────────────────────────────────── */}
-      <Dialog open={deleteOpen} onOpenChange={o => { if (!o) { setDeleteOpen(false); setDeleteBookingId(null); } }}>
+      <Dialog open={deleteOpen} onOpenChange={o => { if (!o) { setDeleteOpen(false); setDeleteBookingId(null); setDeleteBookingStatus(''); } }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
@@ -1341,8 +1345,17 @@ function OwnerBookingsContent() {
           </DialogHeader>
           <div className="space-y-4 pt-1">
             <p className="text-sm text-muted-foreground">{t('ownerBookings.deleteModal.body')}</p>
+            {deleteBookingStatus === 'completed' ? (
+              <div className="text-sm text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg px-3 py-2">
+                {t('ownerBookings.deleteModal.completedNote')}
+              </div>
+            ) : (
+              <div className="text-sm text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
+                {t('ownerBookings.deleteModal.notCompletedNote')}
+              </div>
+            )}
             <div className="flex gap-2">
-              <button onClick={() => { setDeleteOpen(false); setDeleteBookingId(null); }}
+              <button onClick={() => { setDeleteOpen(false); setDeleteBookingId(null); setDeleteBookingStatus(''); }}
                 className="flex-1 border border-border rounded-xl py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors"
               >
                 {t('ownerBookings.cancelModal.back')}
