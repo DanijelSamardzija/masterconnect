@@ -503,6 +503,8 @@ export async function POST(request: NextRequest) {
           recipientIds.add(sm.user_id);
         }
       }
+      // Don't notify the person who created the booking about their own action
+      recipientIds.delete(user.id);
 
       for (const recipientId of recipientIds) {
         const { data: recipientProfile } = await db
