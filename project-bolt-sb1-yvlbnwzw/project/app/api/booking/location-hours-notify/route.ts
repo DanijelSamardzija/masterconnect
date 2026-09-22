@@ -190,10 +190,11 @@ export async function POST(request: NextRequest) {
 
   const { data: locRow } = await serviceClient
     .from('business_locations')
-    .select('name')
+    .select('name, country')
     .eq('id', locationId)
     .maybeSingle();
-  const locationName: string = (locRow as { name?: string } | null)?.name ?? '';
+  const locationName: string = (locRow as { name?: string; country?: string } | null)?.name ?? '';
+  const locationCountry: string | null = (locRow as { name?: string; country?: string } | null)?.country ?? null;
 
   // Get all active non-owner staff at this location
   const { data: staffList } = await serviceClient
@@ -226,7 +227,7 @@ export async function POST(request: NextRequest) {
     const profile = profileMap.get(sm.user_id);
     if (!profile) continue;
 
-    const lang = getLang(profile.country);
+    const lang = getLang(profile.country ?? locationCountry);
     const prefs = profile.notification_prefs ?? {};
     const emailEnabled = prefs.email_enabled !== false;
 

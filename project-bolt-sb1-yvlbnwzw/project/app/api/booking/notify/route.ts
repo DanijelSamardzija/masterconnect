@@ -668,7 +668,7 @@ export async function POST(request: NextRequest) {
         .eq('id', sm.user_id).maybeSingle();
       if (!sp?.email) return NextResponse.json({ ok: true });
       const clientName = recipientName ?? (isGuest ? 'Gost' : 'Klijent');
-      const rLang      = getLang(sp.country);
+      const rLang      = getLang(sp.country ?? locRes.data?.country);
       const rFirstName = sp.name?.split(' ')[0] || 'there';
       const rDt        = fmtDt(booking.starts_at, tz, rLang);
       const rContent   = content('staff_assigned', rLang, { firstName: rFirstName, service, business, dt: rDt, clientName });
@@ -708,7 +708,7 @@ export async function POST(request: NextRequest) {
       const prefs = (op.notification_prefs as Record<string, unknown>) || {};
       if (prefs.notify_staff_added_booking_email === false) return NextResponse.json({ ok: true });
 
-      const oLang      = getLang(op.country);
+      const oLang      = getLang(op.country ?? locRes.data?.country);
       const oFirstName = op.name?.split(' ')[0] || 'there';
       const oDt        = fmtDt(booking.starts_at, tz, oLang);
       const oContent   = content('staff_added_booking', oLang, { firstName: oFirstName, service, business, dt: oDt, staffName, clientName });
@@ -755,7 +755,7 @@ export async function POST(request: NextRequest) {
           const prefs = (rp.notification_prefs as Record<string, unknown>) || {};
           if (prefs.notify_cancellation_email === false) continue;
         }
-        const rLang      = getLang(rp.country);
+        const rLang      = getLang(rp.country ?? locRes.data?.country);
         const rFirstName = rp.name?.split(' ')[0] || 'there';
         const rDt        = fmtDt(booking.starts_at, tz, rLang);
         const rContent   = content('client_cancelled', rLang, { firstName: rFirstName, service, business, dt: rDt, clientName, staffName: cancelStaffName, reason: (booking as any).cancellation_reason ?? undefined });
@@ -811,7 +811,7 @@ export async function POST(request: NextRequest) {
           .eq('id', smCan.user_id).maybeSingle();
         if (spCan?.email) {
           const clientName = recipientName ?? (isGuest ? 'Gost' : undefined);
-          const sLang      = getLang(spCan.country);
+          const sLang      = getLang(spCan.country ?? locRes.data?.country);
           const sFirst     = spCan.name?.split(' ')[0] || 'there';
           const sDt        = fmtDt(booking.starts_at, tz, sLang);
           const sCont      = content('owner_cancelled_staff', sLang, { firstName: sFirst, service, business, dt: sDt, clientName });
@@ -861,7 +861,7 @@ export async function POST(request: NextRequest) {
             if (isStaffBooking && prefs.notify_staff_booking_email === false) continue;
             if (!isStaffBooking && prefs.notify_new_booking_email === false) continue;
           }
-          const rLang      = getLang(rp.country);
+          const rLang      = getLang(rp.country ?? locRes.data?.country);
           const rFirstName = rp.name?.split(' ')[0] || 'there';
           const rDt        = fmtDt(booking.starts_at, tz, rLang);
           const rescheduleReason = bizType === 'client_rescheduled' && (booking as any).internal_notes?.includes('[Pomjeranje termina]')
@@ -887,7 +887,7 @@ export async function POST(request: NextRequest) {
             .from('profiles').select('name, email, country')
             .eq('id', sm.user_id).maybeSingle();
           if (rp?.email) {
-            const rLang      = getLang(rp.country);
+            const rLang      = getLang(rp.country ?? locRes.data?.country);
             const rFirstName = rp.name?.split(' ')[0] || 'there';
             const rDt        = fmtDt(booking.starts_at, tz, rLang);
             const rContent   = content(bizType, rLang, { firstName: rFirstName, service, business, dt: rDt, clientName });
@@ -938,7 +938,7 @@ export async function POST(request: NextRequest) {
             }
 
             if (ownerPrefs.notify_reschedule_email !== false && ownerP.email) {
-              const oLang      = getLang(ownerP.country);
+              const oLang      = getLang(ownerP.country ?? locRes.data?.country);
               const oFirst     = ownerP.name?.split(' ')[0] || 'there';
               const oDt        = fmtDt(booking.starts_at, tz, oLang);
               const oCont      = content('client_rescheduled', oLang, { firstName: oFirst, service, business, dt: oDt, clientName, staffName });
