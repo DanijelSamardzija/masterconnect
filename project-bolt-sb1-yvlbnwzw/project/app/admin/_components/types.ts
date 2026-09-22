@@ -43,6 +43,7 @@ export type Stats = {
   reports: number;
   openReports: number;
   messages: number;
+  openTickets: number;
 };
 
 export type SupportTicket = {

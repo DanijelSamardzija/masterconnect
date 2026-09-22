@@ -174,6 +174,7 @@ export function AdminContent() {
       { count: reportCount },
       { count: openReports },
       { count: messages },
+      { count: openTickets },
     ] = await Promise.all([
       supabase.from('profiles').select('*', { count: 'exact', head: true }),
       supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_premium', true),
@@ -182,6 +183,7 @@ export function AdminContent() {
       supabase.from('reports').select('*', { count: 'exact', head: true }),
       supabase.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'open'),
       supabase.from('threads').select('*', { count: 'exact', head: true }),
+      supabase.from('support_messages').select('*', { count: 'exact', head: true }).eq('status', 'open'),
     ]);
     setStats({
       users: userCount || 0,
@@ -191,6 +193,7 @@ export function AdminContent() {
       reports: reportCount || 0,
       openReports: openReports || 0,
       messages: messages || 0,
+      openTickets: openTickets || 0,
     });
   };
 
@@ -1139,25 +1142,30 @@ export function AdminContent() {
           <div className="overflow-x-auto -mx-4 px-4">
             <div className="flex gap-1 border-b border-border min-w-max">
               {([
-                { key: 'reports', label: `Reportovi (${stats?.openReports ?? 0})` },
-                { key: 'users', label: `Korisnici (${stats?.users ?? 0})` },
-                { key: 'posts', label: `Postovi (${stats?.posts ?? 0})` },
-                { key: 'announcements', label: 'Obavještenja' },
-                { key: 'support', label: `Support (${tickets.filter(t => t.status === 'open').length})` },
-                { key: 'analytics', label: 'Analitika' },
-                { key: 'credits', label: 'Krediti' },
-                { key: 'ai-match', label: 'AI Match' },
-              ] as const).map(({ key, label }) => (
+                { key: 'reports',       label: `Reportovi (${stats?.openReports ?? 0})`, badge: 0 },
+                { key: 'users',         label: `Korisnici (${stats?.users ?? 0})`,        badge: 0 },
+                { key: 'posts',         label: `Postovi (${stats?.posts ?? 0})`,          badge: 0 },
+                { key: 'announcements', label: 'Obavještenja',                            badge: 0 },
+                { key: 'support',       label: 'Support',                                 badge: stats?.openTickets ?? 0 },
+                { key: 'analytics',     label: 'Analitika',                               badge: 0 },
+                { key: 'credits',       label: 'Krediti',                                 badge: 0 },
+                { key: 'ai-match',      label: 'AI Match',                                badge: 0 },
+              ] as const).map(({ key, label, badge }) => (
                 <button
                   key={key}
                   onClick={() => handleTabClick(key)}
-                  className={`px-3 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px whitespace-nowrap ${
+                  className={`relative px-3 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px whitespace-nowrap ${
                     activeTab === key
                       ? 'border-orange-500 text-orange-600'
                       : 'border-transparent text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   {label}
+                  {badge > 0 && (
+                    <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold">
+                      {badge}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
