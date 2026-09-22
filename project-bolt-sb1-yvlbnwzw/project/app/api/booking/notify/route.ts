@@ -25,7 +25,7 @@ type Lang = 'sr' | 'de' | 'en' | 'es' | 'fr';
 // new_booking     = business notification when client self-books
 // staff_assigned  = staff notification when owner assigns a booking to them
 // reminder        = client reminder email (called from cron)
-type EmailType = 'confirmation' | 'cancellation' | 'reschedule' | 'new_booking' | 'staff_assigned' | 'reminder' | 'client_rescheduled';
+type EmailType = 'confirmation' | 'cancellation' | 'reschedule' | 'new_booking' | 'staff_assigned' | 'reminder' | 'client_rescheduled' | 'client_cancelled';
 
 function getLang(country: string | null | undefined): Lang {
   if (BALKAN.includes(country ?? ''))  return 'sr';
@@ -112,6 +112,15 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         cta: 'Otvori raspored',
         footer: 'Prijavite se na GigZone da vidite detalje termina.',
       },
+      client_cancelled: {
+        subject: `Otkazivanje termina — ${p.service}`,
+        title: 'Klijent otkazao/la termin',
+        body: `<strong>${p.clientName ?? 'Klijent'}</strong> je otkazao/la termin za <strong>${p.service}</strong>${p.staffName ? ` · radnik: <strong>${p.staffName}</strong>` : ''}.`,
+        dateLabel: 'Otkazani termin',
+        locationLabel: 'Lokacija',
+        cta: 'Pregledaj kalendar',
+        footer: 'Termin je slobodan i može se ponovo zakazati.',
+      },
     },
     en: {
       confirmation: {
@@ -177,6 +186,15 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         cta: 'View schedule',
         footer: 'Log in to GigZone to see appointment details.',
       },
+      client_cancelled: {
+        subject: `Booking cancelled by client — ${p.service}`,
+        title: 'Client cancelled booking',
+        body: `<strong>${p.clientName ?? 'A client'}</strong> has cancelled their booking for <strong>${p.service}</strong>${p.staffName ? ` · staff: <strong>${p.staffName}</strong>` : ''}.`,
+        dateLabel: 'Cancelled appointment',
+        locationLabel: 'Location',
+        cta: 'View calendar',
+        footer: 'The slot is now free and can be rebooked.',
+      },
     },
     de: {
       confirmation: {
@@ -232,6 +250,15 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         locationLabel: 'Standort',
         cta: 'Termin ansehen',
         footer: 'Falls du nicht kommen kannst, nutze den Button oben zum Stornieren.',
+      },
+      client_cancelled: {
+        subject: `Stornierung durch Kunden — ${p.service}`,
+        title: 'Kunde hat storniert',
+        body: `<strong>${p.clientName ?? 'Ein Kunde'}</strong> hat die Buchung für <strong>${p.service}</strong>${p.staffName ? ` · Mitarbeiter: <strong>${p.staffName}</strong>` : ''} storniert.`,
+        dateLabel: 'Stornierter Termin',
+        locationLabel: 'Standort',
+        cta: 'Kalender ansehen',
+        footer: 'Der Termin ist frei und kann neu gebucht werden.',
       },
       staff_assigned: {
         subject: `Termin zugeteilt — ${p.service}`,
@@ -307,6 +334,15 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         cta: 'Ver agenda',
         footer: 'Inicia sesión en GigZone para ver los detalles de la cita.',
       },
+      client_cancelled: {
+        subject: `Cancelación por el cliente — ${p.service}`,
+        title: 'El cliente canceló',
+        body: `<strong>${p.clientName ?? 'Un cliente'}</strong> ha cancelado su reserva para <strong>${p.service}</strong>${p.staffName ? ` · empleado: <strong>${p.staffName}</strong>` : ''}.`,
+        dateLabel: 'Cita cancelada',
+        locationLabel: 'Ubicación',
+        cta: 'Ver calendario',
+        footer: 'El horario está disponible y puede volver a reservarse.',
+      },
     },
     fr: {
       confirmation: {
@@ -371,6 +407,15 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         locationLabel: 'Lieu',
         cta: 'Voir le planning',
         footer: 'Connectez-vous à GigZone pour voir les détails du rendez-vous.',
+      },
+      client_cancelled: {
+        subject: `Annulation par le client — ${p.service}`,
+        title: 'Le client a annulé',
+        body: `<strong>${p.clientName ?? 'Un client'}</strong> a annulé sa réservation pour <strong>${p.service}</strong>${p.staffName ? ` · employé : <strong>${p.staffName}</strong>` : ''}.`,
+        dateLabel: 'Rendez-vous annulé',
+        locationLabel: 'Lieu',
+        cta: 'Voir le calendrier',
+        footer: 'Le créneau est libre et peut être réservé à nouveau.',
       },
     },
   };
@@ -543,6 +588,55 @@ export async function POST(request: NextRequest) {
         replyTo: 'support@gigzone.app',
         html: buildHtml(rContent, rFirstName, rDt, locationLine, 'https://gigzone.app/booking/business/bookings'),
       });
+      return NextResponse.json({ ok: true });
+    }
+
+    // ── Client cancelled → notify owner + assigned staff (no client email) ────
+    // The client already knows they cancelled; send client_cancelled email to biz.
+    if (type === 'cancellation' && booking.client_id && user.id === booking.client_id) {
+      const clientName = recipientName ?? 'Klijent';
+
+      // Fetch assigned staff once
+      let smUserId: string | undefined;
+      let cancelStaffName: string | undefined;
+      if (booking.staff_member_id) {
+        const { data: smData } = await db
+          .from('staff_members').select('user_id')
+          .eq('id', booking.staff_member_id).maybeSingle();
+        smUserId = smData?.user_id ?? undefined;
+        if (smUserId) {
+          const { data: spData } = await db
+            .from('profiles').select('name')
+            .eq('id', smUserId).maybeSingle();
+          cancelStaffName = spData?.name ?? undefined;
+        }
+      }
+
+      const notifyIds = new Set<string>();
+      if (ownerId) notifyIds.add(ownerId);
+      if (smUserId && smUserId !== ownerId) notifyIds.add(smUserId);
+
+      for (const rid of notifyIds) {
+        const { data: rp } = await db
+          .from('profiles').select('name, email, country, notification_prefs')
+          .eq('id', rid).maybeSingle();
+        if (!rp?.email) continue;
+        if (rid === ownerId) {
+          const prefs = (rp.notification_prefs as Record<string, unknown>) || {};
+          if (prefs.notify_cancellation_email === false) continue;
+        }
+        const rLang      = getLang(rp.country);
+        const rFirstName = rp.name?.split(' ')[0] || 'there';
+        const rDt        = fmtDt(booking.starts_at, tz, rLang);
+        const rContent   = content('client_cancelled', rLang, { firstName: rFirstName, service, business, dt: rDt, clientName, staffName: cancelStaffName });
+        await sendEmail({
+          to: rp.email,
+          subject: rContent.subject,
+          replyTo: 'support@gigzone.app',
+          html: buildHtml(rContent, rFirstName, rDt, locationLine, 'https://gigzone.app/booking/business/bookings'),
+        });
+      }
+
       return NextResponse.json({ ok: true });
     }
 
