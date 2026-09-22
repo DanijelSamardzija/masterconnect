@@ -479,7 +479,7 @@ export default function StaffNewBookingPage() {
                     type="text"
                     value={guestName}
                     onChange={e => setGuestName(e.target.value)}
-                    placeholder={t('staffBooking.guestNamePlaceholder')}
+                    placeholder={t('ownerBookings.add.namePlaceholder')}
                     required
                     className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                   />
@@ -487,20 +487,20 @@ export default function StaffNewBookingPage() {
                     type="tel"
                     value={guestPhone}
                     onChange={e => setGuestPhone(e.target.value)}
-                    placeholder={t('staffBooking.guestPhonePlaceholder')}
+                    placeholder={t('ownerBookings.add.phonePlaceholder')}
                     className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                   <input
                     type="email"
                     value={guestEmail}
                     onChange={e => setGuestEmail(e.target.value)}
-                    placeholder={t('staffBooking.guestEmailPlaceholder')}
+                    placeholder={t('ownerBookings.add.emailPlaceholder')}
                     className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                   <textarea
                     value={notes}
                     onChange={e => setNotes(e.target.value)}
-                    placeholder={t('staffBooking.notesPlaceholder')}
+                    placeholder={t('ownerBookings.add.notesPlaceholder')}
                     rows={2}
                     className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                   />
