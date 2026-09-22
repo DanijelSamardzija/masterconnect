@@ -3350,6 +3350,7 @@ export default {
   'staffBooking.time': 'Time',
   'staffBooking.clientNote': 'Client / note (optional)',
   'staffBooking.clientNotePlaceholder': 'Client name or note...',
+  'staffBooking.notesPlaceholder': 'Note (optional)',
   'staffBooking.durationHint': 'Appointment lasts {d} minutes.',
   'staffBooking.assignedTo': 'Appointment for',
   'staffBooking.create': 'Add appointment',

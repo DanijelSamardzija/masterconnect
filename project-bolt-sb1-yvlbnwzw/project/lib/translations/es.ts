@@ -3260,6 +3260,7 @@ export default {
   'staffBooking.time': 'Hora',
   'staffBooking.clientNote': 'Cliente / nota (opcional)',
   'staffBooking.clientNotePlaceholder': 'Nombre del cliente o nota...',
+  'staffBooking.notesPlaceholder': 'Nota (opcional)',
   'staffBooking.durationHint': 'La cita dura {d} minutos.',
   'staffBooking.assignedTo': 'Cita para',
   'staffBooking.create': 'Añadir cita',

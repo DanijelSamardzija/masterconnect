@@ -3332,6 +3332,7 @@ export default {
   'staffBooking.time': 'Uhrzeit',
   'staffBooking.clientNote': 'Kunde / Notiz (optional)',
   'staffBooking.clientNotePlaceholder': 'Kundenname oder Notiz...',
+  'staffBooking.notesPlaceholder': 'Notiz (optional)',
   'staffBooking.durationHint': 'Termin dauert {d} Minuten.',
   'staffBooking.assignedTo': 'Termin für',
   'staffBooking.create': 'Termin hinzufügen',

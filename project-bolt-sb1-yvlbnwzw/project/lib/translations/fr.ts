@@ -3267,6 +3267,7 @@ export default {
   'staffBooking.time': 'Heure',
   'staffBooking.clientNote': 'Client / note (optionnel)',
   'staffBooking.clientNotePlaceholder': 'Nom du client ou note...',
+  'staffBooking.notesPlaceholder': 'Note (optionnel)',
   'staffBooking.durationHint': 'Le rendez-vous dure {d} minutes.',
   'staffBooking.assignedTo': 'Rendez-vous pour',
   'staffBooking.create': 'Ajouter un RDV',

@@ -497,12 +497,12 @@ export default function StaffNewBookingPage() {
                     placeholder={t('staffBooking.guestEmailPlaceholder')}
                     className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                   />
-                  <input
-                    type="text"
+                  <textarea
                     value={notes}
                     onChange={e => setNotes(e.target.value)}
-                    placeholder={t('staffBooking.clientNotePlaceholder')}
-                    className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder={t('staffBooking.notesPlaceholder')}
+                    rows={2}
+                    className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                   />
                 </div>
               )}

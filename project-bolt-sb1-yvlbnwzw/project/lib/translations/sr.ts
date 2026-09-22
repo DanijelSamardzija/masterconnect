@@ -3350,6 +3350,7 @@ export default {
   'staffBooking.time': 'Vrijeme',
   'staffBooking.clientNote': 'Klijent / napomena (opciono)',
   'staffBooking.clientNotePlaceholder': 'Ime klijenta ili napomena...',
+  'staffBooking.notesPlaceholder': 'Napomena (opciono)',
   'staffBooking.durationHint': 'Termin traje {d} minuta.',
   'staffBooking.assignedTo': 'Termin za',
   'staffBooking.create': 'Dodaj termin',
