@@ -57,8 +57,9 @@ export default function StaffBookingsPage() {
   const [allBookings, setAllBookings] = useState<StaffBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [permissions, setPermissions] = useState<Permissions>(DEFAULT_PERMS);
-  const [cancelId, setCancelId] = useState<string | null>(null);
-  const [cancelling, setCancelling] = useState(false);
+  const [cancelId, setCancelId]       = useState<string | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelling, setCancelling]   = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -123,15 +124,29 @@ export default function StaffBookingsPage() {
   const handleStaffCancel = async () => {
     if (!cancelId) return;
     setCancelling(true);
-    const { data, error } = await (supabase as any).rpc('staff_cancel_booking', { p_booking_id: cancelId });
+    const { data, error } = await (supabase as any).rpc('staff_cancel_booking', {
+      p_booking_id: cancelId,
+      p_reason: cancelReason.trim() || null,
+    });
     setCancelling(false);
     if (error || data?.ok === false) {
       toast.error(error?.message || data?.error || 'Greška');
       return;
     }
     toast.success(t('staffDashboard.cancelSuccess'));
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      fetch('/api/booking/notify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ type: 'cancellation', booking_id: cancelId }),
+      }).catch(() => {});
+    });
     setAllBookings(prev => prev.map(b => b.booking_id === cancelId ? { ...b, status: 'cancelled' } : b));
     setCancelId(null);
+    setCancelReason('');
   };
 
   const hasAnyAction = permissions.can_create_bookings;
@@ -248,15 +263,6 @@ export default function StaffBookingsPage() {
                           {sc.icon}
                           {t(`booking.status.${b.status}` as Parameters<typeof t>[0])}
                         </span>
-                        {permissions.can_cancel_bookings && b.status === 'confirmed' && (
-                          <button
-                            title={t('staffDashboard.cancelBooking')}
-                            onClick={() => setCancelId(b.booking_id)}
-                            className="text-muted-foreground hover:text-destructive transition-colors"
-                          >
-                            <Ban className="w-3.5 h-3.5" />
-                          </button>
-                        )}
                       </div>
                     </div>
 
@@ -281,6 +287,18 @@ export default function StaffBookingsPage() {
                         {b.notes}
                       </p>
                     )}
+
+                    {permissions.can_cancel_bookings && ['pending', 'confirmed'].includes(b.status) && new Date(b.starts_at) > new Date() && (
+                      <div className="flex items-center gap-2 pt-2 border-t border-border">
+                        <button
+                          onClick={() => { setCancelId(b.booking_id); setCancelReason(''); }}
+                          className="flex items-center gap-1.5 bg-red-100 hover:bg-red-200 dark:bg-red-950 dark:hover:bg-red-900 text-red-600 dark:text-red-400 rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
+                        >
+                          <XCircle className="h-3.5 w-3.5" />
+                          {t('ownerBookings.cancel')}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -289,19 +307,26 @@ export default function StaffBookingsPage() {
         </div>
 
         {/* Cancel confirm dialog */}
-        <Dialog open={!!cancelId} onOpenChange={o => { if (!o) setCancelId(null); }}>
+        <Dialog open={!!cancelId} onOpenChange={o => { if (!o) { setCancelId(null); setCancelReason(''); } }}>
           <DialogContent className="max-w-sm">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-destructive">
-                <XCircle className="h-4 w-4" />
-                {t('staffDashboard.cancelConfirmTitle')}
+              <DialogTitle className="flex items-center gap-2">
+                <XCircle className="h-4 w-4 text-destructive" />
+                {t('ownerBookings.cancelModal.title')}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 pt-1">
-              <p className="text-sm text-muted-foreground">{t('staffDashboard.cancelConfirmBody')}</p>
+              <p className="text-sm text-muted-foreground">{t('ownerBookings.cancelModal.body')}</p>
+              <textarea
+                value={cancelReason}
+                onChange={e => setCancelReason(e.target.value)}
+                placeholder={t('ownerBookings.cancelModal.reasonPlaceholder')}
+                rows={3}
+                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+              />
               <div className="flex gap-2">
                 <button
-                  onClick={() => setCancelId(null)}
+                  onClick={() => { setCancelId(null); setCancelReason(''); }}
                   className="flex-1 border border-border rounded-xl py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors"
                 >
                   {t('ownerBookings.cancelModal.back')}
