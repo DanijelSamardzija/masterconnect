@@ -144,6 +144,10 @@ async function processPush(body: any) {
 
   if (!emailEnabled) return;
 
+  // Notifications with skip_email:true in meta have their email handled elsewhere
+  // (e.g. booking_confirmed on instant-confirm is handled by /api/booking/notify)
+  if (meta?.skip_email) return;
+
   // Email locale — drives all email types below
   const emailLocales: Record<string, {
     fb: string;
