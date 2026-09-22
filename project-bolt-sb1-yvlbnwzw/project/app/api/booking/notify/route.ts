@@ -61,7 +61,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       cancellation: {
         subject: `Rezervacija otkazana — ${p.service}`,
         title: 'Rezervacija otkazana',
-        body: `Tvoja rezervacija za <strong>${p.service}</strong> kod <strong>${p.business}</strong>${p.staffName ? `, radnik: <strong>${p.staffName}</strong>,` : ''} je otkazana.`,
+        body: `Tvoja rezervacija za <strong>${p.service}</strong> kod <strong>${p.business}</strong>${p.staffName ? `, radnik: <strong>${p.staffName}</strong>,` : ''} je otkazana.${p.reason ? `<br/><em>Napomena: ${p.reason}</em>` : ''}`,
         dateLabel: 'Otkazani termin',
         locationLabel: 'Lokacija',
         cta: 'Zakaži novi termin',
@@ -124,7 +124,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       client_cancelled: {
         subject: `Otkazivanje termina — ${p.service}`,
         title: 'Klijent otkazao/la termin',
-        body: `<strong>${p.clientName ?? 'Klijent'}</strong> je otkazao/la termin za <strong>${p.service}</strong>${p.staffName ? ` · radnik: <strong>${p.staffName}</strong>` : ''}.`,
+        body: `<strong>${p.clientName ?? 'Klijent'}</strong> je otkazao/la termin za <strong>${p.service}</strong>${p.staffName ? ` · radnik: <strong>${p.staffName}</strong>` : ''}.${p.reason ? `<br/><em>Napomena: ${p.reason}</em>` : ''}`,
         dateLabel: 'Otkazani termin',
         locationLabel: 'Lokacija',
         cta: 'Pregledaj kalendar',
@@ -153,7 +153,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       cancellation: {
         subject: `Booking cancelled — ${p.service}`,
         title: 'Booking cancelled',
-        body: `Your booking for <strong>${p.service}</strong> at <strong>${p.business}</strong>${p.staffName ? `, staff: <strong>${p.staffName}</strong>,` : ''} has been cancelled.`,
+        body: `Your booking for <strong>${p.service}</strong> at <strong>${p.business}</strong>${p.staffName ? `, staff: <strong>${p.staffName}</strong>,` : ''} has been cancelled.${p.reason ? `<br/><em>Note: ${p.reason}</em>` : ''}`,
         dateLabel: 'Cancelled appointment',
         locationLabel: 'Location',
         cta: 'Book again',
@@ -216,7 +216,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       client_cancelled: {
         subject: `Booking cancelled by client — ${p.service}`,
         title: 'Client cancelled booking',
-        body: `<strong>${p.clientName ?? 'A client'}</strong> has cancelled their booking for <strong>${p.service}</strong>${p.staffName ? ` · staff: <strong>${p.staffName}</strong>` : ''}.`,
+        body: `<strong>${p.clientName ?? 'A client'}</strong> has cancelled their booking for <strong>${p.service}</strong>${p.staffName ? ` · staff: <strong>${p.staffName}</strong>` : ''}.${p.reason ? `<br/><em>Note: ${p.reason}</em>` : ''}`,
         dateLabel: 'Cancelled appointment',
         locationLabel: 'Location',
         cta: 'View calendar',
@@ -245,7 +245,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       cancellation: {
         subject: `Buchung storniert — ${p.service}`,
         title: 'Buchung storniert',
-        body: `Deine Buchung für <strong>${p.service}</strong> bei <strong>${p.business}</strong>${p.staffName ? `, Mitarbeiter: <strong>${p.staffName}</strong>,` : ''} wurde storniert.`,
+        body: `Deine Buchung für <strong>${p.service}</strong> bei <strong>${p.business}</strong>${p.staffName ? `, Mitarbeiter: <strong>${p.staffName}</strong>,` : ''} wurde storniert.${p.reason ? `<br/><em>Hinweis: ${p.reason}</em>` : ''}`,
         dateLabel: 'Stornierter Termin',
         locationLabel: 'Standort',
         cta: 'Neu buchen',
@@ -299,7 +299,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       client_cancelled: {
         subject: `Stornierung durch Kunden — ${p.service}`,
         title: 'Kunde hat storniert',
-        body: `<strong>${p.clientName ?? 'Ein Kunde'}</strong> hat die Buchung für <strong>${p.service}</strong>${p.staffName ? ` · Mitarbeiter: <strong>${p.staffName}</strong>` : ''} storniert.`,
+        body: `<strong>${p.clientName ?? 'Ein Kunde'}</strong> hat die Buchung für <strong>${p.service}</strong>${p.staffName ? ` · Mitarbeiter: <strong>${p.staffName}</strong>` : ''} storniert.${p.reason ? `<br/><em>Hinweis: ${p.reason}</em>` : ''}`,
         dateLabel: 'Stornierter Termin',
         locationLabel: 'Standort',
         cta: 'Kalender ansehen',
@@ -337,7 +337,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       cancellation: {
         subject: `Reserva cancelada — ${p.service}`,
         title: 'Reserva cancelada',
-        body: `Tu reserva para <strong>${p.service}</strong> en <strong>${p.business}</strong>${p.staffName ? `, empleado: <strong>${p.staffName}</strong>,` : ''} ha sido cancelada.`,
+        body: `Tu reserva para <strong>${p.service}</strong> en <strong>${p.business}</strong>${p.staffName ? `, empleado: <strong>${p.staffName}</strong>,` : ''} ha sido cancelada.${p.reason ? `<br/><em>Nota: ${p.reason}</em>` : ''}`,
         dateLabel: 'Cita cancelada',
         locationLabel: 'Ubicación',
         cta: 'Reservar de nuevo',
@@ -400,7 +400,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       client_cancelled: {
         subject: `Cancelación por el cliente — ${p.service}`,
         title: 'El cliente canceló',
-        body: `<strong>${p.clientName ?? 'Un cliente'}</strong> ha cancelado su reserva para <strong>${p.service}</strong>${p.staffName ? ` · empleado: <strong>${p.staffName}</strong>` : ''}.`,
+        body: `<strong>${p.clientName ?? 'Un cliente'}</strong> ha cancelado su reserva para <strong>${p.service}</strong>${p.staffName ? ` · empleado: <strong>${p.staffName}</strong>` : ''}.${p.reason ? `<br/><em>Nota: ${p.reason}</em>` : ''}`,
         dateLabel: 'Cita cancelada',
         locationLabel: 'Ubicación',
         cta: 'Ver calendario',
@@ -429,7 +429,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       cancellation: {
         subject: `Réservation annulée — ${p.service}`,
         title: 'Réservation annulée',
-        body: `Votre réservation pour <strong>${p.service}</strong> chez <strong>${p.business}</strong>${p.staffName ? `, employé : <strong>${p.staffName}</strong>,` : ''} a été annulée.`,
+        body: `Votre réservation pour <strong>${p.service}</strong> chez <strong>${p.business}</strong>${p.staffName ? `, employé : <strong>${p.staffName}</strong>,` : ''} a été annulée.${p.reason ? `<br/><em>Note : ${p.reason}</em>` : ''}`,
         dateLabel: 'Rendez-vous annulé',
         locationLabel: 'Lieu',
         cta: 'Prendre un nouveau rendez-vous',
@@ -492,7 +492,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       client_cancelled: {
         subject: `Annulation par le client — ${p.service}`,
         title: 'Le client a annulé',
-        body: `<strong>${p.clientName ?? 'Un client'}</strong> a annulé sa réservation pour <strong>${p.service}</strong>${p.staffName ? ` · employé : <strong>${p.staffName}</strong>` : ''}.`,
+        body: `<strong>${p.clientName ?? 'Un client'}</strong> a annulé sa réservation pour <strong>${p.service}</strong>${p.staffName ? ` · employé : <strong>${p.staffName}</strong>` : ''}.${p.reason ? `<br/><em>Note : ${p.reason}</em>` : ''}`,
         dateLabel: 'Rendez-vous annulé',
         locationLabel: 'Lieu',
         cta: 'Voir le calendrier',
@@ -581,7 +581,7 @@ export async function POST(request: NextRequest) {
 
     const { data: booking } = await db
       .from('bookings')
-      .select('starts_at, service_name_snapshot, client_id, business_id, location_id, staff_member_id, internal_notes, guest_email, guest_name, guest_access_token')
+      .select('starts_at, service_name_snapshot, client_id, business_id, location_id, staff_member_id, internal_notes, guest_email, guest_name, guest_access_token, cancellation_reason')
       .eq('id', bookingId)
       .maybeSingle();
 
@@ -758,7 +758,7 @@ export async function POST(request: NextRequest) {
         const rLang      = getLang(rp.country);
         const rFirstName = rp.name?.split(' ')[0] || 'there';
         const rDt        = fmtDt(booking.starts_at, tz, rLang);
-        const rContent   = content('client_cancelled', rLang, { firstName: rFirstName, service, business, dt: rDt, clientName, staffName: cancelStaffName });
+        const rContent   = content('client_cancelled', rLang, { firstName: rFirstName, service, business, dt: rDt, clientName, staffName: cancelStaffName, reason: (booking as any).cancellation_reason ?? undefined });
         await sendEmail({
           to: rp.email,
           subject: rContent.subject,
@@ -790,7 +790,8 @@ export async function POST(request: NextRequest) {
     const dt             = fmtDt(booking.starts_at, tz, getLang(recipientCountry));
     const recipientLang  = getLang(recipientCountry);
     const recipientFirstName = recipientName?.split(' ')[0] || 'there';
-    const recipientContent   = content(type, recipientLang, { firstName: recipientFirstName, service, business, dt, staffName });
+    const cancelReason       = (booking as any).cancellation_reason ?? undefined;
+    const recipientContent   = content(type, recipientLang, { firstName: recipientFirstName, service, business, dt, staffName, reason: type === 'cancellation' ? cancelReason : undefined });
 
     await sendEmail({
       to: recipientEmail,
