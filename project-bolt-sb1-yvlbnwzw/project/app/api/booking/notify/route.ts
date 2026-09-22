@@ -79,7 +79,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       new_booking: {
         subject: `Nova rezervacija — ${p.service}`,
         title: 'Nova rezervacija 📅',
-        body: `<strong>${p.clientName ?? 'Klijent'}</strong> je zakazao/la termin za <strong>${p.service}</strong>.`,
+        body: `<strong>${p.clientName ?? 'Klijent'}</strong> je zakazao/la termin za <strong>${p.service}</strong>${p.staffName ? ` · radnik: <strong>${p.staffName}</strong>` : ''}.`,
         dateLabel: 'Termin',
         locationLabel: 'Lokacija',
         cta: 'Pregledaj termine',
@@ -88,7 +88,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       client_rescheduled: {
         subject: `Termin premješten — ${p.service}`,
         title: 'Klijent premjestio/la termin 🗓️',
-        body: `<strong>${p.clientName ?? 'Klijent'}</strong> je premjestio/la termin za <strong>${p.service}</strong>.${p.reason ? `<br/><em>Razlog: ${p.reason}</em>` : ''}`,
+        body: `<strong>${p.clientName ?? 'Klijent'}</strong> je premjestio/la termin za <strong>${p.service}</strong>${p.staffName ? ` · radnik: <strong>${p.staffName}</strong>` : ''}.${p.reason ? `<br/><em>Razlog: ${p.reason}</em>` : ''}`,
         dateLabel: 'Novi termin',
         locationLabel: 'Lokacija',
         cta: 'Pregledaj termine',
@@ -144,7 +144,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       new_booking: {
         subject: `New booking — ${p.service}`,
         title: 'New booking 📅',
-        body: `<strong>${p.clientName ?? 'A client'}</strong> has booked <strong>${p.service}</strong>.`,
+        body: `<strong>${p.clientName ?? 'A client'}</strong> has booked <strong>${p.service}</strong>${p.staffName ? ` · staff: <strong>${p.staffName}</strong>` : ''}.`,
         dateLabel: 'Appointment',
         locationLabel: 'Location',
         cta: 'View bookings',
@@ -153,7 +153,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       client_rescheduled: {
         subject: `Appointment rescheduled — ${p.service}`,
         title: 'Client rescheduled 🗓️',
-        body: `<strong>${p.clientName ?? 'A client'}</strong> rescheduled their appointment for <strong>${p.service}</strong>.${p.reason ? `<br/><em>Reason: ${p.reason}</em>` : ''}`,
+        body: `<strong>${p.clientName ?? 'A client'}</strong> rescheduled their appointment for <strong>${p.service}</strong>${p.staffName ? ` · staff: <strong>${p.staffName}</strong>` : ''}.${p.reason ? `<br/><em>Reason: ${p.reason}</em>` : ''}`,
         dateLabel: 'New appointment',
         locationLabel: 'Location',
         cta: 'View bookings',
@@ -209,7 +209,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       new_booking: {
         subject: `Neue Buchung — ${p.service}`,
         title: 'Neue Buchung 📅',
-        body: `<strong>${p.clientName ?? 'Ein Kunde'}</strong> hat einen Termin für <strong>${p.service}</strong> gebucht.`,
+        body: `<strong>${p.clientName ?? 'Ein Kunde'}</strong> hat einen Termin für <strong>${p.service}</strong>${p.staffName ? ` · Mitarbeiter: <strong>${p.staffName}</strong>` : ''} gebucht.`,
         dateLabel: 'Termin',
         locationLabel: 'Standort',
         cta: 'Buchungen ansehen',
@@ -218,7 +218,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       client_rescheduled: {
         subject: `Termin verschoben — ${p.service}`,
         title: 'Kunde hat Termin verschoben 🗓️',
-        body: `<strong>${p.clientName ?? 'Ein Kunde'}</strong> hat den Termin für <strong>${p.service}</strong> verschoben.${p.reason ? `<br/><em>Grund: ${p.reason}</em>` : ''}`,
+        body: `<strong>${p.clientName ?? 'Ein Kunde'}</strong> hat den Termin für <strong>${p.service}</strong>${p.staffName ? ` · Mitarbeiter: <strong>${p.staffName}</strong>` : ''} verschoben.${p.reason ? `<br/><em>Grund: ${p.reason}</em>` : ''}`,
         dateLabel: 'Neuer Termin',
         locationLabel: 'Standort',
         cta: 'Buchungen ansehen',
@@ -274,7 +274,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       new_booking: {
         subject: `Nueva reserva — ${p.service}`,
         title: 'Nueva reserva 📅',
-        body: `<strong>${p.clientName ?? 'Un cliente'}</strong> ha reservado <strong>${p.service}</strong>.`,
+        body: `<strong>${p.clientName ?? 'Un cliente'}</strong> ha reservado <strong>${p.service}</strong>${p.staffName ? ` · empleado: <strong>${p.staffName}</strong>` : ''}.`,
         dateLabel: 'Cita',
         locationLabel: 'Ubicación',
         cta: 'Ver reservas',
@@ -283,7 +283,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       client_rescheduled: {
         subject: `Cita reprogramada — ${p.service}`,
         title: 'Cliente reprogramó la cita 🗓️',
-        body: `<strong>${p.clientName ?? 'Un cliente'}</strong> ha reprogramado su cita para <strong>${p.service}</strong>.${p.reason ? `<br/><em>Motivo: ${p.reason}</em>` : ''}`,
+        body: `<strong>${p.clientName ?? 'Un cliente'}</strong> ha reprogramado su cita para <strong>${p.service}</strong>${p.staffName ? ` · empleado: <strong>${p.staffName}</strong>` : ''}.${p.reason ? `<br/><em>Motivo: ${p.reason}</em>` : ''}`,
         dateLabel: 'Nueva cita',
         locationLabel: 'Ubicación',
         cta: 'Ver reservas',
@@ -339,7 +339,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       new_booking: {
         subject: `Nouvelle réservation — ${p.service}`,
         title: 'Nouvelle réservation 📅',
-        body: `<strong>${p.clientName ?? 'Un client'}</strong> a réservé <strong>${p.service}</strong>.`,
+        body: `<strong>${p.clientName ?? 'Un client'}</strong> a réservé <strong>${p.service}</strong>${p.staffName ? ` · employé : <strong>${p.staffName}</strong>` : ''}.`,
         dateLabel: 'Rendez-vous',
         locationLabel: 'Lieu',
         cta: 'Voir les réservations',
@@ -348,7 +348,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
       client_rescheduled: {
         subject: `Rendez-vous déplacé — ${p.service}`,
         title: 'Le client a déplacé le rendez-vous 🗓️',
-        body: `<strong>${p.clientName ?? 'Un client'}</strong> a déplacé son rendez-vous pour <strong>${p.service}</strong>.${p.reason ? `<br/><em>Motif : ${p.reason}</em>` : ''}`,
+        body: `<strong>${p.clientName ?? 'Un client'}</strong> a déplacé son rendez-vous pour <strong>${p.service}</strong>${p.staffName ? ` · employé : <strong>${p.staffName}</strong>` : ''}.${p.reason ? `<br/><em>Motif : ${p.reason}</em>` : ''}`,
         dateLabel: 'Nouveau rendez-vous',
         locationLabel: 'Lieu',
         cta: 'Voir les réservations',
@@ -590,24 +590,33 @@ export async function POST(request: NextRequest) {
         const bizType   = type === 'reschedule' ? 'client_rescheduled' : 'new_booking';
         const notifyIds = new Set<string>();
         if (ownerId) notifyIds.add(ownerId);
+        let isStaffBooking = false;
         if (booking.staff_member_id) {
           const { data: sm } = await db
             .from('staff_members').select('user_id')
             .eq('id', booking.staff_member_id).maybeSingle();
-          if (sm?.user_id && sm.user_id !== ownerId) notifyIds.add(sm.user_id);
+          if (sm?.user_id && sm.user_id !== ownerId) {
+            notifyIds.add(sm.user_id);
+            isStaffBooking = true;
+          }
         }
         for (const rid of notifyIds) {
           const { data: rp } = await db
-            .from('profiles').select('name, email, country')
+            .from('profiles').select('name, email, country, notification_prefs')
             .eq('id', rid).maybeSingle();
           if (!rp?.email) continue;
+          // Respect owner's notify_staff_booking preference
+          if (rid === ownerId && isStaffBooking) {
+            const prefs = (rp.notification_prefs as Record<string, unknown>) || {};
+            if (prefs.notify_staff_booking === false) continue;
+          }
           const rLang      = getLang(rp.country);
           const rFirstName = rp.name?.split(' ')[0] || 'there';
           const rDt        = fmtDt(booking.starts_at, tz, rLang);
           const rescheduleReason = bizType === 'client_rescheduled' && (booking as any).internal_notes?.includes('[Pomjeranje termina]')
             ? (booking as any).internal_notes.replace('[Pomjeranje termina]', '').trim()
             : undefined;
-          const rContent = content(bizType, rLang, { firstName: rFirstName, service, business, dt: rDt, clientName, reason: rescheduleReason });
+          const rContent = content(bizType, rLang, { firstName: rFirstName, service, business, dt: rDt, clientName, reason: rescheduleReason, staffName });
           await sendEmail({
             to: rp.email,
             subject: rContent.subject,
