@@ -1941,6 +1941,7 @@ export default {
   'booking.successPending': 'Booking received — awaiting confirmation',
   'booking.backToServices': 'Back to services',
   'booking.shareService': 'Share service',
+  'booking.shareProfile': 'Share profile',
   'booking.backToSetup': 'Back to settings',
   'booking.duration': '{min} min',
   'booking.price': 'Price',
@@ -2705,6 +2706,7 @@ export default {
 
   'trade.public.price.quote':  'By negotiation',
   'trade.public.price.from':   'From',
+  'trade.public.shareProfile': 'Share profile',
 
   // ── Accommodation system ───────────────────────────────────────────────────
   'acc.setup.tab': 'Accommodation',

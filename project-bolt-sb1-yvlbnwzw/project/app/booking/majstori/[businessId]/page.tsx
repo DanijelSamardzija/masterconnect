@@ -6,8 +6,9 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { supabase } from '@/lib/supabase/client';
 import {
   Wrench, MapPin, Zap, Phone, MessageSquare, Loader2,
-  ChevronLeft, ChevronRight, AlertCircle,
+  ChevronLeft, ChevronRight, AlertCircle, Share2,
 } from 'lucide-react';
+import { SharePostModal } from '@/components/share-post-modal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -63,6 +64,7 @@ export default function PublicTradeProfilePage({
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -142,7 +144,21 @@ export default function PublicTradeProfilePage({
               </span>
             )}
           </div>
+          <button
+            onClick={() => setShareOpen(true)}
+            className="shrink-0 p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            title={t('trade.public.shareProfile')}
+          >
+            <Share2 className="w-5 h-5" />
+          </button>
         </div>
+
+        <SharePostModal
+          postId={businessId}
+          urlPath={`/booking/majstori/${businessId}`}
+          open={shareOpen}
+          onOpenChange={setShareOpen}
+        />
 
         {/* Description */}
         {profile.description && (

@@ -6,7 +6,7 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { Calendar, BarChart3, ChevronLeft, Share2 } from 'lucide-react';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
-import { ServiceSharePicker } from '@/components/booking/service-share-picker';
+import { SharePostModal } from '@/components/share-post-modal';
 import type { ReactNode } from 'react';
 
 export type StaffBookingTab = 'bookings' | 'schedule' | 'my-analytics';
@@ -68,8 +68,9 @@ export function StaffBookingNav({ active }: { active?: StaffBookingTab }) {
       </div>
 
       {businessId && (
-        <ServiceSharePicker
-          businessId={businessId}
+        <SharePostModal
+          postId={businessId}
+          urlPath={`/booking/${businessId}`}
           open={sharePicker}
           onOpenChange={setSharePicker}
         />

@@ -20,7 +20,7 @@ import {
   Package,
   Check,
 } from 'lucide-react';
-import { ServiceSharePicker } from '@/components/booking/service-share-picker';
+import { SharePostModal } from '@/components/share-post-modal';
 import type { ReactNode } from 'react';
 
 export type BusinessBookingTab = 'bookings' | 'schedule' | 'my-analytics' | 'analytics' | 'setup' | 'absences' | 'guide';
@@ -213,8 +213,9 @@ export function BusinessBookingNav({ active }: { active?: BusinessBookingTab }) 
       </div>
 
       {activeProfileId && (
-        <ServiceSharePicker
-          businessId={activeProfileId}
+        <SharePostModal
+          postId={activeProfileId}
+          urlPath={`/booking/${activeProfileId}`}
           open={sharePicker}
           onOpenChange={setSharePicker}
         />

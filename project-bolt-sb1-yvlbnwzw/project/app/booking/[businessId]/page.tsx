@@ -7,7 +7,8 @@ import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { ArrowLeft, Clock, Users, MapPin, Phone, UserPlus, UserCheck, Star, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Clock, Users, MapPin, Phone, UserPlus, UserCheck, Star, ChevronRight, Share2 } from 'lucide-react';
+import { SharePostModal } from '@/components/share-post-modal';
 
 type OpeningHourRow = {
   day_of_week: number;
@@ -86,6 +87,7 @@ export default function BusinessBookingProfilePage() {
 
   const [reviewsData, setReviewsData] = useState<ReviewsData | null>(null);
   const [showAllReviews, setShowAllReviews] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [openingHours, setOpeningHours] = useState<OpeningHourRow[]>([]);
   const [hoursOpen, setHoursOpen] = useState(false);
 
@@ -305,6 +307,14 @@ export default function BusinessBookingProfilePage() {
                 ) : null}
               </div>
             </div>
+            {/* Share button — visible to all */}
+            <button
+              onClick={() => setShareOpen(true)}
+              className="shrink-0 p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent transition-colors border border-border"
+              title={t('booking.shareProfile')}
+            >
+              <Share2 className="w-3.5 h-3.5" />
+            </button>
             {/* Follow button */}
             {user && (
               <button
@@ -322,6 +332,12 @@ export default function BusinessBookingProfilePage() {
                 }
               </button>
             )}
+            <SharePostModal
+              postId={businessId}
+              urlPath={`/booking/${businessId}`}
+              open={shareOpen}
+              onOpenChange={setShareOpen}
+            />
           </div>
           {/* Working hours — shown when a specific location is selected */}
           {openingHours.length > 0 && (

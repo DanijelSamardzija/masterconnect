@@ -1941,6 +1941,7 @@ export default {
   'booking.successPending': 'Rezervacija primljena — čeka potvrdu',
   'booking.backToServices': 'Nazad na usluge',
   'booking.shareService': 'Podijeli uslugu',
+  'booking.shareProfile': 'Podijeli profil',
   'booking.backToSetup': 'Nazad na podešavanja',
   'booking.duration': '{min} min',
   'booking.price': 'Cijena',
@@ -2705,6 +2706,7 @@ export default {
 
   'trade.public.price.quote':  'Po dogovoru',
   'trade.public.price.from':   'Od',
+  'trade.public.shareProfile': 'Podijeli profil',
 
   // ── Accommodation system ───────────────────────────────────────────────────
   'acc.setup.tab': 'Smještaj',

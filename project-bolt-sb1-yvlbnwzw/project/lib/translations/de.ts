@@ -1931,6 +1931,7 @@ export default {
   'booking.successPending': 'Buchung eingegangen — wartet auf Bestätigung',
   'booking.backToServices': 'Zurück zu den Diensten',
   'booking.shareService': 'Dienst teilen',
+  'booking.shareProfile': 'Profil teilen',
   'booking.backToSetup': 'Zurück zu den Einstellungen',
   'booking.duration': '{min} Min.',
   'booking.price': 'Preis',
@@ -2695,6 +2696,7 @@ export default {
 
   'trade.public.price.quote':  'Auf Anfrage',
   'trade.public.price.from':   'Ab',
+  'trade.public.shareProfile': 'Profil teilen',
 
   // ── Accommodation system ───────────────────────────────────────────────────
   'acc.setup.tab': 'Unterkunft',
