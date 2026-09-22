@@ -10,7 +10,7 @@ import { useBookingAccess } from '@/lib/hooks/use-booking-access';
 import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
 import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
-import { ChevronRight, ChevronLeft, Plus, Pencil, X, CheckCircle2, MapPin, ExternalLink, AlertTriangle, Check, Loader2, Info, Copy, Share2, Trash2, Camera } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Plus, Pencil, X, CheckCircle2, MapPin, ExternalLink, AlertTriangle, Check, Loader2, Info, Copy, Share2, Trash2, Camera, Bell, Mail } from 'lucide-react';
 import { TimePicker24h } from '@/components/ui/time-picker-24h';
 import { SharePostModal } from '@/components/share-post-modal';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
@@ -426,7 +426,9 @@ export default function BusinessSetupPage() {
     quiet_from: string;
     quiet_to: string;
     notify_new_booking: boolean;
+    notify_new_booking_email: boolean;
     notify_staff_booking: boolean;
+    notify_staff_booking_email: boolean;
     notify_cancellation: boolean;
     notify_reschedule: boolean;
   };
@@ -437,7 +439,9 @@ export default function BusinessSetupPage() {
     quiet_from: '22:00',
     quiet_to: '07:00',
     notify_new_booking: true,
+    notify_new_booking_email: true,
     notify_staff_booking: true,
+    notify_staff_booking_email: true,
     notify_cancellation: true,
     notify_reschedule: true,
   });
@@ -587,10 +591,12 @@ export default function BusinessSetupPage() {
           quiet_enabled:        prefs.quiet_enabled        === true,
           quiet_from:           prefs.quiet_from           ?? '22:00',
           quiet_to:             prefs.quiet_to             ?? '07:00',
-          notify_new_booking:   prefs.notify_new_booking   !== false,
-          notify_staff_booking: prefs.notify_staff_booking !== false,
-          notify_cancellation:  prefs.notify_cancellation  !== false,
-          notify_reschedule:    prefs.notify_reschedule    !== false,
+          notify_new_booking:          prefs.notify_new_booking          !== false,
+          notify_new_booking_email:    prefs.notify_new_booking_email    !== false,
+          notify_staff_booking:        prefs.notify_staff_booking        !== false,
+          notify_staff_booking_email:  prefs.notify_staff_booking_email  !== false,
+          notify_cancellation:         prefs.notify_cancellation         !== false,
+          notify_reschedule:           prefs.notify_reschedule           !== false,
         });
       }
       // Load saved timezone from primary location; fall back to browser timezone for new users
@@ -839,10 +845,12 @@ export default function BusinessSetupPage() {
         quiet_from:           notifPrefs.quiet_from,
         quiet_to:             notifPrefs.quiet_to,
         quiet_tz:             timezone || 'Europe/Sarajevo',
-        notify_new_booking:   notifPrefs.notify_new_booking,
-        notify_staff_booking: notifPrefs.notify_staff_booking,
-        notify_cancellation:  notifPrefs.notify_cancellation,
-        notify_reschedule:    notifPrefs.notify_reschedule,
+        notify_new_booking:          notifPrefs.notify_new_booking,
+        notify_new_booking_email:    notifPrefs.notify_new_booking_email,
+        notify_staff_booking:        notifPrefs.notify_staff_booking,
+        notify_staff_booking_email:  notifPrefs.notify_staff_booking_email,
+        notify_cancellation:         notifPrefs.notify_cancellation,
+        notify_reschedule:           notifPrefs.notify_reschedule,
       },
     });
     setNotifPrefsSaving(false);
@@ -2730,9 +2738,69 @@ export default function BusinessSetupPage() {
                     <p className="text-xs font-semibold">{t('notifPrefs.events')}</p>
                     <p className="text-[11px] text-muted-foreground">{t('notifPrefs.eventsDesc')}</p>
                   </div>
+                  {/* Booking events with separate in-app + email toggles */}
                   {([
-                    { key: 'notify_new_booking',  label: t('notifPrefs.newBooking'),  desc: t('notifPrefs.newBookingDesc') },
-                    { key: 'notify_staff_booking', label: t('notifPrefs.staffBooking'), desc: t('notifPrefs.staffBookingDesc') },
+                    {
+                      pushKey: 'notify_new_booking'   as const,
+                      emailKey: 'notify_new_booking_email' as const,
+                      label: t('notifPrefs.newBooking'),
+                      desc: t('notifPrefs.newBookingDesc'),
+                      pushDesc: 'Obavještenje u zvonu kad klijent direktno zakaže',
+                      emailDesc: 'Email kad klijent direktno zakaže',
+                    },
+                    {
+                      pushKey: 'notify_staff_booking'  as const,
+                      emailKey: 'notify_staff_booking_email' as const,
+                      label: t('notifPrefs.staffBooking'),
+                      desc: t('notifPrefs.staffBookingDesc'),
+                      pushDesc: 'Obavještenje u zvonu kad klijent zakaže kod radnika',
+                      emailDesc: 'Email kad klijent zakaže kod radnika',
+                    },
+                  ]).map(({ pushKey, emailKey, label, desc, pushDesc, emailDesc }) => (
+                    <div key={pushKey} className="space-y-2">
+                      <div>
+                        <p className="text-xs font-medium">{label}</p>
+                        <p className="text-[11px] text-muted-foreground leading-tight">{desc}</p>
+                      </div>
+                      <div className="flex flex-col gap-1.5 pl-1">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-1.5">
+                            <Bell className="w-3 h-3 text-muted-foreground shrink-0" />
+                            <div>
+                              <p className="text-[11px] font-medium">In-app</p>
+                              <p className="text-[10px] text-muted-foreground leading-tight">{pushDesc}</p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setNotifPrefs(p => ({ ...p, [pushKey]: !p[pushKey] }))}
+                            className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 ${notifPrefs[pushKey] ? 'bg-primary' : 'bg-muted'}`}
+                          >
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${notifPrefs[pushKey] ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                          </button>
+                        </div>
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-1.5">
+                            <Mail className="w-3 h-3 text-muted-foreground shrink-0" />
+                            <div>
+                              <p className="text-[11px] font-medium">Email</p>
+                              <p className="text-[10px] text-muted-foreground leading-tight">{emailDesc}</p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setNotifPrefs(p => ({ ...p, [emailKey]: !p[emailKey] }))}
+                            className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 ${notifPrefs[emailKey] ? 'bg-primary' : 'bg-muted'}`}
+                          >
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${notifPrefs[emailKey] ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Other events with single toggle */}
+                  {([
                     { key: 'notify_cancellation', label: t('notifPrefs.cancellation'), desc: t('notifPrefs.cancellationDesc') },
                     { key: 'notify_reschedule',   label: t('notifPrefs.reschedule'),   desc: t('notifPrefs.rescheduleDesc') },
                   ] as const).map(({ key, label, desc }) => (
@@ -2744,13 +2812,9 @@ export default function BusinessSetupPage() {
                       <button
                         type="button"
                         onClick={() => setNotifPrefs(p => ({ ...p, [key]: !p[key] }))}
-                        className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 mt-0.5 ${
-                          notifPrefs[key] ? 'bg-primary' : 'bg-muted'
-                        }`}
+                        className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 mt-0.5 ${notifPrefs[key] ? 'bg-primary' : 'bg-muted'}`}
                       >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${
-                          notifPrefs[key] ? 'translate-x-4' : 'translate-x-0.5'
-                        }`} />
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${notifPrefs[key] ? 'translate-x-4' : 'translate-x-0.5'}`} />
                       </button>
                     </div>
                   ))}

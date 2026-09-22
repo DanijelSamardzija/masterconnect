@@ -605,10 +605,11 @@ export async function POST(request: NextRequest) {
             .from('profiles').select('name, email, country, notification_prefs')
             .eq('id', rid).maybeSingle();
           if (!rp?.email) continue;
-          // Respect owner's notify_staff_booking preference
-          if (rid === ownerId && isStaffBooking) {
+          // Respect owner's per-event email preferences
+          if (rid === ownerId) {
             const prefs = (rp.notification_prefs as Record<string, unknown>) || {};
-            if (prefs.notify_staff_booking === false) continue;
+            if (isStaffBooking && prefs.notify_staff_booking_email === false) continue;
+            if (!isStaffBooking && prefs.notify_new_booking_email === false) continue;
           }
           const rLang      = getLang(rp.country);
           const rFirstName = rp.name?.split(' ')[0] || 'there';
