@@ -1274,6 +1274,24 @@ export default function BusinessSetupPage() {
 
     setDeletedPeriods([]);
     setHoursSaving(false);
+
+    // Notify staff about business hours change (fire and forget)
+    const hoursForNotif = hours.map(h => ({
+      dayOfWeek: h.day_of_week,
+      open:  h.is_closed ? null : (h.periods[0]?.start_time ?? null),
+      close: h.is_closed ? null : (h.periods[h.periods.length - 1]?.end_time ?? null),
+      closed: h.is_closed,
+    }));
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.access_token && hoursLocId && activeProfileId) {
+        fetch('/api/booking/location-hours-notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+          body: JSON.stringify({ locationId: hoursLocId, businessId: activeProfileId, newHours: hoursForNotif }),
+        }).catch(() => {});
+      }
+    });
+
     toast.success(t('setup.hours.saved'));
   }
 

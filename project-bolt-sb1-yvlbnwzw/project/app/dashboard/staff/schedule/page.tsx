@@ -99,6 +99,8 @@ function StaffScheduleContent() {
   const [acceptBookings, setAcceptBookings] = useState(true);
   const [togglingAccept, setTogglingAccept] = useState(false);
   const [canBlockTime, setCanBlockTime] = useState(false);
+  // day_of_week → business open/close for shift validation
+  const [locDayHours, setLocDayHours] = useState<Record<number, { open: string; close: string; closed: boolean }>>({});
 
   type NotifPrefs = {
     push_enabled: boolean;
@@ -138,7 +140,7 @@ function StaffScheduleContent() {
     (async () => {
       const { data: sm } = await (supabase as any)
         .from('staff_members')
-        .select('id, permissions, business_id, role, accept_bookings')
+        .select('id, permissions, business_id, role, accept_bookings, primary_location_id')
         .eq('user_id', profile.id)
         .eq('is_active', true)
         .maybeSingle();
@@ -150,6 +152,26 @@ function StaffScheduleContent() {
       setCanEdit(!!sm.permissions?.can_set_hours);
       setAcceptBookings(sm.accept_bookings ?? true);
       setCanBlockTime(sm.role === 'owner' || !!sm.permissions?.can_block_time);
+
+      // Load business opening hours for shift validation
+      if (sm.primary_location_id) {
+        type OpenHourRow = { day_of_week: number; start_time: string; end_time: string; is_closed: boolean };
+        const { data: lhData } = await (supabase as any).rpc('get_opening_hours', { p_location_id: sm.primary_location_id });
+        const rows = ((lhData as OpenHourRow[]) ?? []);
+        const dayMap: Record<number, { open: string; close: string; closed: boolean }> = {};
+        for (const row of rows) {
+          const dow = row.day_of_week;
+          if (row.is_closed) {
+            dayMap[dow] = { open: '00:00', close: '00:00', closed: true };
+          } else if (!dayMap[dow] || dayMap[dow].closed) {
+            dayMap[dow] = { open: row.start_time?.slice(0, 5) ?? '09:00', close: row.end_time?.slice(0, 5) ?? '17:00', closed: false };
+          } else {
+            if (row.start_time.slice(0, 5) < dayMap[dow].open)  dayMap[dow].open  = row.start_time.slice(0, 5);
+            if (row.end_time.slice(0, 5)   > dayMap[dow].close) dayMap[dow].close = row.end_time.slice(0, 5);
+          }
+        }
+        setLocDayHours(dayMap);
+      }
 
       // Load notification prefs from profile
       const { data: profileRow } = await (supabase as any)
@@ -243,6 +265,21 @@ function StaffScheduleContent() {
 
   async function handleSave() {
     if (!edit) return;
+
+    // Block saving a working shift outside business opening hours
+    if (edit.mode === 'working') {
+      const dow = new Date(edit.date + 'T12:00:00').getDay();
+      const dayH = locDayHours[dow];
+      if (dayH?.closed) {
+        toast.error(t('schedule.errorBizClosed'));
+        return;
+      }
+      if (dayH && (edit.startTime < dayH.open || edit.endTime > dayH.close)) {
+        toast.error(`${t('schedule.errorOutsideBizHours')} (${dayH.open}–${dayH.close})`);
+        return;
+      }
+    }
+
     setSaving(true);
     try {
       const { data } = await (supabase as any).rpc('staff_set_my_shift', {

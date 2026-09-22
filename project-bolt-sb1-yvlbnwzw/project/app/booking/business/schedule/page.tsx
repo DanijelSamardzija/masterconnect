@@ -151,6 +151,8 @@ function OwnerScheduleContent() {
   const [schedLocId, setSchedLocId] = useState<string | null>(null);
   // staffId → day_of_week(0=Sun..6=Sat) → { is_closed, start_time, end_time }
   const [staffDefaultHours, setStaffDefaultHours] = useState<Record<string, Record<number, { is_closed: boolean; start_time: string; end_time: string }>>>({});
+  // locationId → day_of_week → business open/close for shift validation
+  const [locHoursMap, setLocHoursMap] = useState<Record<string, Record<number, { open: string; close: string; closed: boolean }>>>({});
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
@@ -267,6 +269,36 @@ function OwnerScheduleContent() {
             newMap[members[i].id] = dayMap;
           }
           setStaffDefaultHours(newMap);
+
+          // Load business opening hours per unique location for shift validation
+          const uniqueLocIds = [...new Set(
+            members.map(m => m.location_id ?? primaryLoc?.id).filter((id): id is string => !!id)
+          )];
+          if (uniqueLocIds.length > 0) {
+            type OpenHourRow = { day_of_week: number; start_time: string; end_time: string; is_closed: boolean };
+            const lhResults = await Promise.all(
+              uniqueLocIds.map(locId => (supabase as any).rpc('get_opening_hours', { p_location_id: locId }))
+            );
+            const newLocHoursMap: Record<string, Record<number, { open: string; close: string; closed: boolean }>> = {};
+            for (let i = 0; i < uniqueLocIds.length; i++) {
+              const locId = uniqueLocIds[i];
+              const rows = ((lhResults[i].data as OpenHourRow[]) ?? []);
+              const dayMap: Record<number, { open: string; close: string; closed: boolean }> = {};
+              for (const row of rows) {
+                const dow = row.day_of_week;
+                if (row.is_closed) {
+                  dayMap[dow] = { open: '00:00', close: '00:00', closed: true };
+                } else if (!dayMap[dow] || dayMap[dow].closed) {
+                  dayMap[dow] = { open: row.start_time?.slice(0, 5) ?? '09:00', close: row.end_time?.slice(0, 5) ?? '17:00', closed: false };
+                } else {
+                  if (row.start_time.slice(0, 5) < dayMap[dow].open)  dayMap[dow].open  = row.start_time.slice(0, 5);
+                  if (row.end_time.slice(0, 5)   > dayMap[dow].close) dayMap[dow].close = row.end_time.slice(0, 5);
+                }
+              }
+              newLocHoursMap[locId] = dayMap;
+            }
+            setLocHoursMap(newLocHoursMap);
+          }
         }
       }
 
@@ -436,6 +468,24 @@ function OwnerScheduleContent() {
 
   async function handleSave(force = false) {
     if (!edit) return;
+
+    // Block saving a working shift outside business opening hours
+    if (edit.mode === 'working') {
+      const staffMem = staffAccept.find(s => s.id === edit.staffId);
+      const locId = staffMem?.location_id ?? primaryLocId;
+      if (locId && locHoursMap[locId]) {
+        const dow = new Date(edit.date + 'T12:00:00').getDay();
+        const dayH = locHoursMap[locId][dow];
+        if (dayH?.closed) {
+          toast.error(t('schedule.errorBizClosed'));
+          return;
+        }
+        if (dayH && (edit.startTime < dayH.open || edit.endTime > dayH.close)) {
+          toast.error(`${t('schedule.errorOutsideBizHours')} (${dayH.open}–${dayH.close})`);
+          return;
+        }
+      }
+    }
 
     // When marking as off, check for existing bookings on that day
     if (edit.mode === 'off' && !force) {
