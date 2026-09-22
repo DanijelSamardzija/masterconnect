@@ -270,7 +270,7 @@ function BusinessRescheduleContent() {
                 </div>
               )}
 
-              {/* Staff section — interactive pills for owner, read-only pill for staff */}
+              {/* Staff section — interactive pills for owner only; hidden for staff role */}
               {role === 'owner' && staffOptions.length > 1 ? (
                 <div>
                   <label className="block text-xs text-muted-foreground mb-1.5">{t('booking.staff.heading')}</label>
@@ -289,15 +289,6 @@ function BusinessRescheduleContent() {
                         {s.name}
                       </button>
                     ))}
-                  </div>
-                </div>
-              ) : role === 'staff' && staffOptions.length > 0 ? (
-                <div>
-                  <label className="block text-xs text-muted-foreground mb-1.5">{t('booking.staff.heading')}</label>
-                  <div className="flex flex-wrap gap-1.5">
-                    <div className="px-3 py-1.5 rounded-full text-sm font-medium border bg-primary text-primary-foreground border-primary">
-                      {staffOptions.find(s => s.staff_member_id === selectedStaffId)?.name ?? staffOptions[0]?.name}
-                    </div>
                   </div>
                 </div>
               ) : null}
