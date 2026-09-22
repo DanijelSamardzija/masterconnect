@@ -459,11 +459,7 @@ async function processPush(body: any) {
       let ctaUrl   = dashUrl;
 
       if (action_type === 'booking_created') {
-        subject  = subject || eL.bkgCreatedHeading(clientName);
-        heading  = eL.bkgCreatedHeading(clientName);
-        bodyHtml = `<p style="color:#555;margin:0 0 8px">${svcName ? `<strong>${svcName}</strong>` : ''}</p>
-                    ${dtStr ? `<p style="color:#888;margin:0 0 20px;font-size:14px">📅 ${dtStr}</p>` : '<div style="margin-bottom:20px"></div>'}`;
-        ctaText  = eL.bkgCreatedCta;
+        // email handled by /api/booking/notify — skip here to avoid duplicate
       } else if (action_type === 'booking_confirmed') {
         subject  = subject || eL.bkgConfirmedHeading;
         heading  = eL.bkgConfirmedHeading;

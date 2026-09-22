@@ -69,6 +69,12 @@ function formatDt(isoStr: string, locale: string): string {
   }).format(new Date(isoStr));
 }
 
+function formatTime(isoStr: string): string {
+  return new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  }).format(new Date(isoStr));
+}
+
 export default function MyBookingsPage() {
   const { user } = useAuth();
   const { t, language } = useLanguage();
@@ -379,7 +385,7 @@ function BookingCard({
       </div>
       <div className="flex items-center gap-1 text-sm text-muted-foreground">
         <Calendar className="w-3 h-3" />
-        {formatDt(b.starts_at, locale)}
+        {formatDt(b.starts_at, locale)}{b.ends_at ? ` – ${formatTime(b.ends_at)}` : ''}
       </div>
       {b.location && (
         <p className="text-sm text-muted-foreground">{(b.location as any).name}</p>
