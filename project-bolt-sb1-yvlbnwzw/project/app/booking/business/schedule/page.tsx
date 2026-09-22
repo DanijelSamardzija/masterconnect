@@ -142,6 +142,7 @@ function OwnerScheduleContent() {
   const [copyingMap, setCopyingMap] = useState<Record<string, boolean>>({});
   const [infoOpen, setInfoOpen] = useState(false);
   const [edit, setEdit] = useState<EditState | null>(null);
+  const [editOldShift, setEditOldShift] = useState<ShiftRow | null>(null);
   const [saving, setSaving] = useState(false);
   const [shiftConflictCount, setShiftConflictCount] = useState<number | null>(null);
   const [absences, setAbsences] = useState<AbsenceRow[]>([]);
@@ -430,6 +431,7 @@ function OwnerScheduleContent() {
       }
     }
     setEdit({ staffId, staffName, date, mode, offReason, startTime, endTime, notes, hasBreak, breakStart, breakEnd });
+    setEditOldShift(shift);
   }
 
   async function handleSave(force = false) {
@@ -469,8 +471,44 @@ function OwnerScheduleContent() {
       });
       if (data?.ok === false) throw new Error(data.error);
       toast.success(t('schedule.savedSuccess'));
+
+      // Notify staff member about the schedule change (fire and forget)
+      const notifPayload = {
+        changedBy: 'owner',
+        staffMemberId: edit.staffId,
+        businessId: activeProfileId,
+        shiftDate: edit.date,
+        oldShift: editOldShift ? {
+          startTime: editOldShift.is_off ? null : (editOldShift.start_time?.slice(0, 5) ?? null),
+          endTime:   editOldShift.is_off ? null : (editOldShift.end_time?.slice(0, 5) ?? null),
+          isOff:      editOldShift.is_off,
+          offReason:  editOldShift.off_reason,
+          notes:      editOldShift.notes,
+          breakStart: editOldShift.break_start?.slice(0, 5) ?? null,
+          breakEnd:   editOldShift.break_end?.slice(0, 5) ?? null,
+        } : null,
+        newShift: {
+          startTime: edit.mode === 'working' ? edit.startTime : null,
+          endTime:   edit.mode === 'working' ? edit.endTime   : null,
+          isOff:      edit.mode === 'off',
+          offReason:  edit.mode === 'off' ? edit.offReason : null,
+          notes:      edit.notes.trim() || null,
+          breakStart: edit.mode === 'working' && edit.hasBreak ? edit.breakStart : null,
+          breakEnd:   edit.mode === 'working' && edit.hasBreak ? edit.breakEnd   : null,
+        },
+      };
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        fetch('/api/booking/schedule-notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+          body: JSON.stringify(notifPayload),
+        }).catch(() => {});
+      }
+
       const savedStaffId = edit.staffId;
       setEdit(null);
+      setEditOldShift(null);
       if (viewMode === 'month') {
         if (cardMonths[savedStaffId] !== undefined) {
           const shifts = await loadCardMonthShifts(savedStaffId, cardMonths[savedStaffId]);

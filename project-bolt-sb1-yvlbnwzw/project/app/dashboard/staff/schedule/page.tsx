@@ -92,8 +92,10 @@ function StaffScheduleContent() {
   const [canEdit, setCanEdit] = useState(false);
   const [hasStaff, setHasStaff] = useState(false);
   const [edit, setEdit] = useState<EditState | null>(null);
+  const [editOldShift, setEditOldShift] = useState<ShiftRow | null>(null);
   const [saving, setSaving] = useState(false);
   const [staffMemberId, setStaffMemberId] = useState<string | null>(null);
+  const [staffBusinessId, setStaffBusinessId] = useState<string | null>(null);
   const [acceptBookings, setAcceptBookings] = useState(true);
   const [togglingAccept, setTogglingAccept] = useState(false);
   const [canBlockTime, setCanBlockTime] = useState(false);
@@ -144,6 +146,7 @@ function StaffScheduleContent() {
       if (!sm) { setLoading(false); return; }
       setHasStaff(true);
       setStaffMemberId(sm.id);
+      setStaffBusinessId(sm.business_id);
       setCanEdit(!!sm.permissions?.can_set_hours);
       setAcceptBookings(sm.accept_bookings ?? true);
       setCanBlockTime(sm.role === 'owner' || !!sm.permissions?.can_block_time);
@@ -202,6 +205,7 @@ function StaffScheduleContent() {
       }
     }
     setEdit({ date: dateStr, mode, offReason, startTime, endTime, notes, hasBreak, breakStart, breakEnd });
+    setEditOldShift(shift);
   }
 
   async function handleToggleAcceptBookings() {
@@ -253,7 +257,45 @@ function StaffScheduleContent() {
         });
       if (data?.ok === false) throw new Error(data.error);
       toast.success(t('schedule.savedSuccess'));
+
+      // Notify owner about the schedule change if staff has permission (fire and forget)
+      if (staffMemberId && staffBusinessId) {
+        const notifPayload = {
+          changedBy: 'staff',
+          staffMemberId,
+          businessId: staffBusinessId,
+          shiftDate: edit.date,
+          oldShift: editOldShift ? {
+            startTime: editOldShift.is_off ? null : (editOldShift.start_time?.slice(0, 5) ?? null),
+            endTime:   editOldShift.is_off ? null : (editOldShift.end_time?.slice(0, 5) ?? null),
+            isOff:      editOldShift.is_off,
+            offReason:  editOldShift.off_reason,
+            notes:      editOldShift.notes,
+            breakStart: editOldShift.break_start?.slice(0, 5) ?? null,
+            breakEnd:   editOldShift.break_end?.slice(0, 5) ?? null,
+          } : null,
+          newShift: {
+            startTime: edit.mode === 'working' ? edit.startTime : null,
+            endTime:   edit.mode === 'working' ? edit.endTime   : null,
+            isOff:      edit.mode === 'off',
+            offReason:  edit.mode === 'off' ? edit.offReason : 'day_off',
+            notes:      edit.notes.trim() || null,
+            breakStart: edit.mode === 'working' && edit.hasBreak ? edit.breakStart : null,
+            breakEnd:   edit.mode === 'working' && edit.hasBreak ? edit.breakEnd   : null,
+          },
+        };
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          fetch('/api/booking/schedule-notify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+            body: JSON.stringify(notifPayload),
+          }).catch(() => {});
+        }
+      }
+
       setEdit(null);
+      setEditOldShift(null);
       await loadShifts(weekDate);
     } catch {
       toast.error(t('schedule.saveError'));
