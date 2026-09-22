@@ -170,9 +170,12 @@ function OwnerBookingsContent() {
   useEffect(() => {
     if (!isOwner || !profile) return;
     if (!isPremium || !isBookingBetaUser(profile.id)) return;
-    fetchServiceStats(selectedLocId || undefined);
+    fetchServiceStats(
+      selectedLocId || undefined,
+      staffFilter !== 'all' ? staffFilter : undefined,
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOwner, selectedLocId, profile, isPremium]);
+  }, [isOwner, selectedLocId, staffFilter, profile, isPremium]);
 
   useEffect(() => {
     if (staffMemberId && staffBizId) fetchStaffBookings();
@@ -345,12 +348,12 @@ function OwnerBookingsContent() {
     setLoading(false);
   };
 
-  const fetchServiceStats = useCallback(async (locId?: string) => {
+  const fetchServiceStats = useCallback(async (locId?: string, staffId?: string) => {
     if (!profile || !activeProfileId) return;
     setServiceStatsLoaded(false);
     const { data } = await (supabase as any).rpc('get_business_service_stats_by_location', {
-      p_location_id: locId || null,
-      p_business_id: activeProfileId,
+      p_location_id:     locId  || null,
+      p_staff_member_id: staffId || null,
     });
     if (Array.isArray(data)) setServiceStats(data);
     setServiceStatsLoaded(true);
