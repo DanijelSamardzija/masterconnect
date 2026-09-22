@@ -24,6 +24,7 @@ type BookingData = {
   location_address: string | null;
   location_city:    string | null;
   timezone:         string;
+  staff_name:       string | null;
 };
 
 type LoadState = 'loading' | 'not_found' | 'ok';
@@ -57,6 +58,7 @@ const COPY: Record<string, Record<string, string>> = {
   date:               { sr: 'Datum i vrijeme',     en: 'Date & time',          de: 'Datum & Uhrzeit',    es: 'Fecha y hora',       fr: 'Date et heure'         },
   location:           { sr: 'Lokacija',            en: 'Location',             de: 'Standort',           es: 'Ubicación',          fr: 'Lieu'                  },
   status:             { sr: 'Status',              en: 'Status',               de: 'Status',             es: 'Estado',             fr: 'Statut'                },
+  staff:              { sr: 'Radnik',               en: 'Staff',                de: 'Mitarbeiter',        es: 'Empleado',           fr: 'Employé'               },
   notes:              { sr: 'Napomena',            en: 'Notes',                de: 'Notiz',              es: 'Notas',              fr: 'Notes'                 },
   cancelBtn:          { sr: 'Otkaži termin',       en: 'Cancel appointment',   de: 'Termin stornieren',  es: 'Cancelar cita',      fr: 'Annuler le rendez-vous'},
   cancelConfirm:      { sr: 'Da li si siguran da želiš otkazati termin?', en: 'Are you sure you want to cancel?', de: 'Bist du sicher, dass du stornieren möchtest?', es: '¿Estás seguro de que quieres cancelar?', fr: 'Êtes-vous sûr de vouloir annuler ?' },
@@ -196,6 +198,14 @@ export default function GuestBookingViewPage() {
               <p className="text-xs text-muted-foreground mb-1">{t('service', lang)}</p>
               <p className="text-sm font-semibold text-foreground">{booking.service_name}</p>
             </div>
+
+            {/* Staff */}
+            {booking.staff_name && (
+              <div className="rounded-2xl border border-border bg-card px-6 py-4">
+                <p className="text-xs text-muted-foreground mb-1">{t('staff', lang)}</p>
+                <p className="text-sm font-semibold text-foreground">{booking.staff_name}</p>
+              </div>
+            )}
 
             {/* Date */}
             <div className="rounded-2xl border border-border bg-card px-6 py-4">
