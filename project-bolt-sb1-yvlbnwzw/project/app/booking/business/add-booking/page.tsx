@@ -75,6 +75,7 @@ export default function OwnerAddBookingPage() {
 
   const [guestName, setGuestName]   = useState('');
   const [guestPhone, setGuestPhone] = useState('');
+  const [guestEmail, setGuestEmail] = useState('');
   const [notes, setNotes]           = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -213,8 +214,9 @@ export default function OwnerAddBookingPage() {
       p_staff_member_id: staffId,
       p_starts_at:       slotStart,
       p_guest_name:      guestName.trim(),
-      p_guest_phone:     guestPhone.trim() || null,
-      p_notes:           notes.trim() || null,
+      p_guest_phone:     guestPhone.trim()  || null,
+      p_guest_email:     guestEmail.trim()  || null,
+      p_notes:           notes.trim()       || null,
     });
     setSubmitting(false);
     if (error || data?.ok === false) {
@@ -501,6 +503,13 @@ export default function OwnerAddBookingPage() {
                     value={guestPhone}
                     onChange={e => setGuestPhone(e.target.value)}
                     placeholder={t('ownerBookings.add.phonePlaceholder')}
+                    className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  <input
+                    type="email"
+                    value={guestEmail}
+                    onChange={e => setGuestEmail(e.target.value)}
+                    placeholder={t('ownerBookings.add.emailPlaceholder')}
                     className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                   <textarea

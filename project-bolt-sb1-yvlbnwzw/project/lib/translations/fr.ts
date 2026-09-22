@@ -3357,6 +3357,8 @@ export default {
   'ownerBookings.deleteModal.confirm': 'Oui, supprimer',
   'ownerBookings.add.noSlots': 'Aucun créneau disponible pour ce jour.',
   'ownerBookings.add.success': 'Rendez-vous ajouté',
+  'ownerBookings.add.emailPlaceholder': "E-mail du client (optionnel)",
+  'staffBooking.guestEmailPlaceholder': "E-mail du client (optionnel)",
   'ownerBookings.reschedule': 'Déplacer',
   'ownerBookings.rescheduled': 'Rendez-vous déplacé',
   'ownerBookings.rescheduleNote': 'Motif du déplacement',

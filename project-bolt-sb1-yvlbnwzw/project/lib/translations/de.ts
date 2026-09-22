@@ -3422,6 +3422,8 @@ export default {
   'ownerBookings.deleteModal.confirm': 'Ja, löschen',
   'ownerBookings.add.noSlots': 'Keine verfügbaren Termine für diesen Tag.',
   'ownerBookings.add.success': 'Termin hinzugefügt',
+  'ownerBookings.add.emailPlaceholder': 'Gast-E-Mail (optional)',
+  'staffBooking.guestEmailPlaceholder': 'Gast-E-Mail (optional)',
   'ownerBookings.reschedule': 'Verschieben',
   'ownerBookings.rescheduled': 'Termin verschoben',
   'ownerBookings.rescheduleNote': 'Grund der Verschiebung',

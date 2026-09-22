@@ -54,8 +54,8 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         body: `Tvoja rezervacija za <strong>${p.service}</strong> kod <strong>${p.business}</strong> je uspješno kreirana.`,
         dateLabel: 'Termin',
         locationLabel: 'Lokacija',
-        cta: 'Pregledaj rezervacije',
-        footer: 'Za izmjene ili otkazivanje, posjeti GigZone.',
+        cta: 'Pregledaj termin',
+        footer: 'Za izmjene ili otkazivanje, klikni na dugme iznad.',
       },
       cancellation: {
         subject: `Rezervacija otkazana — ${p.service}`,
@@ -72,7 +72,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         body: `Tvoja rezervacija za <strong>${p.service}</strong> kod <strong>${p.business}</strong> je premještena.`,
         dateLabel: 'Novi termin',
         locationLabel: 'Lokacija',
-        cta: 'Pregledaj rezervacije',
+        cta: 'Pregledaj termin',
         footer: 'Ako imaš pitanja, slobodno nas kontaktuj.',
       },
       new_booking: {
@@ -99,8 +99,8 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         body: `Podsjećamo te da imaš termin za <strong>${p.service}</strong> kod <strong>${p.business}</strong>.`,
         dateLabel: 'Termin',
         locationLabel: 'Lokacija',
-        cta: 'Pregledaj rezervacije',
-        footer: 'Ako nisi u mogućnosti doći, otkaži termin u aplikaciji.',
+        cta: 'Pregledaj termin',
+        footer: 'Ako nisi u mogućnosti doći, možeš otkazati putem linka iznad.',
       },
     },
     en: {
@@ -110,8 +110,8 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         body: `Your booking for <strong>${p.service}</strong> at <strong>${p.business}</strong> has been created.`,
         dateLabel: 'Appointment',
         locationLabel: 'Location',
-        cta: 'View bookings',
-        footer: 'To change or cancel, visit GigZone.',
+        cta: 'View appointment',
+        footer: 'To change or cancel, use the button above.',
       },
       cancellation: {
         subject: `Booking cancelled — ${p.service}`,
@@ -128,7 +128,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         body: `Your booking for <strong>${p.service}</strong> at <strong>${p.business}</strong> has been moved.`,
         dateLabel: 'New appointment',
         locationLabel: 'Location',
-        cta: 'View bookings',
+        cta: 'View appointment',
         footer: 'If you have any questions, feel free to contact us.',
       },
       new_booking: {
@@ -155,8 +155,8 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         body: `This is a reminder that you have an appointment for <strong>${p.service}</strong> at <strong>${p.business}</strong>.`,
         dateLabel: 'Appointment',
         locationLabel: 'Location',
-        cta: 'View bookings',
-        footer: "If you can't make it, please cancel in the app.",
+        cta: 'View appointment',
+        footer: "If you can't make it, use the button above to cancel.",
       },
     },
     de: {
@@ -166,8 +166,8 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         body: `Deine Buchung für <strong>${p.service}</strong> bei <strong>${p.business}</strong> wurde erfolgreich erstellt.`,
         dateLabel: 'Termin',
         locationLabel: 'Standort',
-        cta: 'Buchungen ansehen',
-        footer: 'Zum Ändern oder Stornieren besuche GigZone.',
+        cta: 'Termin ansehen',
+        footer: 'Zum Ändern oder Stornieren, nutze den Button oben.',
       },
       cancellation: {
         subject: `Buchung storniert — ${p.service}`,
@@ -184,7 +184,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         body: `Deine Buchung für <strong>${p.service}</strong> bei <strong>${p.business}</strong> wurde verschoben.`,
         dateLabel: 'Neuer Termin',
         locationLabel: 'Standort',
-        cta: 'Buchungen ansehen',
+        cta: 'Termin ansehen',
         footer: 'Bei Fragen stehen wir gerne zur Verfügung.',
       },
       new_booking: {
@@ -211,8 +211,8 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         body: `Erinnerung: Du hast morgen einen Termin für <strong>${p.service}</strong> bei <strong>${p.business}</strong>.`,
         dateLabel: 'Termin',
         locationLabel: 'Standort',
-        cta: 'Buchungen ansehen',
-        footer: 'Falls du nicht kommen kannst, storniere bitte in der App.',
+        cta: 'Termin ansehen',
+        footer: 'Falls du nicht kommen kannst, nutze den Button oben zum Stornieren.',
       },
     },
     es: {
@@ -222,8 +222,8 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         body: `Tu reserva para <strong>${p.service}</strong> en <strong>${p.business}</strong> ha sido creada con éxito.`,
         dateLabel: 'Cita',
         locationLabel: 'Ubicación',
-        cta: 'Ver mis reservas',
-        footer: 'Para cambiar o cancelar, visita GigZone.',
+        cta: 'Ver mi cita',
+        footer: 'Para cambiar o cancelar, usa el botón de arriba.',
       },
       cancellation: {
         subject: `Reserva cancelada — ${p.service}`,
@@ -240,7 +240,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         body: `Tu reserva para <strong>${p.service}</strong> en <strong>${p.business}</strong> ha sido reprogramada.`,
         dateLabel: 'Nueva cita',
         locationLabel: 'Ubicación',
-        cta: 'Ver mis reservas',
+        cta: 'Ver mi cita',
         footer: 'Si tienes alguna pregunta, no dudes en contactarnos.',
       },
       new_booking: {
@@ -267,8 +267,8 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         body: `Recordatorio: tienes una cita para <strong>${p.service}</strong> en <strong>${p.business}</strong>.`,
         dateLabel: 'Cita',
         locationLabel: 'Ubicación',
-        cta: 'Ver mis reservas',
-        footer: 'Si no puedes asistir, por favor cancela en la aplicación.',
+        cta: 'Ver mi cita',
+        footer: 'Si no puedes asistir, usa el botón de arriba para cancelar.',
       },
     },
     fr: {
@@ -278,8 +278,8 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         body: `Votre réservation pour <strong>${p.service}</strong> chez <strong>${p.business}</strong> a bien été créée.`,
         dateLabel: 'Rendez-vous',
         locationLabel: 'Lieu',
-        cta: 'Voir mes réservations',
-        footer: 'Pour modifier ou annuler, rendez-vous sur GigZone.',
+        cta: 'Voir mon rendez-vous',
+        footer: 'Pour modifier ou annuler, utilisez le bouton ci-dessus.',
       },
       cancellation: {
         subject: `Réservation annulée — ${p.service}`,
@@ -296,7 +296,7 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         body: `Votre réservation pour <strong>${p.service}</strong> chez <strong>${p.business}</strong> a été déplacée.`,
         dateLabel: 'Nouveau rendez-vous',
         locationLabel: 'Lieu',
-        cta: 'Voir mes réservations',
+        cta: 'Voir mon rendez-vous',
         footer: "Pour toute question, n'hésitez pas à nous contacter.",
       },
       new_booking: {
@@ -323,8 +323,8 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
         body: `Rappel : vous avez un rendez-vous pour <strong>${p.service}</strong> chez <strong>${p.business}</strong>.`,
         dateLabel: 'Rendez-vous',
         locationLabel: 'Lieu',
-        cta: 'Voir mes réservations',
-        footer: "Si vous ne pouvez pas venir, veuillez annuler dans l'application.",
+        cta: 'Voir mon rendez-vous',
+        footer: "Si vous ne pouvez pas venir, utilisez le bouton ci-dessus pour annuler.",
       },
     },
   };
@@ -332,7 +332,14 @@ function content(type: EmailType, lang: Lang, p: ContentParams): ContentResult {
   return map[lang][type];
 }
 
-function buildHtml(c: ContentResult, firstName: string, dt: string, locationLine?: string): string {
+function buildHtml(
+  c: ContentResult,
+  firstName: string,
+  dt: string,
+  locationLine?: string,
+  ctaUrl?: string,
+): string {
+  const link = ctaUrl ?? 'https://gigzone.app/booking/my';
   const locationBlock = locationLine ? `
         <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:16px 20px;margin-bottom:24px">
           <p style="margin:0;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px">${c.locationLabel}</p>
@@ -356,7 +363,7 @@ function buildHtml(c: ContentResult, firstName: string, dt: string, locationLine
         </div>
         ${locationBlock}
         <div style="text-align:center;margin:24px 0">
-          <a href="https://gigzone.app/booking/my"
+          <a href="${link}"
              style="background:#ea580c;color:#fff;text-decoration:none;padding:14px 32px;border-radius:12px;font-weight:700;font-size:15px;display:inline-block">
             ${c.cta}
           </a>
@@ -367,7 +374,7 @@ function buildHtml(c: ContentResult, firstName: string, dt: string, locationLine
         </p>
       </div>
       <p style="text-align:center;color:#aaa;font-size:11px;margin-top:20px">
-        GigZone · gigzone.app · <a href="https://gigzone.app/booking/my" style="color:#aaa">Moje rezervacije</a>
+        GigZone · gigzone.app · <a href="${link}" style="color:#aaa">${c.cta}</a>
       </p>
     </div>
   `;
@@ -393,14 +400,25 @@ export async function POST(request: NextRequest) {
 
     const { data: booking } = await db
       .from('bookings')
-      .select('starts_at, service_name_snapshot, client_id, business_id, location_id, staff_member_id, internal_notes')
+      .select('starts_at, service_name_snapshot, client_id, business_id, location_id, staff_member_id, internal_notes, guest_email, guest_name, guest_access_token')
       .eq('id', bookingId)
       .maybeSingle();
 
-    if (!booking?.client_id) return NextResponse.json({ ok: true });
+    if (!booking) return NextResponse.json({ ok: true });
 
-    // Verify caller is the booking's client or an active staff member of the business
-    if (user.id !== booking.client_id) {
+    // ── Authorization ──────────────────────────────────────────────────────────
+    // For guest bookings (no client_id): only business staff/owner can trigger.
+    // For registered client bookings: client OR staff/owner can trigger.
+    if (!booking.client_id) {
+      const { data: staffCheck } = await db
+        .from('staff_members')
+        .select('id')
+        .eq('business_id', booking.business_id)
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle();
+      if (!staffCheck) return NextResponse.json({ ok: true });
+    } else if (user.id !== booking.client_id) {
       const { data: staffCheck } = await db
         .from('staff_members')
         .select('id')
@@ -411,48 +429,69 @@ export async function POST(request: NextRequest) {
       if (!staffCheck) return NextResponse.json({ ok: true });
     }
 
-    const [clientRes, bpRes, locRes] = await Promise.all([
-      db.from('profiles').select('name, email, country').eq('id', booking.client_id).maybeSingle(),
+    // ── Resolve recipient ──────────────────────────────────────────────────────
+    // Email destination is ALWAYS read from DB — never from request body.
+    let recipientEmail: string | null = null;
+    let recipientName:  string | null = null;
+    let recipientCountry: string | null = null;
+    let ctaUrl = 'https://gigzone.app/booking/my';
+    let isGuest = false;
+
+    const [bpRes, locRes] = await Promise.all([
       db.from('booking_profiles').select('name, owner_id').eq('id', booking.business_id).maybeSingle(),
       db.from('business_locations').select('timezone, name, address, city, country').eq('id', booking.location_id).maybeSingle(),
     ]);
 
-    const clientProfile = clientRes.data;
-    const bpData        = bpRes.data;
-    if (!clientProfile?.email) return NextResponse.json({ ok: true });
+    if (booking.client_id) {
+      const { data: clientProfile } = await db
+        .from('profiles')
+        .select('name, email, country')
+        .eq('id', booking.client_id)
+        .maybeSingle();
+      recipientEmail   = clientProfile?.email ?? null;
+      recipientName    = clientProfile?.name  ?? null;
+      recipientCountry = clientProfile?.country ?? null;
+    } else {
+      // Guest booking — email from bookings.guest_email only, never from request body
+      recipientEmail   = booking.guest_email   ?? null;
+      recipientName    = booking.guest_name    ?? null;
+      recipientCountry = locRes.data?.country  ?? null; // use business location country for lang detection
+      isGuest          = true;
+      if (booking.guest_access_token) {
+        ctaUrl = `https://gigzone.app/booking/view?token=${booking.guest_access_token}`;
+      }
+    }
+
+    if (!recipientEmail) return NextResponse.json({ ok: true });
 
     const tz       = locRes.data?.timezone ?? 'UTC';
     const service  = booking.service_name_snapshot ?? '';
-    const business = bpData?.name ?? '';
-    const dt       = fmtDt(booking.starts_at, tz, getLang(clientProfile.country));
+    const business = bpRes.data?.name ?? '';
+    const dt       = fmtDt(booking.starts_at, tz, getLang(recipientCountry));
 
-    // Build a readable location line: "Salon Beograd · Knez Mihailova 5, Beograd"
     const locData = locRes.data;
     const locationLine = locData
       ? [locData.name, [locData.address, locData.city, locData.country].filter(Boolean).join(', ')].filter(Boolean).join(' · ')
       : undefined;
 
-    // ── Email to client ────────────────────────────────────────────────────────
-    const clientLang      = getLang(clientProfile.country);
-    const clientFirstName = clientProfile.name?.split(' ')[0] || 'there';
-    const clientContent   = content(type, clientLang, { firstName: clientFirstName, service, business, dt });
+    // ── Email to client / guest ────────────────────────────────────────────────
+    const recipientLang      = getLang(recipientCountry);
+    const recipientFirstName = recipientName?.split(' ')[0] || 'there';
+    const recipientContent   = content(type, recipientLang, { firstName: recipientFirstName, service, business, dt });
 
     await sendEmail({
-      to: clientProfile.email,
-      subject: clientContent.subject,
+      to: recipientEmail,
+      subject: recipientContent.subject,
       replyTo: 'support@gigzone.app',
-      html: buildHtml(clientContent, clientFirstName, dt, locationLine),
+      html: buildHtml(recipientContent, recipientFirstName, dt, locationLine, ctaUrl),
     });
 
     // ── Email to business owner + assigned staff (new booking OR client reschedule) ─
+    // Guest bookings also notify the business owner — they need to know about new guest bookings.
     if (type === 'confirmation' || type === 'reschedule') {
-      const clientName = clientProfile.name ?? 'Klijent';
+      const clientName = recipientName ?? (isGuest ? 'Gost' : 'Klijent');
 
-      // owner_id is the actual user UUID (booking_profiles.owner_id),
-      // which may differ from booking.business_id for non-primary profiles.
-      const ownerId = bpData?.owner_id ?? booking.business_id;
-
-      // Collect unique recipient emails: owner + assigned staff
+      const ownerId = bpRes.data?.owner_id ?? booking.business_id;
       const recipientIds = new Set<string>([ownerId]);
       if (booking.staff_member_id) {
         const { data: sm } = await db
@@ -480,13 +519,13 @@ export async function POST(request: NextRequest) {
         const rescheduleReason = type === 'reschedule' && (booking as any).internal_notes?.includes('[Pomjeranje termina]')
           ? (booking as any).internal_notes.replace('[Pomjeranje termina]', '').trim()
           : undefined;
-        const rContent   = content(bizEmailType, rLang, { firstName: rFirstName, service, business, dt: rDt, clientName, reason: rescheduleReason });
+        const rContent = content(bizEmailType, rLang, { firstName: rFirstName, service, business, dt: rDt, clientName, reason: rescheduleReason });
 
         await sendEmail({
           to: recipientProfile.email,
           subject: rContent.subject,
           replyTo: 'support@gigzone.app',
-          html: buildHtml(rContent, rFirstName, rDt, locationLine),
+          html: buildHtml(rContent, rFirstName, rDt, locationLine, 'https://gigzone.app/booking/business/bookings'),
         });
       }
     }

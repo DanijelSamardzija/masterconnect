@@ -3440,6 +3440,8 @@ export default {
   'ownerBookings.deleteModal.confirm': 'Yes, delete',
   'ownerBookings.add.noSlots': 'No available slots for this day.',
   'ownerBookings.add.success': 'Booking added',
+  'ownerBookings.add.emailPlaceholder': 'Guest email (optional)',
+  'staffBooking.guestEmailPlaceholder': 'Guest email (optional)',
   'ownerBookings.reschedule': 'Reschedule',
   'ownerBookings.rescheduled': 'Booking rescheduled',
   'ownerBookings.rescheduleNote': 'Reschedule note',

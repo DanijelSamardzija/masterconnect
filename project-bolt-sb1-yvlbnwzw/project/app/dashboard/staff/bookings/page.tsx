@@ -25,6 +25,7 @@ type StaffBooking = {
   client_phone: string | null;
   guest_name: string | null;
   guest_phone: string | null;
+  guest_email: string | null;
   location_name: string | null;
   notes: string | null;
   party_size: number;

@@ -38,42 +38,49 @@ function reminderContent(lang: Lang, service: string, business: string): Reminde
       subject: `Podsjetnik — termin sutra: ${service}`,
       title: 'Termin sutra ⏰',
       body: `Podsjećamo te da imaš termin za <strong>${service}</strong> kod <strong>${business}</strong>.`,
-      cta: 'Pregledaj rezervacije',
-      footer: 'Ako nisi u mogućnosti doći, otkaži termin u aplikaciji.',
+      cta: 'Pregledaj termin',
+      footer: 'Ako nisi u mogućnosti doći, možeš otkazati putem linka iznad.',
     },
     en: {
       subject: `Reminder — appointment tomorrow: ${service}`,
       title: 'Appointment tomorrow ⏰',
       body: `This is a reminder that you have an appointment for <strong>${service}</strong> at <strong>${business}</strong>.`,
-      cta: 'View bookings',
-      footer: "If you can't make it, please cancel in the app.",
+      cta: 'View appointment',
+      footer: "If you can't make it, use the button above to cancel.",
     },
     de: {
       subject: `Erinnerung — Termin morgen: ${service}`,
       title: 'Termin morgen ⏰',
       body: `Erinnerung: Du hast morgen einen Termin für <strong>${service}</strong> bei <strong>${business}</strong>.`,
-      cta: 'Buchungen ansehen',
-      footer: 'Falls du nicht kommen kannst, storniere bitte in der App.',
+      cta: 'Termin ansehen',
+      footer: 'Falls du nicht kommen kannst, nutze den Button oben zum Stornieren.',
     },
     es: {
       subject: `Recordatorio — cita mañana: ${service}`,
       title: 'Cita mañana ⏰',
       body: `Recordatorio: tienes una cita para <strong>${service}</strong> en <strong>${business}</strong>.`,
-      cta: 'Ver mis reservas',
-      footer: 'Si no puedes asistir, por favor cancela en la aplicación.',
+      cta: 'Ver mi cita',
+      footer: 'Si no puedes asistir, usa el botón de arriba para cancelar.',
     },
     fr: {
       subject: `Rappel — rendez-vous demain : ${service}`,
       title: 'Rendez-vous demain ⏰',
       body: `Rappel : vous avez un rendez-vous pour <strong>${service}</strong> chez <strong>${business}</strong>.`,
-      cta: 'Voir mes réservations',
-      footer: "Si vous ne pouvez pas venir, veuillez annuler dans l'application.",
+      cta: 'Voir mon rendez-vous',
+      footer: "Si vous ne pouvez pas venir, utilisez le bouton ci-dessus pour annuler.",
     },
   };
   return map[lang];
 }
 
-function buildHtml(c: ReminderEmail, firstName: string, dt: string, locationLine?: string): string {
+function buildHtml(
+  c: ReminderEmail,
+  firstName: string,
+  dt: string,
+  locationLine?: string,
+  ctaUrl?: string,
+): string {
+  const link = ctaUrl ?? 'https://gigzone.app/booking/my';
   return `
     <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1a1a1a">
       <div style="text-align:center;padding:32px 0 16px">
@@ -91,7 +98,7 @@ function buildHtml(c: ReminderEmail, firstName: string, dt: string, locationLine
           ${locationLine ? `<p style="margin:8px 0 0;font-size:13px;color:#555">📍 ${locationLine}</p>` : ''}
         </div>
         <div style="text-align:center;margin:24px 0">
-          <a href="https://gigzone.app/booking/my"
+          <a href="${link}"
              style="background:#ea580c;color:#fff;text-decoration:none;padding:14px 32px;border-radius:12px;font-weight:700;font-size:15px;display:inline-block">
             ${c.cta}
           </a>
@@ -128,34 +135,44 @@ export async function GET(request: NextRequest) {
 
   console.log('Booking reminders:', data);
 
-  // Send reminder emails if Brevo is configured
   let emailsSent = 0;
   if (process.env.BREVO_API_KEY && data?.bookings?.length) {
     for (const b of data.bookings as Array<{
-      booking_id: string;
-      starts_at: string;
-      service_name: string;
-      client_email: string;
-      client_name: string;
-      client_country: string;
-      business_name: string;
-      timezone: string;
-      location_name: string | null;
-      location_address: string | null;
-      location_city: string | null;
+      booking_id:          string;
+      starts_at:           string;
+      service_name:        string;
+      client_email:        string | null;
+      client_name:         string | null;
+      client_country:      string | null;
+      location_country:    string | null;
+      business_name:       string;
+      timezone:            string;
+      location_name:       string | null;
+      location_address:    string | null;
+      location_city:       string | null;
+      guest_access_token:  string | null;
+      is_guest:            boolean;
     }>) {
       if (!b.client_email) continue;
       try {
-        const lang         = getLang(b.client_country);
-        const firstName    = b.client_name?.split(' ')[0] || 'there';
-        const dt           = fmtDt(b.starts_at, b.timezone, lang);
-        const c            = reminderContent(lang, b.service_name ?? '', b.business_name ?? '');
+        // For guests: use business location country for lang detection
+        const langCountry = b.client_country ?? b.location_country;
+        const lang        = getLang(langCountry);
+        const firstName   = b.client_name?.split(' ')[0] || 'there';
+        const dt          = fmtDt(b.starts_at, b.timezone, lang);
+        const c           = reminderContent(lang, b.service_name ?? '', b.business_name ?? '');
         const locationLine = [b.location_name, [b.location_address, b.location_city].filter(Boolean).join(', ')].filter(Boolean).join(' · ') || undefined;
+
+        // Guest reminder CTA points to the secure guest view page, not /booking/my
+        const ctaUrl = b.is_guest && b.guest_access_token
+          ? `https://gigzone.app/booking/view?token=${b.guest_access_token}`
+          : 'https://gigzone.app/booking/my';
+
         await sendEmail({
           to: b.client_email,
           subject: c.subject,
           replyTo: 'support@gigzone.app',
-          html: buildHtml(c, firstName, dt, locationLine),
+          html: buildHtml(c, firstName, dt, locationLine, ctaUrl),
         });
         emailsSent++;
       } catch (emailErr) {

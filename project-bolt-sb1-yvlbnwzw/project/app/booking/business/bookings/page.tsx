@@ -33,6 +33,7 @@ type Booking = {
   client_phone: string | null;
   guest_name: string | null;
   guest_phone: string | null;
+  guest_email: string | null;
 };
 
 type HistoryBooking = { id: string; starts_at: string; service_name_snapshot: string; status: string };
@@ -144,6 +145,7 @@ function OwnerBookingsContent() {
   const [addSlotsLoading, setAddSlotsLoading] = useState(false);
   const [addName, setAddName]             = useState('');
   const [addPhone, setAddPhone]           = useState('');
+  const [addEmail, setAddEmail]           = useState('');
   const [addNotes, setAddNotes]           = useState('');
   const [addLoading, setAddLoading]       = useState(false);
   const [addTimezone, setAddTimezone]     = useState('UTC');
@@ -283,7 +285,7 @@ function OwnerBookingsContent() {
     setLoading(true);
     const { data } = await (supabase as any)
       .from('bookings')
-      .select('id, starts_at, ends_at, service_id, service_name_snapshot, status, staff_member_id, location_id, location:location_id(name), notes, internal_notes, client_id, guest_name, guest_phone, profiles!bookings_client_id_fkey(name, phone)')
+      .select('id, starts_at, ends_at, service_id, service_name_snapshot, status, staff_member_id, location_id, location:location_id(name), notes, internal_notes, client_id, guest_name, guest_phone, guest_email, profiles!bookings_client_id_fkey(name, phone)')
       .eq('business_id', staffBizId)
       .eq('staff_member_id', staffMemberId)
       .gte('starts_at', new Date().toISOString())
@@ -304,7 +306,7 @@ function OwnerBookingsContent() {
     setLoading(true);
     let query = (supabase as any)
       .from('bookings')
-      .select('id, starts_at, ends_at, service_id, service_name_snapshot, status, staff_member_id, location_id, location:location_id(name), notes, internal_notes, client_id, guest_name, guest_phone, profiles!bookings_client_id_fkey(name, phone)')
+      .select('id, starts_at, ends_at, service_id, service_name_snapshot, status, staff_member_id, location_id, location:location_id(name), notes, internal_notes, client_id, guest_name, guest_phone, guest_email, profiles!bookings_client_id_fkey(name, phone)')
       .eq('business_id', activeProfileId);
     if (filter === 'upcoming')
       query = query.gte('starts_at', new Date().toISOString()).in('status', ['pending', 'confirmed']);
@@ -507,6 +509,7 @@ function OwnerBookingsContent() {
     setAddStaffId(staff[0]?.id || '');
     setAddName('');
     setAddPhone('');
+    setAddEmail('');
     setAddNotes('');
     setAddOpen(true);
   };
@@ -519,8 +522,9 @@ function OwnerBookingsContent() {
       p_staff_member_id: addStaffId,
       p_starts_at:       addSlotStart,
       p_guest_name:      addName.trim(),
-      p_guest_phone:     addPhone.trim() || null,
-      p_notes:           addNotes.trim() || null,
+      p_guest_phone:     addPhone.trim()  || null,
+      p_guest_email:     addEmail.trim()  || null,
+      p_notes:           addNotes.trim()  || null,
     });
     setAddLoading(false);
     if (error || data?.ok === false) { toast.error(data?.error || 'Greška'); return; }
@@ -942,6 +946,12 @@ function OwnerBookingsContent() {
                       {b.guest_name && <span className="text-[10px] px-1.5 py-0.5 bg-muted rounded-full">{t('ownerBookings.guestLabel')}</span>}
                     </div>
                   )}
+                  {b.guest_email && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <span>✉</span>
+                      <span>{b.guest_email}</span>
+                    </div>
+                  )}
                   {b.notes?.trim() && <p className="text-xs text-muted-foreground/70 italic">{b.notes}</p>}
                   {b.internal_notes?.includes('[Pomjeranje termina]') && (
                     <p className="text-xs text-amber-600 dark:text-amber-400 italic">
@@ -1199,6 +1209,10 @@ function OwnerBookingsContent() {
                 />
                 <input type="tel" value={addPhone} onChange={e => setAddPhone(e.target.value)}
                   placeholder={t('ownerBookings.add.phonePlaceholder')}
+                  className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+                />
+                <input type="email" value={addEmail} onChange={e => setAddEmail(e.target.value)}
+                  placeholder={t('ownerBookings.add.emailPlaceholder')}
                   className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
                 />
                 <textarea value={addNotes} onChange={e => setAddNotes(e.target.value)}

@@ -3440,6 +3440,8 @@ export default {
   'ownerBookings.deleteModal.confirm': 'Da, obriši',
   'ownerBookings.add.noSlots': 'Nema slobodnih termina za ovaj dan.',
   'ownerBookings.add.success': 'Termin dodan',
+  'ownerBookings.add.emailPlaceholder': 'Email gosta (opciono)',
+  'staffBooking.guestEmailPlaceholder': 'Email gosta (opciono)',
   'ownerBookings.reschedule': 'Premjesti',
   'ownerBookings.rescheduled': 'Termin premješten',
   'ownerBookings.rescheduleNote': 'Razlog premještanja',

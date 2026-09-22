@@ -3350,6 +3350,8 @@ export default {
   'ownerBookings.deleteModal.confirm': 'Sí, eliminar',
   'ownerBookings.add.noSlots': 'No hay horarios disponibles para este día.',
   'ownerBookings.add.success': 'Cita añadida',
+  'ownerBookings.add.emailPlaceholder': 'Email del huésped (opcional)',
+  'staffBooking.guestEmailPlaceholder': 'Email del huésped (opcional)',
   'ownerBookings.reschedule': 'Reprogramar',
   'ownerBookings.rescheduled': 'Cita reprogramada',
   'ownerBookings.rescheduleNote': 'Motivo del cambio',
