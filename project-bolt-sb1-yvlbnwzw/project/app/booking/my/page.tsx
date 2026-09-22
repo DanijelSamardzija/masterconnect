@@ -11,6 +11,8 @@ import { useBookingAccess } from '@/lib/hooks/use-booking-access';
 import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
 import { Calendar, Clock, X, ChevronRight, ChevronLeft, Star, CalendarClock, MapPin, Phone, Tag, Building2 } from 'lucide-react';
+import { WhatsAppIcon, ViberIcon } from '@/components/brand-icons';
+import { parsePhone } from '@/lib/utils/parse-phone';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -417,12 +419,34 @@ function BookingCard({
             <MapPin className="w-3.5 h-3.5 shrink-0" />
             <span>{loc.name}</span>
           </div>
-          {loc.phone && (
-            <div className="flex items-center gap-1.5 text-sm text-muted-foreground pl-5">
-              <Phone className="w-3 h-3 shrink-0" />
-              <a href={`tel:${loc.phone}`} className="hover:text-primary transition-colors">{loc.phone}</a>
-            </div>
-          )}
+          {loc.phone && (() => {
+            const parsed = parsePhone(loc.phone);
+            if (!parsed) return null;
+            return (
+              <div className="flex items-center gap-1.5 pl-5">
+                <Phone className="w-3 h-3 shrink-0 text-muted-foreground" />
+                <a href={`tel:${parsed.tel}`} className="text-sm text-muted-foreground hover:text-primary transition-colors flex-1">
+                  {parsed.display}
+                </a>
+                <a
+                  href={`https://wa.me/${parsed.wa}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="WhatsApp"
+                  className="p-1 rounded-lg text-[#25D366] hover:bg-[#25D366]/10 transition-colors"
+                >
+                  <WhatsAppIcon className="w-4 h-4" />
+                </a>
+                <a
+                  href={`viber://chat?number=${encodeURIComponent(parsed.tel)}`}
+                  title="Viber"
+                  className="p-1 rounded-lg text-[#7360F2] hover:bg-[#7360F2]/10 transition-colors"
+                >
+                  <ViberIcon className="w-4 h-4" />
+                </a>
+              </div>
+            );
+          })()}
         </div>
       )}
 
