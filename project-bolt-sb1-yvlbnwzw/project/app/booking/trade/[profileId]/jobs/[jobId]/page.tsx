@@ -55,6 +55,7 @@ type Job = {
   total_labor_cost: number | null; total_materials_cost: number | null;
   total_expenses: number | null;
   cancelled_at: string | null; created_at: string; updated_at: string;
+  can_view_purchase_prices: boolean;
   materials: Material[]; expenses: Expense[]; photos: Photo[];
 };
 
@@ -105,7 +106,7 @@ function Section({ title, icon, children }: { title: string; icon: React.ReactNo
 
 // ─── Materials section ────────────────────────────────────────────────────────
 
-function MaterialsSection({ job, profileId, onReload }: { job: Job; profileId: string; onReload: () => void }) {
+function MaterialsSection({ job, canViewPurchasePrice, profileId, onReload }: { job: Job; canViewPurchasePrice: boolean; profileId: string; onReload: () => void }) {
   const { t } = useLanguage();
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
@@ -169,10 +170,12 @@ function MaterialsSection({ job, profileId, onReload }: { job: Job; profileId: s
           placeholder={t('trade.materials.salePrice')} className={inputCls} />
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <input type="number" value={form.purchase_price} onChange={(e) => setForm((f) => ({ ...f, purchase_price: e.target.value }))}
-          placeholder={t('trade.materials.purchasePrice')} className={inputCls} />
+        {canViewPurchasePrice && (
+          <input type="number" value={form.purchase_price} onChange={(e) => setForm((f) => ({ ...f, purchase_price: e.target.value }))}
+            placeholder={t('trade.materials.purchasePrice')} className={inputCls} />
+        )}
         <input type="text" value={form.supplier} onChange={(e) => setForm((f) => ({ ...f, supplier: e.target.value }))}
-          placeholder={t('trade.materials.supplier')} className={inputCls} />
+          placeholder={t('trade.materials.supplier')} className={`${inputCls} ${canViewPurchasePrice ? '' : 'col-span-2'}`} />
       </div>
       <div className="flex gap-2">
         <button onClick={() => { setShowAdd(false); setEditing(null); setForm(emptyForm); }}
@@ -203,7 +206,7 @@ function MaterialsSection({ job, profileId, onReload }: { job: Job; profileId: s
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {m.quantity}{m.unit ? ` ${m.unit}` : ''}
                     {m.sale_price != null ? ` · ${m.sale_price}` : ''}
-                    {m.purchase_price != null ? ` (${t('trade.materials.purchasePrice')}: ${m.purchase_price})` : ''}
+                    {canViewPurchasePrice && m.purchase_price != null ? ` (${t('trade.materials.purchasePrice')}: ${m.purchase_price})` : ''}
                     {m.supplier ? ` · ${m.supplier}` : ''}
                   </p>
                 </div>
@@ -655,7 +658,11 @@ export default function TradeJobDetailPage({ params }: { params: Promise<{ profi
     if (!data?.ok) {
       setNotFound(true);
     } else {
-      setJob(data as Job);
+      const d = data as any;
+      setJob({
+        ...d.job,
+        can_view_purchase_prices: d.can_view_purchase_prices ?? true,
+      } as Job);
     }
     setLoading(false);
   }
@@ -800,7 +807,7 @@ export default function TradeJobDetailPage({ params }: { params: Promise<{ profi
 
       {/* Sections */}
       <div className="flex flex-col gap-4">
-        <MaterialsSection job={job} profileId={profileId} onReload={load} />
+        <MaterialsSection job={job} canViewPurchasePrice={job.can_view_purchase_prices} profileId={profileId} onReload={load} />
         <ExpensesSection  job={job} profileId={profileId} onReload={load} />
         <PhotosSection    job={job} profileId={profileId} onReload={load} />
         <ReportSection    job={job} onReload={load} />
