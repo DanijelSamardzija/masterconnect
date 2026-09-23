@@ -284,14 +284,25 @@ export default function TradeOnboardingPage() {
     if (contactPhone2.trim()) channels.phone2 = contactPhone2.trim();
     if (contactEmail.trim())  channels.email  = contactEmail.trim();
 
-    const { data } = await (supabase as any).rpc('upsert_trade_profile', {
+    const rpcParams = {
       p_name:               bizName.trim(),
       p_business_subtype:   bizSubtype,
       p_timezone:           locTimezone || 'Europe/Sarajevo',
-      p_contact_channels:   channels,
+      p_contact_channels:   Object.keys(channels).length > 0 ? channels : null,
       p_emergency_enabled:  emergencyEnabled,
       ...(profileId ? { p_booking_profile_id: profileId } : {}),
-    });
+    };
+    let { data, error } = await (supabase as any).rpc('upsert_trade_profile', rpcParams);
+    if (error) { console.error('[upsert_trade_profile]', error); }
+    // If the profileId in the URL belongs to a deleted profile, retry without it (creates new)
+    if ((data as any)?.error === 'not_found' && profileId) {
+      const { data: d2, error: e2 } = await (supabase as any).rpc('upsert_trade_profile', {
+        ...rpcParams,
+        p_booking_profile_id: undefined,
+      });
+      data = d2;
+      if (e2) console.error('[upsert_trade_profile retry]', e2);
+    }
     setSaving(false);
     if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); return; }
     if ((data as any)?.location_id && !locId) setLocId((data as any).location_id);
@@ -446,7 +457,7 @@ export default function TradeOnboardingPage() {
   }
 
   function handleStepSave() {
-    if (currentKey === 'biztype')   saveBiztypeAndProfile();
+    if (currentKey === 'biztype')   advance();
     if (currentKey === 'profile')   saveBiztypeAndProfile();
     if (currentKey === 'services')  advance();
     if (currentKey === 'location')  saveLocation();
