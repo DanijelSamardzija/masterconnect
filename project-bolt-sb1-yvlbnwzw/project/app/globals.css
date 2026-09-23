@@ -221,3 +221,10 @@ body {
 .heart-pulse {
   animation: heart-pulse 0.6s ease-in-out;
 }
+
+/* Override native <select> option highlight — blue → primary (orange) in Chromium */
+select option:checked,
+select option:hover {
+  background: linear-gradient(hsl(var(--primary)), hsl(var(--primary)));
+  color: hsl(var(--primary-foreground));
+}
