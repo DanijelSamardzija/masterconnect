@@ -264,7 +264,7 @@ export default function TradeJobsPage() {
               {tab.desc_key && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="absolute -top-1.5 left-1 cursor-default text-muted-foreground/70 hover:text-muted-foreground transition-colors">
+                    <span className="absolute -top-3 left-1 cursor-default text-muted-foreground/70 hover:text-muted-foreground transition-colors">
                       <Info className="h-3 w-3" />
                     </span>
                   </TooltipTrigger>
