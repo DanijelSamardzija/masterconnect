@@ -1907,7 +1907,7 @@ export default {
   'booking.hub.type.appointment': 'Termine',
   'booking.hub.type.accommodation': 'Unterkunft',
   'booking.hub.type.restaurant': 'Restaurant',
-  'booking.hub.type.tradespeople': 'Handwerker',
+  'booking.hub.type.tradespeople': 'Handwerker & Firmen',
   'booking.hub.type.food_order': 'Bestellungen & Lieferung',
   'booking.hub.type.event': 'Veranstaltungen',
   'booking.nav.profilePicker': 'Ihre Profile',

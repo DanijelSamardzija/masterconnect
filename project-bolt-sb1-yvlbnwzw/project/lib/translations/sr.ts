@@ -1917,7 +1917,7 @@ export default {
   'booking.hub.type.appointment': 'Termini',
   'booking.hub.type.accommodation': 'Smještaj',
   'booking.hub.type.restaurant': 'Restoran',
-  'booking.hub.type.tradespeople': 'Majstori',
+  'booking.hub.type.tradespeople': 'Majstori i Firme',
   'booking.hub.type.food_order': 'Narudžbine i dostava',
   'booking.hub.type.event': 'Događaji',
   'booking.nav.profilePicker': 'Vaši profili',

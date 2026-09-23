@@ -1835,7 +1835,7 @@ export default {
   'booking.hub.type.appointment': 'Citas',
   'booking.hub.type.accommodation': 'Alojamiento',
   'booking.hub.type.restaurant': 'Restaurante',
-  'booking.hub.type.tradespeople': 'Oficios',
+  'booking.hub.type.tradespeople': 'Oficios y Empresas',
   'booking.hub.type.food_order': 'Pedidos y entrega',
   'booking.hub.type.event': 'Eventos',
   'booking.nav.profilePicker': 'Tus perfiles',

@@ -1842,7 +1842,7 @@ export default {
   'booking.hub.type.appointment': 'Rendez-vous',
   'booking.hub.type.accommodation': 'Hébergement',
   'booking.hub.type.restaurant': 'Restaurant',
-  'booking.hub.type.tradespeople': 'Artisans',
+  'booking.hub.type.tradespeople': 'Artisans & Entreprises',
   'booking.hub.type.food_order': 'Commandes & livraison',
   'booking.hub.type.event': 'Événements',
   'booking.nav.profilePicker': 'Vos profils',
