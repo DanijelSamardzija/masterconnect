@@ -263,13 +263,8 @@ export default function TradeOnboardingPage() {
 
   useEffect(() => { loadExisting(); }, [loadExisting]);
 
-  // Auto-fill location name from business name when entering the location step
-  useEffect(() => {
-    if (currentKey === 'location' && !locName && bizName) {
-      setLocName(bizName);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
+  // No auto-fill — bizName is used as placeholder in the location name input
+  // and as fallback value when saving if the field is left empty
 
   // ── Navigation ──────────────────────────────────────────────────────────
 
@@ -302,14 +297,15 @@ export default function TradeOnboardingPage() {
   }
 
   async function saveLocation() {
-    if (!locName.trim() || !locCity.trim() || !locCountry.trim()) {
+    if (!locCity.trim() || !locCountry.trim()) {
       toast.error(t('setup.error.nameRequired'));
       return;
     }
+    const effectiveLocName = locName.trim() || bizName.trim() || 'Lokacija';
     setSaving(true);
     if (locId) {
       const { data } = await (supabase as any).rpc('update_location', {
-        p_location_id: locId, p_name: locName.trim(),
+        p_location_id: locId, p_name: effectiveLocName,
         p_address: locAddress.trim() || null, p_city: locCity.trim(),
         p_country: locCountry.trim(),
         p_timezone: locTimezone || 'Europe/Sarajevo',
@@ -318,7 +314,7 @@ export default function TradeOnboardingPage() {
       if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); setSaving(false); return; }
     } else {
       const { data } = await (supabase as any).rpc('create_location', {
-        p_business_id: resolvedProfileId, p_name: locName.trim(),
+        p_business_id: resolvedProfileId, p_name: effectiveLocName,
         p_address: locAddress.trim() || null, p_city: locCity.trim(),
         p_country: locCountry.trim(),
         p_timezone: locTimezone || 'Europe/Sarajevo',
@@ -642,9 +638,9 @@ export default function TradeOnboardingPage() {
                 </div>
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium">{t('setup.locations.name')} *</label>
+                    <label className="text-sm font-medium">{t('setup.locations.name')}</label>
                     <input type="text" value={locName} onChange={(e) => setLocName(e.target.value)}
-                      placeholder="npr. Radionica Centar" className={inputCls} />
+                      placeholder={bizName || 'npr. Radionica Centar'} className={inputCls} />
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <label className="text-sm font-medium">{t('setup.locations.address')}</label>
