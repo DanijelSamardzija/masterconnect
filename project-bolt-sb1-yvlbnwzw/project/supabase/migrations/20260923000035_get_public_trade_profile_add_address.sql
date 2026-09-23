@@ -44,8 +44,8 @@ BEGIN
       'name',        ts.name,
       'description', ts.description,
       'price_type',  ts.price_type,
-      'price',       ts.price,
-      'currency',    ts.currency
+      'price',       ts.price_from,
+      'currency',    ts.price_currency
     ) ORDER BY ts.sort_order, ts.name
   )
   INTO v_svcs
