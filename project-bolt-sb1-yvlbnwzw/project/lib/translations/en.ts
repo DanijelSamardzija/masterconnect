@@ -2276,7 +2276,7 @@ export default {
   'trade.onboarding.services.heading': 'Your services',
   'trade.onboarding.services.desc': 'Add services you offer (you can add more later)',
   'trade.onboarding.location.heading': 'Location',
-  'trade.onboarding.location.desc': 'Where your base or workshop is located',
+  'trade.onboarding.location.desc': 'Where your company or office is located',
   'trade.onboarding.hours.heading': 'Working hours',
   'trade.onboarding.hours.desc': 'When you are available for new jobs',
   'trade.onboarding.staff.heading': 'Add a worker',

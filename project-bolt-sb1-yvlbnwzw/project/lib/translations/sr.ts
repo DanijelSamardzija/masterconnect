@@ -2276,7 +2276,7 @@ export default {
   'trade.onboarding.services.heading': 'Vaše usluge',
   'trade.onboarding.services.desc': 'Dodajte usluge koje nudite (možete dodati više kasnije)',
   'trade.onboarding.location.heading': 'Lokacija',
-  'trade.onboarding.location.desc': 'Gdje se nalazi vaša baza ili radionica',
+  'trade.onboarding.location.desc': 'Gdje se nalazi vaša firma ili kompanija',
   'trade.onboarding.hours.heading': 'Radno vrijeme',
   'trade.onboarding.hours.desc': 'Kada ste dostupni za nove poslove',
   'trade.onboarding.staff.heading': 'Dodajte radnika',

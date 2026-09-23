@@ -2201,7 +2201,7 @@ export default {
   'trade.onboarding.services.heading': 'Vos services',
   'trade.onboarding.services.desc': 'Ajoutez vos services (vous pouvez en ajouter plus tard)',
   'trade.onboarding.location.heading': 'Localisation',
-  'trade.onboarding.location.desc': 'Où se trouve votre base ou atelier',
+  'trade.onboarding.location.desc': 'Où se trouve votre entreprise ou bureau',
   'trade.onboarding.hours.heading': 'Heures de travail',
   'trade.onboarding.hours.desc': 'Quand vous êtes disponible pour de nouveaux travaux',
   'trade.onboarding.staff.heading': 'Ajouter un employé',

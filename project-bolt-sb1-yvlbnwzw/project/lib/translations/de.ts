@@ -2266,7 +2266,7 @@ export default {
   'trade.onboarding.services.heading': 'Ihre Leistungen',
   'trade.onboarding.services.desc': 'Fügen Sie Ihre Leistungen hinzu (später weitere möglich)',
   'trade.onboarding.location.heading': 'Standort',
-  'trade.onboarding.location.desc': 'Wo sich Ihr Betrieb oder Ihre Werkstatt befindet',
+  'trade.onboarding.location.desc': 'Wo sich Ihr Unternehmen oder Büro befindet',
   'trade.onboarding.hours.heading': 'Arbeitszeiten',
   'trade.onboarding.hours.desc': 'Wann Sie für neue Aufträge verfügbar sind',
   'trade.onboarding.staff.heading': 'Mitarbeiter hinzufügen',
