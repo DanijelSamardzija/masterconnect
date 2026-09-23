@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { supabase } from '@/lib/supabase/client';
-import { Wrench, Search, Zap, MapPin, Loader2, ChevronRight, Star } from 'lucide-react';
+import { Wrench, Search, Zap, MapPin, Loader2, ChevronRight, Star, ArrowLeft } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -76,6 +76,13 @@ export default function MajstoriPage() {
       {/* Header */}
       <div className="border-b border-border bg-card">
         <div className="max-w-2xl mx-auto px-4 py-6">
+          <button
+            onClick={() => router.push('/booking')}
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-sm transition-colors mb-4"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {t('booking.hub.title')}
+          </button>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-2xl bg-blue-100 dark:bg-blue-950 flex items-center justify-center shrink-0">
               <Wrench className="w-5 h-5 text-blue-600 dark:text-blue-400" />
