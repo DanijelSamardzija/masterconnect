@@ -182,9 +182,9 @@ export default function PublicTradeProfilePage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={e => e.stopPropagation()}
-                  className="flex items-center gap-1 text-sm text-muted-foreground mt-0.5 hover:text-primary transition-colors w-fit"
+                  className="flex items-start gap-1 text-sm text-muted-foreground mt-0.5 hover:text-primary transition-colors w-fit"
                 >
-                  <MapPin className="w-3.5 h-3.5 shrink-0" />
+                  <MapPin className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                   {locationLabel}
                 </a>
               );
