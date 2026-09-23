@@ -1,7 +1,7 @@
 'use client';
 
-import { use, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { ProtectedRoute } from '@/components/protected-route';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
@@ -27,7 +27,6 @@ function WorkerRedirect({
       .single()
       .then(({ data }: { data: { role: string } | null }) => {
         if (data?.role === 'worker') {
-          // Workers go to their own dashboard, not the owner dashboard
           const path = window.location.pathname;
           if (!path.includes('/worker')) {
             router.replace(`/booking/trade/${profileId}/worker/jobs`);
@@ -41,12 +40,11 @@ function WorkerRedirect({
 
 export default function TradeProfileLayout({
   children,
-  params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ profileId: string }>;
 }) {
-  const { profileId } = use(params);
+  const params = useParams();
+  const profileId = (params?.profileId as string) ?? '';
   return (
     <ProtectedRoute>
       <WorkerRedirect profileId={profileId}>{children}</WorkerRedirect>
