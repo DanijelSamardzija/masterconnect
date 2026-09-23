@@ -2184,7 +2184,7 @@ export default {
   'trade.onboarding.biztype.desc': 'Choisissez le type qui décrit le mieux votre activité',
   'trade.onboarding.biztype.solo': 'Artisan indépendant',
   'trade.onboarding.biztype.solo.desc': 'Vous travaillez seul, sans employés',
-  'trade.onboarding.biztype.company': 'Société / SARL',
+  'trade.onboarding.biztype.company': 'Entreprise',
   'trade.onboarding.biztype.company.desc': 'Entreprise enregistrée avec salariés',
   'trade.onboarding.biztype.cooperative': 'Coopérative',
   'trade.onboarding.biztype.cooperative.desc': 'Coopérative ou association d\'artisans',

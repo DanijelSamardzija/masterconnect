@@ -2259,7 +2259,7 @@ export default {
   'trade.onboarding.biztype.desc': 'Izaberite tip koji najbolje opisuje vašu djelatnost',
   'trade.onboarding.biztype.solo': 'Samostalni majstor',
   'trade.onboarding.biztype.solo.desc': 'Radite sami, bez zaposlenih',
-  'trade.onboarding.biztype.company': 'Firma / d.o.o.',
+  'trade.onboarding.biztype.company': 'Kompanija',
   'trade.onboarding.biztype.company.desc': 'Registrovana firma sa zaposlenima',
   'trade.onboarding.biztype.cooperative': 'Zadruga',
   'trade.onboarding.biztype.cooperative.desc': 'Zadruga ili udruženje majstora',

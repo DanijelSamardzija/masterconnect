@@ -2249,7 +2249,7 @@ export default {
   'trade.onboarding.biztype.desc': 'Wählen Sie den Typ, der Ihre Tätigkeit am besten beschreibt',
   'trade.onboarding.biztype.solo': 'Einzelhandwerker',
   'trade.onboarding.biztype.solo.desc': 'Sie arbeiten allein, ohne Mitarbeiter',
-  'trade.onboarding.biztype.company': 'Firma / GmbH',
+  'trade.onboarding.biztype.company': 'Unternehmen',
   'trade.onboarding.biztype.company.desc': 'Eingetragenes Unternehmen mit Mitarbeitern',
   'trade.onboarding.biztype.cooperative': 'Genossenschaft',
   'trade.onboarding.biztype.cooperative.desc': 'Genossenschaft oder Handwerkerverband',

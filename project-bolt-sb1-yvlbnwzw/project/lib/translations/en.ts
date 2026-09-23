@@ -2259,7 +2259,7 @@ export default {
   'trade.onboarding.biztype.desc': 'Choose the type that best describes your work',
   'trade.onboarding.biztype.solo': 'Solo tradesperson',
   'trade.onboarding.biztype.solo.desc': 'You work alone, no employees',
-  'trade.onboarding.biztype.company': 'Company / Ltd.',
+  'trade.onboarding.biztype.company': 'Company',
   'trade.onboarding.biztype.company.desc': 'Registered company with employees',
   'trade.onboarding.biztype.cooperative': 'Cooperative',
   'trade.onboarding.biztype.cooperative.desc': 'Cooperative or tradespeople association',
