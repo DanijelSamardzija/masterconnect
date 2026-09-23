@@ -147,7 +147,7 @@ export default function MajstoriPage() {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-2">
                       <p className="font-semibold text-sm text-foreground truncate">{biz.name}</p>
                       {biz.avg_rating != null && biz.review_count > 0 && (
                         <span className="flex items-center gap-0.5 text-sm text-amber-600 dark:text-amber-400 font-medium shrink-0">
@@ -155,13 +155,13 @@ export default function MajstoriPage() {
                           {biz.avg_rating.toFixed(1)} ({biz.review_count})
                         </span>
                       )}
-                      {biz.emergency_enabled && (
-                        <span className="flex items-center gap-0.5 text-xs font-medium text-red-600 dark:text-red-400 shrink-0">
-                          <Zap className="w-3 h-3" />
-                          {t('trade.majstori.emergencyAvailable')}
-                        </span>
-                      )}
                     </div>
+                    {biz.emergency_enabled && (
+                      <span className="flex items-center gap-0.5 text-xs font-medium text-red-600 dark:text-red-400 mt-0.5">
+                        <Zap className="w-3 h-3" />
+                        {t('trade.majstori.emergencyAvailable')}
+                      </span>
+                    )}
 
                     {locationLabel && (
                       <span
