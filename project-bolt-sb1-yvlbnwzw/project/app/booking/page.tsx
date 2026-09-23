@@ -266,6 +266,11 @@ function ProfileMiniCard({
       <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full leading-none ${colors.badge}`}>
         {t(`booking.hub.type.${profile.profile_type}`)}
       </span>
+      {profile.profile_type === 'tradespeople' && profile.business_subtype && (
+        <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full leading-none bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+          {t(`trade.subtype.${profile.business_subtype}` as Parameters<typeof t>[0])}
+        </span>
+      )}
       {profile.is_active && !profile.onboarding_done && (
         <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 leading-none">
           Setup

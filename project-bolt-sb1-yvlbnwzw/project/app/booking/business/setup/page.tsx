@@ -417,6 +417,8 @@ export default function BusinessSetupPage() {
   const [isBusinessActive, setIsBusinessActive] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileSaving, setProfileSaving] = useState(false);
+  // Trade subtype (solo/company/cooperative/freelancer)
+  const [bizSubtype, setBizSubtype] = useState<string>('company');
   // Marketplace + trade-specific public profile
   const [isMarketplaceListed, setIsMarketplaceListed] = useState(true);
   const [togglingMarketplace, setTogglingMarketplace] = useState(false);
@@ -609,6 +611,7 @@ export default function BusinessSetupPage() {
         setAvatarUrl(profileType === 'tradespeople' ? (d.logo_url ?? '') : (d.avatar_url ?? ''));
         setIsMarketplaceListed(d.is_marketplace_listed !== false);
         if (profileType === 'tradespeople') {
+          setBizSubtype(d.business_subtype ?? 'company');
           setTradePubDesc(d.description ?? '');
           setTradePubServiceAreas((d.service_area_cities ?? []).join(', '));
           const cc = d.contact_channels ?? {};
@@ -820,6 +823,7 @@ export default function BusinessSetupPage() {
         (supabase as any).rpc('upsert_trade_profile', {
           p_booking_profile_id: activeProfileId,
           p_name: bizName.trim(),
+          p_business_subtype: bizSubtype || null,
           p_description: tradePubDesc.trim() || null,
           p_service_area_cities: areas.length ? areas : null,
           p_contact_channels: {
@@ -2085,6 +2089,25 @@ export default function BusinessSetupPage() {
                       onChange={setTimezone}
                       className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                     />
+                  )}
+
+                  {/* Trade subtype selector */}
+                  {bizCategory === 'tradespeople' && (
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-medium text-muted-foreground">{t('trade.settings.subtype')}</label>
+                      <select
+                        value={bizSubtype}
+                        onChange={e => setBizSubtype(e.target.value)}
+                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                      >
+                        {(['solo', 'company', 'cooperative', 'freelancer'] as const).map(sub => (
+                          <option key={sub} value={sub}>
+                            {t(`trade.onboarding.biztype.${sub}` as Parameters<typeof t>[0])}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-muted-foreground mt-0.5">{t('trade.settings.subtypeDesc')}</p>
+                    </div>
                   )}
 
                   {/* Trade-specific public profile fields */}

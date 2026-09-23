@@ -11,6 +11,7 @@ export type BookingProfileSummary = {
   avatar_url: string | null;
   is_active: boolean;
   onboarding_done: boolean;
+  business_subtype: string | null;
   location_count: number;
   service_count: number;
   unit_count: number;

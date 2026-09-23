@@ -527,6 +527,9 @@ export default function TradeOnboardingPage() {
                 <div>
                   <h2 className="text-lg font-semibold">{t('trade.onboarding.biztype.heading')}</h2>
                   <p className="text-sm text-muted-foreground mt-0.5">{t('trade.onboarding.biztype.desc')}</p>
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-2 bg-blue-50 dark:bg-blue-950/40 rounded-lg px-3 py-2 border border-blue-200/60 dark:border-blue-800/40">
+                    {t('trade.onboarding.biztype.note')}
+                  </p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {(['solo', 'company', 'cooperative', 'freelancer'] as BusinessSubtype[]).map((type) => (
