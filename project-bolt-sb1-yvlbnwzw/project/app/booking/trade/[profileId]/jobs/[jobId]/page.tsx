@@ -14,12 +14,12 @@ import {
   Plus, Package, Receipt, Camera, FileText,
   User, Clock, MapPin, AlertCircle, CheckCircle2,
   PauseCircle, XCircle, Circle, ChevronDown,
-  Upload, Image as ImageIcon,
+  Upload, Image as ImageIcon, Navigation,
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type JobStatus   = 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'on_hold';
+type JobStatus   = 'pending' | 'confirmed' | 'on_the_way' | 'in_progress' | 'completed' | 'cancelled' | 'on_hold';
 type JobPriority = 'low' | 'normal' | 'high' | 'urgent';
 type PhotoType   = 'before' | 'during' | 'after' | 'document';
 type ExpenseType = 'fuel' | 'tool' | 'subcontractor' | 'parking' | 'other';
@@ -49,6 +49,7 @@ type Job = {
   assigned_to: string | null; assigned_name: string | null;
   scheduled_start: string | null; scheduled_end: string | null;
   actual_start: string | null; actual_end: string | null;
+  eta_time: string | null; on_the_way_at: string | null;
   location: string | null; notes: string | null; report_text: string | null;
   is_invoiced: boolean | null; invoice_amount: number | null;
   total_labor_cost: number | null; total_materials_cost: number | null;
@@ -69,6 +70,7 @@ const PRIORITY_COLOR: Record<JobPriority, string> = {
 const STATUS_COLOR: Record<JobStatus, string> = {
   pending:     'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
   confirmed:   'bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-400',
+  on_the_way:  'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-400',
   in_progress: 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400',
   completed:   'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400',
   cancelled:   'bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-400',
@@ -79,6 +81,7 @@ function StatusIcon({ status }: { status: JobStatus }) {
   switch (status) {
     case 'completed':   return <CheckCircle2 className="w-4 h-4" />;
     case 'in_progress': return <Clock className="w-4 h-4" />;
+    case 'on_the_way':  return <Navigation className="w-4 h-4" />;
     case 'confirmed':   return <Circle className="w-4 h-4" />;
     case 'on_hold':     return <PauseCircle className="w-4 h-4" />;
     case 'cancelled':   return <XCircle className="w-4 h-4" />;
@@ -558,8 +561,9 @@ function ReportSection({ job, onReload }: { job: Job; onReload: () => void }) {
 // ─── Status change panel ──────────────────────────────────────────────────────
 
 const NEXT_STATUSES: Record<JobStatus, JobStatus[]> = {
-  pending:     ['confirmed', 'cancelled'],
-  confirmed:   ['in_progress', 'on_hold', 'cancelled'],
+  pending:     ['confirmed', 'on_the_way', 'cancelled'],
+  confirmed:   ['on_the_way', 'in_progress', 'on_hold', 'cancelled'],
+  on_the_way:  ['in_progress', 'cancelled'],
   in_progress: ['completed', 'on_hold', 'cancelled'],
   on_hold:     ['confirmed', 'in_progress', 'cancelled'],
   completed:   [],
@@ -721,6 +725,15 @@ export default function TradeJobDetailPage({ params }: { params: Promise<{ profi
               <User className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
               <span className="text-muted-foreground">{t('trade.jobs.assignedTo')}: </span>
               <span className="text-foreground">{job.assigned_name}</span>
+            </div>
+          )}
+          {job.status === 'on_the_way' && (
+            <div className="flex items-center gap-2 text-sm">
+              <Navigation className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+              <span className="text-purple-700 dark:text-purple-400 font-medium">
+                {t('trade.jobs.status_on_the_way')}
+                {job.eta_time && ` · ${t('trade.worker.etaTime')} ${job.eta_time}`}
+              </span>
             </div>
           )}
           {job.notes && (

@@ -13,11 +13,12 @@ import {
   ArrowLeft, Loader2, Camera, Package, FileText,
   Clock, MapPin, CheckCircle2, PauseCircle, Play,
   RotateCcw, Upload, Image as ImageIcon, Plus, Trash2, User,
+  Navigation, Check,
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type JobStatus = 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'on_hold';
+type JobStatus = 'pending' | 'confirmed' | 'on_the_way' | 'in_progress' | 'completed' | 'cancelled' | 'on_hold';
 type PhotoType = 'before' | 'during' | 'after' | 'document';
 
 type Material = {
@@ -37,8 +38,8 @@ type Job = {
   assigned_to: string | null; assigned_name: string | null;
   scheduled_start: string | null; actual_start: string | null; actual_end: string | null;
   location: string | null; notes: string | null; report_text: string | null;
+  eta_time: string | null; on_the_way_at: string | null;
   materials: Material[]; photos: Photo[];
-  // financials — will be null if caller lacks can_view_financials
   total_materials_cost: number | null; total_expenses: number | null;
   can_view_client_records: boolean;
   can_create_job_reports: boolean;
@@ -68,6 +69,8 @@ export default function WorkerJobDetailPage({
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
   const [actingStatus, setActingStatus] = useState(false);
+  const [etaValue, setEtaValue] = useState('');
+  const [savingEta, setSavingEta] = useState(false);
 
   // Report editing
   const [editingReport, setEditingReport] = useState(false);
@@ -120,12 +123,32 @@ export default function WorkerJobDetailPage({
       p_status: newStatus,
     });
     if (data?.ok) {
-      toast.success(t('trade.worker.statusUpdated'));
+      if (newStatus === 'on_the_way') {
+        toast.success(t('trade.worker.onTheWayConfirm'));
+        setEtaValue(job?.eta_time ?? '');
+      } else {
+        toast.success(t('trade.worker.statusUpdated'));
+      }
       loadJob();
     } else {
       toast.error(data?.error ?? 'error');
     }
     setActingStatus(false);
+  }
+
+  async function handleSaveEta() {
+    setSavingEta(true);
+    const { data } = await (supabase as any).rpc('update_trade_job_eta', {
+      p_job_id:   jobId,
+      p_eta_time: etaValue.trim() || null,
+    });
+    if (data?.ok) {
+      toast.success(t('trade.worker.etaUpdated'));
+      loadJob();
+    } else {
+      toast.error(data?.error ?? 'error');
+    }
+    setSavingEta(false);
   }
 
   // ── Save report ────────────────────────────────────────────────────────────
@@ -268,46 +291,81 @@ export default function WorkerJobDetailPage({
 
       {/* Status quick-actions */}
       {!isTerminal && (
-        <div className="flex gap-2 mb-4 flex-wrap">
-          {(job.status === 'pending' || job.status === 'confirmed') && (
-            <button
-              onClick={() => handleStatusChange('in_progress')}
-              disabled={actingStatus}
-              className="flex-1 py-2.5 rounded-xl bg-green-600 text-white text-sm font-semibold hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
-            >
-              {actingStatus ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-              {t('trade.worker.startJob')}
-            </button>
-          )}
-          {job.status === 'on_hold' && (
-            <button
-              onClick={() => handleStatusChange('in_progress')}
-              disabled={actingStatus}
-              className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
-            >
-              {actingStatus ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
-              {t('trade.worker.resumeJob')}
-            </button>
-          )}
-          {job.status === 'in_progress' && (
-            <>
+        <div className="flex flex-col gap-2 mb-4">
+          <div className="flex gap-2 flex-wrap">
+            {/* On the way */}
+            {(job.status === 'pending' || job.status === 'confirmed') && (
               <button
-                onClick={() => handleStatusChange('completed')}
+                onClick={() => handleStatusChange('on_the_way')}
                 disabled={actingStatus}
-                className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
+                className="flex-1 py-2.5 rounded-xl bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
               >
-                {actingStatus ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                {t('trade.worker.completeJob')}
+                {actingStatus ? <Loader2 className="w-4 h-4 animate-spin" /> : <Navigation className="w-4 h-4" />}
+                {t('trade.worker.onTheWay')}
               </button>
+            )}
+            {/* Start / Arrived */}
+            {(job.status === 'pending' || job.status === 'confirmed' || job.status === 'on_the_way') && (
               <button
-                onClick={() => handleStatusChange('on_hold')}
+                onClick={() => handleStatusChange('in_progress')}
                 disabled={actingStatus}
-                className="px-4 py-2.5 rounded-xl border border-border text-sm text-muted-foreground hover:border-orange-400 hover:text-orange-600 disabled:opacity-50 transition-colors flex items-center gap-1.5"
+                className="flex-1 py-2.5 rounded-xl bg-green-600 text-white text-sm font-semibold hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
               >
-                <PauseCircle className="w-4 h-4" />
-                {t('trade.worker.putOnHold')}
+                {actingStatus ? <Loader2 className="w-4 h-4 animate-spin" /> : job.status === 'on_the_way' ? <CheckCircle2 className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                {job.status === 'on_the_way' ? t('trade.worker.arrived') : t('trade.worker.startJob')}
               </button>
-            </>
+            )}
+            {job.status === 'on_hold' && (
+              <button
+                onClick={() => handleStatusChange('in_progress')}
+                disabled={actingStatus}
+                className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
+              >
+                {actingStatus ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                {t('trade.worker.resumeJob')}
+              </button>
+            )}
+            {job.status === 'in_progress' && (
+              <>
+                <button
+                  onClick={() => handleStatusChange('completed')}
+                  disabled={actingStatus}
+                  className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
+                >
+                  {actingStatus ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                  {t('trade.worker.completeJob')}
+                </button>
+                <button
+                  onClick={() => handleStatusChange('on_hold')}
+                  disabled={actingStatus}
+                  className="px-4 py-2.5 rounded-xl border border-border text-sm text-muted-foreground hover:border-orange-400 hover:text-orange-600 disabled:opacity-50 transition-colors flex items-center gap-1.5"
+                >
+                  <PauseCircle className="w-4 h-4" />
+                  {t('trade.worker.putOnHold')}
+                </button>
+              </>
+            )}
+          </div>
+          {/* ETA row — shown when on_the_way */}
+          {job.status === 'on_the_way' && (
+            <div className="flex items-center gap-2 px-1">
+              <Clock className="w-4 h-4 text-purple-500 shrink-0" />
+              <span className="text-sm text-muted-foreground whitespace-nowrap">{t('trade.worker.etaTime')}:</span>
+              <input
+                type="time"
+                value={etaValue || (job.eta_time ?? '')}
+                onChange={e => setEtaValue(e.target.value)}
+                className="border border-border rounded-lg px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary w-32"
+              />
+              <button
+                onClick={handleSaveEta}
+                disabled={savingEta}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-purple-600 text-white text-xs font-semibold hover:bg-purple-700 disabled:opacity-50 transition-colors"
+              >
+                {savingEta ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                {t('trade.worker.etaSave')}
+              </button>
+            </div>
           )}
         </div>
       )}

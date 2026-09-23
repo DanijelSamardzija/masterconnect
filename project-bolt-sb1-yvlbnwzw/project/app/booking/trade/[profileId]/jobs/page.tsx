@@ -27,7 +27,7 @@ import { toCsv, downloadCsv } from '@/lib/utils/export-utils';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type JobStatus = 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'on_hold';
+type JobStatus = 'pending' | 'confirmed' | 'on_the_way' | 'in_progress' | 'completed' | 'cancelled' | 'on_hold';
 type JobPriority = 'low' | 'normal' | 'high' | 'urgent';
 
 type JobSummary = {
@@ -49,6 +49,7 @@ const STATUS_TABS: { key: JobStatus | 'all'; label_key: string }[] = [
   { key: 'all',         label_key: 'trade.jobs.statusAll' },
   { key: 'pending',     label_key: 'trade.jobs.statusPending' },
   { key: 'confirmed',   label_key: 'trade.jobs.statusConfirmed' },
+  { key: 'on_the_way',  label_key: 'trade.jobs.statusOnTheWay' },
   { key: 'in_progress', label_key: 'trade.jobs.statusInProgress' },
   { key: 'completed',   label_key: 'trade.jobs.statusCompleted' },
   { key: 'on_hold',     label_key: 'trade.jobs.statusOnHold' },

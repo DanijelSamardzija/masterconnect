@@ -21,12 +21,14 @@ import {
   RotateCcw,
   AlertTriangle,
   Download,
+  Navigation,
+  Check,
 } from 'lucide-react';
 import { toCsv, downloadCsv } from '@/lib/utils/export-utils';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type JobStatus = 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'on_hold' | 'cancelled';
+type JobStatus = 'pending' | 'confirmed' | 'on_the_way' | 'in_progress' | 'completed' | 'on_hold' | 'cancelled';
 
 type MyJob = {
   id: string;
@@ -41,6 +43,7 @@ type MyJob = {
   actual_end: string | null;
   client_name: string | null;
   client_phone: string | null;
+  eta_time: string | null;
   created_at: string;
 };
 
@@ -48,6 +51,7 @@ const STATUS_TABS: { key: JobStatus | 'all'; labelKey: string }[] = [
   { key: 'all',         labelKey: 'trade.jobs.statusAll' },
   { key: 'pending',     labelKey: 'trade.jobs.status_pending' },
   { key: 'confirmed',   labelKey: 'trade.jobs.status_confirmed' },
+  { key: 'on_the_way',  labelKey: 'trade.jobs.status_on_the_way' },
   { key: 'in_progress', labelKey: 'trade.jobs.status_in_progress' },
   { key: 'on_hold',     labelKey: 'trade.jobs.status_on_hold' },
   { key: 'completed',   labelKey: 'trade.jobs.status_completed' },
@@ -56,6 +60,7 @@ const STATUS_TABS: { key: JobStatus | 'all'; labelKey: string }[] = [
 const STATUS_COLORS: Record<JobStatus, string> = {
   pending:     'bg-amber-100  text-amber-800  dark:bg-amber-900/30  dark:text-amber-400',
   confirmed:   'bg-blue-100   text-blue-800   dark:bg-blue-900/30   dark:text-blue-400',
+  on_the_way:  'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
   in_progress: 'bg-green-100  text-green-800  dark:bg-green-900/30  dark:text-green-400',
   on_hold:     'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
   completed:   'bg-muted      text-muted-foreground',
@@ -86,6 +91,8 @@ export default function WorkerJobsPage({
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<JobStatus | 'all'>('all');
   const [actingId, setActingId] = useState<string | null>(null);
+  const [etaJobId, setEtaJobId] = useState<string | null>(null);
+  const [etaValue, setEtaValue] = useState('');
 
   useEffect(() => {
     if (!user || !profileId) return;
@@ -165,6 +172,37 @@ export default function WorkerJobsPage({
       toast.error(friendlyError(data?.error, t));
     }
     setActingId(null);
+  }
+
+  async function handleOnTheWay(jobId: string) {
+    setActingId(jobId);
+    const { data } = await (supabase as any).rpc('worker_update_job_status', {
+      p_job_id: jobId,
+      p_status: 'on_the_way',
+    });
+    if (data?.ok) {
+      toast.success(t('trade.worker.onTheWayConfirm'));
+      setEtaJobId(jobId);
+      setEtaValue('');
+      load(activeTab);
+    } else {
+      toast.error(friendlyError(data?.error, t));
+    }
+    setActingId(null);
+  }
+
+  async function handleUpdateEta(jobId: string) {
+    const { data } = await (supabase as any).rpc('update_trade_job_eta', {
+      p_job_id:  jobId,
+      p_eta_time: etaValue.trim() || null,
+    });
+    if (data?.ok) {
+      toast.success(t('trade.worker.etaUpdated'));
+      setEtaJobId(null);
+      load(activeTab);
+    } else {
+      toast.error(friendlyError(data?.error, t));
+    }
   }
 
   function formatDate(iso: string | null) {
@@ -302,60 +340,95 @@ export default function WorkerJobsPage({
                 </div>
 
                 {/* Actions */}
-                <div className="px-4 pb-4 flex gap-2 flex-wrap items-center">
-                  {/* Start / Resume */}
-                  {(job.status === 'pending' || job.status === 'confirmed') && (
-                    <button
-                      onClick={() => handleStatusChange(job.id, 'in_progress')}
-                      disabled={isActing}
-                      className="flex-1 py-2 rounded-xl bg-green-600 text-white text-xs font-semibold hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
-                    >
-                      {isActing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
-                      {t('trade.worker.startJob')}
-                    </button>
-                  )}
-                  {job.status === 'on_hold' && (
-                    <button
-                      onClick={() => handleStatusChange(job.id, 'in_progress')}
-                      disabled={isActing}
-                      className="flex-1 py-2 rounded-xl bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
-                    >
-                      {isActing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
-                      {t('trade.worker.resumeJob')}
-                    </button>
-                  )}
-                  {job.status === 'in_progress' && (
-                    <>
+                <div className="px-4 pb-4 flex flex-col gap-2">
+                  <div className="flex gap-2 flex-wrap items-center">
+                    {/* On the way */}
+                    {(job.status === 'pending' || job.status === 'confirmed') && (
                       <button
-                        onClick={() => handleStatusChange(job.id, 'completed')}
+                        onClick={() => handleOnTheWay(job.id)}
                         disabled={isActing}
-                        className="flex-1 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
+                        className="flex-1 py-2 rounded-xl bg-purple-600 text-white text-xs font-semibold hover:bg-purple-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
                       >
-                        {isActing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
-                        {t('trade.worker.completeJob')}
+                        {isActing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Navigation className="w-3.5 h-3.5" />}
+                        {t('trade.worker.onTheWay')}
                       </button>
+                    )}
+                    {/* Start / Resume */}
+                    {(job.status === 'pending' || job.status === 'confirmed' || job.status === 'on_the_way') && (
                       <button
-                        onClick={() => handleStatusChange(job.id, 'on_hold')}
+                        onClick={() => handleStatusChange(job.id, 'in_progress')}
                         disabled={isActing}
-                        className="px-3 py-2 rounded-xl border border-border text-xs text-muted-foreground hover:border-orange-400 hover:text-orange-600 disabled:opacity-50 transition-colors flex items-center gap-1"
+                        className="flex-1 py-2 rounded-xl bg-green-600 text-white text-xs font-semibold hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
                       >
-                        <PauseCircle className="w-3.5 h-3.5" />
-                        {t('trade.worker.putOnHold')}
+                        {isActing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : job.status === 'on_the_way' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                        {job.status === 'on_the_way' ? t('trade.worker.arrived') : t('trade.worker.startJob')}
                       </button>
-                    </>
+                    )}
+                    {job.status === 'on_hold' && (
+                      <button
+                        onClick={() => handleStatusChange(job.id, 'in_progress')}
+                        disabled={isActing}
+                        className="flex-1 py-2 rounded-xl bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
+                      >
+                        {isActing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
+                        {t('trade.worker.resumeJob')}
+                      </button>
+                    )}
+                    {job.status === 'in_progress' && (
+                      <>
+                        <button
+                          onClick={() => handleStatusChange(job.id, 'completed')}
+                          disabled={isActing}
+                          className="flex-1 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
+                        >
+                          {isActing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                          {t('trade.worker.completeJob')}
+                        </button>
+                        <button
+                          onClick={() => handleStatusChange(job.id, 'on_hold')}
+                          disabled={isActing}
+                          className="px-3 py-2 rounded-xl border border-border text-xs text-muted-foreground hover:border-orange-400 hover:text-orange-600 disabled:opacity-50 transition-colors flex items-center gap-1"
+                        >
+                          <PauseCircle className="w-3.5 h-3.5" />
+                          {t('trade.worker.putOnHold')}
+                        </button>
+                      </>
+                    )}
+                    {/* Detail link — always visible */}
+                    <button
+                      onClick={() => router.push(`/booking/trade/${profileId}/worker/jobs/${job.id}`)}
+                      className="px-3 py-2 rounded-xl border border-border text-xs text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center gap-1"
+                    >
+                      <ChevronRight className="w-3.5 h-3.5" />
+                      {t('trade.jobs.viewDetail')}
+                    </button>
+                  </div>
+                  {/* ETA input — shown when on_the_way or when user just clicked Na putu */}
+                  {(job.status === 'on_the_way' || etaJobId === job.id) && (
+                    <div className="flex gap-2 items-center">
+                      <Clock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">{t('trade.worker.etaTime')}:</span>
+                      {job.eta_time && etaJobId !== job.id && (
+                        <span className="text-xs font-medium text-purple-700 dark:text-purple-400">{job.eta_time}</span>
+                      )}
+                      {(etaJobId === job.id || job.status === 'on_the_way') && (
+                        <>
+                          <input
+                            type="time"
+                            value={etaJobId === job.id ? etaValue : (job.eta_time ?? '')}
+                            onChange={e => { setEtaJobId(job.id); setEtaValue(e.target.value); }}
+                            className="border border-border rounded-lg px-2 py-1 text-xs bg-background focus:outline-none focus:ring-1 focus:ring-primary w-24"
+                          />
+                          <button
+                            onClick={() => handleUpdateEta(job.id)}
+                            className="p-1.5 rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+                          >
+                            <Check className="w-3 h-3" />
+                          </button>
+                        </>
+                      )}
+                    </div>
                   )}
-                  {/* Detail link — always visible */}
-                  <button
-                    onClick={() =>
-                      router.push(
-                        `/booking/trade/${profileId}/worker/jobs/${job.id}`,
-                      )
-                    }
-                    className="px-3 py-2 rounded-xl border border-border text-xs text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center gap-1"
-                  >
-                    <ChevronRight className="w-3.5 h-3.5" />
-                    {t('trade.jobs.viewDetail')}
-                  </button>
                 </div>
               </div>
             );
