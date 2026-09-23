@@ -223,12 +223,19 @@ export default function TerminiPage() {
                       </span>
                     )}
                   </div>
-                  {(card.address || card.city) && (
-                    <p className="flex items-center gap-1 text-sm text-muted-foreground mt-0.5">
-                      <MapPin className="w-3 h-3 shrink-0" />
-                      {[card.address, card.city].filter(Boolean).join(', ')}
-                    </p>
-                  )}
+                  {(card.address || card.city) && (() => {
+                    const locationLabel = [card.address, card.city].filter(Boolean).join(', ');
+                    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locationLabel)}`;
+                    return (
+                      <span
+                        onClick={e => { e.stopPropagation(); window.open(mapsUrl, '_blank'); }}
+                        className="flex items-center gap-1 text-sm text-muted-foreground mt-0.5 w-fit truncate max-w-full hover:text-primary cursor-pointer"
+                      >
+                        <MapPin className="w-3 h-3 shrink-0" />
+                        {locationLabel}
+                      </span>
+                    );
+                  })()}
                   {card.serviceNames.length > 0 && (
                     <p className="text-sm text-muted-foreground mt-1 truncate">
                       {card.serviceNames.slice(0, 3).join(' · ')}
