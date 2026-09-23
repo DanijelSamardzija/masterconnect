@@ -298,7 +298,7 @@ export default function TradeOnboardingPage() {
 
   async function saveLocation() {
     if (!locCity.trim() || !locCountry.trim()) {
-      toast.error(t('setup.error.nameRequired'));
+      toast.error(t('setup.error.cityCountryRequired'));
       return;
     }
     const effectiveLocName = locName.trim() || bizName.trim() || 'Lokacija';

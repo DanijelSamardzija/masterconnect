@@ -3019,6 +3019,7 @@ export default {
   'setup.locations.cancel': 'Cancelar',
   'setup.locations.inactive': 'Inactivo',
   'setup.error.nameRequired': 'El nombre del negocio es obligatorio',
+  'setup.error.cityCountryRequired': 'La ciudad y el país son obligatorios',
   'setup.error.saveFailed': 'Error al guardar. Por favor, inténtalo de nuevo.',
   'setup.error.loadFailed': 'Error al cargar los datos.',
   'setup.tab.notifications': 'Notificaciones',

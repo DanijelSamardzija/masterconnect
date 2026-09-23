@@ -3026,6 +3026,7 @@ export default {
   'setup.locations.cancel': 'Annuler',
   'setup.locations.inactive': 'Inactif',
   'setup.error.nameRequired': "Le nom de l'entreprise est requis",
+  'setup.error.cityCountryRequired': 'La ville et le pays sont requis',
   'setup.error.saveFailed': "Échec de l'enregistrement. Veuillez réessayer.",
   'setup.error.loadFailed': 'Échec du chargement des données.',
   'setup.tab.notifications': 'Notifications',

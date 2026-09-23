@@ -3091,6 +3091,7 @@ export default {
   'setup.locations.cancel': 'Abbrechen',
   'setup.locations.inactive': 'Inaktiv',
   'setup.error.nameRequired': 'Unternehmensname ist erforderlich',
+  'setup.error.cityCountryRequired': 'Stadt und Land sind erforderlich',
   'setup.error.saveFailed': 'Speichern fehlgeschlagen. Bitte erneut versuchen.',
   'setup.error.loadFailed': 'Daten konnten nicht geladen werden.',
   'setup.tab.notifications': 'Benachrichtigungen',

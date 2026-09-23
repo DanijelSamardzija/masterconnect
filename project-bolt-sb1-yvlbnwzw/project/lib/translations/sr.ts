@@ -3101,6 +3101,7 @@ export default {
   'setup.locations.cancel': 'Odustani',
   'setup.locations.inactive': 'Neaktivna',
   'setup.error.nameRequired': 'Naziv biznisa je obavezan',
+  'setup.error.cityCountryRequired': 'Grad i zemlja su obavezni',
   'setup.error.saveFailed': 'Greška pri čuvanju. Pokušajte ponovo.',
   'setup.error.loadFailed': 'Greška pri učitavanju podataka.',
   'setup.tab.notifications': 'Notifikacije',

@@ -3101,6 +3101,7 @@ export default {
   'setup.locations.cancel': 'Cancel',
   'setup.locations.inactive': 'Inactive',
   'setup.error.nameRequired': 'Business name is required',
+  'setup.error.cityCountryRequired': 'City and country are required',
   'setup.error.saveFailed': 'Save failed. Please try again.',
   'setup.error.loadFailed': 'Failed to load data.',
   'setup.tab.notifications': 'Notifications',
