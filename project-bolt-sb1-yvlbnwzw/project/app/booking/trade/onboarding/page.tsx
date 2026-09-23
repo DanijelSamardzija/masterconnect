@@ -429,7 +429,7 @@ export default function TradeOnboardingPage() {
       .eq('id', resolvedProfileId);
     await reloadWithPreferred(resolvedProfileId);
     setSaving(false);
-    router.push(`/booking/trade/${resolvedProfileId}`);
+    router.replace(`/booking/trade/${resolvedProfileId}`);
   }
 
   async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {

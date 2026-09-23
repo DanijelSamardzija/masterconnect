@@ -595,7 +595,7 @@ export default function BookingSetupWizardPage() {
     // away. Without this, a stale context could resolve to the oldest profile.
     await reloadWithPreferred(resolvedProfileId);
     setSaving(false);
-    router.push(destination);
+    router.replace(destination);
   }
 
   async function copyLink() {
