@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { supabase } from '@/lib/supabase/client';
-import { Wrench, Search, Zap, MapPin, Loader2, ChevronRight } from 'lucide-react';
+import { Wrench, Search, Zap, MapPin, Loader2, ChevronRight, Star } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -18,6 +18,8 @@ type Business = {
   business_subtype: string | null;
   primary_city: string | null;
   primary_address: string | null;
+  avg_rating: number | null;
+  review_count: number;
   service_count: number;
   services: string[];
 };
@@ -147,6 +149,12 @@ export default function MajstoriPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-semibold text-sm text-foreground truncate">{biz.name}</p>
+                      {biz.avg_rating != null && biz.review_count > 0 && (
+                        <span className="flex items-center gap-0.5 text-sm text-amber-600 dark:text-amber-400 font-medium shrink-0">
+                          <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                          {biz.avg_rating.toFixed(1)} ({biz.review_count})
+                        </span>
+                      )}
                       {biz.emergency_enabled && (
                         <span className="flex items-center gap-0.5 text-xs font-medium text-red-600 dark:text-red-400 shrink-0">
                           <Zap className="w-3 h-3" />
