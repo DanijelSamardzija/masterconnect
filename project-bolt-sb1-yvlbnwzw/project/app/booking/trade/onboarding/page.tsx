@@ -550,6 +550,9 @@ export default function TradeOnboardingPage() {
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {t(`trade.onboarding.biztype.${type}.desc` as Parameters<typeof t>[0])}
                         </p>
+                        <p className={`text-xs mt-1.5 ${bizSubtype === type ? 'text-primary/70' : 'text-muted-foreground/60'}`}>
+                          {t(`trade.onboarding.biztype.${type}.hint` as Parameters<typeof t>[0])}
+                        </p>
                       </div>
                     </button>
                   ))}
