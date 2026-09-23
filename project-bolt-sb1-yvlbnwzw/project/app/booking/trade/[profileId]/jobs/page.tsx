@@ -141,18 +141,42 @@ export default function TradeJobsPage() {
 
   const load = useCallback(async (status: JobStatus | 'all') => {
     setLoading(true);
-    const { data } = await (supabase as any).rpc('list_trade_jobs', {
-      p_business_id: profileId,
-      p_status:      status === 'all' ? null : status,
-      p_client_id:   null,
-      p_limit:       100,
-      p_offset:      0,
-    });
-    if (data?.ok) {
-      setJobs(data.jobs ?? []);
-      setTotal(data.total ?? 0);
+    let query = (supabase as any)
+      .from('trade_jobs')
+      .select(
+        `id, title, status, priority, client_id, assigned_to,
+         scheduled_start, scheduled_end, location, created_at,
+         trade_clients!trade_jobs_client_id_fkey(name),
+         profiles!trade_jobs_assigned_to_fkey(name)`,
+        { count: 'exact' },
+      )
+      .eq('business_id', profileId)
+      .order('created_at', { ascending: false })
+      .limit(100);
+
+    if (status !== 'all') query = query.eq('status', status);
+
+    const { data: rows, count, error } = await query;
+
+    if (error) {
+      toast.error(error.message ?? 'error');
     } else {
-      toast.error(data?.error ?? 'error');
+      const jobs: JobSummary[] = (rows ?? []).map((r: any) => ({
+        id:              r.id,
+        title:           r.title,
+        status:          r.status,
+        priority:        r.priority,
+        client_id:       r.client_id,
+        client_name:     r.trade_clients?.name ?? null,
+        assigned_to:     r.assigned_to,
+        assigned_name:   r.profiles?.name ?? null,
+        scheduled_start: r.scheduled_start,
+        scheduled_end:   r.scheduled_end,
+        location:        r.location,
+        created_at:      r.created_at,
+      }));
+      setJobs(jobs);
+      setTotal(count ?? 0);
     }
     setLoading(false);
   }, [profileId]);
