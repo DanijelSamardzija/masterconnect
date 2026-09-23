@@ -1,17 +1,13 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { supabase } from '@/lib/supabase/client';
 import { ChevronLeft, Zap, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
-export default function PublicEmergencyPage({
-  params,
-}: {
-  params: Promise<{ businessId: string }>;
-}) {
-  const { businessId } = use(params);
+export default function PublicEmergencyPage() {
+  const { businessId } = useParams() as { businessId: string };
   const { t } = useLanguage();
   const router = useRouter();
 

@@ -1,7 +1,7 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
@@ -58,12 +58,8 @@ const STATUS_COLORS: Record<RequestStatus, string> = {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function TrackingPage({
-  params,
-}: {
-  params: Promise<{ token: string }>;
-}) {
-  const { token } = use(params);
+export default function TrackingPage() {
+  const { token } = useParams() as { token: string };
   const { t } = useLanguage();
   const router = useRouter();
   const { user } = useAuth();

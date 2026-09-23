@@ -1,7 +1,7 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { friendlyError } from '@/lib/utils/friendly-error';
 import { supabase } from '@/lib/supabase/client';
@@ -13,12 +13,8 @@ type Service = { id: string; name: string };
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function PublicRequestPage({
-  params,
-}: {
-  params: Promise<{ businessId: string }>;
-}) {
-  const { businessId } = use(params);
+export default function PublicRequestPage() {
+  const { businessId } = useParams() as { businessId: string };
   const { t } = useLanguage();
   const router = useRouter();
 
