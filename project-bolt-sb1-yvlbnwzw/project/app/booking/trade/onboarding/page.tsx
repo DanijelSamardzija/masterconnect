@@ -157,9 +157,8 @@ export default function TradeOnboardingPage() {
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   // Step 2 — Contacts
-  const [contactWhatsapp, setContactWhatsapp] = useState('');
-  const [contactViber, setContactViber] = useState('');
   const [contactPhone, setContactPhone] = useState('');
+  const [contactPhone2, setContactPhone2] = useState('');
   const [contactEmail, setContactEmail] = useState('');
 
   // Step 4 — Location
@@ -220,10 +219,9 @@ export default function TradeOnboardingPage() {
       if (bp.business_subtype)  setBizSubtype(bp.business_subtype as BusinessSubtype);
       if (bp.emergency_enabled) setEmergencyEnabled(true);
       const ch = bp.contact_channels ?? {};
-      if (ch.whatsapp) setContactWhatsapp(ch.whatsapp);
-      if (ch.viber)    setContactViber(ch.viber);
-      if (ch.phone)    setContactPhone(ch.phone);
-      if (ch.email)    setContactEmail(ch.email);
+      if (ch.phone)  setContactPhone(ch.phone);
+      if (ch.phone2) setContactPhone2(ch.phone2);
+      if (ch.email)  setContactEmail(ch.email);
     }
 
     const { data: locs } = await (supabase as any)
@@ -280,10 +278,9 @@ export default function TradeOnboardingPage() {
     if (!bizName.trim()) { toast.error(t('setup.error.nameRequired')); return; }
     setSaving(true);
     const channels: Record<string, string> = {};
-    if (contactWhatsapp.trim()) channels.whatsapp = contactWhatsapp.trim();
-    if (contactViber.trim())    channels.viber    = contactViber.trim();
-    if (contactPhone.trim())    channels.phone    = contactPhone.trim();
-    if (contactEmail.trim())    channels.email    = contactEmail.trim();
+    if (contactPhone.trim())  channels.phone  = contactPhone.trim();
+    if (contactPhone2.trim()) channels.phone2 = contactPhone2.trim();
+    if (contactEmail.trim())  channels.email  = contactEmail.trim();
 
     const { data } = await (supabase as any).rpc('upsert_trade_profile', {
       p_name:               bizName.trim(),
@@ -302,10 +299,9 @@ export default function TradeOnboardingPage() {
   async function saveContacts() {
     setSaving(true);
     const channels: Record<string, string> = {};
-    if (contactWhatsapp.trim()) channels.whatsapp = contactWhatsapp.trim();
-    if (contactViber.trim())    channels.viber    = contactViber.trim();
-    if (contactPhone.trim())    channels.phone    = contactPhone.trim();
-    if (contactEmail.trim())    channels.email    = contactEmail.trim();
+    if (contactPhone.trim())  channels.phone  = contactPhone.trim();
+    if (contactPhone2.trim()) channels.phone2 = contactPhone2.trim();
+    if (contactEmail.trim())  channels.email  = contactEmail.trim();
 
     await (supabase as any)
       .from('booking_profiles')
@@ -635,25 +631,20 @@ export default function TradeOnboardingPage() {
                 </div>
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium">{t('trade.onboarding.contacts.whatsapp')}</label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <input type="tel" value={contactWhatsapp} onChange={(e) => setContactWhatsapp(e.target.value)}
-                        placeholder="+387 61 000 000" className={`${inputCls} pl-9`} />
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium">{t('trade.onboarding.contacts.viber')}</label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <input type="tel" value={contactViber} onChange={(e) => setContactViber(e.target.value)}
-                        placeholder="+387 61 000 000" className={`${inputCls} pl-9`} />
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-1.5">
                     <label className="text-sm font-medium">{t('trade.onboarding.contacts.phone')}</label>
-                    <input type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)}
-                      placeholder="+387 33 000 000" className={inputCls} />
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <input type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)}
+                        placeholder="+387 61 000 000" className={`${inputCls} pl-9`} />
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium">{t('trade.onboarding.contacts.phone2')}</label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <input type="tel" value={contactPhone2} onChange={(e) => setContactPhone2(e.target.value)}
+                        placeholder="+387 33 000 000" className={`${inputCls} pl-9`} />
+                    </div>
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <label className="text-sm font-medium">{t('trade.onboarding.contacts.email')}</label>
