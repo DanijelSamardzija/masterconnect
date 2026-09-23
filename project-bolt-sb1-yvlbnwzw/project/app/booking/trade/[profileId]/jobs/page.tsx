@@ -246,40 +246,31 @@ export default function TradeJobsPage() {
 
       {/* Status tabs */}
       <TooltipProvider delayDuration={200}>
-        <div className="flex gap-1.5 overflow-x-auto pb-1 mb-4 scrollbar-none">
+        <div className="flex gap-1.5 overflow-x-auto pt-3 pb-1 mb-4 scrollbar-none">
           {STATUS_TABS.map((tab) => (
-            <div key={tab.key} className="shrink-0">
-              {tab.desc_key ? (
+            <div key={tab.key} className="shrink-0 relative">
+              {tab.desc_key && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button
-                      onClick={() => handleTabChange(tab.key)}
-                      className={`relative px-3 pt-3.5 pb-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
-                        activeTab === tab.key
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
-                      }`}
-                    >
-                      <Info className="absolute top-0.5 left-1 h-3 w-3 opacity-50" />
-                      {t(tab.label_key as any)}
-                    </button>
+                    <span className="absolute -top-2.5 left-1 cursor-default text-muted-foreground/60 hover:text-muted-foreground transition-colors z-10">
+                      <Info className="h-3 w-3" />
+                    </span>
                   </TooltipTrigger>
                   <TooltipContent className="max-w-48 text-center text-xs bg-popover border border-border text-foreground rounded-xl shadow-lg py-2 px-3">
                     {t(tab.desc_key as any)}
                   </TooltipContent>
                 </Tooltip>
-              ) : (
-                <button
-                  onClick={() => handleTabChange(tab.key)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
-                    activeTab === tab.key
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
-                  }`}
-                >
-                  {t(tab.label_key as any)}
-                </button>
               )}
+              <button
+                onClick={() => handleTabChange(tab.key)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+                  activeTab === tab.key
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
+                }`}
+              >
+                {t(tab.label_key as any)}
+              </button>
             </div>
           ))}
         </div>
