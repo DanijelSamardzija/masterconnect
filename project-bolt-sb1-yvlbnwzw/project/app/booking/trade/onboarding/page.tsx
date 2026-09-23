@@ -638,11 +638,6 @@ export default function TradeOnboardingPage() {
                 </div>
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium">{t('setup.locations.name')}</label>
-                    <input type="text" value={locName} onChange={(e) => setLocName(e.target.value)}
-                      placeholder={bizName || 'npr. Radionica Centar'} className={inputCls} />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
                     <label className="text-sm font-medium">{t('setup.locations.address')}</label>
                     <input type="text" value={locAddress} onChange={(e) => setLocAddress(e.target.value)}
                       placeholder="npr. Titova 15" className={inputCls} />
