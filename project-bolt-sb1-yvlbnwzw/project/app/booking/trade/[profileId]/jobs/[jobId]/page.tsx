@@ -1,7 +1,7 @@
-'use client';
+﻿'use client';
 
-import { use, useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, useRef } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
@@ -620,8 +620,8 @@ function StatusPanel({ job, onReload }: { job: Job; onReload: () => void }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function TradeJobDetailPage({ params }: { params: Promise<{ profileId: string; jobId: string }> }) {
-  const { profileId, jobId } = use(params);
+export default function TradeJobDetailPage() {
+  const { profileId, jobId } = useParams() as { profileId: string; jobId: string };
   const router = useRouter();
   const { t } = useLanguage();
   const { user } = useAuth();

@@ -1,7 +1,7 @@
-'use client';
+﻿'use client';
 
-import { use, useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, useRef } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
@@ -342,7 +342,7 @@ export default function TradeClientPage({
 }: {
   params: Promise<{ profileId: string; clientId: string }>;
 }) {
-  const { profileId, clientId } = use(params);
+  const { profileId, clientId } = useParams() as { profileId: string; clientId: string };
   const router = useRouter();
   const { t } = useLanguage();
   const { user } = useAuth();

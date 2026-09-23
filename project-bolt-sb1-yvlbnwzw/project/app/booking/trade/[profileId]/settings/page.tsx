@@ -1,7 +1,7 @@
-'use client';
+﻿'use client';
 
-import { use, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
@@ -10,8 +10,8 @@ import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { Settings, ChevronRight, Loader2, Globe, Store } from 'lucide-react';
 
-export default function TradeSettingsPage({ params }: { params: Promise<{ profileId: string }> }) {
-  const { profileId } = use(params);
+export default function TradeSettingsPage() {
+  const { profileId } = useParams() as { profileId: string };
   const { t } = useLanguage();
   const { user } = useAuth();
   const router = useRouter();

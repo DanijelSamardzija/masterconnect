@@ -1,6 +1,6 @@
-'use client';
+﻿'use client';
 
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
@@ -148,7 +148,7 @@ export default function TradeStaffPage({
 }: {
   params: Promise<{ profileId: string }>;
 }) {
-  const { profileId } = use(params);
+  const { profileId } = useParams() as { profileId: string };
   const { t } = useLanguage();
   const { user } = useAuth();
   const { setActiveProfileId } = useBookingProfile();

@@ -1,7 +1,7 @@
-'use client';
+﻿'use client';
 
-import { use, useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, useCallback } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
@@ -122,8 +122,8 @@ function JobRow({ job, profileId, onClick }: { job: JobSummary; profileId: strin
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function TradeJobsPage({ params }: { params: Promise<{ profileId: string }> }) {
-  const { profileId } = use(params);
+export default function TradeJobsPage() {
+  const { profileId } = useParams() as { profileId: string };
   const router = useRouter();
   const { t } = useLanguage();
   const { user } = useAuth();

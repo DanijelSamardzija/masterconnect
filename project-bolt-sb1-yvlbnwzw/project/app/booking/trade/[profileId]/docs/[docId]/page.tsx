@@ -1,7 +1,7 @@
-'use client';
+﻿'use client';
 
-import { use, useEffect, useState, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
@@ -62,7 +62,7 @@ export default function DocEditorPage({
 }: {
   params: Promise<{ profileId: string; docId: string }>;
 }) {
-  const { profileId, docId } = use(params);
+  const { profileId, docId } = useParams() as { profileId: string; docId: string };
   const { t } = useLanguage();
   const { user } = useAuth();
   const router = useRouter();

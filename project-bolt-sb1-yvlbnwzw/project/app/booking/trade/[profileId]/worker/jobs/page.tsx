@@ -1,7 +1,7 @@
-'use client';
+﻿'use client';
 
-import { use, useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, useCallback } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { friendlyError } from '@/lib/utils/friendly-error';
 import { useAuth } from '@/lib/contexts/auth-context';
@@ -81,7 +81,7 @@ export default function WorkerJobsPage({
 }: {
   params: Promise<{ profileId: string }>;
 }) {
-  const { profileId } = use(params);
+  const { profileId } = useParams() as { profileId: string };
   const router = useRouter();
   const { t } = useLanguage();
   const { user } = useAuth();

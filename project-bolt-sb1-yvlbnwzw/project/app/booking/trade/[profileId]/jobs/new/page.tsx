@@ -1,7 +1,7 @@
-'use client';
+﻿'use client';
 
-import { use, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
@@ -15,8 +15,8 @@ type StaffOption  = { id: string; user_id: string; name: string };
 
 const PRIORITY_KEYS = ['low', 'normal', 'high', 'urgent'] as const;
 
-export default function NewTradeJobPage({ params }: { params: Promise<{ profileId: string }> }) {
-  const { profileId } = use(params);
+export default function NewTradeJobPage() {
+  const { profileId } = useParams() as { profileId: string };
   const router = useRouter();
   const { t } = useLanguage();
   const { user } = useAuth();

@@ -1,6 +1,6 @@
-'use client';
+﻿'use client';
 
-import { use, useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { friendlyError } from '@/lib/utils/friendly-error';
 import { useAuth } from '@/lib/contexts/auth-context';
@@ -116,8 +116,8 @@ function fmtN(n: number): string {
 
 // ── Component ──────────────────────────────────────────────────────────────
 
-export default function TradeAnalyticsPage({ params }: { params: Promise<{ profileId: string }> }) {
-  const { profileId } = use(params);
+export default function TradeAnalyticsPage() {
+  const { profileId } = useParams() as { profileId: string };
   const { t } = useLanguage();
   const { user } = useAuth();
   const { setActiveProfileId } = useBookingProfile();
