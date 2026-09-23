@@ -168,7 +168,6 @@ export default function TradeOnboardingPage() {
   const [locCity, setLocCity] = useState('');
   const [locCountry, setLocCountry] = useState('');
   const [locTimezone, setLocTimezone] = useState(getBrowserTimezone());
-  const [locPhone, setLocPhone] = useState('');
 
   // Step 5 — Hours
   const [dayHours, setDayHours] = useState<DayHour[]>(DEFAULT_HOURS);
@@ -226,7 +225,7 @@ export default function TradeOnboardingPage() {
 
     const { data: locs } = await (supabase as any)
       .from('business_locations')
-      .select('id, name, address, city, country, timezone, phone')
+      .select('id, name, address, city, country, timezone')
       .eq('business_id', resolvedProfileId)
       .eq('is_active', true)
       .order('is_primary', { ascending: false })
@@ -239,7 +238,6 @@ export default function TradeOnboardingPage() {
       setLocCity(loc.city ?? '');
       setLocCountry(loc.country ?? '');
       setLocTimezone(loc.timezone || getBrowserTimezone());
-      setLocPhone(loc.phone ?? '');
 
       const { data: hoursData } = await (supabase as any).rpc('get_opening_hours', {
         p_location_id: loc.id,
@@ -265,6 +263,14 @@ export default function TradeOnboardingPage() {
   }, [user, resolvedProfileId]);
 
   useEffect(() => { loadExisting(); }, [loadExisting]);
+
+  // Auto-fill location name from business name when entering the location step
+  useEffect(() => {
+    if (currentKey === 'location' && !locName && bizName) {
+      setLocName(bizName);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
 
   // ── Navigation ──────────────────────────────────────────────────────────
 
@@ -323,7 +329,7 @@ export default function TradeOnboardingPage() {
         p_address: locAddress.trim() || null, p_city: locCity.trim(),
         p_country: locCountry.trim(),
         p_timezone: locTimezone || 'Europe/Sarajevo',
-        p_phone: locPhone.trim() || null,
+        p_phone: contactPhone.trim() || null,
       });
       if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); setSaving(false); return; }
     } else {
@@ -332,7 +338,7 @@ export default function TradeOnboardingPage() {
         p_address: locAddress.trim() || null, p_city: locCity.trim(),
         p_country: locCountry.trim(),
         p_timezone: locTimezone || 'Europe/Sarajevo',
-        p_phone: locPhone.trim() || null,
+        p_phone: contactPhone.trim() || null,
         p_is_primary: true,
       });
       if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); setSaving(false); return; }
@@ -686,11 +692,6 @@ export default function TradeOnboardingPage() {
                     <label className="text-sm font-medium">{t('setup.locations.address')}</label>
                     <input type="text" value={locAddress} onChange={(e) => setLocAddress(e.target.value)}
                       placeholder="npr. Titova 15" className={inputCls} />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium">{t('setup.locations.phone')}</label>
-                    <input type="tel" value={locPhone} onChange={(e) => setLocPhone(e.target.value)}
-                      placeholder="+387 33 000 000" className={inputCls} />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="flex flex-col gap-1.5">
