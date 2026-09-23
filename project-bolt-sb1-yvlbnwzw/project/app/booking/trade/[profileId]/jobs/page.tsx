@@ -248,11 +248,11 @@ export default function TradeJobsPage() {
       <TooltipProvider delayDuration={300}>
         <div className="flex gap-1.5 overflow-x-auto pb-1 mb-4 scrollbar-none">
           {STATUS_TABS.map((tab) => (
-            <div key={tab.key} className="shrink-0 flex items-center">
+            <div key={tab.key} className="shrink-0 relative">
               <button
                 onClick={() => handleTabChange(tab.key)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
-                  tab.desc_key ? 'rounded-r-none pr-2' : ''
+                  tab.desc_key ? 'pr-4' : ''
                 } ${
                   activeTab === tab.key
                     ? 'bg-primary text-primary-foreground'
@@ -264,17 +264,14 @@ export default function TradeJobsPage() {
               {tab.desc_key && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span
-                      className={`flex items-center justify-center px-1.5 py-1.5 rounded-r-lg text-xs cursor-default transition-colors ${
-                        activeTab === tab.key
-                          ? 'bg-primary text-primary-foreground/70 hover:text-primary-foreground'
-                          : 'bg-muted text-muted-foreground/60 hover:bg-accent hover:text-foreground'
-                      }`}
-                    >
-                      <HelpCircle className="w-3 h-3" />
+                    <span className="absolute -top-1.5 right-0.5 cursor-default">
+                      <HelpCircle className="w-3 h-3 text-primary/60 hover:text-primary transition-colors" />
                     </span>
                   </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-[220px] text-center">
+                  <TooltipContent
+                    side="bottom"
+                    className="max-w-[200px] text-center text-xs bg-card border border-border text-foreground shadow-lg rounded-xl py-2 px-3"
+                  >
                     {t(tab.desc_key as any)}
                   </TooltipContent>
                 </Tooltip>
