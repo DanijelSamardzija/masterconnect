@@ -22,7 +22,14 @@ import {
   PauseCircle,
   XCircle,
   Download,
+  HelpCircle,
 } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { toCsv, downloadCsv } from '@/lib/utils/export-utils';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -45,14 +52,14 @@ type JobSummary = {
   created_at: string;
 };
 
-const STATUS_TABS: { key: JobStatus | 'all'; label_key: string }[] = [
+const STATUS_TABS: { key: JobStatus | 'all'; label_key: string; desc_key?: string }[] = [
   { key: 'all',         label_key: 'trade.jobs.statusAll' },
-  { key: 'pending',     label_key: 'trade.jobs.statusPending' },
-  { key: 'confirmed',   label_key: 'trade.jobs.statusConfirmed' },
-  { key: 'on_the_way',  label_key: 'trade.jobs.statusOnTheWay' },
-  { key: 'in_progress', label_key: 'trade.jobs.statusInProgress' },
-  { key: 'completed',   label_key: 'trade.jobs.statusCompleted' },
-  { key: 'on_hold',     label_key: 'trade.jobs.statusOnHold' },
+  { key: 'pending',     label_key: 'trade.jobs.statusPending',    desc_key: 'trade.jobs.statusDesc.pending' },
+  { key: 'confirmed',   label_key: 'trade.jobs.statusConfirmed',  desc_key: 'trade.jobs.statusDesc.confirmed' },
+  { key: 'on_the_way',  label_key: 'trade.jobs.statusOnTheWay',   desc_key: 'trade.jobs.statusDesc.on_the_way' },
+  { key: 'in_progress', label_key: 'trade.jobs.statusInProgress', desc_key: 'trade.jobs.statusDesc.in_progress' },
+  { key: 'completed',   label_key: 'trade.jobs.statusCompleted',  desc_key: 'trade.jobs.statusDesc.completed' },
+  { key: 'on_hold',     label_key: 'trade.jobs.statusOnHold',     desc_key: 'trade.jobs.statusDesc.on_hold' },
 ];
 
 const PRIORITY_COLOR: Record<JobPriority, string> = {
@@ -238,21 +245,44 @@ export default function TradeJobsPage() {
       </div>
 
       {/* Status tabs */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1 mb-4 scrollbar-none">
-        {STATUS_TABS.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => handleTabChange(tab.key)}
-            className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
-              activeTab === tab.key
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
-            }`}
-          >
-            {t(tab.label_key as any)}
-          </button>
-        ))}
-      </div>
+      <TooltipProvider delayDuration={300}>
+        <div className="flex gap-1.5 overflow-x-auto pb-1 mb-4 scrollbar-none">
+          {STATUS_TABS.map((tab) => (
+            <div key={tab.key} className="shrink-0 flex items-center">
+              <button
+                onClick={() => handleTabChange(tab.key)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+                  tab.desc_key ? 'rounded-r-none pr-2' : ''
+                } ${
+                  activeTab === tab.key
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
+                }`}
+              >
+                {t(tab.label_key as any)}
+              </button>
+              {tab.desc_key && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span
+                      className={`flex items-center justify-center px-1.5 py-1.5 rounded-r-lg text-xs cursor-default transition-colors ${
+                        activeTab === tab.key
+                          ? 'bg-primary text-primary-foreground/70 hover:text-primary-foreground'
+                          : 'bg-muted text-muted-foreground/60 hover:bg-accent hover:text-foreground'
+                      }`}
+                    >
+                      <HelpCircle className="w-3 h-3" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-[220px] text-center">
+                    {t(tab.desc_key as any)}
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </div>
+          ))}
+        </div>
+      </TooltipProvider>
 
       {/* Loading */}
       {loading && (
