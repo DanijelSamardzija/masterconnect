@@ -1309,19 +1309,11 @@ export default function BookingSetupWizardPage() {
                     )}
 
                     <div className="flex flex-col gap-2 pt-2">
-                      {bookingUrl && (
-                        <button
-                          onClick={() => router.push(new URL(bookingUrl).pathname)}
-                          className="w-full flex items-center justify-center gap-2 text-sm font-medium bg-primary text-primary-foreground rounded-xl py-3 hover:opacity-90 transition-opacity"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                          {t('booking.activate.viewPage')}
-                        </button>
-                      )}
                       <button
                         onClick={() => finishOnboarding('/booking/business/bookings')}
-                        className="w-full text-sm text-muted-foreground hover:text-foreground border border-border rounded-xl py-3 transition-colors"
+                        className="w-full flex items-center justify-center gap-2 text-sm font-medium bg-primary text-primary-foreground rounded-xl py-3 hover:opacity-90 transition-opacity"
                       >
+                        <Check className="w-4 h-4" />
                         {t('bookingSetup.activate.dashboard')}
                       </button>
                     </div>
@@ -1366,7 +1358,6 @@ export default function BookingSetupWizardPage() {
                               p_enabled: true,
                             });
                             if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); setSaving(false); return; }
-                            // Mark onboarding complete on explicit activation
                             await (supabase as any)
                               .from('booking_profiles')
                               .update({ onboarding_done: true })
@@ -1384,22 +1375,16 @@ export default function BookingSetupWizardPage() {
                         </button>
                       ) : (
                         <button
-                          onClick={() => finishOnboarding()}
+                          onClick={() => finishOnboarding('/booking/business/bookings')}
                           disabled={saving}
                           className="w-full flex items-center justify-center gap-2 text-sm font-medium bg-primary text-primary-foreground rounded-xl py-3 hover:opacity-90 transition-opacity disabled:opacity-50"
                         >
                           {saving
                             ? <Loader2 className="w-4 h-4 animate-spin" />
                             : <Check className="w-4 h-4" />}
-                          {t('bookingSetup.done.finishButton')}
+                          {t('bookingSetup.activate.dashboard')}
                         </button>
                       )}
-                      <button
-                        onClick={() => finishOnboarding('/booking/business/bookings')}
-                        className="w-full text-sm text-muted-foreground hover:text-foreground border border-border rounded-xl py-3 transition-colors"
-                      >
-                        {t('bookingSetup.activate.dashboard')}
-                      </button>
                     </div>
                   </>
                 )}

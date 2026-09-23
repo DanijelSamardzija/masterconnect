@@ -998,12 +998,6 @@ export default function TradeOnboardingPage() {
                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                     {t('trade.onboarding.done.dashboard')}
                   </button>
-                  <button
-                    onClick={() => router.push('/booking/requests')}
-                    className="w-full text-sm text-muted-foreground hover:text-foreground border border-border rounded-xl py-3 transition-colors"
-                  >
-                    {t('trade.onboarding.done.requests')}
-                  </button>
                 </div>
               </div>
             )}

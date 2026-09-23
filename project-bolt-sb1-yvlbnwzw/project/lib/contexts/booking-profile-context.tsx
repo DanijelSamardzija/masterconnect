@@ -9,6 +9,7 @@ export type BookingProfileSummary = {
   profile_type: 'appointment' | 'accommodation' | 'restaurant' | 'tradespeople' | 'food_order' | 'event';
   name: string;
   avatar_url: string | null;
+  logo_url: string | null;
   is_active: boolean;
   onboarding_done: boolean;
   business_subtype: string | null;

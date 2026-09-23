@@ -254,23 +254,26 @@ function ProfileMiniCard({
       }`}
     >
       <div className={`w-11 h-11 rounded-xl overflow-hidden flex items-center justify-center shrink-0 ${colors.icon}`}>
-        {profile.avatar_url
+        {(profile.profile_type === 'tradespeople' ? (profile.logo_url || profile.avatar_url) : profile.avatar_url)
           // eslint-disable-next-line @next/next/no-img-element
-          ? <img src={profile.avatar_url} alt={profile.name} className="w-full h-full object-cover" />
+          ? <img src={(profile.profile_type === 'tradespeople' ? (profile.logo_url || profile.avatar_url) : profile.avatar_url)!} alt={profile.name} className="w-full h-full object-cover" />
           : <ProfileTypeIcon type={profile.profile_type} className="w-5 h-5" />
         }
       </div>
       <span className="text-[11px] font-semibold text-foreground leading-tight line-clamp-2 w-full px-0.5">
         {profile.name}
       </span>
-      <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full leading-none ${colors.badge}`}>
-        {t(`booking.hub.type.${profile.profile_type}`)}
-      </span>
-      {profile.profile_type === 'tradespeople' && profile.business_subtype && (
-        <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full leading-none bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
-          {t(`trade.subtype.${profile.business_subtype}` as Parameters<typeof t>[0])}
-        </span>
-      )}
+      {profile.profile_type === 'tradespeople' && profile.business_subtype
+        ? (
+          <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full leading-none ${colors.badge}`}>
+            {t(`trade.subtype.${profile.business_subtype}` as Parameters<typeof t>[0])}
+          </span>
+        ) : (
+          <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full leading-none ${colors.badge}`}>
+            {t(`booking.hub.type.${profile.profile_type}`)}
+          </span>
+        )
+      }
       {profile.is_active && !profile.onboarding_done && (
         <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 leading-none">
           Setup
