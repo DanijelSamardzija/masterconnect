@@ -28,7 +28,7 @@ function labelInput(label: string, children: React.ReactNode) {
   );
 }
 
-export function TradeServicesTab({ businessId }: { businessId: string }) {
+export function TradeServicesTab({ businessId, hideTitle = false }: { businessId: string; hideTitle?: boolean }) {
   const { t } = useLanguage();
   const [services, setServices] = useState<TradeService[]>([]);
   const [loading, setLoading] = useState(true);
@@ -123,10 +123,12 @@ export function TradeServicesTab({ businessId }: { businessId: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <p className="text-sm font-medium">{t('trade.setup.title')}</p>
-        <p className="text-xs text-muted-foreground mt-0.5">{t('trade.setup.desc')}</p>
-      </div>
+      {!hideTitle && (
+        <div>
+          <p className="text-sm font-medium">{t('trade.setup.title')}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{t('trade.setup.desc')}</p>
+        </div>
+      )}
 
       {services.length === 0 && !showForm && (
         <p className="text-sm text-muted-foreground py-4 text-center">{t('trade.service.empty')}</p>

@@ -2231,7 +2231,7 @@ export default {
   // ── Tradesperson system ────────────────────────────────────────────────────
   'trade.setup.tab': 'Usluge',
   'trade.setup.title': 'Vaše usluge',
-  'trade.setup.desc': 'Dodajte usluge koje nudite. Klijenti će slati zahtjeve za procjenu.',
+  'trade.setup.desc': 'Klijenti pretražuju i kontaktiraju firme po vrstama usluga.',
   'trade.service.add': 'Dodaj uslugu',
   'trade.service.name': 'Naziv usluge',
   'trade.service.namePh': 'npr. Popravka slavine, Elektro instalacija',

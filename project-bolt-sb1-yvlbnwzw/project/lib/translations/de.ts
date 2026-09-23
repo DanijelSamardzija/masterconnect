@@ -2221,7 +2221,7 @@ export default {
   // ── Tradesperson system ────────────────────────────────────────────────────
   'trade.setup.tab': 'Leistungen',
   'trade.setup.title': 'Ihre Leistungen',
-  'trade.setup.desc': 'Leistungen hinzufügen. Kunden senden Anfragen für ein Angebot.',
+  'trade.setup.desc': 'Kunden suchen und kontaktieren Firmen nach Dienstleistungsarten.',
   'trade.service.add': 'Leistung hinzufügen',
   'trade.service.name': 'Leistungsname',
   'trade.service.namePh': 'z.B. Rohrreparatur, Elektroinstallation',

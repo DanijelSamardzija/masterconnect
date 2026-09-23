@@ -664,7 +664,7 @@ export default function TradeOnboardingPage() {
                   <p className="text-sm text-muted-foreground mt-0.5">{t('trade.onboarding.services.desc')}</p>
                 </div>
                 {resolvedProfileId && (
-                  <TradeServicesTab businessId={resolvedProfileId} />
+                  <TradeServicesTab businessId={resolvedProfileId} hideTitle />
                 )}
               </div>
             )}

@@ -2149,7 +2149,7 @@ export default {
   // ── Tradesperson system ────────────────────────────────────────────────────
   'trade.setup.tab': 'Servicios',
   'trade.setup.title': 'Tus servicios',
-  'trade.setup.desc': 'Añade los servicios que ofreces. Los clientes enviarán solicitudes de presupuesto.',
+  'trade.setup.desc': 'Los clientes buscan y contactan empresas por tipo de servicio.',
   'trade.service.add': 'Añadir servicio',
   'trade.service.name': 'Nombre del servicio',
   'trade.service.namePh': 'p.ej. Reparación de tuberías, Instalación eléctrica',
