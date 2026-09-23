@@ -142,9 +142,11 @@ export default function TradeAnalyticsPage() {
     setLoading(true);
     setError('');
     const { data: res } = await (supabase as any).rpc('get_trade_analytics', {
-      p_business_id: profileId,
-      p_date_from:   from,
-      p_date_to:     to,
+      p_business_id:  profileId,
+      p_date_from:    from,
+      p_date_to:      to,
+      p_staff_id:     null,
+      p_origin_type:  null,
     });
     if (res?.ok) {
       setData(res as AnalyticsResult);

@@ -144,6 +144,7 @@ export default function TradeJobsPage() {
     const { data } = await (supabase as any).rpc('list_trade_jobs', {
       p_business_id: profileId,
       p_status:      status === 'all' ? null : status,
+      p_client_id:   null,
       p_limit:       100,
       p_offset:      0,
     });
