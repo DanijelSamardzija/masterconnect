@@ -24,6 +24,12 @@ import {
   Download,
   Info,
 } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { toCsv, downloadCsv } from '@/lib/utils/export-utils';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -239,34 +245,36 @@ export default function TradeJobsPage() {
       </div>
 
       {/* Status tabs */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1 mb-4 scrollbar-none">
-        {STATUS_TABS.map((tab) => (
-          <div key={tab.key} className="shrink-0 relative group/tab">
-            <button
-              onClick={() => handleTabChange(tab.key)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
-                tab.desc_key ? 'pr-5' : ''
-              } ${
-                activeTab === tab.key
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
-              }`}
-            >
-              {t(tab.label_key as any)}
-            </button>
-            {tab.desc_key && (
-              <>
-                <span className="absolute top-0.5 right-0.5 pointer-events-none">
-                  <Info className="h-3 w-3 text-muted-foreground/70" />
-                </span>
-                <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-1.5 z-20 px-3 py-1.5 bg-popover border border-border text-xs text-foreground rounded-xl shadow-lg text-center max-w-48 opacity-0 group-hover/tab:opacity-100 transition-opacity whitespace-normal">
-                  {t(tab.desc_key as any)}
-                </div>
-              </>
-            )}
-          </div>
-        ))}
-      </div>
+      <TooltipProvider delayDuration={200}>
+        <div className="flex gap-1.5 overflow-x-auto pb-1 mb-4 scrollbar-none">
+          {STATUS_TABS.map((tab) => (
+            <div key={tab.key} className="shrink-0 flex items-center gap-0.5">
+              <button
+                onClick={() => handleTabChange(tab.key)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+                  activeTab === tab.key
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
+                }`}
+              >
+                {t(tab.label_key as any)}
+              </button>
+              {tab.desc_key && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="cursor-default text-muted-foreground/70 hover:text-muted-foreground transition-colors">
+                      <Info className="h-3.5 w-3.5" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-48 text-center text-xs bg-popover border border-border text-foreground rounded-xl shadow-lg py-2 px-3">
+                    {t(tab.desc_key as any)}
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </div>
+          ))}
+        </div>
+      </TooltipProvider>
 
       {/* Loading */}
       {loading && (
