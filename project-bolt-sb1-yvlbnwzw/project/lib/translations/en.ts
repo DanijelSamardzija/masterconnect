@@ -2353,7 +2353,7 @@ export default {
   'trade.nav.jobs':        'Jobs',
   'trade.nav.clients':     'Clients',
   'trade.nav.staff':       'Staff',
-  'trade.nav.emergency':   'Emergency',
+  'trade.nav.emergency':   'Emergency calls',
   'trade.nav.analytics':   'Analytics',
   'trade.nav.docs':        'Documents',
   'trade.nav.settings':    'Settings',

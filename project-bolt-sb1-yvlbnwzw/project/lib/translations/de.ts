@@ -2343,7 +2343,7 @@ export default {
   'trade.nav.jobs':        'Aufträge',
   'trade.nav.clients':     'Kunden',
   'trade.nav.staff':       'Mitarbeiter',
-  'trade.nav.emergency':   'Notfälle',
+  'trade.nav.emergency':   'Notfalleinsätze',
   'trade.nav.analytics':   'Analytik',
   'trade.nav.docs':        'Dokumente',
   'trade.nav.settings':    'Einstellungen',

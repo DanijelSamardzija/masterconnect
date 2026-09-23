@@ -2353,7 +2353,7 @@ export default {
   'trade.nav.jobs':        'Poslovi',
   'trade.nav.clients':     'Klijenti',
   'trade.nav.staff':       'Radnici',
-  'trade.nav.emergency':   'Hitne',
+  'trade.nav.emergency':   'Hitne intervencije',
   'trade.nav.analytics':   'Analitika',
   'trade.nav.docs':        'Dokumentacija',
   'trade.nav.settings':    'Podešavanja',

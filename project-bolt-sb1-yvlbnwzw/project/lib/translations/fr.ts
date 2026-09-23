@@ -2278,7 +2278,7 @@ export default {
   'trade.nav.jobs':        'Chantiers',
   'trade.nav.clients':     'Clients',
   'trade.nav.staff':       'Équipe',
-  'trade.nav.emergency':   'Urgences',
+  'trade.nav.emergency':   'Interventions urgentes',
   'trade.nav.analytics':   'Analytique',
   'trade.nav.docs':        'Documents',
   'trade.nav.settings':    'Paramètres',

@@ -18,6 +18,7 @@ type OverviewStats = {
   servicesTotal: number;
   staffCount: number;
   emergencyEnabled: boolean;
+  emergencyAfterHours: boolean;
   profileName: string;
   profileAvatar: string | null;
 };
@@ -74,7 +75,7 @@ export default function TradeOverviewPage() {
       const [profileRes, requestsRes, servicesRes, staffRes] = await Promise.all([
         (supabase as any)
           .from('booking_profiles')
-          .select('name, avatar_url, emergency_enabled')
+          .select('name, avatar_url, emergency_enabled, emergency_after_hours')
           .eq('id', profileId)
           .single(),
         (supabase as any)
@@ -89,7 +90,8 @@ export default function TradeOverviewPage() {
           .from('staff_members')
           .select('id')
           .eq('business_id', profileId)
-          .eq('is_active', true),
+          .eq('is_active', true)
+          .neq('role', 'owner'),
       ]);
 
       const profile = profileRes.data;
@@ -105,6 +107,7 @@ export default function TradeOverviewPage() {
         servicesTotal: services.length,
         staffCount,
         emergencyEnabled: profile?.emergency_enabled ?? false,
+        emergencyAfterHours: profile?.emergency_after_hours ?? false,
         profileName: profile?.name ?? '',
         profileAvatar: profile?.avatar_url ?? null,
       });
@@ -167,14 +170,26 @@ export default function TradeOverviewPage() {
           icon={<Users className="w-5 h-5 text-green-600 dark:text-green-400" />}
           label={t('trade.dashboard.overview.staff')}
           primary={String(stats?.staffCount ?? 0)}
-          secondary={t('trade.dashboard.overview.active')}
+          secondary={(stats?.staffCount ?? 0) > 0 ? t('trade.dashboard.overview.active') : undefined}
           iconBg="bg-green-100 dark:bg-green-950"
         />
         <StatCard
           icon={<Zap className="w-5 h-5 text-red-600 dark:text-red-400" />}
           label={t('trade.nav.emergency')}
-          primary={stats?.emergencyEnabled ? '✓' : '—'}
-          secondary={stats?.emergencyEnabled ? t('trade.onboarding.emergency.enable') : t('trade.onboarding.emergency.disabled')}
+          primary={
+            !stats?.emergencyEnabled
+              ? '—'
+              : stats?.emergencyAfterHours
+                ? '24/7'
+                : '✓'
+          }
+          secondary={
+            !stats?.emergencyEnabled
+              ? t('trade.onboarding.emergency.off')
+              : stats?.emergencyAfterHours
+                ? t('trade.onboarding.emergency.anytime')
+                : t('trade.onboarding.emergency.hours')
+          }
           iconBg="bg-red-100 dark:bg-red-950"
         />
       </div>
