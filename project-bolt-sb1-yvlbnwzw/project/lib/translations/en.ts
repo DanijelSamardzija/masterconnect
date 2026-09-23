@@ -2670,10 +2670,10 @@ export default {
   'trade.staff.permissions.can_accept_emergency':     'Accept & manage emergencies',
 
   // ── Trade Client Flow / Marketplace (Faza 8) ─────────────────────────────
-  'trade.majstori.title':             'Find a Tradesperson',
+  'trade.majstori.title':             'Tradespeople & Companies',
   'trade.majstori.desc':              'Find qualified tradespeople and craftsmen in your area',
   'trade.majstori.search':            'Search by city...',
-  'trade.majstori.searchPh':          'Find what you need',
+  'trade.majstori.searchPh':          'Find qualified tradespeople and companies',
   'trade.majstori.filter.city':       'City',
   'trade.majstori.empty':             'No businesses found.',
   'trade.majstori.emergencyAvailable':'Accepts emergencies',

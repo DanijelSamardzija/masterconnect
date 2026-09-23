@@ -2670,10 +2670,10 @@ export default {
   'trade.staff.permissions.can_accept_emergency':     'Prihvatanje i upravljanje intervencijama',
 
   // ── Trade Client Flow / Marketplace (Faza 8) ─────────────────────────────
-  'trade.majstori.title':             'Pronađite zanatliju',
-  'trade.majstori.desc':              'Pronađite kvalifikovane zanatlije i firme u vašem gradu',
+  'trade.majstori.title':             'Majstori i Firme',
+  'trade.majstori.desc':              'Pronađite kvalifikovane majstore i firme u vašem gradu',
   'trade.majstori.search':            'Pretraži po gradu...',
-  'trade.majstori.searchPh':          'Pronađi šta ti treba',
+  'trade.majstori.searchPh':          'Pronađite kvalifikovane majstore i firme',
   'trade.majstori.filter.city':       'Grad',
   'trade.majstori.empty':             'Nema pronađenih firmi.',
   'trade.majstori.emergencyAvailable':'Prima hitne intervencije',

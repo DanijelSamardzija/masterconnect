@@ -2660,10 +2660,10 @@ export default {
   'trade.staff.permissions.can_accept_emergency':     'Notfalleinsätze annehmen und verwalten',
 
   // ── Trade Client Flow / Marketplace (Faza 8) ─────────────────────────────
-  'trade.majstori.title':             'Handwerker finden',
+  'trade.majstori.title':             'Handwerker & Firmen',
   'trade.majstori.desc':              'Qualifizierte Handwerker und Firmen in Ihrer Stadt',
   'trade.majstori.search':            'Nach Stadt suchen...',
-  'trade.majstori.searchPh':          'Finden Sie was Sie brauchen',
+  'trade.majstori.searchPh':          'Qualifizierte Handwerker und Firmen finden',
   'trade.majstori.filter.city':       'Stadt',
   'trade.majstori.empty':             'Keine Unternehmen gefunden.',
   'trade.majstori.emergencyAvailable':'Notfalleinsätze möglich',

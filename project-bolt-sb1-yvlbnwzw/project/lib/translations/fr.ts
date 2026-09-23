@@ -2595,10 +2595,10 @@ export default {
   'trade.staff.permissions.can_accept_emergency':     'Accepter et gérer les urgences',
 
   // ── Trade Client Flow / Marketplace (Faza 8) ─────────────────────────────
-  'trade.majstori.title':             'Trouver un artisan',
+  'trade.majstori.title':             'Artisans et Entreprises',
   'trade.majstori.desc':              'Trouvez des artisans qualifiés et des entreprises dans votre ville',
   'trade.majstori.search':            'Rechercher par ville...',
-  'trade.majstori.searchPh':          'Trouvez ce dont vous avez besoin',
+  'trade.majstori.searchPh':          'Trouvez des artisans et entreprises qualifiés',
   'trade.majstori.filter.city':       'Ville',
   'trade.majstori.empty':             'Aucune entreprise trouvée.',
   'trade.majstori.emergencyAvailable':'Accepte les urgences',

@@ -2588,10 +2588,10 @@ export default {
   'trade.staff.permissions.can_accept_emergency':     'Aceptar y gestionar emergencias',
 
   // ── Trade Client Flow / Marketplace (Faza 8) ─────────────────────────────
-  'trade.majstori.title':             'Encuentra un profesional',
+  'trade.majstori.title':             'Profesionales y Empresas',
   'trade.majstori.desc':              'Encuentra profesionales cualificados y empresas en tu ciudad',
   'trade.majstori.search':            'Buscar por ciudad...',
-  'trade.majstori.searchPh':          'Encuentra lo que necesitas',
+  'trade.majstori.searchPh':          'Encuentra profesionales y empresas cualificados',
   'trade.majstori.filter.city':       'Ciudad',
   'trade.majstori.empty':             'No se encontraron empresas.',
   'trade.majstori.emergencyAvailable':'Atiende emergencias',
