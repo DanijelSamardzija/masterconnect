@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
-import { Plus, X, Pencil, Trash2 } from 'lucide-react';
+import { Plus, X, Pencil, Trash2, ChevronDown } from 'lucide-react';
 
 type TradeService = {
   id: string;
@@ -18,6 +18,60 @@ type TradeService = {
 };
 
 const PRICE_TYPES = ['quote', 'hourly', 'fixed', 'project'] as const;
+
+const CURRENCIES = [
+  'EUR', 'USD', 'RSD', 'BAM',
+  'GBP', 'CHF', 'MKD', 'ALL',
+  'HUF', 'CZK', 'PLN', 'CAD',
+  'AUD', 'NOK', 'SEK', 'DKK',
+] as const;
+
+function CurrencyPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary hover:border-primary/50 transition-colors"
+      >
+        <span className="font-medium text-foreground">{value}</span>
+        <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute z-50 mt-1 w-full bg-card border border-border rounded-xl shadow-lg p-2">
+          <div className="grid grid-cols-4 gap-1">
+            {CURRENCIES.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => { onChange(c); setOpen(false); }}
+                className={`py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  value === c
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function labelInput(label: string, children: React.ReactNode) {
   return (
@@ -221,12 +275,7 @@ export function TradeServicesTab({ businessId, hideTitle = false }: { businessId
                 className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
             )}
             {labelInput(t('acc.unit.currency'),
-              <select value={currency} onChange={(e) => setCurrency(e.target.value)}
-                className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary">
-                {['BAM', 'EUR', 'HRK', 'RSD', 'USD', 'GBP'].map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
+              <CurrencyPicker value={currency} onChange={setCurrency} />
             )}
           </div>
 
