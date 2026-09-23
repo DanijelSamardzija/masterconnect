@@ -74,7 +74,7 @@ const EMPTY_FORM: QuoteForm = {
   price_amount: '',
   price_type: 'fixed',
   price_max: '',
-  currency: 'BAM',
+  currency: 'EUR',
   duration_estimate: '',
   scheduled_date: '',
   scheduled_time: '',
@@ -361,7 +361,7 @@ export default function RequestsDashboard() {
                   <label className="text-sm font-medium text-muted-foreground">{t('trade.quote.currency')}</label>
                   <select value={form.currency} onChange={(e) => setForm((f) => ({ ...f, currency: e.target.value }))}
                     className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary">
-                    {['BAM', 'EUR', 'RSD', 'USD'].map((c) => <option key={c} value={c}>{c}</option>)}
+                    {['EUR', 'USD', 'RSD', 'BAM'].map((c) => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
               </div>

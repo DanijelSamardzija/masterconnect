@@ -21,7 +21,7 @@ const DEFAULT: DeliverySettings = {
   delivery_fee: 0,
   min_order_amount: 0,
   estimated_prep_minutes: 30,
-  currency: 'BAM',
+  currency: 'EUR',
   is_accepting_orders: true,
 };
 
@@ -158,7 +158,7 @@ export function DeliverySettingsTab({ businessId }: { businessId: string }) {
             onChange={(e) => setSettings((s) => ({ ...s, currency: e.target.value }))}
             className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            {['BAM', 'EUR', 'HRK', 'RSD', 'USD', 'GBP'].map((c) => (
+            {['EUR', 'USD', 'RSD', 'BAM', 'HRK', 'GBP'].map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
           </select>

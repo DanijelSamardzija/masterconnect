@@ -266,7 +266,7 @@ export default function BookingSetupWizardPage() {
         setSvcDuration(linkedSvc.duration_minutes);
         setSvcPrice(linkedSvc.price != null ? String(linkedSvc.price) : '');
         setSvcPriceType(linkedSvc.price_type);
-        setSvcCurrency(linkedSvc.currency || 'BAM');
+        setSvcCurrency(linkedSvc.currency || 'EUR');
       }
     } else {
       // Standalone setup: load first service_catalog entry
@@ -285,7 +285,7 @@ export default function BookingSetupWizardPage() {
         setSvcDuration(svc.duration_minutes);
         setSvcPrice(svc.price != null ? String(svc.price) : '');
         setSvcPriceType(svc.price_type);
-        setSvcCurrency(svc.currency || 'BAM');
+        setSvcCurrency(svc.currency || 'EUR');
       }
     }
 

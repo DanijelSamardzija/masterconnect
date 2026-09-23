@@ -475,7 +475,7 @@ export default function BusinessSetupPage() {
   const [svcDuration, setSvcDuration] = useState('60');
   const [svcPrice, setSvcPrice] = useState('');
   const [svcPriceType, setSvcPriceType] = useState<string>('fixed');
-  const [svcCurrency, setSvcCurrency] = useState('BAM');
+  const [svcCurrency, setSvcCurrency] = useState('EUR');
   const [svcCapacity, setSvcCapacity] = useState('1');
   const [svcBookingType, setSvcBookingType] = useState<string>('appointment_service');
   const [svcSaving, setSvcSaving] = useState(false);
@@ -943,7 +943,7 @@ export default function BusinessSetupPage() {
   function openAddSvc() {
     setEditingSvc(null);
     setSvcName(''); setSvcDesc(''); setSvcDuration('60');
-    setSvcPrice(''); setSvcPriceType('fixed'); setSvcCurrency('BAM'); setSvcCapacity('1');
+    setSvcPrice(''); setSvcPriceType('fixed'); setSvcCurrency('EUR'); setSvcCapacity('1');
     setSvcBookingType('appointment_service');
     setSvcLocOverrides({});
     setShowSvcForm(true);
@@ -956,7 +956,7 @@ export default function BusinessSetupPage() {
     setSvcDuration(String(svc.duration_minutes));
     setSvcPrice(svc.price !== null ? String(svc.price) : '');
     setSvcPriceType(svc.price_type);
-    setSvcCurrency(svc.currency || 'BAM');
+    setSvcCurrency(svc.currency || 'EUR');
     setSvcCapacity(String(svc.capacity));
     setSvcBookingType(svc.booking_type);
     const { data: ovRows } = await (supabase as any)

@@ -93,7 +93,7 @@ export function TradeServicesTab({ businessId, hideTitle = false }: { businessId
   const [desc, setDesc] = useState('');
   const [priceType, setPriceType] = useState<string>('quote');
   const [priceFrom, setPriceFrom] = useState('');
-  const [currency, setCurrency] = useState('BAM');
+  const [currency, setCurrency] = useState('EUR');
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -112,7 +112,7 @@ export function TradeServicesTab({ businessId, hideTitle = false }: { businessId
 
   function openAdd() {
     setEditing(null);
-    setName(''); setDesc(''); setPriceType('quote'); setPriceFrom(''); setCurrency('BAM');
+    setName(''); setDesc(''); setPriceType('quote'); setPriceFrom(''); setCurrency('EUR');
     setShowForm(true);
   }
 

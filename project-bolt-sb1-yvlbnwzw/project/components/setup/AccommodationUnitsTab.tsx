@@ -52,7 +52,7 @@ export function AccommodationUnitsTab({ businessId }: { businessId: string }) {
   const [unitType, setUnitType] = useState('room');
   const [capacity, setCapacity] = useState('2');
   const [price, setPrice] = useState('');
-  const [currency, setCurrency] = useState('BAM');
+  const [currency, setCurrency] = useState('EUR');
   const [desc, setDesc] = useState('');
   const [amenities, setAmenities] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -79,7 +79,7 @@ export function AccommodationUnitsTab({ businessId }: { businessId: string }) {
 
   function openAdd() {
     setEditing(null);
-    setName(''); setUnitType('room'); setCapacity('2'); setPrice(''); setCurrency('BAM');
+    setName(''); setUnitType('room'); setCapacity('2'); setPrice(''); setCurrency('EUR');
     setDesc(''); setAmenities([]);
     setShowForm(true);
   }
@@ -324,7 +324,7 @@ export function AccommodationUnitsTab({ businessId }: { businessId: string }) {
             {labelInput(t('acc.unit.currency'),
               <select value={currency} onChange={(e) => setCurrency(e.target.value)}
                 className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary">
-                {['BAM', 'EUR', 'HRK', 'RSD', 'USD', 'GBP'].map((c) => (
+                {['EUR', 'USD', 'RSD', 'BAM', 'HRK', 'GBP'].map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
