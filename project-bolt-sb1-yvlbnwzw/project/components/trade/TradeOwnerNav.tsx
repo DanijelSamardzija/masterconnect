@@ -18,8 +18,33 @@ import {
   ChevronDown,
   Hammer,
   Check,
+  Scissors,
+  BedDouble,
+  Utensils,
+  Package,
+  Calendar,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
+
+const TYPE_ICON_BG: Record<string, string> = {
+  appointment:   'bg-orange-100 dark:bg-orange-950',
+  accommodation: 'bg-purple-100 dark:bg-purple-950',
+  restaurant:    'bg-red-100    dark:bg-red-950',
+  tradespeople:  'bg-blue-100   dark:bg-blue-950',
+  food_order:    'bg-green-100  dark:bg-green-950',
+};
+
+function ProfileTypeIcon({ type, className }: { type: string; className?: string }) {
+  const cls = className ?? 'w-3.5 h-3.5';
+  switch (type) {
+    case 'appointment':   return <Scissors  className={`${cls} text-orange-600 dark:text-orange-400`} />;
+    case 'accommodation': return <BedDouble className={`${cls} text-purple-600 dark:text-purple-400`} />;
+    case 'restaurant':    return <Utensils  className={`${cls} text-red-600    dark:text-red-400`}    />;
+    case 'tradespeople':  return <Hammer    className={`${cls} text-blue-600   dark:text-blue-400`}   />;
+    case 'food_order':    return <Package   className={`${cls} text-green-600  dark:text-green-400`}  />;
+    default:              return <Calendar  className={`${cls} text-muted-foreground`}                />;
+  }
+}
 
 export type TradeOwnerTab =
   | 'overview'
@@ -54,8 +79,8 @@ function ProfileSwitcher({ profileId }: { profileId: string }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const tradeProfiles = profiles.filter((p) => p.is_active && p.profile_type === 'tradespeople');
-  const canSwitch = tradeProfiles.length > 1;
+  const activeProfiles = profiles.filter((p) => p.is_active);
+  const canSwitch = activeProfiles.length > 1;
 
   useEffect(() => {
     if (!open) return;
@@ -71,6 +96,18 @@ function ProfileSwitcher({ profileId }: { profileId: string }) {
   const displayProfile = activeProfile ?? profiles.find((p) => p.id === profileId);
   if (!displayProfile) return null;
 
+  const iconBg = TYPE_ICON_BG[displayProfile.profile_type] ?? TYPE_ICON_BG.tradespeople;
+
+  function navigateTo(p: typeof displayProfile) {
+    setActiveProfileId(p.id);
+    if (p.profile_type === 'tradespeople') {
+      router.push(`/booking/trade/${p.id}`);
+    } else {
+      router.push('/booking/business/bookings');
+    }
+    setOpen(false);
+  }
+
   return (
     <div ref={containerRef} className="relative">
       <button
@@ -79,15 +116,15 @@ function ProfileSwitcher({ profileId }: { profileId: string }) {
           canSwitch ? 'hover:border-primary/40 hover:bg-accent cursor-pointer' : 'cursor-default'
         }`}
       >
-        <div className="p-1.5 rounded-lg shrink-0 bg-blue-100 dark:bg-blue-950">
-          <Hammer className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+        <div className={`p-1.5 rounded-lg shrink-0 ${iconBg}`}>
+          <ProfileTypeIcon type={displayProfile.profile_type} />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-xs font-semibold text-foreground truncate leading-tight">
             {displayProfile.name}
           </p>
           <p className="text-[10px] text-muted-foreground leading-tight">
-            {t('booking.hub.type.tradespeople')}
+            {t(`booking.hub.type.${displayProfile.profile_type}` as Parameters<typeof t>[0])}
           </p>
         </div>
         {canSwitch && (
@@ -102,25 +139,22 @@ function ProfileSwitcher({ profileId }: { profileId: string }) {
           <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
             {t('booking.nav.profilePicker')}
           </p>
-          {tradeProfiles.map((p) => {
+          {activeProfiles.map((p) => {
+            const bg = TYPE_ICON_BG[p.profile_type] ?? TYPE_ICON_BG.tradespeople;
             const isSelected = p.id === activeProfileId;
             return (
               <button
                 key={p.id}
-                onClick={() => {
-                  setActiveProfileId(p.id);
-                  router.push(`/booking/trade/${p.id}`);
-                  setOpen(false);
-                }}
+                onClick={() => navigateTo(p)}
                 className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-accent transition-colors text-left"
               >
-                <div className="p-1.5 rounded-lg shrink-0 bg-blue-100 dark:bg-blue-950">
-                  <Hammer className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                <div className={`p-1.5 rounded-lg shrink-0 ${bg}`}>
+                  <ProfileTypeIcon type={p.profile_type} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-foreground truncate">{p.name}</p>
                   <p className="text-[10px] text-muted-foreground">
-                    {t('booking.hub.type.tradespeople')}
+                    {t(`booking.hub.type.${p.profile_type}` as Parameters<typeof t>[0])}
                   </p>
                 </div>
                 {isSelected && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
