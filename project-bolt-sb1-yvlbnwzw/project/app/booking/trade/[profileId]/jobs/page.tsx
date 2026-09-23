@@ -248,30 +248,37 @@ export default function TradeJobsPage() {
       <TooltipProvider delayDuration={200}>
         <div className="flex gap-1.5 overflow-x-auto pb-1 mb-4 scrollbar-none">
           {STATUS_TABS.map((tab) => (
-            <div key={tab.key} className="shrink-0 relative">
-              <button
-                onClick={() => handleTabChange(tab.key)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
-                  tab.desc_key ? 'pl-4' : ''
-                } ${
-                  activeTab === tab.key
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
-                }`}
-              >
-                {t(tab.label_key as any)}
-              </button>
-              {tab.desc_key && (
+            <div key={tab.key} className="shrink-0">
+              {tab.desc_key ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="absolute -top-3 left-1 cursor-default text-muted-foreground/70 hover:text-muted-foreground transition-colors">
-                      <Info className="h-3 w-3" />
-                    </span>
+                    <button
+                      onClick={() => handleTabChange(tab.key)}
+                      className={`relative px-3 pt-3.5 pb-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+                        activeTab === tab.key
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
+                      }`}
+                    >
+                      <Info className="absolute top-0.5 left-1 h-3 w-3 opacity-50" />
+                      {t(tab.label_key as any)}
+                    </button>
                   </TooltipTrigger>
                   <TooltipContent className="max-w-48 text-center text-xs bg-popover border border-border text-foreground rounded-xl shadow-lg py-2 px-3">
                     {t(tab.desc_key as any)}
                   </TooltipContent>
                 </Tooltip>
+              ) : (
+                <button
+                  onClick={() => handleTabChange(tab.key)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+                    activeTab === tab.key
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
+                  }`}
+                >
+                  {t(tab.label_key as any)}
+                </button>
               )}
             </div>
           ))}
