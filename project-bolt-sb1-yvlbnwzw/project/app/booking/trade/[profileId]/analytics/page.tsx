@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useParams } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { friendlyError } from '@/lib/utils/friendly-error';
 import { useAuth } from '@/lib/contexts/auth-context';
