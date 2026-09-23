@@ -180,6 +180,7 @@ export default function TradeOnboardingPage() {
 
   // Step 7 — Emergency
   const [emergencyEnabled, setEmergencyEnabled] = useState(false);
+  const [emergencyAfterHours, setEmergencyAfterHours] = useState(false);
 
   // ── Staff search ────────────────────────────────────────────────────────
 
@@ -207,7 +208,7 @@ export default function TradeOnboardingPage() {
 
     const { data: bp } = await (supabase as any)
       .from('booking_profiles')
-      .select('name, avatar_url, business_subtype, contact_channels, emergency_enabled')
+      .select('name, avatar_url, business_subtype, contact_channels, emergency_enabled, emergency_after_hours')
       .eq('id', resolvedProfileId)
       .maybeSingle();
 
@@ -216,6 +217,7 @@ export default function TradeOnboardingPage() {
       if (bp.avatar_url)        setAvatarUrl(bp.avatar_url);
       if (bp.business_subtype)  setBizSubtype(bp.business_subtype as BusinessSubtype);
       if (bp.emergency_enabled) setEmergencyEnabled(true);
+      if (bp.emergency_after_hours) setEmergencyAfterHours(true);
       const ch = bp.contact_channels ?? {};
       if (ch.phone)  setContactPhone(ch.phone);
       if (ch.phone2) setContactPhone2(ch.phone2);
@@ -393,7 +395,10 @@ export default function TradeOnboardingPage() {
     setSaving(true);
     await (supabase as any)
       .from('booking_profiles')
-      .update({ emergency_enabled: emergencyEnabled })
+      .update({
+        emergency_enabled: emergencyEnabled,
+        emergency_after_hours: emergencyAfterHours,
+      })
       .eq('id', resolvedProfileId);
     setSaving(false);
     advance();
@@ -882,34 +887,67 @@ export default function TradeOnboardingPage() {
                   <p className="text-sm text-muted-foreground mt-0.5">{t('trade.onboarding.emergency.desc')}</p>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setEmergencyEnabled((v) => !v)}
-                  className={`flex items-start gap-4 p-4 rounded-2xl border-2 transition-colors text-left w-full ${
-                    emergencyEnabled
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/40'
-                  }`}
-                >
-                  <span className={`p-2.5 rounded-xl shrink-0 mt-0.5 ${emergencyEnabled ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
-                    <Zap className="w-5 h-5" />
-                  </span>
-                  <div className="flex-1">
-                    <p className={`text-sm font-semibold ${emergencyEnabled ? 'text-primary' : 'text-foreground'}`}>
-                      {t('trade.onboarding.emergency.enable')}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {emergencyEnabled
-                        ? t('trade.onboarding.emergency.enableDesc')
-                        : t('trade.onboarding.emergency.disabled')}
-                    </p>
-                  </div>
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${
-                    emergencyEnabled ? 'border-primary bg-primary' : 'border-border'
-                  }`}>
-                    {emergencyEnabled && <Check className="w-3 h-3 text-primary-foreground" />}
-                  </div>
-                </button>
+                <div className="flex flex-col gap-3">
+                  {/* Off */}
+                  {(() => {
+                    const active = !emergencyEnabled;
+                    return (
+                      <button type="button" onClick={() => { setEmergencyEnabled(false); setEmergencyAfterHours(false); }}
+                        className={`flex items-start gap-4 p-4 rounded-2xl border-2 transition-colors text-left w-full ${active ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/40'}`}>
+                        <span className={`p-2.5 rounded-xl shrink-0 mt-0.5 ${active ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                          <X className="w-5 h-5" />
+                        </span>
+                        <div className="flex-1">
+                          <p className={`text-sm font-semibold ${active ? 'text-primary' : 'text-foreground'}`}>{t('trade.onboarding.emergency.off')}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{t('trade.onboarding.emergency.offDesc')}</p>
+                        </div>
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${active ? 'border-primary bg-primary' : 'border-border'}`}>
+                          {active && <Check className="w-3 h-3 text-primary-foreground" />}
+                        </div>
+                      </button>
+                    );
+                  })()}
+
+                  {/* During hours */}
+                  {(() => {
+                    const active = emergencyEnabled && !emergencyAfterHours;
+                    return (
+                      <button type="button" onClick={() => { setEmergencyEnabled(true); setEmergencyAfterHours(false); }}
+                        className={`flex items-start gap-4 p-4 rounded-2xl border-2 transition-colors text-left w-full ${active ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/40'}`}>
+                        <span className={`p-2.5 rounded-xl shrink-0 mt-0.5 ${active ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                          <Zap className="w-5 h-5" />
+                        </span>
+                        <div className="flex-1">
+                          <p className={`text-sm font-semibold ${active ? 'text-primary' : 'text-foreground'}`}>{t('trade.onboarding.emergency.hours')}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{t('trade.onboarding.emergency.hoursDesc')}</p>
+                        </div>
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${active ? 'border-primary bg-primary' : 'border-border'}`}>
+                          {active && <Check className="w-3 h-3 text-primary-foreground" />}
+                        </div>
+                      </button>
+                    );
+                  })()}
+
+                  {/* Any time 24/7 */}
+                  {(() => {
+                    const active = emergencyEnabled && emergencyAfterHours;
+                    return (
+                      <button type="button" onClick={() => { setEmergencyEnabled(true); setEmergencyAfterHours(true); }}
+                        className={`flex items-start gap-4 p-4 rounded-2xl border-2 transition-colors text-left w-full ${active ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/40'}`}>
+                        <span className={`p-2.5 rounded-xl shrink-0 mt-0.5 ${active ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                          <Phone className="w-5 h-5" />
+                        </span>
+                        <div className="flex-1">
+                          <p className={`text-sm font-semibold ${active ? 'text-primary' : 'text-foreground'}`}>{t('trade.onboarding.emergency.anytime')}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{t('trade.onboarding.emergency.anytimeDesc')}</p>
+                        </div>
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${active ? 'border-primary bg-primary' : 'border-border'}`}>
+                          {active && <Check className="w-3 h-3 text-primary-foreground" />}
+                        </div>
+                      </button>
+                    );
+                  })()}
+                </div>
               </div>
             )}
 
