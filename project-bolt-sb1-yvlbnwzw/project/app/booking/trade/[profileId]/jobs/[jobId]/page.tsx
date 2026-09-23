@@ -627,6 +627,8 @@ export default function TradeJobDetailPage({ params }: { params: Promise<{ profi
   const [job, setJob]       = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [etaValue, setEtaValue] = useState('');
+  const [savingEta, setSavingEta] = useState(false);
 
   useEffect(() => {
     if (!user || !profileId) return;
@@ -634,6 +636,18 @@ export default function TradeJobDetailPage({ params }: { params: Promise<{ profi
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, profileId, jobId]);
+
+  async function handleSaveEta() {
+    if (!etaValue || !job) return;
+    setSavingEta(true);
+    const { data } = await (supabase as any).rpc('update_trade_job_eta', {
+      p_job_id: job.id, p_eta_time: etaValue,
+    });
+    setSavingEta(false);
+    if (!data?.ok) { toast.error(data?.error ?? 'error'); return; }
+    toast.success(t('trade.worker.etaUpdated'));
+    load();
+  }
 
   async function load() {
     setLoading(true);
@@ -728,12 +742,30 @@ export default function TradeJobDetailPage({ params }: { params: Promise<{ profi
             </div>
           )}
           {job.status === 'on_the_way' && (
-            <div className="flex items-center gap-2 text-sm">
-              <Navigation className="w-3.5 h-3.5 text-purple-500 shrink-0" />
-              <span className="text-purple-700 dark:text-purple-400 font-medium">
-                {t('trade.jobs.status_on_the_way')}
-                {job.eta_time && ` · ${t('trade.worker.etaTime')} ${job.eta_time}`}
-              </span>
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center gap-2 text-sm">
+                <Navigation className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                <span className="text-purple-700 dark:text-purple-400 font-medium">
+                  {t('trade.jobs.status_on_the_way')}
+                  {job.eta_time && ` · ${t('trade.worker.etaTime')} ${job.eta_time}`}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 pl-5">
+                <input
+                  type="time"
+                  value={etaValue}
+                  onChange={(e) => setEtaValue(e.target.value)}
+                  className="border border-border rounded-lg px-2 py-1 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary w-32"
+                />
+                <button
+                  onClick={handleSaveEta}
+                  disabled={savingEta || !etaValue}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-600 text-white text-xs font-medium disabled:opacity-50 hover:bg-purple-700 transition-colors"
+                >
+                  {savingEta ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                  {t('trade.worker.etaSave')}
+                </button>
+              </div>
             </div>
           )}
           {job.notes && (
