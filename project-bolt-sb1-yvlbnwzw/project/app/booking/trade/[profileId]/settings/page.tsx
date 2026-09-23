@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useAuth } from '@/lib/contexts/auth-context';
@@ -8,7 +8,8 @@ import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
 import { TradeDashboardLayout } from '@/components/trade/TradeDashboardLayout';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
-import { Settings, ChevronRight, Loader2, Globe, Store } from 'lucide-react';
+import { Settings, ChevronRight, Loader2, Globe, Store, Camera, Wrench } from 'lucide-react';
+import { compressImage } from '@/lib/utils/compress-image';
 
 export default function TradeSettingsPage() {
   const { profileId } = useParams() as { profileId: string };
@@ -24,6 +25,9 @@ export default function TradeSettingsPage() {
   const [togglingMarketplace, setTogglingMarketplace] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [logoUrl, setLogoUrl] = useState('');
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setActiveProfileId(profileId);
@@ -36,13 +40,14 @@ export default function TradeSettingsPage() {
     setLoading(true);
     // Read name directly (owner RLS allows this) to satisfy upsert_trade_profile's name_required
     const [profileResp, publicResp] = await Promise.all([
-      (supabase as any).from('booking_profiles').select('name, is_marketplace_listed').eq('id', profileId).single(),
+      (supabase as any).from('booking_profiles').select('name, is_marketplace_listed, logo_url').eq('id', profileId).single(),
       (supabase as any).rpc('get_public_trade_profile', { p_business_id: profileId }),
     ]);
     if (profileResp.data?.name) setCurrentName(profileResp.data.name);
     if (typeof profileResp.data?.is_marketplace_listed === 'boolean') {
       setIsMarketplaceListed(profileResp.data.is_marketplace_listed);
     }
+    if (profileResp.data?.logo_url) setLogoUrl(profileResp.data.logo_url);
     if (publicResp.data?.ok) {
       setDescription(publicResp.data.profile.description ?? '');
       setServiceAreaInput((publicResp.data.profile.service_area_cities ?? []).join(', '));
@@ -63,6 +68,37 @@ export default function TradeSettingsPage() {
       toast.error(data?.error ?? 'error');
     }
     setTogglingMarketplace(false);
+  }
+
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error(t('bookingSetup.profile.logoMax')); return; }
+    setUploadingLogo(true);
+    try {
+      const compressed = await compressImage(file, 400);
+      const fileName = `${user.id}/booking-profiles/${profileId}/${Date.now()}.jpg`;
+      if (logoUrl) {
+        const oldPath = logoUrl.split('/avatars/')[1];
+        if (oldPath) await supabase.storage.from('avatars').remove([oldPath]);
+      }
+      const { error: uploadErr } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, compressed, { upsert: true, contentType: 'image/jpeg' });
+      if (uploadErr) throw uploadErr;
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
+      await (supabase as any)
+        .from('booking_profiles')
+        .update({ logo_url: publicUrl })
+        .eq('id', profileId);
+      setLogoUrl(publicUrl);
+      toast.success(t('trade.settings.saved'));
+    } catch {
+      toast.error(t('setup.error.saveFailed'));
+    } finally {
+      setUploadingLogo(false);
+      if (logoInputRef.current) logoInputRef.current.value = '';
+    }
   }
 
   async function savePublicInfo() {
@@ -162,6 +198,50 @@ export default function TradeSettingsPage() {
             </div>
           ) : (
             <div className="flex flex-col gap-4">
+              {/* Logo */}
+              <div>
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide block mb-1.5">
+                  {t('bookingSetup.profile.logo')}
+                </label>
+                <div className="flex items-center gap-4">
+                  <div className="relative w-16 h-16 rounded-xl border-2 border-dashed border-border bg-muted/40 overflow-hidden flex items-center justify-center shrink-0">
+                    {logoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={logoUrl} alt="logo" className="w-full h-full object-cover" />
+                    ) : (
+                      <Wrench className="w-6 h-6 text-muted-foreground/50" />
+                    )}
+                    {uploadingLogo && (
+                      <div className="absolute inset-0 bg-background/70 flex items-center justify-center">
+                        <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <button
+                      type="button"
+                      onClick={() => logoInputRef.current?.click()}
+                      disabled={uploadingLogo}
+                      className="text-sm font-medium text-primary hover:text-primary/80 transition-colors disabled:opacity-50 text-left"
+                    >
+                      {uploadingLogo
+                        ? t('bookingSetup.profile.logoUploading')
+                        : logoUrl
+                          ? t('bookingSetup.profile.logoChange')
+                          : t('bookingSetup.profile.logoUpload')}
+                    </button>
+                    <p className="text-xs text-muted-foreground">{t('bookingSetup.profile.logoMax')}</p>
+                  </div>
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleLogoUpload}
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide block mb-1.5">
                   {t('trade.settings.description')}
