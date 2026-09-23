@@ -140,7 +140,8 @@ export default function TradeOnboardingPage() {
   const searchParams = useSearchParams();
   const profileId = searchParams.get('profileId');
 
-  const resolvedProfileId = profileId ?? user?.id ?? '';
+  const [activeProfileId, setActiveProfileId] = useState(profileId ?? user?.id ?? '');
+  const resolvedProfileId = activeProfileId;
 
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -306,6 +307,11 @@ export default function TradeOnboardingPage() {
     setSaving(false);
     if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); return; }
     if ((data as any)?.location_id && !locId) setLocId((data as any).location_id);
+    // If a new profile was created, update activeProfileId so subsequent steps use the right ID
+    const newId = (data as any)?.profile_id;
+    if (newId && newId !== activeProfileId) setActiveProfileId(newId);
+    // Reload booking context so the hub card reflects the new name immediately
+    reloadWithPreferred(newId ?? activeProfileId).catch(() => {});
     advance();
   }
 
