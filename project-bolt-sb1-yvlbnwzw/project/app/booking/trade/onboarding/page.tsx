@@ -208,13 +208,13 @@ export default function TradeOnboardingPage() {
 
     const { data: bp } = await (supabase as any)
       .from('booking_profiles')
-      .select('name, avatar_url, business_subtype, contact_channels, emergency_enabled, emergency_after_hours')
+      .select('name, logo_url, business_subtype, contact_channels, emergency_enabled, emergency_after_hours')
       .eq('id', resolvedProfileId)
       .maybeSingle();
 
     if (bp) {
       if (bp.name)              setBizName(bp.name);
-      if (bp.avatar_url)        setAvatarUrl(bp.avatar_url);
+      if (bp.logo_url)          setAvatarUrl(bp.logo_url);
       if (bp.business_subtype)  setBizSubtype(bp.business_subtype as BusinessSubtype);
       if (bp.emergency_enabled) setEmergencyEnabled(true);
       if (bp.emergency_after_hours) setEmergencyAfterHours(true);
@@ -434,7 +434,7 @@ export default function TradeOnboardingPage() {
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
       await (supabase as any)
         .from('booking_profiles')
-        .update({ avatar_url: publicUrl })
+        .update({ logo_url: publicUrl })
         .eq('id', resolvedProfileId);
       setAvatarUrl(publicUrl);
     } catch {

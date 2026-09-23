@@ -17,6 +17,7 @@ type Business = {
   service_area_cities: string[];
   business_subtype: string | null;
   primary_city: string | null;
+  primary_address: string | null;
   service_count: number;
   services: string[];
 };
@@ -79,7 +80,6 @@ export default function MajstoriPage() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-foreground">{t('trade.majstori.title')}</h1>
-              <p className="text-sm text-muted-foreground">{t('trade.majstori.desc')}</p>
             </div>
           </div>
 
@@ -91,7 +91,7 @@ export default function MajstoriPage() {
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder={t('trade.majstori.search')}
+                placeholder={t('trade.majstori.searchPh')}
                 className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
               />
             </div>
@@ -124,14 +124,18 @@ export default function MajstoriPage() {
 
         {businesses.length > 0 && (
           <div className="flex flex-col gap-3">
-            {businesses.map(biz => (
-              <button
-                key={biz.id}
-                onClick={() => router.push(`/booking/majstori/${biz.id}`)}
-                className="w-full text-left border border-border rounded-2xl bg-card hover:border-primary/50 hover:shadow-sm transition-all p-4"
-              >
-                <div className="flex items-start gap-3">
-                  {/* Logo */}
+            {businesses.map(biz => {
+              const locationLabel = [biz.primary_address, biz.primary_city].filter(Boolean).join(', ');
+              const mapsUrl = locationLabel
+                ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locationLabel)}`
+                : null;
+
+              return (
+                <button
+                  key={biz.id}
+                  onClick={() => router.push(`/booking/majstori/${biz.id}`)}
+                  className="w-full text-left border border-border rounded-xl p-4 bg-card hover:border-primary/50 hover:bg-accent/30 transition-colors flex items-center gap-3"
+                >
                   <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-950 flex items-center justify-center shrink-0 overflow-hidden">
                     {biz.logo_url ? (
                       <img src={biz.logo_url} alt={biz.name} className="w-full h-full object-cover" />
@@ -141,53 +145,38 @@ export default function MajstoriPage() {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-semibold text-foreground leading-snug">{biz.name}</p>
-                      <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
-                    </div>
-
-                    {biz.description && (
-                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{biz.description}</p>
-                    )}
-
-                    <div className="mt-2 flex flex-wrap gap-1.5 items-center">
-                      {biz.primary_city && (
-                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <MapPin className="w-3 h-3" />
-                          {biz.primary_city}
-                        </span>
-                      )}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-semibold text-sm text-foreground truncate">{biz.name}</p>
                       {biz.emergency_enabled && (
-                        <span className="flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 px-1.5 py-0.5 rounded-full">
+                        <span className="flex items-center gap-0.5 text-xs font-medium text-red-600 dark:text-red-400 shrink-0">
                           <Zap className="w-3 h-3" />
                           {t('trade.majstori.emergencyAvailable')}
                         </span>
                       )}
-                      {biz.service_count > 0 && (
-                        <span className="text-xs text-muted-foreground">
-                          {biz.service_count} {t('trade.majstori.services').toLowerCase()}
-                        </span>
-                      )}
                     </div>
 
+                    {locationLabel && (
+                      <span
+                        onClick={mapsUrl ? (e) => { e.stopPropagation(); window.open(mapsUrl, '_blank'); } : undefined}
+                        className={`flex items-center gap-1 text-sm text-muted-foreground mt-0.5 w-fit truncate max-w-full ${mapsUrl ? 'hover:text-primary cursor-pointer' : ''}`}
+                      >
+                        <MapPin className="w-3 h-3 shrink-0" />
+                        {locationLabel}
+                      </span>
+                    )}
+
                     {biz.services.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {biz.services.slice(0, 4).map((s, i) => (
-                          <span key={i} className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-md">
-                            {s}
-                          </span>
-                        ))}
-                        {biz.services.length > 4 && (
-                          <span className="text-[10px] text-muted-foreground px-1 py-0.5">
-                            +{biz.services.length - 4}
-                          </span>
-                        )}
-                      </div>
+                      <p className="text-sm text-muted-foreground mt-0.5 truncate">
+                        {biz.services.slice(0, 3).join(' · ')}
+                        {biz.services.length > 3 && ` +${biz.services.length - 3}`}
+                      </p>
                     )}
                   </div>
-                </div>
-              </button>
-            ))}
+
+                  <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+                </button>
+              );
+            })}
 
             {hasMore && (
               <button
