@@ -51,7 +51,6 @@ type StaffResult = {
 const STEP_KEYS = [
   'biztype',
   'profile',
-  'contacts',
   'services',
   'location',
   'hours',
@@ -302,21 +301,6 @@ export default function TradeOnboardingPage() {
     advance();
   }
 
-  async function saveContacts() {
-    setSaving(true);
-    const channels: Record<string, string> = {};
-    if (contactPhone.trim())  channels.phone  = contactPhone.trim();
-    if (contactPhone2.trim()) channels.phone2 = contactPhone2.trim();
-    if (contactEmail.trim())  channels.email  = contactEmail.trim();
-
-    await (supabase as any)
-      .from('booking_profiles')
-      .update({ contact_channels: channels })
-      .eq('id', resolvedProfileId);
-    setSaving(false);
-    advance();
-  }
-
   async function saveLocation() {
     if (!locName.trim() || !locCity.trim() || !locCountry.trim()) {
       toast.error(t('setup.error.nameRequired'));
@@ -347,6 +331,15 @@ export default function TradeOnboardingPage() {
         .eq('business_id', resolvedProfileId).order('created_at', { ascending: false }).limit(1).single();
       if (row?.id) setLocId(row.id);
     }
+    // Save contact channels together with location
+    const channels: Record<string, string> = {};
+    if (contactPhone.trim())  channels.phone  = contactPhone.trim();
+    if (contactPhone2.trim()) channels.phone2 = contactPhone2.trim();
+    if (contactEmail.trim())  channels.email  = contactEmail.trim();
+    await (supabase as any)
+      .from('booking_profiles')
+      .update({ contact_channels: channels })
+      .eq('id', resolvedProfileId);
     setSaving(false);
     advance();
   }
@@ -454,7 +447,6 @@ export default function TradeOnboardingPage() {
   function handleStepSave() {
     if (currentKey === 'biztype')   saveBiztypeAndProfile();
     if (currentKey === 'profile')   saveBiztypeAndProfile();
-    if (currentKey === 'contacts')  saveContacts();
     if (currentKey === 'services')  advance();
     if (currentKey === 'location')  saveLocation();
     if (currentKey === 'hours')     saveHours();
@@ -628,41 +620,7 @@ export default function TradeOnboardingPage() {
               </div>
             )}
 
-            {/* Step 2: Contacts */}
-            {currentKey === 'contacts' && (
-              <div className="flex flex-col gap-5">
-                <div>
-                  <h2 className="text-lg font-semibold">{t('trade.onboarding.contacts.heading')}</h2>
-                  <p className="text-sm text-muted-foreground mt-0.5">{t('trade.onboarding.contacts.desc')}</p>
-                </div>
-                <div className="flex flex-col gap-4">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium">{t('trade.onboarding.contacts.phone')}</label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <input type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)}
-                        placeholder="+387 61 000 000" className={`${inputCls} pl-9`} />
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium">{t('trade.onboarding.contacts.phone2')}</label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <input type="tel" value={contactPhone2} onChange={(e) => setContactPhone2(e.target.value)}
-                        placeholder="+387 33 000 000" className={`${inputCls} pl-9`} />
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium">{t('trade.onboarding.contacts.email')}</label>
-                    <input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)}
-                      placeholder="firma@example.com" className={inputCls} />
-                  </div>
-                  <p className="text-xs text-muted-foreground">{t('trade.onboarding.contacts.hint')}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Step 3: Services — reuse TradeServicesTab */}
+            {/* Step 2: Services — reuse TradeServicesTab */}
             {currentKey === 'services' && (
               <div className="flex flex-col gap-4">
                 <div>
@@ -731,6 +689,31 @@ export default function TradeOnboardingPage() {
                         ))}
                       </select>
                     </div>
+                  </div>
+                  <div className="border-t border-border/60 pt-4 flex flex-col gap-3">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('trade.onboarding.contacts.heading')}</p>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-sm font-medium">{t('trade.onboarding.contacts.phone')}</label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <input type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)}
+                          placeholder="+387 61 000 000" className={`${inputCls} pl-9`} />
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-sm font-medium">{t('trade.onboarding.contacts.phone2')}</label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <input type="tel" value={contactPhone2} onChange={(e) => setContactPhone2(e.target.value)}
+                          placeholder="+387 33 000 000" className={`${inputCls} pl-9`} />
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-sm font-medium">{t('trade.onboarding.contacts.email')}</label>
+                      <input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)}
+                        placeholder="firma@example.com" className={inputCls} />
+                    </div>
+                    <p className="text-xs text-muted-foreground">{t('trade.onboarding.contacts.hint')}</p>
                   </div>
                 </div>
               </div>
