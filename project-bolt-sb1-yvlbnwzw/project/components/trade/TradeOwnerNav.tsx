@@ -41,7 +41,7 @@ function buildNavItems(profileId: string): { tab: TradeOwnerTab; href: string; l
     { tab: 'emergency',  href: `${base}/emergency`,     labelKey: 'trade.nav.emergency',  icon: <Zap             className="h-3.5 w-3.5" /> },
     { tab: 'analytics',  href: `${base}/analytics`,     labelKey: 'trade.nav.analytics',  icon: <BarChart3       className="h-3.5 w-3.5" /> },
     { tab: 'docs',       href: `${base}/docs`,          labelKey: 'trade.nav.docs',       icon: <FileText        className="h-3.5 w-3.5" /> },
-    { tab: 'settings',   href: `${base}/settings`,      labelKey: 'trade.nav.settings',   icon: <Settings        className="h-3.5 w-3.5" /> },
+    { tab: 'settings',   href: '/booking/business/setup', labelKey: 'trade.nav.settings',   icon: <Settings        className="h-3.5 w-3.5" /> },
   ];
 }
 
@@ -154,7 +154,7 @@ export function TradeOwnerNav({
 
       <div className="flex items-start gap-2 mb-4">
         <button
-          onClick={() => router.push('/booking')}
+          onClick={() => router.back()}
           className="p-2 rounded-xl hover:bg-accent transition-colors text-muted-foreground shrink-0 mt-0.5"
         >
           <ChevronLeft className="h-5 w-5" />
@@ -175,7 +175,7 @@ export function TradeOwnerNav({
             </button>
           ))}
           <button
-            onClick={() => router.push(`/booking/majstori/${profileId}`)}
+            onClick={() => window.open(`/booking/majstori/${profileId}`, '_blank')}
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground whitespace-nowrap py-2 px-2 rounded-lg hover:bg-accent transition-colors"
           >
             <ExternalLink className="h-3.5 w-3.5" />

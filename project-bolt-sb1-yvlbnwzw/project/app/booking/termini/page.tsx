@@ -18,6 +18,7 @@ type LocCard = {
   avgRating: number | null;
   reviewCount: number;
   serviceNames: string[];
+  isOpenNow: boolean | null;
 };
 
 export default function TerminiPage() {
@@ -45,7 +46,8 @@ export default function TerminiPage() {
           .from('booking_profiles')
           .select('id, name, avatar_url, profiles!booking_profiles_owner_id_fkey(average_rating, review_count)')
           .in('id', bizIds)
-          .eq('is_active', true),
+          .eq('is_active', true)
+          .eq('is_marketplace_listed', true),
         supabase
           .from('business_locations')
           .select('id, business_id, address, city, is_primary')
@@ -57,6 +59,45 @@ export default function TerminiPage() {
           .select('service_id, location_id')
           .in('service_id', svcIds),
       ]);
+
+      // Fetch opening_hours for today to compute is_open_now
+      const locIds = (locs ?? []).map((l: any) => l.id).filter(Boolean) as string[];
+      const openMap = new Map<string, boolean>();
+      const locIdsWithHours = new Set<string>();
+
+      if (locIds.length > 0) {
+        const now = new Date();
+        const todayDow = now.getDay();
+        const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+        const [{ data: hToday }, { data: hExists }] = await Promise.all([
+          (supabase as any)
+            .from('opening_hours')
+            .select('location_id, start_time, end_time, is_closed')
+            .in('location_id', locIds)
+            .eq('entity_type', 'business')
+            .eq('day_of_week', todayDow),
+          (supabase as any)
+            .from('opening_hours')
+            .select('location_id')
+            .in('location_id', locIds)
+            .eq('entity_type', 'business')
+            .limit(1000),
+        ]);
+
+        (hExists ?? []).forEach((h: any) => locIdsWithHours.add(h.location_id));
+        locIdsWithHours.forEach(id => openMap.set(id, false));
+
+        (hToday ?? []).forEach((h: any) => {
+          if (h.is_closed) {
+            openMap.set(h.location_id, false);
+          } else {
+            const [sh, sm] = (h.start_time as string).split(':').map(Number);
+            const [eh, em] = (h.end_time as string).split(':').map(Number);
+            openMap.set(h.location_id, nowMinutes >= sh * 60 + sm && nowMinutes < eh * 60 + em);
+          }
+        });
+      }
 
       // Build service_locations map: service_id → Set<location_id>
       const svcLocMap = new Map<string, Set<string>>();
@@ -108,6 +149,7 @@ export default function TerminiPage() {
             avgRating: rating,
             reviewCount,
             serviceNames: bizSvcs.map(s => s.name),
+            isOpenNow: null,
           });
         } else if (bizLocs.length === 1) {
           const loc = bizLocs[0];
@@ -122,6 +164,7 @@ export default function TerminiPage() {
             avgRating: rating,
             reviewCount,
             serviceNames: servicesAtLocation(p.id, loc.id),
+            isOpenNow: locIdsWithHours.has(loc.id) ? (openMap.get(loc.id) ?? false) : null,
           });
         } else {
           bizLocs.forEach(loc => {
@@ -136,6 +179,7 @@ export default function TerminiPage() {
               avgRating: rating,
               reviewCount,
               serviceNames: servicesAtLocation(p.id, loc.id),
+              isOpenNow: locIdsWithHours.has(loc.id) ? (openMap.get(loc.id) ?? false) : null,
             });
           });
         }
@@ -241,6 +285,12 @@ export default function TerminiPage() {
                       {card.serviceNames.slice(0, 3).join(' · ')}
                       {card.serviceNames.length > 3 && ` +${card.serviceNames.length - 3}`}
                     </p>
+                  )}
+                  {card.isOpenNow !== null && (
+                    <span className={`flex items-center gap-1 text-xs font-medium mt-0.5 ${card.isOpenNow ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${card.isOpenNow ? 'bg-green-500' : 'bg-red-500'}`} />
+                      {card.isOpenNow ? t('setup.hours.open') : t('setup.hours.closed')}
+                    </span>
                   )}
                 </div>
 

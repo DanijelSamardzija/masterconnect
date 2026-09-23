@@ -2357,7 +2357,7 @@ export default {
   'trade.nav.analytics':   'Analytics',
   'trade.nav.docs':        'Documents',
   'trade.nav.settings':    'Settings',
-  'trade.nav.publicPage':  'Public page',
+  'trade.nav.publicPage':  'Booking page',
   'trade.nav.requests':    'Requests',
 
   'trade.dashboard.overview.title':    'Overview',
@@ -2730,6 +2730,9 @@ export default {
   'trade.settings.descPh':            'What you specialise in, years of experience, work style…',
   'trade.settings.serviceAreas':      'Service areas',
   'trade.settings.serviceAreasPh':    'e.g. Sarajevo, Mostar, Zenica (comma-separated)',
+  'trade.settings.phone':             'Phone',
+  'trade.settings.phone2':            'Second phone (optional)',
+  'trade.settings.email':             'Email',
   'trade.settings.publicProfile':     'Public profile',
   'trade.settings.publicProfileDesc': 'This information is shown to clients on the public marketplace.',
   'trade.settings.saved':                   'Saved.',

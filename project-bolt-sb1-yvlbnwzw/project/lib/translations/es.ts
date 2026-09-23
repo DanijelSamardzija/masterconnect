@@ -2275,7 +2275,7 @@ export default {
   'trade.nav.analytics':   'Analítica',
   'trade.nav.docs':        'Documentos',
   'trade.nav.settings':    'Configuración',
-  'trade.nav.publicPage':  'Página pública',
+  'trade.nav.publicPage':  'Página de Booking',
   'trade.nav.requests':    'Solicitudes',
 
   'trade.dashboard.overview.title':    'Resumen',
@@ -2648,6 +2648,9 @@ export default {
   'trade.settings.descPh':            'Especialización, años de experiencia, forma de trabajar…',
   'trade.settings.serviceAreas':      'Área de servicio',
   'trade.settings.serviceAreasPh':    'p. ej. Madrid, Barcelona, Valencia (separadas por coma)',
+  'trade.settings.phone':             'Teléfono',
+  'trade.settings.phone2':            'Segundo teléfono (opcional)',
+  'trade.settings.email':             'Correo electrónico',
   'trade.settings.publicProfile':     'Perfil público',
   'trade.settings.publicProfileDesc': 'Esta información se muestra a los clientes en el marketplace.',
   'trade.settings.saved':                   'Guardado.',

@@ -37,6 +37,13 @@ type Service = {
   currency: string | null;
 };
 
+type WeeklyHour = {
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  is_closed: boolean;
+};
+
 type Profile = {
   id: string;
   name: string;
@@ -49,6 +56,7 @@ type Profile = {
   address: string | null;
   city: string | null;
   services: Service[];
+  weekly_hours: WeeklyHour[] | null;
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -273,6 +281,34 @@ export default function PublicTradeProfilePage() {
             </div>
           )}
         </section>
+
+        {/* Weekly hours */}
+        {profile.weekly_hours && profile.weekly_hours.length > 0 && (
+          <section className="mb-5">
+            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+              {t('setup.hours.heading')}
+            </h2>
+            <div className="border border-border rounded-xl overflow-hidden bg-card">
+              {[1,2,3,4,5,6,0].map(dow => {
+                const hour = profile.weekly_hours!.find(h => h.day_of_week === dow);
+                return (
+                  <div key={dow} className="flex items-center justify-between px-3 py-2 border-b border-border/60 last:border-0">
+                    <span className="text-sm text-foreground w-28 shrink-0">
+                      {t(`setup.hours.day.${dow}` as Parameters<typeof t>[0])}
+                    </span>
+                    {!hour || hour.is_closed ? (
+                      <span className="text-sm text-muted-foreground">{t('setup.hours.closed')}</span>
+                    ) : (
+                      <span className="text-sm text-foreground font-medium">
+                        {hour.start_time.slice(0, 5)} – {hour.end_time.slice(0, 5)}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {/* Contact */}
         {(cc.phone || cc.phone2 || cc.email) && (

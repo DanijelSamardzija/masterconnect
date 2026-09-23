@@ -22,6 +22,7 @@ type Business = {
   review_count: number;
   service_count: number;
   services: string[];
+  is_open_now: boolean | null;
 };
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -185,6 +186,12 @@ export default function MajstoriPage() {
                         {biz.services.slice(0, 3).join(' · ')}
                         {biz.services.length > 3 && ` +${biz.services.length - 3}`}
                       </p>
+                    )}
+                    {biz.is_open_now !== null && biz.is_open_now !== undefined && (
+                      <span className={`flex items-center gap-1 text-xs font-medium mt-0.5 ${biz.is_open_now ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${biz.is_open_now ? 'bg-green-500' : 'bg-red-500'}`} />
+                        {biz.is_open_now ? t('setup.hours.open') : t('setup.hours.closed')}
+                      </span>
                     )}
                   </div>
 

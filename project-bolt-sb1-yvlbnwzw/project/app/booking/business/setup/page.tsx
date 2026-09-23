@@ -417,6 +417,14 @@ export default function BusinessSetupPage() {
   const [isBusinessActive, setIsBusinessActive] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileSaving, setProfileSaving] = useState(false);
+  // Marketplace + trade-specific public profile
+  const [isMarketplaceListed, setIsMarketplaceListed] = useState(true);
+  const [togglingMarketplace, setTogglingMarketplace] = useState(false);
+  const [tradePubDesc, setTradePubDesc] = useState('');
+  const [tradePubServiceAreas, setTradePubServiceAreas] = useState('');
+  const [tradePubPhone, setTradePubPhone] = useState('');
+  const [tradePubPhone2, setTradePubPhone2] = useState('');
+  const [tradePubEmail, setTradePubEmail] = useState('');
 
   // ── Notification prefs state ───────────────────────────────────────────────
   type NotifPrefs = {
@@ -585,7 +593,7 @@ export default function BusinessSetupPage() {
       setProfileLoading(true);
       const [bpRes, locRes, notifRes] = await Promise.all([
         // Booking profile data (name, active state, type) — comes from booking_profiles
-        (supabase as any).from('booking_profiles').select('name, is_active, profile_type, avatar_url').eq('id', activeProfileId).single() as Promise<{ data: { name: string; is_active: boolean; profile_type: string } | null; error: unknown }>,
+        (supabase as any).from('booking_profiles').select('name, is_active, profile_type, avatar_url, logo_url, is_marketplace_listed, description, service_area_cities, contact_channels').eq('id', activeProfileId).single() as Promise<{ data: { name: string; is_active: boolean; profile_type: string } | null; error: unknown }>,
         // Primary location timezone for this booking profile
         supabase.from('business_locations').select('timezone').eq('business_id', activeProfileId).eq('is_primary', true).maybeSingle(),
         // Notification prefs — owner-level, stays on profiles table
@@ -594,8 +602,20 @@ export default function BusinessSetupPage() {
       if (bpRes.data) {
         setBizName(bpRes.data.name ?? '');
         setIsBusinessActive(bpRes.data.is_active ?? false);
-        setBizCategory(bpRes.data.profile_type ?? '');
-        setAvatarUrl((bpRes.data as any).avatar_url ?? '');
+        const profileType = bpRes.data.profile_type ?? '';
+        setBizCategory(profileType);
+        const d = bpRes.data as any;
+        // Trade profiles use logo_url as canonical logo; all others use avatar_url
+        setAvatarUrl(profileType === 'tradespeople' ? (d.logo_url ?? '') : (d.avatar_url ?? ''));
+        setIsMarketplaceListed(d.is_marketplace_listed !== false);
+        if (profileType === 'tradespeople') {
+          setTradePubDesc(d.description ?? '');
+          setTradePubServiceAreas((d.service_area_cities ?? []).join(', '));
+          const cc = d.contact_channels ?? {};
+          setTradePubPhone(cc.phone ?? '');
+          setTradePubPhone2(cc.phone2 ?? '');
+          setTradePubEmail(cc.email ?? '');
+        }
         const prefs = notifRes.data?.notification_prefs ?? {};
         setNotifPrefs({
           push_enabled:         prefs.push_enabled         !== false,
@@ -787,11 +807,30 @@ export default function BusinessSetupPage() {
       return;
     }
     setProfileSaving(true);
-    const { data, error } = await (supabase as any).rpc('upsert_my_business_profile', {
-      p_name: bizName.trim(),
-      p_timezone: timezone.trim() || 'Europe/Sarajevo',
-      p_booking_profile_id: activeProfileId,
-    });
+    const saveOps: Promise<any>[] = [
+      (supabase as any).rpc('upsert_my_business_profile', {
+        p_name: bizName.trim(),
+        p_timezone: timezone.trim() || 'Europe/Sarajevo',
+        p_booking_profile_id: activeProfileId,
+      }),
+    ];
+    if (bizCategory === 'tradespeople') {
+      const areas = tradePubServiceAreas.split(',').map(s => s.trim()).filter(Boolean);
+      saveOps.push(
+        (supabase as any).rpc('upsert_trade_profile', {
+          p_booking_profile_id: activeProfileId,
+          p_name: bizName.trim(),
+          p_description: tradePubDesc.trim() || null,
+          p_service_area_cities: areas.length ? areas : null,
+          p_contact_channels: {
+            ...(tradePubPhone.trim() ? { phone: tradePubPhone.trim() } : {}),
+            ...(tradePubPhone2.trim() ? { phone2: tradePubPhone2.trim() } : {}),
+            ...(tradePubEmail.trim() ? { email: tradePubEmail.trim() } : {}),
+          },
+        }),
+      );
+    }
+    const [{ data, error }] = await Promise.all(saveOps);
     setProfileSaving(false);
     const result = data as { ok: boolean; error?: string; location_id?: string } | null;
     if (error || !result?.ok) {
@@ -807,6 +846,9 @@ export default function BusinessSetupPage() {
   }
 
   // ── Logo upload / remove ───────────────────────────────────────────────────
+  // Trade profiles use logo_url as canonical logo column; all others use avatar_url
+  const logoColumn = bizCategory === 'tradespeople' ? 'logo_url' : 'avatar_url';
+
   async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !user || !activeProfileId) return;
@@ -826,7 +868,7 @@ export default function BusinessSetupPage() {
       if (upErr) throw upErr;
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path);
       await (supabase as any).from('booking_profiles')
-        .update({ avatar_url: publicUrl })
+        .update({ [logoColumn]: publicUrl })
         .eq('id', activeProfileId);
       setAvatarUrl(publicUrl);
       toast.success(t('setup.profile.saved'));
@@ -845,9 +887,23 @@ export default function BusinessSetupPage() {
       if (oldPath) await supabase.storage.from('avatars').remove([oldPath]);
     }
     await (supabase as any).from('booking_profiles')
-      .update({ avatar_url: null })
+      .update({ [logoColumn]: null })
       .eq('id', activeProfileId);
     setAvatarUrl('');
+  }
+
+  // ── Marketplace toggle ─────────────────────────────────────────────────────
+  async function handleToggleMarketplace() {
+    if (!activeProfileId || togglingMarketplace) return;
+    const newVal = !isMarketplaceListed;
+    setTogglingMarketplace(true);
+    const { error } = await (supabase as any).rpc('set_marketplace_listed', {
+      p_business_id: activeProfileId,
+      p_listed: newVal,
+    });
+    setTogglingMarketplace(false);
+    if (error) { toast.error(t('setup.error.saveFailed')); return; }
+    setIsMarketplaceListed(newVal);
   }
 
   // ── Notification prefs save ────────────────────────────────────────────────
@@ -1834,7 +1890,6 @@ export default function BusinessSetupPage() {
         { key: 'hours',          label: t('setup.tab.hours') },
         { key: 'staff',          label: t('setup.tab.staff') },
         notifTab,
-        { key: 'rules',          label: t('setup.tab.rules') },
       );
     } else if (bizCategory === 'accommodation') {
       base.push(
@@ -2023,6 +2078,78 @@ export default function BusinessSetupPage() {
                       <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">{t('setup.profile.nameNote')}</p>
                     </>
                   )}
+
+                  {labelInput(t('setup.profile.timezone'),
+                    <TimezoneSelect
+                      value={timezone}
+                      onChange={setTimezone}
+                      className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  )}
+
+                  {/* Trade-specific public profile fields */}
+                  {bizCategory === 'tradespeople' && (<>
+                    {labelInput(t('trade.settings.description'),
+                      <textarea
+                        value={tradePubDesc}
+                        onChange={e => setTradePubDesc(e.target.value)}
+                        rows={3}
+                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                        placeholder={t('trade.settings.descPh')}
+                      />
+                    )}
+                    {labelInput(t('trade.settings.serviceAreas'),
+                      <input
+                        type="text"
+                        value={tradePubServiceAreas}
+                        onChange={e => setTradePubServiceAreas(e.target.value)}
+                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                        placeholder={t('trade.settings.serviceAreasPh')}
+                      />
+                    )}
+                    {labelInput(t('trade.settings.phone'),
+                      <input
+                        type="tel"
+                        value={tradePubPhone}
+                        onChange={e => setTradePubPhone(e.target.value)}
+                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    )}
+                    {labelInput(t('trade.settings.phone2'),
+                      <input
+                        type="tel"
+                        value={tradePubPhone2}
+                        onChange={e => setTradePubPhone2(e.target.value)}
+                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    )}
+                    {labelInput(t('trade.settings.email'),
+                      <input
+                        type="email"
+                        value={tradePubEmail}
+                        onChange={e => setTradePubEmail(e.target.value)}
+                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    )}
+                  </>)}
+
+                  {/* Marketplace visibility toggle */}
+                  <div className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-foreground">{t('trade.settings.marketplace.listed')}</span>
+                      <span className="text-xs text-muted-foreground mt-0.5">{t('trade.settings.marketplace.listedDesc')}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleToggleMarketplace}
+                      disabled={togglingMarketplace}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${isMarketplaceListed ? 'bg-primary' : 'bg-muted'} disabled:opacity-50`}
+                      aria-checked={isMarketplaceListed}
+                      role="switch"
+                    >
+                      <span className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-md transform transition duration-200 ${isMarketplaceListed ? 'translate-x-5' : 'translate-x-0'}`} />
+                    </button>
+                  </div>
 
                   <Button
                     onClick={handleSaveProfile}
