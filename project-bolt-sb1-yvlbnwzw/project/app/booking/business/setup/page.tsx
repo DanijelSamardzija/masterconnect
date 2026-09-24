@@ -363,7 +363,7 @@ function getBrowserTimezone(): string {
   }
 }
 
-function TimezoneSelect({ value, onChange, className }: {
+function TimezoneSelect({ value, onChange }: {
   value: string;
   onChange: (v: string) => void;
   className?: string;
@@ -373,15 +373,12 @@ function TimezoneSelect({ value, onChange, className }: {
     : [{ value, label: value }, ...TIMEZONE_OPTIONS];
 
   return (
-    <select
+    <GigSelect
       value={value}
-      onChange={e => onChange(e.target.value)}
-      className={className}
-    >
-      {options.map(opt => (
-        <option key={opt.value} value={opt.value}>{opt.label}</option>
-      ))}
-    </select>
+      onChange={onChange}
+      options={options}
+      className="w-full"
+    />
   );
 }
 
@@ -2183,17 +2180,15 @@ export default function BusinessSetupPage() {
                   {bizCategory === 'tradespeople' && (
                     <div className="flex flex-col gap-1">
                       <label className="text-xs font-medium text-muted-foreground">{t('trade.settings.subtype')}</label>
-                      <select
+                      <GigSelect
                         value={bizSubtype}
-                        onChange={e => setBizSubtype(e.target.value)}
-                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                      >
-                        {(['solo', 'company', 'cooperative', 'freelancer'] as const).map(sub => (
-                          <option key={sub} value={sub}>
-                            {t(`trade.onboarding.biztype.${sub}` as Parameters<typeof t>[0])}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={setBizSubtype}
+                        className="w-full"
+                        options={(['solo', 'company', 'cooperative', 'freelancer'] as const).map(sub => ({
+                          value: sub,
+                          label: t(`trade.onboarding.biztype.${sub}` as Parameters<typeof t>[0]),
+                        }))}
+                      />
                       <p className="text-xs text-muted-foreground mt-0.5">{t('trade.settings.subtypeDesc')}</p>
                     </div>
                   )}
@@ -2432,38 +2427,36 @@ export default function BusinessSetupPage() {
 
                   {labelInput(t('setup.services.priceType'),
                     <>
-                      <select
+                      <GigSelect
                         value={svcPriceType}
-                        onChange={(e) => setSvcPriceType(e.target.value)}
-                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                      >
-                        {PRICE_TYPES.map((pt) => (
-                          <option key={pt} value={pt}>{t(`setup.services.ptype.${pt}`)}</option>
-                        ))}
-                      </select>
+                        onChange={setSvcPriceType}
+                        className="w-full"
+                        options={PRICE_TYPES.map(pt => ({
+                          value: pt,
+                          label: t(`setup.services.ptype.${pt}` as Parameters<typeof t>[0]),
+                        }))}
+                      />
                       <p className="text-xs text-muted-foreground mt-0.5">{t('setup.services.priceTypeHelp')}</p>
                     </>
                   )}
 
                   {(svcPriceType === 'fixed' || svcPriceType === 'from') && labelInput(t('setup.services.price'),
                     <>
-                      <div className="flex rounded-lg overflow-hidden border border-border focus-within:ring-2 focus-within:ring-primary">
-                        <select
+                      <div className="flex gap-1.5">
+                        <GigSelect
+                          size="sm"
                           value={svcCurrency}
-                          onChange={(e) => setSvcCurrency(e.target.value)}
-                          className="px-2 py-2 text-sm bg-muted border-r border-border focus:outline-none shrink-0 w-[72px]"
-                        >
-                          {CURRENCIES.map((c) => (
-                            <option key={c} value={c}>{c}</option>
-                          ))}
-                        </select>
+                          onChange={setSvcCurrency}
+                          options={CURRENCIES.map(c => ({ value: c, label: c }))}
+                          className="w-[72px] shrink-0"
+                        />
                         <input
                           type="number"
                           min="0"
                           step="0.01"
                           value={svcPrice}
                           onChange={(e) => setSvcPrice(e.target.value)}
-                          className="px-3 py-2 text-sm bg-background flex-1 focus:outline-none min-w-0"
+                          className="border border-border rounded-lg px-3 py-2 text-sm bg-background flex-1 focus:outline-none focus:ring-2 focus:ring-primary min-w-0"
                         />
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">{t('setup.services.priceHelp')}</p>
@@ -2497,33 +2490,31 @@ export default function BusinessSetupPage() {
                               </label>
                               {enabled && (
                                 <div className="ml-6 flex flex-col gap-1.5">
-                                  <select
+                                  <GigSelect
                                     value={ov!.price_type}
-                                    onChange={e => setSvcLocOverrides(prev => ({ ...prev, [loc.id]: { ...prev[loc.id]!, price_type: e.target.value } }))}
-                                    className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                                  >
-                                    {PRICE_TYPES.map(pt => (
-                                      <option key={pt} value={pt}>{t(`setup.services.ptype.${pt}`)}</option>
-                                    ))}
-                                  </select>
+                                    onChange={val => setSvcLocOverrides(prev => ({ ...prev, [loc.id]: { ...prev[loc.id]!, price_type: val } }))}
+                                    className="w-full"
+                                    options={PRICE_TYPES.map(pt => ({
+                                      value: pt,
+                                      label: t(`setup.services.ptype.${pt}` as Parameters<typeof t>[0]),
+                                    }))}
+                                  />
                                   {(ov!.price_type === 'fixed' || ov!.price_type === 'from') && (
-                                    <div className="flex rounded-lg overflow-hidden border border-border focus-within:ring-2 focus-within:ring-primary">
-                                      <select
+                                    <div className="flex gap-1.5">
+                                      <GigSelect
+                                        size="sm"
                                         value={ov!.currency}
-                                        onChange={e => setSvcLocOverrides(prev => ({ ...prev, [loc.id]: { ...prev[loc.id]!, currency: e.target.value } }))}
-                                        className="px-2 py-2 text-sm bg-muted border-r border-border focus:outline-none shrink-0 w-[72px]"
-                                      >
-                                        {CURRENCIES.map(c => (
-                                          <option key={c} value={c}>{c}</option>
-                                        ))}
-                                      </select>
+                                        onChange={val => setSvcLocOverrides(prev => ({ ...prev, [loc.id]: { ...prev[loc.id]!, currency: val } }))}
+                                        options={CURRENCIES.map(c => ({ value: c, label: c }))}
+                                        className="w-[72px] shrink-0"
+                                      />
                                       <input
                                         type="number"
                                         min="0"
                                         step="0.01"
                                         value={ov!.price}
                                         onChange={e => setSvcLocOverrides(prev => ({ ...prev, [loc.id]: { ...prev[loc.id]!, price: e.target.value } }))}
-                                        className="px-3 py-2 text-sm bg-background flex-1 focus:outline-none min-w-0"
+                                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background flex-1 focus:outline-none focus:ring-2 focus:ring-primary min-w-0"
                                       />
                                     </div>
                                   )}
@@ -2916,16 +2907,13 @@ export default function BusinessSetupPage() {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <select
+                          <GigSelect
+                            size="sm"
                             value={closureReason}
-                            onChange={(e) => setClosureReason(e.target.value)}
-                            style={{ accentColor: 'hsl(var(--primary))' }}
-                            className="flex-1 border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
-                          >
-                            {FIRM_REASONS.map((r) => (
-                              <option key={r} value={r}>{getReasonLabel(r)}</option>
-                            ))}
-                          </select>
+                            onChange={setClosureReason}
+                            className="flex-1"
+                            options={FIRM_REASONS.map(r => ({ value: r, label: getReasonLabel(r) }))}
+                          />
                           <input
                             type="text"
                             value={closureNote}
@@ -2998,18 +2986,18 @@ export default function BusinessSetupPage() {
                       />
                     )}
                     {labelInput(t('setup.locations.country'),
-                      <select
+                      <GigSelect
                         value={locCountry}
-                        onChange={(e) => setLocCountry(e.target.value)}
-                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary w-full"
-                      >
-                        <option value=""></option>
-                        {countries.map((c) => (
-                          <option key={c.value} value={c.value}>
-                            {language === 'sr' ? c.sr : language === 'de' ? c.de : c.en}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={setLocCountry}
+                        className="w-full"
+                        options={[
+                          { value: '', label: '' },
+                          ...countries.map(c => ({
+                            value: c.value,
+                            label: language === 'sr' ? c.sr : language === 'de' ? c.de : c.en,
+                          })),
+                        ]}
+                      />
                     )}
                   </div>
 
@@ -3375,14 +3363,15 @@ export default function BusinessSetupPage() {
                         {rules.confirmation_mode === 'instant' ? t('setup.rules.confirmation.instant.desc') : t('setup.rules.confirmation.approval.desc')}
                       </p>
                     )}
-                    <select
+                    <GigSelect
                       value={rules.confirmation_mode}
-                      onChange={(e) => setRules((r) => ({ ...r, confirmation_mode: e.target.value as 'instant' | 'requires_approval' }))}
-                      className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                    >
-                      <option value="instant">{t('setup.rules.confirmation.instant')}</option>
-                      <option value="requires_approval">{t('setup.rules.confirmation.approval')}</option>
-                    </select>
+                      onChange={val => setRules(r => ({ ...r, confirmation_mode: val as 'instant' | 'requires_approval' }))}
+                      className="w-full"
+                      options={[
+                        { value: 'instant', label: t('setup.rules.confirmation.instant') },
+                        { value: 'requires_approval', label: t('setup.rules.confirmation.approval') },
+                      ]}
+                    />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
@@ -3399,17 +3388,15 @@ export default function BusinessSetupPage() {
                           {t('setup.rules.maxAdvance.desc')}
                         </p>
                       )}
-                      <select
-                        value={rules.max_advance_days}
-                        onChange={(e) => setRules((r) => ({ ...r, max_advance_days: Number(e.target.value) }))}
-                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                      >
-                        {[7, 14, 21, 30, 45, 60, 90, 180, 365].map((v) => (
-                          <option key={v} value={v}>
-                            {v === 180 ? t('setup.rules.months6') : v === 365 ? t('setup.rules.year1') : `${v} dana`}
-                          </option>
-                        ))}
-                      </select>
+                      <GigSelect
+                        value={String(rules.max_advance_days)}
+                        onChange={val => setRules(r => ({ ...r, max_advance_days: Number(val) }))}
+                        className="w-full"
+                        options={[7, 14, 21, 30, 45, 60, 90, 180, 365].map(v => ({
+                          value: String(v),
+                          label: v === 180 ? t('setup.rules.months6') : v === 365 ? t('setup.rules.year1') : `${v} dana`,
+                        }))}
+                      />
                     </div>
                   </div>
 
@@ -3427,15 +3414,15 @@ export default function BusinessSetupPage() {
                           {t('setup.rules.minNotice.desc')}
                         </p>
                       )}
-                      <select
-                        value={rules.min_notice_minutes}
-                        onChange={(e) => setRules((r) => ({ ...r, min_notice_minutes: Number(e.target.value) }))}
-                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                      >
-                        {[0, 30, 60, 120, 180, 240, 480, 720, 1440].map((v) => (
-                          <option key={v} value={v}>{v === 0 ? '0' : v < 60 ? `${v} min` : v < 1440 ? `${v / 60}h` : '24h'}</option>
-                        ))}
-                      </select>
+                      <GigSelect
+                        value={String(rules.min_notice_minutes)}
+                        onChange={val => setRules(r => ({ ...r, min_notice_minutes: Number(val) }))}
+                        className="w-full"
+                        options={[0, 30, 60, 120, 180, 240, 480, 720, 1440].map(v => ({
+                          value: String(v),
+                          label: v === 0 ? '0' : v < 60 ? `${v} min` : v < 1440 ? `${v / 60}h` : '24h',
+                        }))}
+                      />
                     </div>
                     {/* Cancellation */}
                     <div className="flex flex-col gap-1.5">
@@ -3450,17 +3437,15 @@ export default function BusinessSetupPage() {
                           {t('setup.rules.cancellation.desc')}
                         </p>
                       )}
-                      <select
-                        value={rules.cancellation_hours}
-                        onChange={(e) => setRules((r) => ({ ...r, cancellation_hours: Number(e.target.value) }))}
-                        className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                      >
-                        {[0, 1, 2, 4, 8, 12, 24, 48, 72, 720, 2160].map((v) => (
-                          <option key={v} value={v}>
-                            {v === 0 ? '0' : v === 720 ? t('setup.rules.month1') : v === 2160 ? t('setup.rules.months3') : `${v}h`}
-                          </option>
-                        ))}
-                      </select>
+                      <GigSelect
+                        value={String(rules.cancellation_hours)}
+                        onChange={val => setRules(r => ({ ...r, cancellation_hours: Number(val) }))}
+                        className="w-full"
+                        options={[0, 1, 2, 4, 8, 12, 24, 48, 72, 720, 2160].map(v => ({
+                          value: String(v),
+                          label: v === 0 ? '0' : v === 720 ? t('setup.rules.month1') : v === 2160 ? t('setup.rules.months3') : `${v}h`,
+                        }))}
+                      />
                     </div>
                   </div>
 
@@ -3581,14 +3566,15 @@ export default function BusinessSetupPage() {
                       <div className="flex items-end gap-2">
                         <div className="flex flex-col gap-1 flex-1">
                           <label className="text-xs font-medium text-muted-foreground">{t('setup.staff.inviteRole')}</label>
-                          <select
+                          <GigSelect
                             value={addingStaffRole}
-                            onChange={(e) => setAddingStaffRole(e.target.value as 'manager' | 'worker')}
-                            className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                          >
-                            <option value="worker">{t('setup.staff.role.worker')}</option>
-                            <option value="manager">{t('setup.staff.role.manager')}</option>
-                          </select>
+                            onChange={val => setAddingStaffRole(val as 'manager' | 'worker')}
+                            className="w-full"
+                            options={[
+                              { value: 'worker', label: t('setup.staff.role.worker') },
+                              { value: 'manager', label: t('setup.staff.role.manager') },
+                            ]}
+                          />
                         </div>
                         <Button onClick={handleAddStaffDirect} disabled={addingStaff}>
                           {addingStaff ? <Loader2 className="w-4 h-4 animate-spin" /> : t('setup.staff.add')}

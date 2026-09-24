@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
 import { Plus, X, Pencil, Trash2, ChevronDown, ChevronRight, Image } from 'lucide-react';
+import { GigSelect } from '@/components/ui/gig-select';
 
 type AccUnit = {
   id: string;
@@ -322,12 +323,12 @@ export function AccommodationUnitsTab({ businessId }: { businessId: string }) {
                 className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
             )}
             {labelInput(t('acc.unit.currency'),
-              <select value={currency} onChange={(e) => setCurrency(e.target.value)}
-                className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary">
-                {['EUR', 'USD', 'RSD', 'BAM', 'HRK', 'GBP'].map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
+              <GigSelect
+                value={currency}
+                onChange={setCurrency}
+                className="w-full"
+                options={['EUR', 'USD', 'RSD', 'BAM', 'HRK', 'GBP'].map(c => ({ value: c, label: c }))}
+              />
             )}
           </div>
 

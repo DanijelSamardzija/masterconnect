@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
 import { Plus, X, Pencil, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import { GigSelect } from '@/components/ui/gig-select';
 
 type Category = { id: string; name: string; sort_order: number; is_active: boolean };
 type MenuItem = {
@@ -322,11 +323,15 @@ export function MenuTab({ businessId }: { businessId: string }) {
 
             <div className="grid grid-cols-2 gap-3">
               {labelInput(t('menu.item.category'),
-                <select value={itemCategoryId} onChange={(e) => setItemCategoryId(e.target.value)}
-                  className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary">
-                  <option value="">—</option>
-                  {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
+                <GigSelect
+                  value={itemCategoryId}
+                  onChange={setItemCategoryId}
+                  className="w-full"
+                  options={[
+                    { value: '', label: '—' },
+                    ...categories.map(c => ({ value: c.id, label: c.name })),
+                  ]}
+                />
               )}
               {labelInput(t('menu.item.image'),
                 <input type="url" value={itemImageUrl} onChange={(e) => setItemImageUrl(e.target.value)}
@@ -447,11 +452,16 @@ export function MenuTab({ businessId }: { businessId: string }) {
                       placeholder={t('menu.modifier.group.namePh')}
                       className="border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-1 focus:ring-primary" />
                     <div className="flex items-center gap-3">
-                      <select value={groupType} onChange={(e) => setGroupType(e.target.value)}
-                        className="flex-1 border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-1 focus:ring-primary">
-                        <option value="multiple">{t('menu.modifier.group.type.multiple')}</option>
-                        <option value="single">{t('menu.modifier.group.type.single')}</option>
-                      </select>
+                      <GigSelect
+                        size="sm"
+                        value={groupType}
+                        onChange={setGroupType}
+                        className="flex-1"
+                        options={[
+                          { value: 'multiple', label: t('menu.modifier.group.type.multiple') },
+                          { value: 'single', label: t('menu.modifier.group.type.single') },
+                        ]}
+                      />
                       <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer">
                         <input type="checkbox" checked={groupRequired} onChange={(e) => setGroupRequired(e.target.checked)}
                           className="rounded" />

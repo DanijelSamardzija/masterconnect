@@ -9,6 +9,7 @@ import { TradeDashboardLayout } from '@/components/trade/TradeDashboardLayout';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { ArrowLeft, Loader2 } from 'lucide-react';
+import { GigSelect } from '@/components/ui/gig-select';
 
 type ClientOption = { id: string; name: string };
 type StaffOption  = { id: string; user_id: string; name: string };
@@ -136,22 +137,28 @@ export default function NewTradeJobPage() {
 
         {/* Client */}
         {row(t('trade.jobs.client'),
-          <select value={clientId} onChange={(e) => setClientId(e.target.value)} className={inputCls}>
-            <option value="">{t('trade.jobs.noClient')}</option>
-            {clients.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
+          <GigSelect
+            value={clientId}
+            onChange={setClientId}
+            className="w-full"
+            options={[
+              { value: '', label: t('trade.jobs.noClient') },
+              ...clients.map(c => ({ value: c.id, label: c.name })),
+            ]}
+          />
         )}
 
         {/* Assign to */}
         {row(t('trade.jobs.assignTo'),
-          <select value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)} className={inputCls}>
-            <option value="">{t('trade.jobs.noAssign')}</option>
-            {staff.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </select>
+          <GigSelect
+            value={assignedTo}
+            onChange={setAssignedTo}
+            className="w-full"
+            options={[
+              { value: '', label: t('trade.jobs.noAssign') },
+              ...staff.map(s => ({ value: s.id, label: s.name })),
+            ]}
+          />
         )}
 
         {/* Scheduled */}

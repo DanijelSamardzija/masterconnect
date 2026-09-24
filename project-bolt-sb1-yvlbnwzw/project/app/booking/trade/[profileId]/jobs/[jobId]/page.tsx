@@ -16,6 +16,7 @@ import {
   PauseCircle, XCircle, Circle, ChevronDown,
   Upload, Image as ImageIcon, Navigation,
 } from 'lucide-react';
+import { GigSelect } from '@/components/ui/gig-select';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -286,13 +287,15 @@ function ExpensesSection({ job, profileId, onReload }: { job: Job; profileId: st
         onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
         placeholder={t('trade.expenses.description')} className={inputCls} />
       <div className="grid grid-cols-2 gap-2">
-        <select value={form.expense_type}
-          onChange={(e) => setForm((f) => ({ ...f, expense_type: e.target.value as ExpenseType }))}
-          className={inputCls}>
-          {EXPENSE_TYPES.map((et) => (
-            <option key={et} value={et}>{t(`trade.expenses.type_${et}` as any)}</option>
-          ))}
-        </select>
+        <GigSelect
+          value={form.expense_type}
+          onChange={val => setForm(f => ({ ...f, expense_type: val as ExpenseType }))}
+          className="w-full"
+          options={EXPENSE_TYPES.map(et => ({
+            value: et,
+            label: t(`trade.expenses.type_${et}` as Parameters<typeof t>[0]),
+          }))}
+        />
         <input type="number" value={form.amount}
           onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
           placeholder={t('trade.expenses.amount')} className={inputCls} min="0" step="0.01" />

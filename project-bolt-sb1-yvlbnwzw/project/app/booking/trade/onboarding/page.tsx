@@ -9,6 +9,7 @@ import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { TradeServicesTab } from '@/components/setup/TradeServicesTab';
 import { TimePicker24h } from '@/components/ui/time-picker-24h';
+import { GigSelect } from '@/components/ui/gig-select';
 import { CityAutocomplete } from '@/components/city-autocomplete';
 import { countries } from '@/lib/countries';
 import { compressImage } from '@/lib/utils/compress-image';
@@ -688,26 +689,28 @@ export default function TradeOnboardingPage() {
                     </div>
                     <div className="flex flex-col gap-1.5">
                       <label className="text-sm font-medium">{t('setup.locations.country')}</label>
-                      <select value={locCountry} onChange={(e) => setLocCountry(e.target.value)} className={inputCls}>
-                        <option value=""></option>
-                        {countries.map((c) => (
-                          <option key={c.value} value={c.value}>
-                            {language === 'sr' ? c.sr : language === 'de' ? c.de : c.en}
-                          </option>
-                        ))}
-                      </select>
+                      <GigSelect
+                        value={locCountry}
+                        onChange={setLocCountry}
+                        className="w-full"
+                        options={[
+                          { value: '', label: '' },
+                          ...countries.map(c => ({
+                            value: c.value,
+                            label: language === 'sr' ? c.sr : language === 'de' ? c.de : c.en,
+                          })),
+                        ]}
+                      />
                     </div>
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <label className="text-sm font-medium">{t('setup.locations.timezone')}</label>
-                    <div className="rounded-xl overflow-hidden border border-border focus-within:ring-2 focus-within:ring-primary">
-                      <select value={locTimezone} onChange={(e) => setLocTimezone(e.target.value)}
-                        className="w-full px-3 py-3 text-sm bg-background focus:outline-none">
-                        {TIMEZONE_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>{opt.label}</option>
-                        ))}
-                      </select>
-                    </div>
+                    <GigSelect
+                      value={locTimezone}
+                      onChange={setLocTimezone}
+                      className="w-full"
+                      options={TIMEZONE_OPTIONS.map(opt => ({ value: opt.value, label: opt.label }))}
+                    />
                   </div>
                   <div className="border-t border-border/60 pt-4 flex flex-col gap-3">
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('trade.onboarding.contacts.heading')}</p>
