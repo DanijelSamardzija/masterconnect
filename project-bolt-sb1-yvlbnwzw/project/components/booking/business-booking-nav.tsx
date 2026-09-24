@@ -4,6 +4,9 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
+import { supabase } from '@/lib/supabase/client';
+import { LocationPickerSheet } from '@/components/booking/location-picker-sheet';
+import type { LocationOption } from '@/components/booking/location-picker-sheet';
 import {
   Calendar,
   Settings,
@@ -163,6 +166,10 @@ export function BusinessBookingNav({ active }: { active?: BusinessBookingTab }) 
   const { t } = useLanguage();
   const { activeProfileId } = useBookingProfile();
   const [sharePicker, setSharePicker] = useState(false);
+  const [shareLocOpen, setShareLocOpen] = useState(false);
+  const [shareLocOptions, setShareLocOptions] = useState<LocationOption[]>([]);
+  const [shareLocId, setShareLocId] = useState<string | null>(null);
+  const [shareLocLoading, setShareLocLoading] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
 
@@ -178,6 +185,29 @@ export function BusinessBookingNav({ active }: { active?: BusinessBookingTab }) 
   const activeItem = NAV_ITEMS.find(i => i.tab === active);
   const activeLabel = activeItem ? t(activeItem.labelKey as Parameters<typeof t>[0]) : t('ownerBookings.navLabel' as Parameters<typeof t>[0]);
   const activeIcon  = activeItem?.icon ?? <Calendar className="h-3.5 w-3.5" />;
+
+  async function handleShareClick() {
+    if (!activeProfileId || shareLocLoading) return;
+    setShareLocLoading(true);
+    try {
+      const { data } = await supabase
+        .from('business_locations')
+        .select('id, name, city, country')
+        .eq('business_id', activeProfileId)
+        .eq('is_active', true)
+        .order('is_primary', { ascending: false });
+      const locs = (data ?? []) as { id: string; name: string; city: string | null; country: string | null }[];
+      if (locs.length <= 1) {
+        if (locs.length === 1) setShareLocId(locs[0].id);
+        setSharePicker(true);
+      } else {
+        setShareLocOptions(locs.map((l) => ({ id: l.id, name: l.name, city: l.city, country: l.country })));
+        setShareLocOpen(true);
+      }
+    } finally {
+      setShareLocLoading(false);
+    }
+  }
 
   return (
     <>
@@ -226,8 +256,9 @@ export function BusinessBookingNav({ active }: { active?: BusinessBookingTab }) 
               <>
                 <div className="mx-3 my-1 border-t border-border" />
                 <button
-                  onClick={() => { setSharePicker(true); setNavOpen(false); }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors text-left"
+                  onClick={() => { setNavOpen(false); handleShareClick(); }}
+                  disabled={shareLocLoading}
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors text-left disabled:opacity-50"
                 >
                   <Share2 className="h-3.5 w-3.5" />
                   {t('booking.shareService')}
@@ -271,8 +302,9 @@ export function BusinessBookingNav({ active }: { active?: BusinessBookingTab }) 
           {activeProfileId && (
             <>
               <button
-                onClick={() => setSharePicker(true)}
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground whitespace-nowrap py-2 px-2 rounded-lg hover:bg-accent transition-colors"
+                onClick={() => handleShareClick()}
+                disabled={shareLocLoading}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground whitespace-nowrap py-2 px-2 rounded-lg hover:bg-accent transition-colors disabled:opacity-50"
               >
                 <Share2 className="h-3.5 w-3.5" />
                 {t('booking.shareService')}
@@ -290,12 +322,18 @@ export function BusinessBookingNav({ active }: { active?: BusinessBookingTab }) 
       </div>
       </div>{/* end sticky wrapper */}
 
+      <LocationPickerSheet
+        open={shareLocOpen}
+        locations={shareLocOptions}
+        onPick={(locId) => { setShareLocId(locId); setShareLocOpen(false); setSharePicker(true); }}
+        onCancel={() => setShareLocOpen(false)}
+      />
       {activeProfileId && (
         <SharePostModal
           postId={activeProfileId}
-          urlPath={`/booking/${activeProfileId}`}
+          urlPath={`/booking/${activeProfileId}${shareLocId ? `?locationId=${shareLocId}` : ''}`}
           open={sharePicker}
-          onOpenChange={setSharePicker}
+          onOpenChange={(open) => { setSharePicker(open); if (!open) setShareLocId(null); }}
         />
       )}
     </>
