@@ -193,7 +193,7 @@ export function TradeOwnerNav({
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <div className="flex flex-nowrap overflow-x-auto scrollbar-hide gap-x-1 items-center">
+        <div className="flex flex-wrap gap-x-1 gap-y-0.5 items-center">
           {navItems.map(({ tab, href, labelKey, icon }) => (
             <button
               key={tab}
