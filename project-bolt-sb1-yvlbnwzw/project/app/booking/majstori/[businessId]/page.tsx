@@ -226,6 +226,13 @@ export default function PublicTradeProfilePage() {
             })()}
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => setShareOpen(true)}
+              className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent transition-colors border border-border"
+              title={t('trade.public.shareProfile')}
+            >
+              <Share2 className="w-3.5 h-3.5" />
+            </button>
             {user && (
               <button
                 onClick={handleFollow}
@@ -242,13 +249,6 @@ export default function PublicTradeProfilePage() {
                 }
               </button>
             )}
-            <button
-              onClick={() => setShareOpen(true)}
-              className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent transition-colors border border-border"
-              title={t('trade.public.shareProfile')}
-            >
-              <Share2 className="w-3.5 h-3.5" />
-            </button>
           </div>
         </div>
 
