@@ -45,6 +45,7 @@ import { EmojiPicker } from '@/components/emoji-picker';
 import { addRecentEmoji, loadRecentEmojisFromDatabase, syncRecentEmojisToDatabase } from '@/lib/emoji-tracking';
 import { devLog } from '@/lib/dev-log';
 import { TwemojiText, MessageText } from '@/components/twemoji';
+import { LinkPreview } from '@/components/link-preview';
 import { ReviewModal } from '@/components/review-modal';
 import { BlockUserModal } from '@/components/block-user-modal';
 import { OfferCard } from '@/components/offer-card';
@@ -1535,6 +1536,18 @@ function MessagesContent() {
                                             }
                                           </button>
                                         )}
+                                      </div>
+                                    );
+                                  })()}
+
+                                  {/* ── Link previews ── */}
+                                  {realText && (() => {
+                                    const urlRe = /https?:\/\/[^\s<>"{}|\\^`[\]]+/gi;
+                                    const urls = [...new Set(Array.from(realText.matchAll(urlRe), m => m[0]))];
+                                    if (urls.length === 0) return null;
+                                    return (
+                                      <div className="mt-2 space-y-1.5">
+                                        {urls.map((u, i) => <LinkPreview key={i} url={u} isOwn={isOwn} />)}
                                       </div>
                                     );
                                   })()}
