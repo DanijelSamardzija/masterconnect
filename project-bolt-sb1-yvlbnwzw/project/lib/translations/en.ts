@@ -2680,6 +2680,12 @@ export default {
   'trade.staff.permissions.can_view_purchase_prices': 'View purchase prices',
   'trade.staff.permissions.can_handle_emergency':     'Can be dispatched to emergencies',
   'trade.staff.permissions.can_accept_emergency':     'Accept & manage emergencies',
+  'trade.staff.permissions.can_set_hours':            'Can edit own shifts and breaks',
+  'trade.staff.permissions.can_block_time':           'Can block own time (vacation, sick leave)',
+  'trade.staff.permissions.groupHours':               'Work Hours',
+  'trade.staff.permissions.groupWork':                'Work Orders',
+  'trade.staff.permissions.groupFinancials':          'Financials',
+  'trade.staff.permissions.groupEmergency':           'Emergencies',
 
   // ── Trade Client Flow / Marketplace (Faza 8) ─────────────────────────────
   'trade.majstori.title':             'Tradespeople & Companies',
@@ -3198,6 +3204,8 @@ export default {
   'setup.staff.permissions.completeBookings': 'Can mark booking as Done / No-show',
   'setup.staff.permissions.save': 'Save permissions',
   'setup.staff.permissions.saved': 'Permissions saved',
+  'setup.staff.permissions.groupHours':    'Work Hours',
+  'setup.staff.permissions.groupBookings': 'Bookings',
   'setup.staff.noLocation': 'You must add a location before adding staff.',
   'setup.staff.add': 'Add staff member',
   'setup.staff.added': 'Staff member added',

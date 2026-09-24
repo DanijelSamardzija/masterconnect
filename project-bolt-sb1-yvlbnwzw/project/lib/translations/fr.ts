@@ -2605,6 +2605,12 @@ export default {
   'trade.staff.permissions.can_view_purchase_prices': 'Voir les prix d\'achat',
   'trade.staff.permissions.can_handle_emergency':     'Peut être envoyé en urgence',
   'trade.staff.permissions.can_accept_emergency':     'Accepter et gérer les urgences',
+  'trade.staff.permissions.can_set_hours':            'Modifier ses propres horaires et pauses',
+  'trade.staff.permissions.can_block_time':           'Bloquer son propre temps (congé, maladie)',
+  'trade.staff.permissions.groupHours':               'Horaires',
+  'trade.staff.permissions.groupWork':                'Bons de travail',
+  'trade.staff.permissions.groupFinancials':          'Finances',
+  'trade.staff.permissions.groupEmergency':           'Urgences',
 
   // ── Trade Client Flow / Marketplace (Faza 8) ─────────────────────────────
   'trade.majstori.title':             'Artisans et Entreprises',
@@ -3123,6 +3129,8 @@ export default {
   'setup.staff.permissions.completeBookings': 'Peut marquer un rendez-vous comme Effectué / Absent',
   'setup.staff.permissions.save': 'Enregistrer les autorisations',
   'setup.staff.permissions.saved': 'Autorisations enregistrées',
+  'setup.staff.permissions.groupHours':    'Horaires',
+  'setup.staff.permissions.groupBookings': 'Réservations',
   'setup.staff.noLocation': 'Vous devez ajouter un lieu avant d\'ajouter du personnel.',
   'setup.staff.add': 'Ajouter un employé',
   'setup.staff.added': 'Employé ajouté',

@@ -2680,6 +2680,12 @@ export default {
   'trade.staff.permissions.can_view_purchase_prices': 'Pregled nabavnih cijena',
   'trade.staff.permissions.can_handle_emergency':     'Može biti upućen na intervenciju',
   'trade.staff.permissions.can_accept_emergency':     'Prihvatanje i upravljanje intervencijama',
+  'trade.staff.permissions.can_set_hours':            'Može mijenjati vlastite smjene i pauze',
+  'trade.staff.permissions.can_block_time':           'Može blokirati vlastito vrijeme (godišnji, bolovanje)',
+  'trade.staff.permissions.groupHours':               'Radno vrijeme',
+  'trade.staff.permissions.groupWork':                'Radni nalozi',
+  'trade.staff.permissions.groupFinancials':          'Finansije',
+  'trade.staff.permissions.groupEmergency':           'Hitne intervencije',
 
   // ── Trade Client Flow / Marketplace (Faza 8) ─────────────────────────────
   'trade.majstori.title':             'Majstori i Firme',
@@ -3198,6 +3204,8 @@ export default {
   'setup.staff.permissions.completeBookings': 'Može označiti termin kao Završeno / Nije se pojavio',
   'setup.staff.permissions.save': 'Sačuvaj dozvole',
   'setup.staff.permissions.saved': 'Dozvole sačuvane',
+  'setup.staff.permissions.groupHours':    'Radno vrijeme',
+  'setup.staff.permissions.groupBookings': 'Rezervacije',
   'setup.staff.noLocation': 'Morate dodati lokaciju prije dodavanja osoblja.',
   'setup.staff.add': 'Dodaj radnika',
   'setup.staff.added': 'Radnik dodat',

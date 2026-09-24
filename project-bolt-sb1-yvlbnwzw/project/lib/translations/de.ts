@@ -2670,6 +2670,12 @@ export default {
   'trade.staff.permissions.can_view_purchase_prices': 'Einkaufspreise einsehen',
   'trade.staff.permissions.can_handle_emergency':     'Kann zu Notfalleinsätzen eingeteilt werden',
   'trade.staff.permissions.can_accept_emergency':     'Notfalleinsätze annehmen und verwalten',
+  'trade.staff.permissions.can_set_hours':            'Eigene Schichten und Pausen bearbeiten',
+  'trade.staff.permissions.can_block_time':           'Eigene Zeit blockieren (Urlaub, Krankenstand)',
+  'trade.staff.permissions.groupHours':               'Arbeitszeiten',
+  'trade.staff.permissions.groupWork':                'Arbeitsaufträge',
+  'trade.staff.permissions.groupFinancials':          'Finanzen',
+  'trade.staff.permissions.groupEmergency':           'Notfalleinsätze',
 
   // ── Trade Client Flow / Marketplace (Faza 8) ─────────────────────────────
   'trade.majstori.title':             'Handwerker & Firmen',
@@ -3188,6 +3194,8 @@ export default {
   'setup.staff.permissions.completeBookings': 'Kann Termin als Erledigt / Nicht erschienen markieren',
   'setup.staff.permissions.save': 'Berechtigungen speichern',
   'setup.staff.permissions.saved': 'Berechtigungen gespeichert',
+  'setup.staff.permissions.groupHours':    'Arbeitszeiten',
+  'setup.staff.permissions.groupBookings': 'Buchungen',
   'setup.staff.noLocation': 'Sie müssen einen Standort hinzufügen, bevor Sie Personal hinzufügen.',
   'setup.staff.add': 'Mitarbeiter hinzufügen',
   'setup.staff.added': 'Mitarbeiter hinzugefügt',

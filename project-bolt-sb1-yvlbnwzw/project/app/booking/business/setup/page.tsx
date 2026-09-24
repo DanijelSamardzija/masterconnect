@@ -3673,38 +3673,79 @@ export default function BusinessSetupPage() {
                                 <div>
                                   <p className="text-xs font-semibold mb-1">{t('setup.staff.permissions.title')}</p>
                                   <p className="text-[11px] text-muted-foreground mb-3">{t('setup.staff.permissions.hint')}</p>
-                                  <div className="flex flex-col gap-2 mb-3">
-                                    {([
-                                      { key: 'can_set_hours',           label: t('setup.staff.permissions.setHours') },
-                                      { key: 'can_create_bookings',     label: t('setup.staff.permissions.createBookings') },
-                                      { key: 'can_cancel_bookings',     label: t('setup.staff.permissions.cancelBookings') },
-                                      { key: 'can_reschedule_bookings', label: t('setup.staff.permissions.rescheduleBookings') },
-                                      { key: 'can_complete_bookings',   label: t('setup.staff.permissions.completeBookings') },
-                                      { key: 'can_block_time',          label: t('setup.staff.permissions.blockTime') },
-                                    ] as const).map(({ key, label }) => {
-                                      const enabled = staffPermissionsMap[sm.id]?.[key] ?? false;
-                                      return (
-                                        <label key={key} className="flex items-center gap-3 cursor-pointer group">
-                                          <button
-                                            type="button"
-                                            role="switch"
-                                            aria-checked={enabled}
-                                            onClick={() => setStaffPermissionsMap((prev) => ({
-                                              ...prev,
-                                              [sm.id]: { ...prev[sm.id], [key]: !enabled },
-                                            }))}
-                                            className={`relative w-9 h-5 rounded-full transition-colors flex-shrink-0 ${
-                                              enabled ? 'bg-primary' : 'bg-muted-foreground/30'
-                                            }`}
-                                          >
-                                            <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-                                              enabled ? 'translate-x-4' : 'translate-x-0'
-                                            }`} />
-                                          </button>
-                                          <span className="text-xs text-foreground group-hover:text-primary transition-colors">{label}</span>
-                                        </label>
-                                      );
-                                    })}
+                                  <div className="flex flex-col gap-3 mb-3">
+                                    {/* Group: Work Hours */}
+                                    <div>
+                                      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
+                                        {t('setup.staff.permissions.groupHours')}
+                                      </p>
+                                      <div className="flex flex-col gap-2">
+                                        {([
+                                          { key: 'can_set_hours',  label: t('setup.staff.permissions.setHours') },
+                                          { key: 'can_block_time', label: t('setup.staff.permissions.blockTime') },
+                                        ] as const).map(({ key, label }) => {
+                                          const enabled = staffPermissionsMap[sm.id]?.[key] ?? false;
+                                          return (
+                                            <label key={key} className="flex items-center gap-3 cursor-pointer group">
+                                              <button
+                                                type="button"
+                                                role="switch"
+                                                aria-checked={enabled}
+                                                onClick={() => setStaffPermissionsMap((prev) => ({
+                                                  ...prev,
+                                                  [sm.id]: { ...prev[sm.id], [key]: !enabled },
+                                                }))}
+                                                className={`relative w-9 h-5 rounded-full transition-colors flex-shrink-0 ${
+                                                  enabled ? 'bg-primary' : 'bg-muted-foreground/30'
+                                                }`}
+                                              >
+                                                <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                                                  enabled ? 'translate-x-4' : 'translate-x-0'
+                                                }`} />
+                                              </button>
+                                              <span className="text-xs text-foreground group-hover:text-primary transition-colors">{label}</span>
+                                            </label>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                    {/* Group: Bookings */}
+                                    <div>
+                                      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
+                                        {t('setup.staff.permissions.groupBookings')}
+                                      </p>
+                                      <div className="flex flex-col gap-2">
+                                        {([
+                                          { key: 'can_create_bookings',     label: t('setup.staff.permissions.createBookings') },
+                                          { key: 'can_cancel_bookings',     label: t('setup.staff.permissions.cancelBookings') },
+                                          { key: 'can_reschedule_bookings', label: t('setup.staff.permissions.rescheduleBookings') },
+                                          { key: 'can_complete_bookings',   label: t('setup.staff.permissions.completeBookings') },
+                                        ] as const).map(({ key, label }) => {
+                                          const enabled = staffPermissionsMap[sm.id]?.[key] ?? false;
+                                          return (
+                                            <label key={key} className="flex items-center gap-3 cursor-pointer group">
+                                              <button
+                                                type="button"
+                                                role="switch"
+                                                aria-checked={enabled}
+                                                onClick={() => setStaffPermissionsMap((prev) => ({
+                                                  ...prev,
+                                                  [sm.id]: { ...prev[sm.id], [key]: !enabled },
+                                                }))}
+                                                className={`relative w-9 h-5 rounded-full transition-colors flex-shrink-0 ${
+                                                  enabled ? 'bg-primary' : 'bg-muted-foreground/30'
+                                                }`}
+                                              >
+                                                <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                                                  enabled ? 'translate-x-4' : 'translate-x-0'
+                                                }`} />
+                                              </button>
+                                              <span className="text-xs text-foreground group-hover:text-primary transition-colors">{label}</span>
+                                            </label>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
                                   </div>
                                   <Button
                                     size="sm"

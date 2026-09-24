@@ -2598,6 +2598,12 @@ export default {
   'trade.staff.permissions.can_view_purchase_prices': 'Ver precios de compra',
   'trade.staff.permissions.can_handle_emergency':     'Puede ser enviado a emergencias',
   'trade.staff.permissions.can_accept_emergency':     'Aceptar y gestionar emergencias',
+  'trade.staff.permissions.can_set_hours':            'Puede editar sus propios turnos y descansos',
+  'trade.staff.permissions.can_block_time':           'Puede bloquear su propio tiempo (vacaciones, baja)',
+  'trade.staff.permissions.groupHours':               'Horario',
+  'trade.staff.permissions.groupWork':                'Órdenes de trabajo',
+  'trade.staff.permissions.groupFinancials':          'Finanzas',
+  'trade.staff.permissions.groupEmergency':           'Emergencias',
 
   // ── Trade Client Flow / Marketplace (Faza 8) ─────────────────────────────
   'trade.majstori.title':             'Profesionales y Empresas',
@@ -3116,6 +3122,8 @@ export default {
   'setup.staff.permissions.completeBookings': 'Puede marcar reserva como Realizada / No presentado',
   'setup.staff.permissions.save': 'Guardar permisos',
   'setup.staff.permissions.saved': 'Permisos guardados',
+  'setup.staff.permissions.groupHours':    'Horario',
+  'setup.staff.permissions.groupBookings': 'Reservas',
   'setup.staff.noLocation': 'Debes añadir una ubicación antes de añadir personal.',
   'setup.staff.add': 'Añadir empleado',
   'setup.staff.added': 'Empleado añadido',

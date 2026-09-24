@@ -13,39 +13,42 @@ import { UserCog, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type TradePermissions = {
-  can_create_manual_jobs:   boolean;
+  // Booking namespace (saved via update_staff_permissions)
+  can_set_hours:            boolean;
+  can_block_time:           boolean;
+  // Trade namespace (saved via update_trade_staff_permissions)
   can_view_client_records:  boolean;
-  can_edit_client_records:  boolean;
   can_create_job_reports:   boolean;
   can_add_materials:        boolean;
   can_view_financials:      boolean;
   can_view_purchase_prices: boolean;
   can_handle_emergency:     boolean;
   can_accept_emergency:     boolean;
+  // Hidden in UI — no worker UI or no DB enforcement; preserved on save
+  can_create_manual_jobs:   boolean;
+  can_edit_client_records:  boolean;
 };
 
-const TRADE_PERM_KEYS: (keyof TradePermissions)[] = [
-  'can_create_manual_jobs',
-  'can_view_client_records',
-  'can_edit_client_records',
-  'can_create_job_reports',
-  'can_add_materials',
-  'can_view_financials',
-  'can_view_purchase_prices',
-  'can_handle_emergency',
-  'can_accept_emergency',
+const ALL_TRADE_KEYS: (keyof TradePermissions)[] = [
+  'can_set_hours', 'can_block_time',
+  'can_view_client_records', 'can_create_job_reports', 'can_add_materials',
+  'can_view_financials', 'can_view_purchase_prices',
+  'can_handle_emergency', 'can_accept_emergency',
+  'can_create_manual_jobs', 'can_edit_client_records',
 ];
 
 const EMPTY_PERMS: TradePermissions = {
-  can_create_manual_jobs:   false,
+  can_set_hours:            false,
+  can_block_time:           false,
   can_view_client_records:  false,
-  can_edit_client_records:  false,
   can_create_job_reports:   false,
   can_add_materials:        false,
   can_view_financials:      false,
   can_view_purchase_prices: false,
   can_handle_emergency:     false,
   can_accept_emergency:     false,
+  can_create_manual_jobs:   false,
+  can_edit_client_records:  false,
 };
 
 type StaffMember = {
@@ -64,7 +67,7 @@ function roleLabel(t: (k: string) => string, role: string) {
 
 function extractTradePerms(raw: Record<string, unknown>): TradePermissions {
   const perms = { ...EMPTY_PERMS };
-  for (const key of TRADE_PERM_KEYS) {
+  for (const key of ALL_TRADE_KEYS) {
     perms[key] = !!(raw?.[key]);
   }
   return perms;
@@ -72,16 +75,38 @@ function extractTradePerms(raw: Record<string, unknown>): TradePermissions {
 
 // ─── Permission editor ────────────────────────────────────────────────────────
 
+type PermGroup = {
+  labelKey: string;
+  keys: (keyof TradePermissions)[];
+};
+
+const PERM_GROUPS: PermGroup[] = [
+  {
+    labelKey: 'trade.staff.permissions.groupHours',
+    keys: ['can_set_hours', 'can_block_time'],
+  },
+  {
+    labelKey: 'trade.staff.permissions.groupWork',
+    keys: ['can_view_client_records', 'can_create_job_reports', 'can_add_materials'],
+  },
+  {
+    labelKey: 'trade.staff.permissions.groupFinancials',
+    keys: ['can_view_financials', 'can_view_purchase_prices'],
+  },
+  {
+    labelKey: 'trade.staff.permissions.groupEmergency',
+    keys: ['can_handle_emergency', 'can_accept_emergency'],
+  },
+];
+
 function PermissionEditor({
   staffId,
-  name,
   initialPerms,
   profileId,
   onSaved,
   t,
 }: {
   staffId: string;
-  name: string;
   initialPerms: TradePermissions;
   profileId: string;
   onSaved: () => void;
@@ -96,40 +121,82 @@ function PermissionEditor({
 
   async function save() {
     setSaving(true);
-    const { data } = await (supabase as any).rpc('update_trade_staff_permissions', {
-      p_business_id: profileId,
-      p_staff_id:    staffId,
-      p_permissions: perms,
-    });
-    if (data?.ok) {
+
+    // Booking namespace: can_set_hours + can_block_time
+    // (other booking keys stay false — trade workers don't use Termini booking features)
+    const bookingPerms = {
+      can_set_hours:           perms.can_set_hours,
+      can_block_time:          perms.can_block_time,
+      can_create_bookings:     false,
+      can_cancel_bookings:     false,
+      can_reschedule_bookings: false,
+      can_complete_bookings:   false,
+    };
+
+    // Trade namespace: all 9 keys; hidden ones (can_create_manual_jobs, can_edit_client_records)
+    // are carried from the loaded state so their values are preserved, not zeroed.
+    const tradePerms = {
+      can_create_manual_jobs:   perms.can_create_manual_jobs,
+      can_view_client_records:  perms.can_view_client_records,
+      can_edit_client_records:  perms.can_edit_client_records,
+      can_create_job_reports:   perms.can_create_job_reports,
+      can_add_materials:        perms.can_add_materials,
+      can_view_financials:      perms.can_view_financials,
+      can_view_purchase_prices: perms.can_view_purchase_prices,
+      can_handle_emergency:     perms.can_handle_emergency,
+      can_accept_emergency:     perms.can_accept_emergency,
+    };
+
+    const [r1, r2] = await Promise.all([
+      (supabase as any).rpc('update_staff_permissions', {
+        p_staff_member_id: staffId,
+        p_permissions:     bookingPerms,
+      }),
+      (supabase as any).rpc('update_trade_staff_permissions', {
+        p_business_id: profileId,
+        p_staff_id:    staffId,
+        p_permissions: tradePerms,
+      }),
+    ]);
+
+    if (r1.data?.ok === false || r2.data?.ok === false) {
+      toast.error((r1.data?.error ?? r2.data?.error) ?? 'error');
+    } else {
       toast.success(t('trade.staff.permissions.saved'));
       onSaved();
-    } else {
-      toast.error(data?.error ?? 'error');
     }
     setSaving(false);
   }
 
   return (
-    <div className="border-t border-border pt-3 mt-2 flex flex-col gap-2">
+    <div className="border-t border-border pt-3 mt-2 flex flex-col gap-3">
       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
         {t('trade.staff.permissions.title')}
       </p>
-      <div className="grid grid-cols-1 gap-1.5">
-        {TRADE_PERM_KEYS.map((key) => (
-          <label key={key} className="flex items-center gap-2.5 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={perms[key]}
-              onChange={() => toggle(key)}
-              className="w-4 h-4 rounded accent-primary"
-            />
-            <span className="text-xs text-foreground">
-              {t(`trade.staff.permissions.${key}` as Parameters<typeof t>[0])}
-            </span>
-          </label>
-        ))}
-      </div>
+
+      {PERM_GROUPS.map((group) => (
+        <div key={group.labelKey}>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
+            {t(group.labelKey as Parameters<typeof t>[0])}
+          </p>
+          <div className="flex flex-col gap-1.5">
+            {group.keys.map((key) => (
+              <label key={key} className="flex items-center gap-2.5 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={perms[key]}
+                  onChange={() => toggle(key)}
+                  className="w-4 h-4 rounded accent-primary"
+                />
+                <span className="text-xs text-foreground group-hover:text-primary transition-colors">
+                  {t(`trade.staff.permissions.${key}` as Parameters<typeof t>[0])}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+      ))}
+
       <button
         onClick={save}
         disabled={saving}
@@ -271,7 +338,6 @@ export default function TradeStaffPage({
                   <div className="px-3 pb-3">
                     <PermissionEditor
                       staffId={member.id}
-                      name={member.name || member.email}
                       initialPerms={member.permissions}
                       profileId={profileId}
                       onSaved={loadStaff}
