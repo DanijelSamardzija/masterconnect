@@ -1672,12 +1672,23 @@ export default function BusinessSetupPage() {
     setStaffPermissionsMap((prev) => ({
       ...prev,
       [staffId]: {
+        // Booking permission keys
         can_set_hours:            !!rawPerms.can_set_hours,
         can_create_bookings:      !!rawPerms.can_create_bookings,
         can_cancel_bookings:      !!rawPerms.can_cancel_bookings,
         can_block_time:           !!rawPerms.can_block_time,
         can_reschedule_bookings:  !!rawPerms.can_reschedule_bookings,
         can_complete_bookings:    !!rawPerms.can_complete_bookings,
+        // Trade permission keys (stored in same JSONB column; zero-cost to always load)
+        can_view_client_records:  !!rawPerms.can_view_client_records,
+        can_create_manual_jobs:   !!rawPerms.can_create_manual_jobs,
+        can_edit_client_records:  !!rawPerms.can_edit_client_records,
+        can_create_job_reports:   !!rawPerms.can_create_job_reports,
+        can_add_materials:        !!rawPerms.can_add_materials,
+        can_view_financials:      !!rawPerms.can_view_financials,
+        can_view_purchase_prices: !!rawPerms.can_view_purchase_prices,
+        can_handle_emergency:     !!rawPerms.can_handle_emergency,
+        can_accept_emergency:     !!rawPerms.can_accept_emergency,
       },
     }));
   }
@@ -1686,13 +1697,50 @@ export default function BusinessSetupPage() {
     const perms = staffPermissionsMap[staffId];
     if (!perms) return;
     setPermSaving(staffId);
-    const { data } = await (supabase as any).rpc('update_staff_permissions', {
-      p_staff_member_id: staffId,
-      p_permissions: perms,
-    });
-    setPermSaving(null);
-    if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); return; }
-    toast.success(t('setup.staff.permissions.saved'));
+
+    if (bizCategory === 'tradespeople') {
+      const [r1, r2] = await Promise.all([
+        (supabase as any).rpc('update_staff_permissions', {
+          p_staff_member_id: staffId,
+          p_permissions: {
+            can_set_hours:           perms.can_set_hours,
+            can_block_time:          perms.can_block_time,
+            can_create_bookings:     perms.can_create_bookings     ?? false,
+            can_cancel_bookings:     perms.can_cancel_bookings     ?? false,
+            can_reschedule_bookings: perms.can_reschedule_bookings ?? false,
+            can_complete_bookings:   perms.can_complete_bookings   ?? false,
+          },
+        }),
+        (supabase as any).rpc('update_trade_staff_permissions', {
+          p_business_id: activeProfileId,
+          p_staff_id:    staffId,
+          p_permissions: {
+            can_create_manual_jobs:   perms.can_create_manual_jobs   ?? false,
+            can_view_client_records:  perms.can_view_client_records  ?? false,
+            can_edit_client_records:  perms.can_edit_client_records  ?? false,
+            can_create_job_reports:   perms.can_create_job_reports   ?? false,
+            can_add_materials:        perms.can_add_materials        ?? false,
+            can_view_financials:      perms.can_view_financials      ?? false,
+            can_view_purchase_prices: perms.can_view_purchase_prices ?? false,
+            can_handle_emergency:     perms.can_handle_emergency     ?? false,
+            can_accept_emergency:     perms.can_accept_emergency     ?? false,
+          },
+        }),
+      ]);
+      setPermSaving(null);
+      if (r1.data?.ok === false || r2.data?.ok === false) {
+        toast.error(t('setup.error.saveFailed')); return;
+      }
+      toast.success(t('setup.staff.permissions.saved'));
+    } else {
+      const { data } = await (supabase as any).rpc('update_staff_permissions', {
+        p_staff_member_id: staffId,
+        p_permissions: perms,
+      });
+      setPermSaving(null);
+      if (!(data as any)?.ok) { toast.error(t('setup.error.saveFailed')); return; }
+      toast.success(t('setup.staff.permissions.saved'));
+    }
   }
 
   async function handleSaveStaffHours(staffId: string): Promise<boolean> {
@@ -3751,12 +3799,123 @@ export default function BusinessSetupPage() {
                                       </div>
                                     </div>
                                   </div>
+                                    {/* Trade permission groups — only for tradespeople profiles */}
+                                    {bizCategory === 'tradespeople' && (
+                                      <>
+                                        {/* Group: Work Orders */}
+                                        <div>
+                                          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
+                                            {t('trade.staff.permissions.groupWork')}
+                                          </p>
+                                          <div className="flex flex-col gap-2">
+                                            {([
+                                              { key: 'can_view_client_records', label: t('trade.staff.permissions.can_view_client_records') },
+                                              { key: 'can_create_job_reports',  label: t('trade.staff.permissions.can_create_job_reports') },
+                                              { key: 'can_add_materials',       label: t('trade.staff.permissions.can_add_materials') },
+                                            ] as const).map(({ key, label }) => {
+                                              const enabled = staffPermissionsMap[sm.id]?.[key] ?? false;
+                                              return (
+                                                <label key={key} className="flex items-center gap-3 cursor-pointer group">
+                                                  <button
+                                                    type="button"
+                                                    role="switch"
+                                                    aria-checked={enabled}
+                                                    onClick={() => setStaffPermissionsMap((prev) => ({
+                                                      ...prev,
+                                                      [sm.id]: { ...prev[sm.id], [key]: !enabled },
+                                                    }))}
+                                                    className={`relative w-9 h-5 rounded-full transition-colors flex-shrink-0 ${
+                                                      enabled ? 'bg-primary' : 'bg-muted-foreground/30'
+                                                    }`}
+                                                  >
+                                                    <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                                                      enabled ? 'translate-x-4' : 'translate-x-0'
+                                                    }`} />
+                                                  </button>
+                                                  <span className="text-xs text-foreground group-hover:text-primary transition-colors">{label}</span>
+                                                </label>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+                                        {/* Group: Financials */}
+                                        <div>
+                                          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
+                                            {t('trade.staff.permissions.groupFinancials')}
+                                          </p>
+                                          <div className="flex flex-col gap-2">
+                                            {([
+                                              { key: 'can_view_financials',      label: t('trade.staff.permissions.can_view_financials') },
+                                              { key: 'can_view_purchase_prices', label: t('trade.staff.permissions.can_view_purchase_prices') },
+                                            ] as const).map(({ key, label }) => {
+                                              const enabled = staffPermissionsMap[sm.id]?.[key] ?? false;
+                                              return (
+                                                <label key={key} className="flex items-center gap-3 cursor-pointer group">
+                                                  <button
+                                                    type="button"
+                                                    role="switch"
+                                                    aria-checked={enabled}
+                                                    onClick={() => setStaffPermissionsMap((prev) => ({
+                                                      ...prev,
+                                                      [sm.id]: { ...prev[sm.id], [key]: !enabled },
+                                                    }))}
+                                                    className={`relative w-9 h-5 rounded-full transition-colors flex-shrink-0 ${
+                                                      enabled ? 'bg-primary' : 'bg-muted-foreground/30'
+                                                    }`}
+                                                  >
+                                                    <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                                                      enabled ? 'translate-x-4' : 'translate-x-0'
+                                                    }`} />
+                                                  </button>
+                                                  <span className="text-xs text-foreground group-hover:text-primary transition-colors">{label}</span>
+                                                </label>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+                                        {/* Group: Emergency */}
+                                        <div>
+                                          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
+                                            {t('trade.staff.permissions.groupEmergency')}
+                                          </p>
+                                          <div className="flex flex-col gap-2">
+                                            {([
+                                              { key: 'can_handle_emergency', label: t('trade.staff.permissions.can_handle_emergency') },
+                                              { key: 'can_accept_emergency', label: t('trade.staff.permissions.can_accept_emergency') },
+                                            ] as const).map(({ key, label }) => {
+                                              const enabled = staffPermissionsMap[sm.id]?.[key] ?? false;
+                                              return (
+                                                <label key={key} className="flex items-center gap-3 cursor-pointer group">
+                                                  <button
+                                                    type="button"
+                                                    role="switch"
+                                                    aria-checked={enabled}
+                                                    onClick={() => setStaffPermissionsMap((prev) => ({
+                                                      ...prev,
+                                                      [sm.id]: { ...prev[sm.id], [key]: !enabled },
+                                                    }))}
+                                                    className={`relative w-9 h-5 rounded-full transition-colors flex-shrink-0 ${
+                                                      enabled ? 'bg-primary' : 'bg-muted-foreground/30'
+                                                    }`}
+                                                  >
+                                                    <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                                                      enabled ? 'translate-x-4' : 'translate-x-0'
+                                                    }`} />
+                                                  </button>
+                                                  <span className="text-xs text-foreground group-hover:text-primary transition-colors">{label}</span>
+                                                </label>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+                                      </>
+                                    )}
                                   <Button
                                     size="sm"
                                     variant="outline"
                                     onClick={() => handleSaveStaffPermissions(sm.id)}
                                     disabled={permSaving === sm.id}
-                                    className="text-xs"
+                                    className="text-xs mt-2"
                                   >
                                     {permSaving === sm.id ? '...' : t('setup.staff.permissions.save')}
                                   </Button>
