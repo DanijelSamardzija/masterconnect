@@ -244,7 +244,7 @@ export default function AbsencesPage() {
 
           {/* Sub-nav: Raspored smjena ↔ Odsustva — only in trade context */}
           {profileType === 'tradespeople' && (
-            <div className="flex w-full gap-1 p-1 rounded-xl bg-muted/50 mb-5">
+            <div className="grid grid-cols-2 gap-1 p-1 max-w-[300px] rounded-xl bg-muted/50 mb-5">
               <button
                 onClick={() => router.push('/booking/business/schedule')}
                 className="flex-1 py-2 text-sm font-medium rounded-lg transition-colors text-muted-foreground hover:text-foreground"
