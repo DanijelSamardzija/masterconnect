@@ -181,6 +181,7 @@ export function BusinessBookingNav({ active }: { active?: BusinessBookingTab }) 
 
   return (
     <>
+      <div className="md:sticky md:top-0 md:z-30 md:bg-background md:pb-1">
       <div className="mb-3">
         <ProfileSwitcher />
       </div>
@@ -287,6 +288,7 @@ export function BusinessBookingNav({ active }: { active?: BusinessBookingTab }) 
           )}
         </div>
       </div>
+      </div>{/* end sticky wrapper */}
 
       {activeProfileId && (
         <SharePostModal

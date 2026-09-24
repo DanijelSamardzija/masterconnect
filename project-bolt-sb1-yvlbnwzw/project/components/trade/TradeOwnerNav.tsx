@@ -181,7 +181,7 @@ export function TradeOwnerNav({
   const navItems = buildNavItems(profileId);
 
   return (
-    <>
+    <div className="md:sticky md:top-0 md:z-30 md:bg-background md:pb-1">
       <div className="mb-3">
         <ProfileSwitcher profileId={profileId} />
       </div>
@@ -217,6 +217,6 @@ export function TradeOwnerNav({
           </button>
         </div>
       </div>
-    </>
+    </div>
   );
 }
