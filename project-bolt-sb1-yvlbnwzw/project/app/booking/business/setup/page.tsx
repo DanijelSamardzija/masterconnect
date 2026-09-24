@@ -2891,29 +2891,25 @@ export default function BusinessSetupPage() {
                             />
                           </div>
                         </div>
-                        <div className="flex flex-wrap gap-1">
-                          {FIRM_REASONS.map((r) => (
-                            <button
-                              key={r}
-                              type="button"
-                              onClick={() => setClosureReason(r)}
-                              className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
-                                closureReason === r
-                                  ? 'bg-primary text-white border-primary'
-                                  : 'border-border text-muted-foreground hover:border-primary hover:text-foreground'
-                              }`}
-                            >
-                              {getReasonLabel(r)}
-                            </button>
-                          ))}
+                        <div className="flex gap-2">
+                          <select
+                            value={closureReason}
+                            onChange={(e) => setClosureReason(e.target.value)}
+                            style={{ accentColor: 'hsl(var(--primary))' }}
+                            className="flex-1 border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                          >
+                            {FIRM_REASONS.map((r) => (
+                              <option key={r} value={r}>{getReasonLabel(r)}</option>
+                            ))}
+                          </select>
+                          <input
+                            type="text"
+                            value={closureNote}
+                            onChange={(e) => setClosureNote(e.target.value)}
+                            placeholder={t('setup.closures.note')}
+                            className="flex-1 border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                          />
                         </div>
-                        <input
-                          type="text"
-                          value={closureNote}
-                          onChange={(e) => setClosureNote(e.target.value)}
-                          placeholder={t('setup.closures.note')}
-                          className="border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
-                        />
                         <button
                           onClick={() => handleSaveClosure(false)}
                           disabled={closureSaving || !closureFrom || !closureTo}
