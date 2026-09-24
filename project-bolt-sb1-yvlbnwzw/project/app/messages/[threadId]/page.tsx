@@ -46,6 +46,7 @@ import { addRecentEmoji, loadRecentEmojisFromDatabase, syncRecentEmojisToDatabas
 import { devLog } from '@/lib/dev-log';
 import { TwemojiText, MessageText } from '@/components/twemoji';
 import { LinkPreview } from '@/components/link-preview';
+import { isGigZoneUrl } from '@/lib/link-preview';
 import { ReviewModal } from '@/components/review-modal';
 import { BlockUserModal } from '@/components/block-user-modal';
 import { OfferCard } from '@/components/offer-card';
@@ -1342,6 +1343,9 @@ function MessagesContent() {
 
                       // --- message type helpers ---
                       const realText = (!isDeleted && message.text && message.text !== '(Attachment)') ? message.text : '';
+                      const _msgUrlRe = /https?:\/\/[^\s<>"{}|\\^`[\]]+/gi;
+                      const msgUrls = realText ? [...new Set(Array.from(realText.matchAll(_msgUrlRe), m => m[0]))] : [];
+                      const isUrlOnlyGigZone = msgUrls.length > 0 && msgUrls.every(u => isGigZoneUrl(u)) && realText.replace(/https?:\/\/[^\s<>"{}|\\^`[\]]+/gi, '').trim() === '';
                       const imageAttachments = message.attachments?.filter(a => getFileType(a.file_type) === 'image') ?? [];
                       const videoAttachments = message.attachments?.filter(a => getFileType(a.file_type) === 'video') ?? [];
                       const docAttachments = message.attachments?.filter(a => getFileType(a.file_type) === 'document') ?? [];
@@ -1474,8 +1478,8 @@ function MessagesContent() {
                                     </div>
                                   )}
 
-                                  {/* text bubble */}
-                                  {realText && (
+                                  {/* text bubble — hidden for GigZone URL-only messages (preview card handles display) */}
+                                  {realText && !isUrlOnlyGigZone && (
                                     <div className={`rounded-[22px] px-4 py-3 shadow-sm ${
                                       isOwn
                                         ? 'bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-md'
@@ -1541,16 +1545,11 @@ function MessagesContent() {
                                   })()}
 
                                   {/* ── Link previews ── */}
-                                  {realText && (() => {
-                                    const urlRe = /https?:\/\/[^\s<>"{}|\\^`[\]]+/gi;
-                                    const urls = [...new Set(Array.from(realText.matchAll(urlRe), m => m[0]))];
-                                    if (urls.length === 0) return null;
-                                    return (
-                                      <div className="mt-2 space-y-1.5">
-                                        {urls.map((u, i) => <LinkPreview key={i} url={u} isOwn={isOwn} />)}
-                                      </div>
-                                    );
-                                  })()}
+                                  {msgUrls.length > 0 && (
+                                    <div className="mt-2 space-y-1.5">
+                                      {msgUrls.map((u, i) => <LinkPreview key={i} url={u} isOwn={isOwn} />)}
+                                    </div>
+                                  )}
 
                                   {/* docs in bubble style */}
                                   {hasDocs && (

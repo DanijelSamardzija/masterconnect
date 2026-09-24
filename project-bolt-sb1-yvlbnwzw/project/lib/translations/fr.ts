@@ -1773,6 +1773,7 @@ export default {
   'messages.translating': 'Traduction...',
   'messages.translateError': 'Échec de la traduction',
   'messages.showOriginal': 'Afficher l\'original',
+  'messages.openLink': 'Ouvrir',
 
   // Reverse matching (F5)
   'aiMatch.reverse.button': 'Trouver des offres pour moi',

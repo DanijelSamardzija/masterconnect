@@ -1833,6 +1833,7 @@ export default {
   'messages.translating': 'Wird übersetzt...',
   'messages.translateError': 'Übersetzung fehlgeschlagen',
   'messages.showOriginal': 'Original anzeigen',
+  'messages.openLink': 'Öffnen',
 
   // Reverse matching (F5)
   'aiMatch.reverse.button': 'Jobs für mich finden',

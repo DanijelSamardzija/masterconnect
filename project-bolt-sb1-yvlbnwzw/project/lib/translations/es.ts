@@ -1766,6 +1766,7 @@ export default {
   'messages.translating': 'Traduciendo...',
   'messages.translateError': 'Error de traducción',
   'messages.showOriginal': 'Mostrar original',
+  'messages.openLink': 'Abrir',
 
   // Reverse matching (F5)
   'aiMatch.reverse.button': 'Encontrar trabajos para mí',

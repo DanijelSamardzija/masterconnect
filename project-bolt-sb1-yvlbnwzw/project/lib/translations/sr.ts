@@ -1843,6 +1843,7 @@ export default {
   'messages.translating': 'Prevođenje...',
   'messages.translateError': 'Greška pri prevođenju',
   'messages.showOriginal': 'Prikaži original',
+  'messages.openLink': 'Otvori',
 
   // Reverse matching (F5)
   'aiMatch.reverse.button': 'Pronađi poslove za mene',

@@ -1843,6 +1843,7 @@ export default {
   'messages.translating': 'Translating...',
   'messages.translateError': 'Translation failed',
   'messages.showOriginal': 'Show original',
+  'messages.openLink': 'Open',
 
   // Reverse matching (F5)
   'aiMatch.reverse.button': 'Find jobs for me',
