@@ -164,6 +164,11 @@ export default function MajstoriPage() {
                         </span>
                       )}
                     </div>
+                    {biz.business_subtype && (
+                      <p className="text-xs text-muted-foreground leading-tight mt-0.5">
+                        {t(`trade.subtype.${biz.business_subtype}` as Parameters<typeof t>[0])}
+                      </p>
+                    )}
                     {biz.emergency_enabled && (
                       <span className="flex items-center gap-0.5 text-xs font-medium text-red-600 dark:text-red-400 mt-0.5">
                         <Zap className="w-3 h-3" />

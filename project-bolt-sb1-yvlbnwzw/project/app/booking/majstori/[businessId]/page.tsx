@@ -181,6 +181,11 @@ export default function PublicTradeProfilePage() {
                 </span>
               )}
             </div>
+            {profile.business_subtype && (
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {t(`trade.subtype.${profile.business_subtype}` as Parameters<typeof t>[0])}
+              </p>
+            )}
             {(profile.address || profile.city) && (() => {
               const locationLabel = [profile.address, profile.city].filter(Boolean).join(', ');
               const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locationLabel)}`;
