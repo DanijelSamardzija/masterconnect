@@ -62,7 +62,7 @@ function buildNavItems(profileId: string): { tab: TradeOwnerTab; href: string; l
     { tab: 'overview',   href: base,                   labelKey: 'trade.nav.overview',   icon: <LayoutDashboard className="h-3.5 w-3.5" /> },
     { tab: 'jobs',       href: `${base}/jobs`,          labelKey: 'trade.nav.jobs',       icon: <Briefcase       className="h-3.5 w-3.5" /> },
     { tab: 'clients',    href: `${base}/clients`,       labelKey: 'trade.nav.clients',    icon: <Users           className="h-3.5 w-3.5" /> },
-    { tab: 'staff',      href: '/booking/business/setup?tab=staff', labelKey: 'trade.nav.staff', icon: <UserCog className="h-3.5 w-3.5" /> },
+    { tab: 'staff',      href: '/booking/business/schedule', labelKey: 'trade.nav.staff', icon: <UserCog className="h-3.5 w-3.5" /> },
     { tab: 'emergency',  href: `${base}/emergency`,     labelKey: 'trade.nav.emergency',  icon: <Zap             className="h-3.5 w-3.5" /> },
     { tab: 'analytics',  href: `${base}/analytics`,     labelKey: 'trade.nav.analytics',  icon: <BarChart3       className="h-3.5 w-3.5" /> },
     { tab: 'docs',       href: `${base}/docs`,          labelKey: 'trade.nav.docs',       icon: <FileText        className="h-3.5 w-3.5" /> },

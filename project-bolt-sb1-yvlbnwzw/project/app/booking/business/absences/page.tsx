@@ -242,6 +242,23 @@ export default function AbsencesPage() {
             : profileType !== null ? <BusinessBookingNav active="absences" /> : null
           }
 
+          {/* Sub-nav: Raspored smjena ↔ Odsustva — only in trade context */}
+          {profileType === 'tradespeople' && (
+            <div className="flex gap-1 p-1 rounded-xl bg-muted/50 mb-5">
+              <button
+                onClick={() => router.push('/booking/business/schedule')}
+                className="flex-1 py-2 text-sm font-medium rounded-lg transition-colors text-muted-foreground hover:text-foreground"
+              >
+                {t('schedule.title')}
+              </button>
+              <button
+                className="flex-1 py-2 text-sm font-medium rounded-lg transition-colors bg-background text-foreground shadow-sm"
+              >
+                {t('absences.title')}
+              </button>
+            </div>
+          )}
+
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">
             <h1 className="text-lg font-semibold">{t('absences.title')}</h1>

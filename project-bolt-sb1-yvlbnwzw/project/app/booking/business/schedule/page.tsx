@@ -766,6 +766,23 @@ function OwnerScheduleContent() {
           : profileType !== null ? <BusinessBookingNav active="schedule" /> : null
         }
 
+        {/* Sub-nav: Raspored smjena ↔ Odsustva — only in trade context */}
+        {profileType === 'tradespeople' && (
+          <div className="flex gap-1 p-1 rounded-xl bg-muted/50 mb-5">
+            <button
+              className="flex-1 py-2 text-sm font-medium rounded-lg transition-colors bg-background text-foreground shadow-sm"
+            >
+              {t('schedule.title')}
+            </button>
+            <button
+              onClick={() => router.push('/booking/business/absences')}
+              className="flex-1 py-2 text-sm font-medium rounded-lg transition-colors text-muted-foreground hover:text-foreground"
+            >
+              {t('absences.title')}
+            </button>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <div className="flex-1">
@@ -899,8 +916,8 @@ function OwnerScheduleContent() {
           </div>
         )}
 
-        {/* Accept-bookings toggles */}
-        {filteredStaff.length > 0 && (
+        {/* Accept-bookings toggles — not shown for tradespeople (irrelevant to trade workflow) */}
+        {filteredStaff.length > 0 && profileType !== 'tradespeople' && (
           <div className="flex gap-x-4 overflow-x-auto scrollbar-hide mb-4 pl-1 pb-0.5">
             {filteredStaff.map(s => (
               <div key={s.id} className="flex items-center gap-1.5 shrink-0">
