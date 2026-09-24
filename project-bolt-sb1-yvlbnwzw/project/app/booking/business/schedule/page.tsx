@@ -759,8 +759,8 @@ function OwnerScheduleContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-5xl mx-auto px-4 py-6">
-
+      {/* Nav — same max-w-2xl as TradeDashboardLayout so it's consistent on all pages */}
+      <div className="max-w-2xl mx-auto px-4 pt-6">
         {profileType === 'tradespeople' && activeProfileId
           ? <TradeOwnerNav profileId={activeProfileId} active="staff" />
           : profileType !== null ? <BusinessBookingNav active="schedule" /> : null
@@ -782,6 +782,10 @@ function OwnerScheduleContent() {
             </button>
           </div>
         )}
+      </div>
+
+      {/* Content — stays max-w-5xl */}
+      <div className="max-w-5xl mx-auto px-4 pb-6">
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">

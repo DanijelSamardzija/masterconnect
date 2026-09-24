@@ -235,8 +235,8 @@ export default function AbsencesPage() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-background">
-        <div className="max-w-lg mx-auto px-4 py-6">
-
+        {/* Nav — same max-w-2xl as TradeDashboardLayout so it's consistent on all pages */}
+        <div className="max-w-2xl mx-auto px-4 pt-6">
           {profileType === 'tradespeople' && activeProfileId
             ? <TradeOwnerNav profileId={activeProfileId} active="staff" />
             : profileType !== null ? <BusinessBookingNav active="absences" /> : null
@@ -258,6 +258,10 @@ export default function AbsencesPage() {
               </button>
             </div>
           )}
+        </div>
+
+        {/* Content — stays max-w-lg */}
+        <div className="max-w-lg mx-auto px-4 pb-6">
 
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">
