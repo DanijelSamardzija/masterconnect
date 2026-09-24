@@ -54,16 +54,17 @@ export function SharePostModal({ postId, open, onOpenChange, urlPath }: SharePos
 
   useEffect(() => {
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
-    if (!searchQuery.trim()) { setSearchResults([]); return; }
+    if (searchQuery.trim().length < 2) { setSearchResults([]); return; }
     searchTimeout.current = setTimeout(async () => {
       setSearching(true);
-      const { data } = await supabase
-        .from('profiles')
-        .select('id, name, avatar_url, account_type')
-        .ilike('name', `%${searchQuery}%`)
-        .neq('id', user?.id ?? '')
-        .limit(6);
-      setSearchResults(data || []);
+      const { data } = await (supabase as any).rpc('search_profiles', {
+        p_search: searchQuery.trim(),
+        p_limit: 6,
+      });
+      const results: UserResult[] = Array.isArray(data)
+        ? (data as UserResult[]).filter((u) => u.id !== user?.id)
+        : [];
+      setSearchResults(results);
       setSearching(false);
     }, 300);
     return () => { if (searchTimeout.current) clearTimeout(searchTimeout.current); };
