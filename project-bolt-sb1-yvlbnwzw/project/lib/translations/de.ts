@@ -2646,6 +2646,7 @@ export default {
   'trade.worker.reportSaved':          'Bericht gespeichert.',
   'trade.worker.myEmergencies':        'Meine Notfalleinsätze',
   'trade.worker.noEmergencies':        'Keine Notfalleinsätze zugewiesen.',
+  'trade.worker.noEmergencyAccess':    'Sie haben keinen Zugriff auf Notfalleinsätze.',
   'trade.worker.inTransit':            'Ich bin unterwegs',
   'trade.worker.markArrived':          'Ich bin angekommen',
   'trade.worker.emergencyUpdated':     'Notfallstatus aktualisiert.',

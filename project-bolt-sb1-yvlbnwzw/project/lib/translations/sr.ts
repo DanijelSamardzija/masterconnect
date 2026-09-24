@@ -2656,6 +2656,7 @@ export default {
   'trade.worker.reportSaved':          'Izvještaj sačuvan.',
   'trade.worker.myEmergencies':        'Moje intervencije',
   'trade.worker.noEmergencies':        'Nema intervencija dodijeljenih tebi.',
+  'trade.worker.noEmergencyAccess':    'Nemate pristup hitnim intervencijama.',
   'trade.worker.inTransit':            'Na putu sam',
   'trade.worker.markArrived':          'Stigao sam',
   'trade.worker.emergencyUpdated':     'Status intervencije ažuriran.',

@@ -54,6 +54,7 @@ export default function WorkerEmergencyPage({
   const [emergencies, setEmergencies] = useState<MyEmergency[]>([]);
   const [loading, setLoading] = useState(true);
   const [actingId, setActingId] = useState<string | null>(null);
+  const [unauthorized, setUnauthorized] = useState(false);
 
   useEffect(() => {
     if (!user || !profileId) return;
@@ -106,6 +107,8 @@ export default function WorkerEmergencyPage({
           r.status !== 'cancelled',
       );
       setEmergencies(mine);
+    } else if (data?.error === 'not_authorized' || data?.error === 'not_authenticated') {
+      setUnauthorized(true);
     }
     setLoading(false);
   }, [profileId, user]);
@@ -152,7 +155,22 @@ export default function WorkerEmergencyPage({
         </div>
       )}
 
-      {!loading && emergencies.length === 0 && (
+      {!loading && unauthorized && (
+        <div className="text-center py-12 flex flex-col items-center gap-3">
+          <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
+            <Zap className="w-7 h-7 text-muted-foreground" />
+          </div>
+          <p className="text-sm text-muted-foreground">{t('trade.worker.noEmergencyAccess')}</p>
+          <button
+            onClick={() => router.push('/booking')}
+            className="text-xs text-primary hover:underline"
+          >
+            {t('common.back')}
+          </button>
+        </div>
+      )}
+
+      {!loading && !unauthorized && emergencies.length === 0 && (
         <div className="text-center py-12 flex flex-col items-center gap-3">
           <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
             <Zap className="w-7 h-7 text-muted-foreground" />
@@ -161,7 +179,7 @@ export default function WorkerEmergencyPage({
         </div>
       )}
 
-      {!loading && emergencies.length > 0 && (
+      {!loading && !unauthorized && emergencies.length > 0 && (
         <div className="flex flex-col gap-3">
           {emergencies.map((req) => {
             const isActing = actingId === req.id;

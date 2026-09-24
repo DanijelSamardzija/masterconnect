@@ -2581,6 +2581,7 @@ export default {
   'trade.worker.reportSaved':          'Rapport enregistré.',
   'trade.worker.myEmergencies':        'Mes urgences',
   'trade.worker.noEmergencies':        'Aucune urgence assignée.',
+  'trade.worker.noEmergencyAccess':    "Vous n'avez pas accès aux interventions d'urgence.",
   'trade.worker.inTransit':            'Je suis en route',
   'trade.worker.markArrived':          'Je suis arrivé',
   'trade.worker.emergencyUpdated':     'Statut d\'urgence mis à jour.',

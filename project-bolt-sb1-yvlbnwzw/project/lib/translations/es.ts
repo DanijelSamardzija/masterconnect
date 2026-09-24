@@ -2574,6 +2574,7 @@ export default {
   'trade.worker.reportSaved':          'Informe guardado.',
   'trade.worker.myEmergencies':        'Mis emergencias',
   'trade.worker.noEmergencies':        'No tienes emergencias asignadas.',
+  'trade.worker.noEmergencyAccess':    'No tienes acceso a los trabajos de emergencia.',
   'trade.worker.inTransit':            'Voy en camino',
   'trade.worker.markArrived':          'He llegado',
   'trade.worker.emergencyUpdated':     'Estado de emergencia actualizado.',
