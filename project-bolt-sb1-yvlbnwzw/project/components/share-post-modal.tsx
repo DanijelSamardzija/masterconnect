@@ -156,31 +156,31 @@ export function SharePostModal({ postId, open, onOpenChange, urlPath }: SharePos
                   className="w-full bg-muted border border-border rounded-xl pl-9 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-orange-500/50 transition-colors"
                 />
                 {searching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />}
+                {searchResults.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 z-20 bg-background border border-border rounded-xl overflow-hidden shadow-lg">
+                    {searchResults.map((u, i) => (
+                      <button
+                        key={u.id}
+                        onClick={() => handleSendToUser(u)}
+                        disabled={!!sendingTo}
+                        className={`flex items-center gap-3 w-full px-4 py-2.5 hover:bg-accent transition-colors text-left ${i > 0 ? 'border-t border-border' : ''}`}
+                      >
+                        <Avatar className="h-8 w-8 flex-shrink-0">
+                          <AvatarImage src={u.avatar_url} alt={u.name} />
+                          <AvatarFallback className="bg-orange-600 text-white text-xs">
+                            {u.name.substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="flex-1 text-sm text-foreground font-medium truncate">{u.name}</span>
+                        {sendingTo === u.id
+                          ? <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
+                          : <Send className="h-4 w-4 text-muted-foreground" />
+                        }
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-              {searchResults.length > 0 && (
-                <div className="mt-2 bg-muted border border-border rounded-xl overflow-hidden">
-                  {searchResults.map((u, i) => (
-                    <button
-                      key={u.id}
-                      onClick={() => handleSendToUser(u)}
-                      disabled={!!sendingTo}
-                      className={`flex items-center gap-3 w-full px-4 py-2.5 hover:bg-accent transition-colors text-left ${i > 0 ? 'border-t border-border' : ''}`}
-                    >
-                      <Avatar className="h-8 w-8 flex-shrink-0">
-                        <AvatarImage src={u.avatar_url} alt={u.name} />
-                        <AvatarFallback className="bg-orange-600 text-white text-xs">
-                          {u.name.substring(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="flex-1 text-sm text-foreground font-medium truncate">{u.name}</span>
-                      {sendingTo === u.id
-                        ? <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
-                        : <Send className="h-4 w-4 text-muted-foreground" />
-                      }
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
           )}
 

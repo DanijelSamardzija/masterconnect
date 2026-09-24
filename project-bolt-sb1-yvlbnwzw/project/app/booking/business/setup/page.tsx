@@ -3539,31 +3539,29 @@ export default function BusinessSetupPage() {
                         {staffAddSearching && (
                           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
                         )}
-                      </div>
-                    )}
-
-                    {/* Search results */}
-                    {staffAddResults.length > 0 && !selectedStaffToAdd && (
-                      <div className="border border-border rounded-xl overflow-hidden">
-                        {staffAddResults.map((u, i) => (
-                          <button
-                            key={u.id}
-                            onClick={() => { setSelectedStaffToAdd(u); setStaffAddResults([]); setStaffAddSearch(''); }}
-                            className={`flex items-center gap-3 p-3 hover:bg-muted/60 w-full text-left transition-colors ${i < staffAddResults.length - 1 ? 'border-b border-border/50' : ''}`}
-                          >
-                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden text-xs font-bold">
-                              {u.avatar_url ? (
-                                <img src={u.avatar_url} alt={u.name} className="w-full h-full object-cover" />
-                              ) : (
-                                u.name.charAt(0).toUpperCase()
-                              )}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="font-medium text-sm truncate">{u.name}</p>
-                              {u.city && <p className="text-xs text-muted-foreground">{u.city}</p>}
-                            </div>
-                          </button>
-                        ))}
+                        {staffAddResults.length > 0 && !selectedStaffToAdd && (
+                          <div className="absolute top-full left-0 right-0 mt-1 z-20 bg-background border border-border rounded-xl overflow-hidden shadow-lg">
+                            {staffAddResults.map((u, i) => (
+                              <button
+                                key={u.id}
+                                onClick={() => { setSelectedStaffToAdd(u); setStaffAddResults([]); setStaffAddSearch(''); }}
+                                className={`flex items-center gap-3 p-3 hover:bg-muted/60 w-full text-left transition-colors ${i < staffAddResults.length - 1 ? 'border-b border-border/50' : ''}`}
+                              >
+                                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden text-xs font-bold">
+                                  {u.avatar_url ? (
+                                    <img src={u.avatar_url} alt={u.name} className="w-full h-full object-cover" />
+                                  ) : (
+                                    u.name.charAt(0).toUpperCase()
+                                  )}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="font-medium text-sm truncate">{u.name}</p>
+                                  {u.city && <p className="text-xs text-muted-foreground">{u.city}</p>}
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
 
