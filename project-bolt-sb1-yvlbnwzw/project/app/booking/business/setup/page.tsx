@@ -1551,6 +1551,7 @@ export default function BusinessSetupPage() {
       p_user_id: selectedStaffToAdd.id,
       p_role: addingStaffRole,
       p_location_id: primaryLocId,
+      p_business_id: activeProfileId,
     });
     setAddingStaff(false);
     if (error) { console.error('add_staff_direct error:', error); toast.error(t('setup.error.saveFailed')); return; }
