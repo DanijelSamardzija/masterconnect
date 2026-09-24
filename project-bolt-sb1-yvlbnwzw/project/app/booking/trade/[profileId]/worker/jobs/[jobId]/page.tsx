@@ -260,6 +260,10 @@ export default function WorkerJobDetailPage({
   if (!job) {
     return (
       <TradeWorkerLayout profileId={profileId} active="jobs">
+        <button onClick={() => router.push(`/booking/trade/${profileId}/worker/jobs`)}
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
+          <ArrowLeft className="w-4 h-4" /> {t('common.back')}
+        </button>
         <p className="text-center text-muted-foreground py-12">
           {t('trade.jobs.notFound')}
         </p>

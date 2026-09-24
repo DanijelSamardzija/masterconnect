@@ -675,7 +675,7 @@ export default function TradeJobDetailPage() {
 
   if (notFound || !job) return (
     <TradeDashboardLayout profileId={profileId} active="jobs">
-      <button onClick={() => router.back()} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4">
+      <button onClick={() => router.push(`/booking/trade/${profileId}/jobs`)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4">
         <ArrowLeft className="w-4 h-4" /> {t('common.back')}
       </button>
       <p className="text-sm text-muted-foreground">{t('trade.jobs.notFound')}</p>
@@ -689,7 +689,7 @@ export default function TradeJobDetailPage() {
   return (
     <TradeDashboardLayout profileId={profileId} active="jobs">
       {/* Back */}
-      <button onClick={() => router.back()}
+      <button onClick={() => router.push(`/booking/trade/${profileId}/jobs`)}
         className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
         <ArrowLeft className="w-4 h-4" /> {t('common.back')}
       </button>

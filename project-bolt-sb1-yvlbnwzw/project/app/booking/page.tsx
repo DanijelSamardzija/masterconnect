@@ -304,6 +304,8 @@ export default function BookingPage() {
   const [staffBusinessName, setStaffBusinessName] = useState<string | null>(null);
   const [staffBusinessAvatar, setStaffBusinessAvatar] = useState<string | null>(null);
   const [staffRole, setStaffRole] = useState<string | null>(null);
+  const [staffBusinessId, setStaffBusinessId] = useState<string | null>(null);
+  const [staffBusinessType, setStaffBusinessType] = useState<string | null>(null);
 
   // Ensure first render is identical on server and client to prevent hydration mismatch (#418/#423)
   useEffect(() => { setMounted(true); }, []);
@@ -327,12 +329,14 @@ export default function BookingPage() {
       if (!membership) return;
       const { data: biz } = await (supabase as any)
         .from('booking_profiles')
-        .select('name, avatar_url')
+        .select('name, avatar_url, profile_type')
         .eq('id', membership.business_id)
         .single();
       setStaffBusinessName(biz?.name ?? null);
       setStaffBusinessAvatar(biz?.avatar_url ?? null);
       setStaffRole(membership.role);
+      setStaffBusinessId(membership.business_id);
+      setStaffBusinessType(biz?.profile_type ?? null);
     })();
   }, [user]);
 
@@ -475,7 +479,11 @@ export default function BookingPage() {
                 {/* Staff card FIRST — only when user has no own profiles */}
                 {staffBusinessName && profiles.length === 0 && (
                   <button
-                    onClick={() => router.push('/dashboard/staff/bookings')}
+                    onClick={() => router.push(
+                      staffBusinessType === 'tradespeople' && staffBusinessId
+                        ? `/booking/trade/${staffBusinessId}/worker/jobs`
+                        : '/dashboard/staff/bookings'
+                    )}
                     className="flex flex-col items-center justify-center gap-1.5 px-2 py-3 rounded-2xl border-2 border-border bg-card hover:border-primary/40 hover:bg-accent/50 shrink-0 w-[90px] transition-colors text-center"
                   >
                     <div className="w-11 h-11 rounded-xl overflow-hidden bg-orange-100 dark:bg-orange-950 flex items-center justify-center shrink-0">
@@ -514,7 +522,11 @@ export default function BookingPage() {
                 {/* Staff card AFTER own profiles — when user has both */}
                 {staffBusinessName && profiles.length > 0 && (
                   <button
-                    onClick={() => router.push('/dashboard/staff/bookings')}
+                    onClick={() => router.push(
+                      staffBusinessType === 'tradespeople' && staffBusinessId
+                        ? `/booking/trade/${staffBusinessId}/worker/jobs`
+                        : '/dashboard/staff/bookings'
+                    )}
                     className="flex flex-col items-center justify-center gap-1.5 px-2 py-3 rounded-2xl border-2 border-border bg-card hover:border-primary/40 hover:bg-accent/50 shrink-0 w-[90px] transition-colors text-center"
                   >
                     <div className="w-11 h-11 rounded-xl overflow-hidden bg-orange-100 dark:bg-orange-950 flex items-center justify-center shrink-0">

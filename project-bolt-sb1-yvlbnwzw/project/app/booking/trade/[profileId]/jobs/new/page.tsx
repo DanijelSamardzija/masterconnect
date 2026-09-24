@@ -92,7 +92,7 @@ export default function NewTradeJobPage() {
       {/* Back header */}
       <div className="flex items-center gap-2 mb-4">
         <button
-          onClick={() => router.back()}
+          onClick={() => router.push(`/booking/trade/${profileId}/jobs`)}
           className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -181,7 +181,7 @@ export default function NewTradeJobPage() {
 
         {/* Actions */}
         <div className="flex gap-2 pt-1">
-          <button onClick={() => router.back()}
+          <button onClick={() => router.push(`/booking/trade/${profileId}/jobs`)}
             className="flex-1 py-2.5 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-accent transition-colors">
             {t('common.cancel')}
           </button>
