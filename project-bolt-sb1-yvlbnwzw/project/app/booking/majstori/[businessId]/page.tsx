@@ -203,8 +203,8 @@ export default function PublicTradeProfilePage() {
               </p>
             )}
             {profile.emergency_enabled && (
-              <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 px-2 py-0.5 rounded-full">
-                <Zap className="w-3 h-3" />
+              <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 px-2 py-0.5 rounded-full whitespace-nowrap w-fit">
+                <Zap className="w-3 h-3 shrink-0" />
                 {t('trade.majstori.emergencyAvailable')}
               </span>
             )}
