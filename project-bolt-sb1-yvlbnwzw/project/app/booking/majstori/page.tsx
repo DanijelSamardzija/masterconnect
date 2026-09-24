@@ -23,7 +23,17 @@ type Business = {
   service_count: number;
   services: string[];
   is_open_now: boolean | null;
+  closure_reason: string | null;
+  closure_date_from: string | null;
+  closure_date_to: string | null;
+  closure_is_active: boolean | null;
 };
+
+function fmtDate(d: string | null): string {
+  if (!d) return '';
+  const parts = d.split('-');
+  return `${parseInt(parts[2])}.${parseInt(parts[1])}.`;
+}
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -192,10 +202,19 @@ export default function MajstoriPage() {
                         {biz.services.length > 3 && ` +${biz.services.length - 3}`}
                       </p>
                     )}
-                    {biz.is_open_now !== null && biz.is_open_now !== undefined && (
+                    {!biz.closure_is_active && biz.is_open_now !== null && biz.is_open_now !== undefined && (
                       <span className={`flex items-center gap-1 text-xs font-medium mt-0.5 ${biz.is_open_now ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
                         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${biz.is_open_now ? 'bg-green-500' : 'bg-red-500'}`} />
                         {biz.is_open_now ? t('setup.hours.open') : t('setup.hours.closed')}
+                      </span>
+                    )}
+                    {biz.closure_reason && (
+                      <span className={`flex items-center gap-1 text-xs font-medium mt-0.5 ${biz.closure_is_active ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${biz.closure_is_active ? 'bg-red-500' : 'bg-amber-500'}`} />
+                        {biz.closure_is_active
+                          ? t(`setup.closures.reason.${biz.closure_reason}` as Parameters<typeof t>[0])
+                          : `${t('booking.closure.upcomingClosure')} · ${t(`setup.closures.reason.${biz.closure_reason}` as Parameters<typeof t>[0])} od ${fmtDate(biz.closure_date_from)}`
+                        }
                       </span>
                     )}
                   </div>

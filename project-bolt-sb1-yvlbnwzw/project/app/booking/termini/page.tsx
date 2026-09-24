@@ -19,7 +19,17 @@ type LocCard = {
   reviewCount: number;
   serviceNames: string[];
   isOpenNow: boolean | null;
+  closureReason: string | null;
+  closureDateFrom: string | null;
+  closureDateTo: string | null;
+  closureIsActive: boolean | null;
 };
+
+function fmtDate(d: string | null): string {
+  if (!d) return '';
+  const parts = d.split('-');
+  return `${parseInt(parts[2])}.${parseInt(parts[1])}.`;
+}
 
 export default function TerminiPage() {
   const router = useRouter();
@@ -99,6 +109,39 @@ export default function TerminiPage() {
         });
       }
 
+      // Fetch nearest active/upcoming closure per location
+      const closureMap = new Map<string, {
+        reason: string; dateFrom: string | null; dateTo: string | null; isActive: boolean;
+      }>();
+      if (locIds.length > 0) {
+        const { data: closures } = await (supabase as any)
+          .from('time_blocks')
+          .select('location_id, reason, starts_at, ends_at')
+          .in('location_id', locIds)
+          .eq('entity_type', 'business')
+          .gt('ends_at', new Date().toISOString())
+          .order('starts_at');
+        const seen = new Set<string>();
+        const nowMs = Date.now();
+        const sorted = [...((closures as any[]) ?? [])].sort((a, b) => {
+          const aActive = new Date(a.starts_at).getTime() <= nowMs && new Date(a.ends_at).getTime() > nowMs;
+          const bActive = new Date(b.starts_at).getTime() <= nowMs && new Date(b.ends_at).getTime() > nowMs;
+          if (aActive !== bActive) return aActive ? -1 : 1;
+          return new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime();
+        });
+        sorted.forEach((c) => {
+          if (seen.has(c.location_id)) return;
+          seen.add(c.location_id);
+          const isActive = new Date(c.starts_at).getTime() <= nowMs && new Date(c.ends_at).getTime() > nowMs;
+          closureMap.set(c.location_id, {
+            reason: c.reason,
+            dateFrom: c.starts_at.split('T')[0],
+            dateTo: new Date(new Date(c.ends_at).getTime() - 86400000).toISOString().split('T')[0],
+            isActive,
+          });
+        });
+      }
+
       // Build service_locations map: service_id → Set<location_id>
       const svcLocMap = new Map<string, Set<string>>();
       (svcLocs ?? []).forEach((sl: { service_id: string; location_id: string }) => {
@@ -137,6 +180,16 @@ export default function TerminiPage() {
         const rating = p.profiles?.average_rating != null ? Number(p.profiles.average_rating) : null;
         const reviewCount = p.profiles?.review_count ?? 0;
 
+        function closureFor(locId: string) {
+          const cl = closureMap.get(locId);
+          return {
+            closureReason: cl?.reason ?? null,
+            closureDateFrom: cl?.dateFrom ?? null,
+            closureDateTo: cl?.dateTo ?? null,
+            closureIsActive: cl?.isActive ?? null,
+          };
+        }
+
         if (bizLocs.length === 0) {
           result.push({
             key: `${p.id}-noloc`,
@@ -150,6 +203,10 @@ export default function TerminiPage() {
             reviewCount,
             serviceNames: bizSvcs.map(s => s.name),
             isOpenNow: null,
+            closureReason: null,
+            closureDateFrom: null,
+            closureDateTo: null,
+            closureIsActive: null,
           });
         } else if (bizLocs.length === 1) {
           const loc = bizLocs[0];
@@ -165,6 +222,7 @@ export default function TerminiPage() {
             reviewCount,
             serviceNames: servicesAtLocation(p.id, loc.id),
             isOpenNow: locIdsWithHours.has(loc.id) ? (openMap.get(loc.id) ?? false) : null,
+            ...closureFor(loc.id),
           });
         } else {
           bizLocs.forEach(loc => {
@@ -180,6 +238,7 @@ export default function TerminiPage() {
               reviewCount,
               serviceNames: servicesAtLocation(p.id, loc.id),
               isOpenNow: locIdsWithHours.has(loc.id) ? (openMap.get(loc.id) ?? false) : null,
+              ...closureFor(loc.id),
             });
           });
         }
@@ -286,10 +345,19 @@ export default function TerminiPage() {
                       {card.serviceNames.length > 3 && ` +${card.serviceNames.length - 3}`}
                     </p>
                   )}
-                  {card.isOpenNow !== null && (
+                  {!card.closureIsActive && card.isOpenNow !== null && (
                     <span className={`flex items-center gap-1 text-xs font-medium mt-0.5 ${card.isOpenNow ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
                       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${card.isOpenNow ? 'bg-green-500' : 'bg-red-500'}`} />
                       {card.isOpenNow ? t('setup.hours.open') : t('setup.hours.closed')}
+                    </span>
+                  )}
+                  {card.closureReason && (
+                    <span className={`flex items-center gap-1 text-xs font-medium mt-0.5 ${card.closureIsActive ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${card.closureIsActive ? 'bg-red-500' : 'bg-amber-500'}`} />
+                      {card.closureIsActive
+                        ? t(`setup.closures.reason.${card.closureReason}` as Parameters<typeof t>[0])
+                        : `${t('booking.closure.upcomingClosure')} · ${t(`setup.closures.reason.${card.closureReason}` as Parameters<typeof t>[0])} od ${fmtDate(card.closureDateFrom)}`
+                      }
                     </span>
                   )}
                 </div>
