@@ -60,6 +60,7 @@ const TYPE_ICON_BG: Record<string, string> = {
 
 function ProfileSwitcher() {
   const { t } = useLanguage();
+  const router = useRouter();
   const { profiles, activeProfileId, activeProfile, setActiveProfileId } = useBookingProfile();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -130,6 +131,9 @@ function ProfileSwitcher() {
                 onClick={() => {
                   setActiveProfileId(p.id);
                   setOpen(false);
+                  if (p.profile_type === 'tradespeople') {
+                    router.push(`/booking/trade/${p.id}`);
+                  }
                 }}
                 className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-accent transition-colors text-left"
               >
