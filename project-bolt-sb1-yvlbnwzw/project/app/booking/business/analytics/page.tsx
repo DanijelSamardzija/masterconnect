@@ -115,15 +115,15 @@ function AnalyticsPageInner() {
   const [period, setPeriod]         = useState<Period>('month');
   const [customFrom, setCustomFrom] = useState(isoDate(new Date()));
   const [customTo, setCustomTo]     = useState(isoDate(new Date()));
-  const [locationId, setLocationId] = useState<string>('');
-  const [staffId, setStaffId]       = useState<string>('');
+  const [locationId, setLocationId] = useState<string>('__all__');
+  const [staffId, setStaffId]       = useState<string>('__all__');
 
   const [locations, setLocations]   = useState<Location[]>([]);
   const [allStaff, setAllStaff]     = useState<{ id: string; name: string; locationId: string | null }[]>([]);
   const [data, setData]             = useState<AnalyticsResult | null>(null);
   const [loading, setLoading]       = useState(false);
 
-  const staffList = locationId
+  const staffList = locationId && locationId !== '__all__'
     ? allStaff.filter(s => s.locationId === locationId)
     : allStaff;
 
@@ -138,8 +138,8 @@ function AnalyticsPageInner() {
     let cancelled = false;
 
     // Reset filters and data when active profile changes
-    setLocationId('');
-    setStaffId('');
+    setLocationId('__all__');
+    setStaffId('__all__');
     setLocations([]);
     setAllStaff([]);
     setData(null);
@@ -182,10 +182,10 @@ function AnalyticsPageInner() {
     const { from, to } = getPeriodRange(period, customFrom, customTo);
 
     const { data: result, error } = await (supabase.rpc as Function)('get_booking_analytics', {
-      p_location_id: locationId || null,
+      p_location_id: locationId === '__all__' ? null : locationId || null,
       p_date_from:   from,
       p_date_to:     to,
-      p_staff_id:    staffId || null,
+      p_staff_id:    staffId === '__all__' ? null : staffId || null,
       p_service_id:  null,
       p_business_id: activeProfileId,
     });
@@ -388,10 +388,10 @@ ${staffBlocks}
                 <GigSelect
                   size="sm"
                   value={locationId}
-                  onChange={val => { setLocationId(val); setStaffId(''); }}
+                  onChange={val => { setLocationId(val); setStaffId('__all__'); }}
                   className="border-0 bg-transparent hover:border-0 focus-visible:ring-0 data-[state=open]:border-0 data-[state=open]:ring-0"
                   options={[
-                    { value: '', label: t('bookingAnalytics.allLocations') },
+                    { value: '__all__', label: t('bookingAnalytics.allLocations') },
                     ...locations.map(l => ({ value: l.id, label: l.name })),
                   ]}
                 />
@@ -406,7 +406,7 @@ ${staffBlocks}
                   onChange={setStaffId}
                   className="border-0 bg-transparent hover:border-0 focus-visible:ring-0 data-[state=open]:border-0 data-[state=open]:ring-0"
                   options={[
-                    { value: '', label: t('bookingAnalytics.allStaff') },
+                    { value: '__all__', label: t('bookingAnalytics.allStaff') },
                     ...staffList.map(s => ({ value: s.id, label: s.name })),
                   ]}
                 />

@@ -82,7 +82,7 @@ export function MyAnalyticsView({ nav }: { nav: ReactNode }) {
   });
   const [customFrom, setCustomFrom] = useState(isoDate(new Date()));
   const [customTo, setCustomTo]     = useState(isoDate(new Date()));
-  const [locationId, setLocationId] = useState<string>('');
+  const [locationId, setLocationId] = useState<string>('__all__');
   const [data, setData]             = useState<MyAnalyticsResult | null>(null);
   const [loading, setLoading]       = useState(false);
   const [rpcError, setRpcError]     = useState<string | null>(null);
@@ -103,7 +103,7 @@ export function MyAnalyticsView({ nav }: { nav: ReactNode }) {
     const { data: result, error } = await (supabase.rpc as Function)('get_my_analytics', {
       p_date_from:   from,
       p_date_to:     to,
-      p_location_id: locationId || null,
+      p_location_id: locationId === '__all__' ? null : locationId || null,
     });
     setLoading(false);
     if (error) { setRpcError(error.message); setData(null); return; }
@@ -259,7 +259,7 @@ export function MyAnalyticsView({ nav }: { nav: ReactNode }) {
               onChange={setLocationId}
               className="border-0 bg-transparent hover:border-0 focus-visible:ring-0 data-[state=open]:border-0 data-[state=open]:ring-0"
               options={[
-                { value: '', label: t('bookingAnalytics.allLocations') },
+                { value: '__all__', label: t('bookingAnalytics.allLocations') },
                 ...locations.map(l => ({ value: l.id, label: l.name })),
               ]}
             />

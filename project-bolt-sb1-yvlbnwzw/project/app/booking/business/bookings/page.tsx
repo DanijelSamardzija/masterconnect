@@ -249,7 +249,6 @@ function OwnerBookingsContent() {
     if (ownerData) {
       setIsOwner(true);
       setStaffMemberId(ownerData.id);
-      setStaffFilter(ownerData.id);
       return;
     }
 
@@ -553,6 +552,7 @@ function OwnerBookingsContent() {
   const handleAddBooking = async () => {
     if (!addServiceId || !addStaffId || !addSlotStart || !addName.trim()) return;
     setAddLoading(true);
+    const slotLocId = selectedLocId || locationId || null;
     const { data, error } = await (supabase as any).rpc('owner_create_booking', {
       p_service_id:      addServiceId,
       p_staff_member_id: addStaffId,
@@ -561,6 +561,7 @@ function OwnerBookingsContent() {
       p_guest_phone:     addPhone.trim()  || null,
       p_guest_email:     addEmail.trim()  || null,
       p_notes:           addNotes.trim()  || null,
+      p_location_id:     slotLocId,
     });
     setAddLoading(false);
     if (error || data?.ok === false) { toast.error(data?.error || 'Greška'); return; }
