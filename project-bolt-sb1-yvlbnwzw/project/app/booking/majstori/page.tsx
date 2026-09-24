@@ -17,6 +17,7 @@ type Business = {
   service_area_cities: string[];
   business_subtype: string | null;
   primary_city: string | null;
+  primary_country: string | null;
   primary_address: string | null;
   avg_rating: number | null;
   review_count: number;
@@ -145,7 +146,7 @@ export default function MajstoriPage() {
         {businesses.length > 0 && (
           <div className="flex flex-col gap-3">
             {businesses.map(biz => {
-              const locationLabel = [biz.primary_address, biz.primary_city].filter(Boolean).join(', ');
+              const locationLabel = [biz.primary_address, biz.primary_city, biz.primary_country].filter(Boolean).join(', ');
               const mapsUrl = locationLabel
                 ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locationLabel)}`
                 : null;

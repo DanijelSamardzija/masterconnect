@@ -15,6 +15,7 @@ type LocCard = {
   avatarUrl: string | null;
   address: string | null;
   city: string | null;
+  country: string | null;
   avgRating: number | null;
   reviewCount: number;
   serviceNames: string[];
@@ -60,7 +61,7 @@ export default function TerminiPage() {
           .eq('is_marketplace_listed', true),
         supabase
           .from('business_locations')
-          .select('id, business_id, address, city, is_primary')
+          .select('id, business_id, address, city, country, is_primary')
           .in('business_id', bizIds)
           .eq('is_active', true)
           .order('is_primary', { ascending: false }),
@@ -157,7 +158,7 @@ export default function TerminiPage() {
       });
 
       // Group locations by business
-      type LocRow = { id: string; business_id: string; address: string | null; city: string | null; is_primary: boolean };
+      type LocRow = { id: string; business_id: string; address: string | null; city: string | null; country: string | null; is_primary: boolean };
       const locsByBiz = new Map<string, LocRow[]>();
       (locs ?? []).forEach((l: any) => {
         if (!locsByBiz.has(l.business_id)) locsByBiz.set(l.business_id, []);
@@ -199,6 +200,7 @@ export default function TerminiPage() {
             avatarUrl: p.avatar_url,
             address: null,
             city: null,
+            country: null,
             avgRating: rating,
             reviewCount,
             serviceNames: bizSvcs.map(s => s.name),
@@ -218,6 +220,7 @@ export default function TerminiPage() {
             avatarUrl: p.avatar_url,
             address: loc.address,
             city: loc.city,
+            country: loc.country,
             avgRating: rating,
             reviewCount,
             serviceNames: servicesAtLocation(p.id, loc.id),
@@ -234,6 +237,7 @@ export default function TerminiPage() {
               avatarUrl: p.avatar_url,
               address: loc.address,
               city: loc.city,
+              country: loc.country,
               avgRating: rating,
               reviewCount,
               serviceNames: servicesAtLocation(p.id, loc.id),
@@ -327,7 +331,7 @@ export default function TerminiPage() {
                     )}
                   </div>
                   {(card.address || card.city) && (() => {
-                    const locationLabel = [card.address, card.city].filter(Boolean).join(', ');
+                    const locationLabel = [card.address, card.city, card.country].filter(Boolean).join(', ');
                     const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locationLabel)}`;
                     return (
                       <span
