@@ -26,6 +26,7 @@ import { AccommodationSettingsTab } from '@/components/setup/AccommodationSettin
 import { Button } from '@/components/ui/button';
 import { CityAutocomplete } from '@/components/city-autocomplete';
 import { countries } from '@/lib/countries';
+import { GigSelect } from '@/components/ui/gig-select';
 
 type Tab = 'profile' | 'services' | 'hours' | 'locations' | 'rules' | 'staff' | 'notifications'
          | 'tables' | 'menu' | 'delivery' | 'trade_services' | 'acc_units' | 'acc_rules';
@@ -3643,16 +3644,16 @@ export default function BusinessSetupPage() {
                               {locations.length > 1 && (
                                 <div className="flex items-center gap-1.5 mt-1">
                                   <MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
-                                  <select
+                                  <GigSelect
+                                    size="sm"
                                     value={sm.primary_location_id ?? locations[0]?.id ?? ''}
                                     disabled={savingLocStaffId === sm.id}
-                                    onChange={(e) => handleSetStaffLocation(sm.id, e.target.value || null)}
-                                    className="text-xs border border-border rounded-md px-1.5 py-0.5 bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
-                                  >
-                                    {locations.map(loc => (
-                                      <option key={loc.id} value={loc.id}>{loc.name}{loc.city ? ` — ${loc.city}` : ''}</option>
-                                    ))}
-                                  </select>
+                                    onChange={(val) => handleSetStaffLocation(sm.id, val || null)}
+                                    options={locations.map(loc => ({
+                                      value: loc.id,
+                                      label: `${loc.name}${loc.city ? ` — ${loc.city}` : ''}`,
+                                    }))}
+                                  />
                                   {savingLocStaffId === sm.id && <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />}
                                 </div>
                               )}
