@@ -3632,7 +3632,11 @@ export default function BusinessSetupPage() {
                                   <MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
                                   <GigSelect
                                     size="sm"
-                                    value={sm.primary_location_id ?? locations[0]?.id ?? ''}
+                                    value={
+                                      (sm.primary_location_id && locations.some(l => l.id === sm.primary_location_id))
+                                        ? sm.primary_location_id
+                                        : (locations[0]?.id ?? '')
+                                    }
                                     disabled={savingLocStaffId === sm.id}
                                     onChange={(val) => handleSetStaffLocation(sm.id, val || null)}
                                     options={locations.map(loc => ({

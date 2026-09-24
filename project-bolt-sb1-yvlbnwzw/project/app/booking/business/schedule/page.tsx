@@ -622,7 +622,12 @@ function OwnerScheduleContent() {
   }
 
   const filteredStaff = schedLocId
-    ? staffAccept.filter(s => (s.location_id ?? primaryLocId) === schedLocId)
+    ? staffAccept.filter(s => {
+        const validLoc = (s.location_id && locations.some(l => l.id === s.location_id))
+          ? s.location_id
+          : primaryLocId;
+        return validLoc === schedLocId;
+      })
     : staffAccept;
 
   const timeCls = 'border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary w-28';
