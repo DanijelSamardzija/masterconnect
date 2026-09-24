@@ -345,7 +345,7 @@ export default function BusinessBookingProfilePage() {
             )}
             <SharePostModal
               postId={businessId}
-              urlPath={`/booking/${businessId}`}
+              urlPath={`/booking/${businessId}${locationId ? `?locationId=${locationId}` : ''}`}
               open={shareOpen}
               onOpenChange={setShareOpen}
             />
