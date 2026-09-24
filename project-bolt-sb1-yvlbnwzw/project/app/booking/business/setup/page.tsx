@@ -1654,6 +1654,7 @@ export default function BusinessSetupPage() {
         p_staff_member_id: staffId,
         p_from_date: isoDateLocal(weeks[0]),
         p_to_date:   isoDateLocal(addDays(weeks[STAFF_SCHEDULE_WEEKS - 1], 6)),
+        p_business_id: activeProfileId,
       }),
       (supabase as any).rpc('get_staff_services', { p_staff_member_id: staffId }),
       supabase.from('staff_members').select('permissions').eq('id', staffId).single(),
@@ -1720,6 +1721,7 @@ export default function BusinessSetupPage() {
       p_location_id:     locId,
       p_week_start:      isoDateLocal(weekStart),
       p_days:            days,
+      p_business_id:     activeProfileId,
     });
     setStaffHoursSaving(null);
     if ((data as any)?.ok) {
@@ -1730,6 +1732,7 @@ export default function BusinessSetupPage() {
         p_staff_member_id: staffId,
         p_from_date: isoDateLocal(reloadWeeks[0]),
         p_to_date:   isoDateLocal(addDays(reloadWeeks[STAFF_SCHEDULE_WEEKS - 1], 6)),
+        p_business_id: activeProfileId,
       });
       const freshShifts: WeekShift[] = Array.isArray(fresh) ? fresh : [];
       setStaffShiftsMap(prev => ({ ...prev, [staffId]: freshShifts }));
@@ -1761,6 +1764,7 @@ export default function BusinessSetupPage() {
       p_staff_member_id: staffId,
       p_from_week_start: isoDateLocal(fromWeek),
       p_to_week_start:   isoDateLocal(toWeek),
+      p_business_id:     activeProfileId,
     });
     setStaffCopyingMap(m => ({ ...m, [staffId]: false }));
     if ((data as any)?.ok) {
@@ -1771,6 +1775,7 @@ export default function BusinessSetupPage() {
         p_staff_member_id: staffId,
         p_from_date: isoDateLocal(reloadWeeks[0]),
         p_to_date:   isoDateLocal(addDays(reloadWeeks[reloadWeeks.length - 1], 6)),
+        p_business_id: activeProfileId,
       });
       const freshShifts: WeekShift[] = Array.isArray(fresh) ? fresh : [];
       setStaffShiftsMap(prev => ({ ...prev, [staffId]: freshShifts }));
