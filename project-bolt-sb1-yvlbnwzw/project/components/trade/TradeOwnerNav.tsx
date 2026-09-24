@@ -186,14 +186,14 @@ export function TradeOwnerNav({
         <ProfileSwitcher profileId={profileId} />
       </div>
 
-      <div className="flex items-start gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-4">
         <button
           onClick={() => router.push('/booking')}
-          className="p-2 rounded-xl hover:bg-accent transition-colors text-muted-foreground shrink-0 mt-0.5"
+          className="p-2 rounded-xl hover:bg-accent transition-colors text-muted-foreground shrink-0"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <div className="flex flex-wrap gap-x-1 gap-y-0.5">
+        <div className="flex flex-nowrap overflow-x-auto scrollbar-hide gap-x-1 items-center">
           {navItems.map(({ tab, href, labelKey, icon }) => (
             <button
               key={tab}
