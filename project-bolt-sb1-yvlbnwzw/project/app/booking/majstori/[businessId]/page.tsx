@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase/client';
 import {
   Wrench, MapPin, Zap, Phone, Mail, Loader2,
   ChevronLeft, ChevronRight, ChevronDown, AlertCircle, Share2, Star, MessageSquareText,
+  UserPlus, UserCheck,
 } from 'lucide-react';
 import { SharePostModal } from '@/components/share-post-modal';
 import { TradeReviewModal } from '@/components/trade/TradeReviewModal';
@@ -93,6 +94,8 @@ export default function PublicTradeProfilePage() {
   const [reviewOpen, setReviewOpen] = useState(false);
   const [descExpanded, setDescExpanded] = useState(false);
   const [hoursExpanded, setHoursExpanded] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -122,7 +125,19 @@ export default function PublicTradeProfilePage() {
       .then(({ data }: { data: any }) => {
         if (data?.can_review) setCanReview(true);
       });
+    (supabase as any).rpc('get_business_follow_info', { p_business_id: businessId })
+      .then(({ data }: { data: any }) => {
+        if (data) setIsFollowing(data.is_following ?? false);
+      });
   }, [user, businessId]);
+
+  async function handleFollow() {
+    if (!user) return;
+    setFollowLoading(true);
+    const { data } = await (supabase as any).rpc('toggle_business_follow', { p_business_id: businessId });
+    setFollowLoading(false);
+    if (data?.ok) setIsFollowing(data.is_following);
+  }
 
   if (loading) {
     return (
@@ -210,13 +225,31 @@ export default function PublicTradeProfilePage() {
               );
             })()}
           </div>
-          <button
-            onClick={() => setShareOpen(true)}
-            className="shrink-0 p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-            title={t('trade.public.shareProfile')}
-          >
-            <Share2 className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            {user && (
+              <button
+                onClick={handleFollow}
+                disabled={followLoading}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
+                  isFollowing
+                    ? 'bg-primary/10 text-primary border-primary/30 hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400'
+                    : 'bg-primary text-primary-foreground border-primary hover:bg-primary/90'
+                } disabled:opacity-50`}
+              >
+                {isFollowing
+                  ? <><UserCheck className="w-3.5 h-3.5" />{t('booking.unfollow')}</>
+                  : <><UserPlus className="w-3.5 h-3.5" />{t('booking.follow')}</>
+                }
+              </button>
+            )}
+            <button
+              onClick={() => setShareOpen(true)}
+              className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent transition-colors border border-border"
+              title={t('trade.public.shareProfile')}
+            >
+              <Share2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
         <SharePostModal
