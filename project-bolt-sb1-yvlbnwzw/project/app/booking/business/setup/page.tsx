@@ -13,6 +13,8 @@ import { toast } from 'sonner';
 import { ChevronRight, ChevronLeft, Plus, Pencil, X, CheckCircle2, MapPin, ExternalLink, AlertTriangle, Check, Loader2, Info, Copy, Share2, Trash2, Camera, Bell, Mail } from 'lucide-react';
 import { TimePicker24h } from '@/components/ui/time-picker-24h';
 import { SharePostModal } from '@/components/share-post-modal';
+import { LocationPickerSheet } from '@/components/booking/location-picker-sheet';
+import type { LocationOption } from '@/components/booking/location-picker-sheet';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
 import { TradeOwnerNav } from '@/components/trade/TradeOwnerNav';
 import { RestaurantTablesTab } from '@/components/setup/RestaurantTablesTab';
@@ -582,6 +584,27 @@ export default function BusinessSetupPage() {
   const [reactivateProfileModal, setReactivateProfileModal] = useState(false);
   const [reactivateProfileLoading, setReactivateProfileLoading] = useState(false);
   const [shareSvcId, setShareSvcId] = useState<string | null>(null);
+  const [shareSvcLocId, setShareSvcLocId] = useState<string | null | undefined>(undefined);
+  const [svcLocPickerOpen, setSvcLocPickerOpen] = useState(false);
+  const [svcLocPickerOptions, setSvcLocPickerOptions] = useState<LocationOption[]>([]);
+
+  function handleServiceShare(svc: ServiceRow) {
+    const svcLocIds = serviceLocMap[svc.id] ?? [];
+    const activeLocs = locations.filter((l) => l.is_active);
+    const applicableLocs = svcLocIds.length > 0
+      ? activeLocs.filter((l) => svcLocIds.includes(l.id))
+      : activeLocs;
+
+    setShareSvcId(svc.id);
+
+    if (applicableLocs.length <= 1) {
+      setShareSvcLocId(applicableLocs[0]?.id ?? null);
+    } else {
+      setSvcLocPickerOptions(applicableLocs.map((l) => ({ id: l.id, name: l.name, city: l.city ?? null, country: l.country ?? null })));
+      setSvcLocPickerOpen(true);
+      setShareSvcLocId(undefined);
+    }
+  }
 
   // ── Guard: redirect to Hub if no active booking profile ───────────────────
   useEffect(() => {
@@ -2590,7 +2613,7 @@ export default function BusinessSetupPage() {
                                     <ExternalLink className="w-3.5 h-3.5" />
                                   </button>
                                   <button
-                                    onClick={() => setShareSvcId(svc.id)}
+                                    onClick={() => handleServiceShare(svc)}
                                     className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-accent transition-colors"
                                     title={t('booking.shareService')}
                                   >
@@ -4108,12 +4131,18 @@ export default function BusinessSetupPage() {
 
         </div>
       </div>
-      {shareSvcId && activeProfileId && (
+      <LocationPickerSheet
+        open={svcLocPickerOpen}
+        locations={svcLocPickerOptions}
+        onPick={(locId) => { setShareSvcLocId(locId); setSvcLocPickerOpen(false); }}
+        onCancel={() => { setSvcLocPickerOpen(false); setShareSvcId(null); setShareSvcLocId(undefined); }}
+      />
+      {shareSvcId && activeProfileId && shareSvcLocId !== undefined && !svcLocPickerOpen && (
         <SharePostModal
           postId={shareSvcId}
-          open={!!shareSvcId}
-          onOpenChange={(open) => { if (!open) setShareSvcId(null); }}
-          urlPath={`/booking/${activeProfileId}/${shareSvcId}`}
+          open={true}
+          onOpenChange={(open) => { if (!open) { setShareSvcId(null); setShareSvcLocId(undefined); } }}
+          urlPath={`/booking/${activeProfileId}/${shareSvcId}${shareSvcLocId ? `?locationId=${shareSvcLocId}` : ''}`}
         />
       )}
 

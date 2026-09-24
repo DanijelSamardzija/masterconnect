@@ -1870,6 +1870,7 @@ export default {
   'booking.backToServices': 'Retour aux services',
   'booking.shareService': 'Partager le service',
   'booking.shareProfile': 'Partager le profil',
+  'booking.sharePickLocation': 'Quel emplacement ?',
   'booking.backToSetup': 'Retour aux paramètres',
   'booking.duration': '{min} min',
   'booking.price': 'Prix',

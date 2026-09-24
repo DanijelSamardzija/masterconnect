@@ -9,6 +9,7 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ArrowLeft, Clock, Users, MapPin, Phone, UserPlus, UserCheck, Star, ChevronRight, Share2, AlertTriangle } from 'lucide-react';
 import { SharePostModal } from '@/components/share-post-modal';
+import { LocationPickerSheet } from '@/components/booking/location-picker-sheet';
 
 type OpeningHourRow = {
   day_of_week: number;
@@ -88,6 +89,8 @@ export default function BusinessBookingProfilePage() {
   const [reviewsData, setReviewsData] = useState<ReviewsData | null>(null);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [shareLocOpen, setShareLocOpen] = useState(false);
+  const [shareLocId, setShareLocId] = useState<string | null>(null);
   const [openingHours, setOpeningHours] = useState<OpeningHourRow[]>([]);
   const [hoursOpen, setHoursOpen] = useState(false);
   const [closures, setClosures] = useState<Array<{ reason: string; note: string | null; date_from: string; date_to: string }>>([]);
@@ -320,7 +323,17 @@ export default function BusinessBookingProfilePage() {
             </div>
             {/* Share button — visible to all */}
             <button
-              onClick={() => setShareOpen(true)}
+              onClick={() => {
+                if (locationId) {
+                  // Already viewing a specific location — share it directly
+                  setShareOpen(true);
+                } else if (locations.length <= 1) {
+                  if (locations.length === 1) setShareLocId(locations[0].id);
+                  setShareOpen(true);
+                } else {
+                  setShareLocOpen(true);
+                }
+              }}
               className="shrink-0 p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent transition-colors border border-border"
               title={t('booking.shareProfile')}
             >
@@ -343,11 +356,17 @@ export default function BusinessBookingProfilePage() {
                 }
               </button>
             )}
+            <LocationPickerSheet
+              open={shareLocOpen}
+              locations={locations.map(l => ({ id: l.id, name: l.name, city: l.city, country: l.country }))}
+              onPick={(locId) => { setShareLocId(locId); setShareLocOpen(false); setShareOpen(true); }}
+              onCancel={() => setShareLocOpen(false)}
+            />
             <SharePostModal
               postId={businessId}
-              urlPath={`/booking/${businessId}${locationId ? `?locationId=${locationId}` : ''}`}
+              urlPath={`/booking/${businessId}${(locationId || shareLocId) ? `?locationId=${locationId || shareLocId}` : ''}`}
               open={shareOpen}
-              onOpenChange={setShareOpen}
+              onOpenChange={(open) => { setShareOpen(open); if (!open) setShareLocId(null); }}
             />
           </div>
           {/* Closure banner */}

@@ -1945,6 +1945,7 @@ export default {
   'booking.backToServices': 'Nazad na usluge',
   'booking.shareService': 'Podijeli uslugu',
   'booking.shareProfile': 'Podijeli profil',
+  'booking.sharePickLocation': 'Za koju lokaciju?',
   'booking.backToSetup': 'Nazad na podešavanja',
   'booking.duration': '{min} min',
   'booking.price': 'Cijena',

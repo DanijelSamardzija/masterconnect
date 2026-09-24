@@ -1183,7 +1183,7 @@ export default function BookingSlotPickerPage() {
         postId={serviceId}
         open={shareOpen}
         onOpenChange={setShareOpen}
-        urlPath={`/booking/${businessId}/${serviceId}`}
+        urlPath={`/booking/${businessId}/${serviceId}${selectedLocationId ? `?locationId=${selectedLocationId}` : ''}`}
       />
     </div>
   );

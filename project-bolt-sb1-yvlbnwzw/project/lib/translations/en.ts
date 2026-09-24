@@ -1945,6 +1945,7 @@ export default {
   'booking.backToServices': 'Back to services',
   'booking.shareService': 'Share service',
   'booking.shareProfile': 'Share profile',
+  'booking.sharePickLocation': 'Which location?',
   'booking.backToSetup': 'Back to settings',
   'booking.duration': '{min} min',
   'booking.price': 'Price',
