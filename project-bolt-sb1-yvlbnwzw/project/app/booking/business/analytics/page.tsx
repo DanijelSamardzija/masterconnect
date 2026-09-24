@@ -8,6 +8,7 @@ import { useLanguage } from '@/lib/contexts/language-context';
 import { BarChart3, MapPin, User, Download } from 'lucide-react';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
 import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
+import { GigSelect } from '@/components/ui/gig-select';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -384,21 +385,31 @@ ${staffBlocks}
             {locations.length > 1 && (
               <div className="flex items-center gap-1.5 bg-muted rounded-lg px-2.5 py-1.5">
                 <MapPin className="h-3 w-3 text-muted-foreground shrink-0" />
-                <select value={locationId} onChange={e => { setLocationId(e.target.value); setStaffId(''); }}
-                  className="text-xs bg-transparent text-foreground outline-none">
-                  <option value="">{t('bookingAnalytics.allLocations')}</option>
-                  {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-                </select>
+                <GigSelect
+                  size="sm"
+                  value={locationId}
+                  onChange={val => { setLocationId(val); setStaffId(''); }}
+                  className="border-0 bg-transparent hover:border-0 focus-visible:ring-0 data-[state=open]:border-0 data-[state=open]:ring-0"
+                  options={[
+                    { value: '', label: t('bookingAnalytics.allLocations') },
+                    ...locations.map(l => ({ value: l.id, label: l.name })),
+                  ]}
+                />
               </div>
             )}
             {staffList.length > 1 && (
               <div className="flex items-center gap-1.5 bg-muted rounded-lg px-2.5 py-1.5">
                 <User className="h-3 w-3 text-muted-foreground shrink-0" />
-                <select value={staffId} onChange={e => setStaffId(e.target.value)}
-                  className="text-xs bg-transparent text-foreground outline-none">
-                  <option value="">{t('bookingAnalytics.allStaff')}</option>
-                  {staffList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
+                <GigSelect
+                  size="sm"
+                  value={staffId}
+                  onChange={setStaffId}
+                  className="border-0 bg-transparent hover:border-0 focus-visible:ring-0 data-[state=open]:border-0 data-[state=open]:ring-0"
+                  options={[
+                    { value: '', label: t('bookingAnalytics.allStaff') },
+                    ...staffList.map(s => ({ value: s.id, label: s.name })),
+                  ]}
+                />
               </div>
             )}
           </div>

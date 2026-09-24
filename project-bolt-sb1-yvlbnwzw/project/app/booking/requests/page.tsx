@@ -11,6 +11,7 @@ import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
 import { BookingBetaBanner } from '@/components/booking-beta-banner';
 import { toast } from 'sonner';
 import { ChevronRight, MapPin, Calendar, X, Send } from 'lucide-react';
+import { GigSelect } from '@/components/ui/gig-select';
 import { TimePicker24h } from '@/components/ui/time-picker-24h';
 
 type TradeRequest = {
@@ -359,10 +360,12 @@ export default function RequestsDashboard() {
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-medium text-muted-foreground">{t('trade.quote.currency')}</label>
-                  <select value={form.currency} onChange={(e) => setForm((f) => ({ ...f, currency: e.target.value }))}
-                    className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary">
-                    {['EUR', 'USD', 'RSD', 'BAM'].map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
+                  <GigSelect
+                    value={form.currency}
+                    onChange={val => setForm(f => ({ ...f, currency: val }))}
+                    options={['EUR', 'USD', 'RSD', 'BAM'].map(c => ({ value: c, label: c }))}
+                    className="w-full"
+                  />
                 </div>
               </div>
 

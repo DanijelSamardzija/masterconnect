@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { toast } from 'sonner';
 import { ArrowLeft, Check, MapPin, Clock, Wrench } from 'lucide-react';
+import { GigSelect } from '@/components/ui/gig-select';
 
 type Business = { id: string; name: string; avatar_url: string | null; city: string | null };
 type TradeService = { id: string; name: string; price_type: string; price_from: number | null; price_currency: string };
@@ -200,14 +201,15 @@ export default function HireTradespersonPage() {
               <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
                 <Clock className="w-3 h-3" /> {t('trade.request.time')}
               </label>
-              <select value={preferredTime} onChange={(e) => setPreferredTime(e.target.value)}
-                className="border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary">
-                {TIME_OPTIONS.map((to) => (
-                  <option key={to} value={to}>
-                    {t(`trade.request.time.${to}` as Parameters<typeof t>[0])}
-                  </option>
-                ))}
-              </select>
+              <GigSelect
+                value={preferredTime}
+                onChange={val => setPreferredTime(val as typeof preferredTime)}
+                className="w-full"
+                options={TIME_OPTIONS.map(to => ({
+                  value: to,
+                  label: t(`trade.request.time.${to}` as Parameters<typeof t>[0]),
+                }))}
+              />
             </div>
           </div>
 

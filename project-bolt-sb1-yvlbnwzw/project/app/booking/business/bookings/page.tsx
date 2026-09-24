@@ -15,6 +15,7 @@ import {
 import { isBookingBetaUser } from '@/lib/booking-whitelist';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
 import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
+import { GigSelect } from '@/components/ui/gig-select';
 
 type Booking = {
   id: string;
@@ -1383,12 +1384,15 @@ function OwnerBookingsContent() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-1">
-            <select value={reassignStaffId} onChange={e => setReassignStaffId(e.target.value)}
-              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
-            >
-              <option value="">{t('ownerBookings.reassignPlaceholder')}</option>
-              {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
+            <GigSelect
+              value={reassignStaffId}
+              onChange={setReassignStaffId}
+              className="w-full"
+              options={[
+                { value: '', label: t('ownerBookings.reassignPlaceholder') },
+                ...staff.map(s => ({ value: s.id, label: s.name })),
+              ]}
+            />
             <button onClick={handleReassign} disabled={!reassignStaffId || !!actionLoading}
               className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white rounded-xl py-2.5 text-sm font-semibold transition-colors"
             >

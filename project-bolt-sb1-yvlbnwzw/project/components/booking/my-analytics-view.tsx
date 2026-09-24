@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { BarChart3, MapPin, Download } from 'lucide-react';
+import { GigSelect } from '@/components/ui/gig-select';
 import type { ReactNode } from 'react';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -252,11 +253,16 @@ export function MyAnalyticsView({ nav }: { nav: ReactNode }) {
         {locations.length > 1 && (
           <div className="flex items-center gap-1.5 bg-muted rounded-lg px-2.5 py-1.5 w-fit">
             <MapPin className="h-3 w-3 text-muted-foreground shrink-0" />
-            <select value={locationId} onChange={e => setLocationId(e.target.value)}
-              className="text-xs bg-transparent text-foreground outline-none">
-              <option value="">{t('bookingAnalytics.allLocations')}</option>
-              {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-            </select>
+            <GigSelect
+              size="sm"
+              value={locationId}
+              onChange={setLocationId}
+              className="border-0 bg-transparent hover:border-0 focus-visible:ring-0 data-[state=open]:border-0 data-[state=open]:ring-0"
+              options={[
+                { value: '', label: t('bookingAnalytics.allLocations') },
+                ...locations.map(l => ({ value: l.id, label: l.name })),
+              ]}
+            />
           </div>
         )}
       </div>
