@@ -3761,7 +3761,8 @@ export default function BusinessSetupPage() {
                                         })}
                                       </div>
                                     </div>
-                                    {/* Group: Bookings */}
+                                    {/* Group: Bookings — hidden for tradespeople (not relevant) */}
+                                    {bizCategory !== 'tradespeople' && (
                                     <div>
                                       <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
                                         {t('setup.staff.permissions.groupBookings')}
@@ -3798,6 +3799,7 @@ export default function BusinessSetupPage() {
                                         })}
                                       </div>
                                     </div>
+                                    )}
                                   </div>
                                     {/* Trade permission groups — only for tradespeople profiles */}
                                     {bizCategory === 'tradespeople' && (
