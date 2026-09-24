@@ -768,9 +768,9 @@ function OwnerScheduleContent() {
 
         {/* Sub-nav: Raspored smjena ↔ Odsustva — only in trade context */}
         {profileType === 'tradespeople' && (
-          <div className="flex gap-1 p-1 rounded-xl bg-muted/50 mb-5">
+          <div className="flex w-full gap-1 p-1 rounded-xl bg-muted/50 mb-5">
             <button
-              className="flex-1 py-2 text-sm font-medium rounded-lg transition-colors bg-background text-foreground shadow-sm"
+              className="flex-1 py-2 text-sm font-semibold rounded-lg transition-colors bg-background text-primary shadow-sm"
             >
               {t('schedule.title')}
             </button>
