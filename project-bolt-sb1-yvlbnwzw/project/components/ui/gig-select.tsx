@@ -43,7 +43,9 @@ export function GigSelect({
           className
         )}
       >
-        <SelectPrimitive.Value placeholder={placeholder} />
+        <SelectPrimitive.Value placeholder={placeholder}>
+          {options.find(o => o.value === value)?.label ?? placeholder}
+        </SelectPrimitive.Value>
         <SelectPrimitive.Icon asChild>
           <ChevronDown className={cn('opacity-50 shrink-0', sm ? 'h-3 w-3' : 'h-4 w-4')} />
         </SelectPrimitive.Icon>
