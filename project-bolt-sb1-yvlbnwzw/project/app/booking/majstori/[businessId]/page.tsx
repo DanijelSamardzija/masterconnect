@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { supabase } from '@/lib/supabase/client';
 import {
   Wrench, MapPin, Zap, Phone, Mail, Loader2,
-  ChevronLeft, ChevronRight, ChevronDown, AlertCircle, Share2, Star, MessageSquareText,
+  ChevronLeft, ChevronRight, ChevronDown, AlertCircle, AlertTriangle, Share2, Star, MessageSquareText,
   UserPlus, UserCheck,
 } from 'lucide-react';
 import { SharePostModal } from '@/components/share-post-modal';
@@ -88,6 +88,7 @@ export default function PublicTradeProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  const [closures, setClosures] = useState<Array<{ reason: string; note: string | null; date_from: string; date_to: string }>>([]);
   const [reviewsData, setReviewsData] = useState<ReviewsData | null>(null);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [canReview, setCanReview] = useState(false);
@@ -104,6 +105,21 @@ export default function PublicTradeProfilePage() {
       });
       if (data?.ok) {
         setProfile(data.profile);
+        // Load closures for primary location (accessible to anon)
+        const { data: locData } = await supabase
+          .from('business_locations')
+          .select('id')
+          .eq('business_id', businessId)
+          .eq('is_primary', true)
+          .eq('is_active', true)
+          .maybeSingle();
+        const primaryLocId = locData?.id;
+        if (primaryLocId) {
+          (supabase as any).rpc('public_get_business_closures', { p_location_id: primaryLocId })
+            .then(({ data: cl }: { data: Array<{ reason: string; note: string | null; date_from: string; date_to: string }> | null }) => {
+              setClosures(cl ?? []);
+            });
+        }
       } else {
         setError(data?.error ?? 'not_found');
       }
@@ -258,6 +274,39 @@ export default function PublicTradeProfilePage() {
           open={shareOpen}
           onOpenChange={setShareOpen}
         />
+
+        {/* Closure banner */}
+        {closures.length > 0 && (() => {
+          const today = new Date().toISOString().split('T')[0];
+          const active   = closures.filter(c => c.date_from <= today && c.date_to >= today);
+          const upcoming = closures.filter(c => c.date_from > today);
+          const show = active.length > 0 ? active : upcoming;
+          if (show.length === 0) return null;
+          const isActive = active.length > 0;
+          return (
+            <div className={`mb-4 flex flex-col gap-1.5 px-3 py-2.5 rounded-xl border text-xs ${
+              isActive
+                ? 'border-orange-300 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-700 text-orange-800 dark:text-orange-300'
+                : 'border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700 text-amber-800 dark:text-amber-300'
+            }`}>
+              <div className="flex items-center gap-1.5 font-semibold">
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                {isActive ? t('booking.closure.currentlyClosed') : t('booking.closure.upcomingClosure')}
+              </div>
+              {show.map((c, i) => {
+                const reasonKey = `setup.closures.reason.${c.reason}` as Parameters<typeof t>[0];
+                const label = ['vacation','sick_leave','holiday','renovation','other'].includes(c.reason) ? t(reasonKey) : c.reason;
+                const fmt = (d: string) => { const [y,m,dd] = d.split('-'); return `${dd}.${m}.${y}.`; };
+                return (
+                  <span key={i}>
+                    {label} · {fmt(c.date_from)} – {fmt(c.date_to)}
+                    {c.note ? ` · ${c.note}` : ''}
+                  </span>
+                );
+              })}
+            </div>
+          );
+        })()}
 
         {/* Weekly hours — collapsible */}
         {profile.weekly_hours && profile.weekly_hours.length > 0 && (

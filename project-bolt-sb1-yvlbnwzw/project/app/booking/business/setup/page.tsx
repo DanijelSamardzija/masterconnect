@@ -120,6 +120,7 @@ type StaffResult = {
 
 type OffReason = 'day_off' | 'vacation' | 'sick_leave';
 const OFF_REASON_CYCLE: OffReason[] = ['day_off', 'vacation', 'sick_leave'];
+const FIRM_REASONS = ['vacation', 'sick_leave', 'holiday', 'renovation', 'other'] as const;
 
 type DaySchedule = {
   is_closed:   boolean;
@@ -1440,6 +1441,11 @@ export default function BusinessSetupPage() {
     if (!result?.ok) { toast.error(t('setup.error.saveFailed')); return; }
     toast.success(t('setup.closures.deleted'));
     if (hoursLocId) loadClosures(hoursLocId);
+  }
+
+  function getReasonLabel(reason: string): string {
+    const key = `setup.closures.reason.${reason}` as Parameters<typeof t>[0];
+    return ['vacation','sick_leave','holiday','renovation','other','blocked','break'].includes(reason) ? t(key) : reason;
   }
 
   // ── Location form helpers ──────────────────────────────────────────────────
@@ -2791,6 +2797,129 @@ export default function BusinessSetupPage() {
                   <Button onClick={handleSaveHours} disabled={hoursSaving} className="self-start">
                     {hoursSaving ? t('setup.hours.saving') : t('setup.hours.save')}
                   </Button>
+
+                  {/* ── Closures ──────────────────────────────────────────── */}
+                  <div className="pt-4 border-t border-border flex flex-col gap-3">
+                    <h3 className="font-semibold text-sm">{t('setup.closures.heading')}</h3>
+
+                    {closures.length > 0 ? (
+                      <div className="flex flex-col gap-1.5">
+                        {closures.map((c) => (
+                          <div
+                            key={c.id}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs ${
+                              c.is_past
+                                ? 'border-border/30 bg-muted/30 text-muted-foreground'
+                                : 'border-orange-200 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-800'
+                            }`}
+                          >
+                            <span className="flex-1 min-w-0">
+                              <span className="font-medium">{getReasonLabel(c.reason)}</span>
+                              {c.is_past && (
+                                <span className="ml-1.5 text-[10px] px-1 py-0.5 rounded bg-muted text-muted-foreground font-medium">
+                                  {t('setup.closures.past')}
+                                </span>
+                              )}
+                              <span className="text-muted-foreground ml-1.5">
+                                {formatClosureDate(c.date_from)} – {formatClosureDate(c.date_to)}
+                              </span>
+                              {c.note && <span className="block text-muted-foreground/70 truncate mt-0.5">{c.note}</span>}
+                            </span>
+                            {!c.is_past && (
+                              <button
+                                onClick={() => handleDeleteClosure(c.id)}
+                                disabled={deletingClosureId === c.id}
+                                className="shrink-0 p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                              >
+                                {deletingClosureId === c.id
+                                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  : <X className="w-3.5 h-3.5" />
+                                }
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">{t('setup.closures.empty')}</p>
+                    )}
+
+                    {closureWarning !== null && (
+                      <div className="flex flex-col gap-2 p-3 rounded-xl border border-orange-300 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-700">
+                        <div className="flex items-start gap-2">
+                          <AlertTriangle className="w-4 h-4 text-orange-600 dark:text-orange-400 shrink-0 mt-0.5" />
+                          <p className="text-xs text-orange-800 dark:text-orange-300">{t('setup.closures.warning')}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setClosureWarning(null)}
+                            className="flex-1 text-xs py-1.5 px-3 rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            {t('setup.closures.cancel')}
+                          </button>
+                          <button
+                            onClick={() => handleSaveClosure(true)}
+                            disabled={closureSaving}
+                            className="flex-1 text-xs py-1.5 px-3 rounded-lg bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-50 transition-colors"
+                          >
+                            {closureSaving ? <Loader2 className="w-3 h-3 animate-spin mx-auto" /> : t('setup.closures.confirm')}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {closureWarning === null && (
+                      <div className="flex flex-col gap-2 p-3 rounded-xl border border-border/60 bg-muted/20">
+                        <div className="flex gap-2">
+                          <div className="flex flex-col gap-1 flex-1">
+                            <label className="text-xs font-medium text-muted-foreground">{t('setup.closures.from')}</label>
+                            <input
+                              type="date"
+                              value={closureFrom}
+                              onChange={(e) => { setClosureFrom(e.target.value); setClosureWarning(null); }}
+                              className="border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1 flex-1">
+                            <label className="text-xs font-medium text-muted-foreground">{t('setup.closures.to')}</label>
+                            <input
+                              type="date"
+                              value={closureTo}
+                              min={closureFrom}
+                              onChange={(e) => { setClosureTo(e.target.value); setClosureWarning(null); }}
+                              className="border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <select
+                            value={closureReason}
+                            onChange={(e) => setClosureReason(e.target.value)}
+                            className="flex-1 border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                          >
+                            {FIRM_REASONS.map((r) => (
+                              <option key={r} value={r}>{getReasonLabel(r)}</option>
+                            ))}
+                          </select>
+                          <input
+                            type="text"
+                            value={closureNote}
+                            onChange={(e) => setClosureNote(e.target.value)}
+                            placeholder={t('setup.closures.note')}
+                            className="flex-1 border border-border rounded-lg px-2 py-1.5 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                          />
+                        </div>
+                        <button
+                          onClick={() => handleSaveClosure(false)}
+                          disabled={closureSaving || !closureFrom || !closureTo}
+                          className="self-start flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {closureSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                          {t('setup.closures.save')}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </>
               )}
             </div>

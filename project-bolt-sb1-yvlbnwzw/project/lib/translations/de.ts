@@ -1993,6 +1993,8 @@ export default {
   'booking.leaveReview': 'Bewertung hinterlassen',
   'booking.follow': 'Folgen',
   'booking.unfollow': 'Folgst ✓',
+  'booking.closure.currentlyClosed': 'Vorübergehend geschlossen',
+  'booking.closure.upcomingClosure': 'Bevorstehende Schließung',
   'booking.followers': '{n} Follower',
   'booking.reviews.title': 'Bewertungen',
   'booking.reviews.noReviews': 'Noch keine Bewertungen',

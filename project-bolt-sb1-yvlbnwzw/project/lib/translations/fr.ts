@@ -1928,6 +1928,8 @@ export default {
   'booking.leaveReview': 'Laisser un avis',
   'booking.follow': 'Suivre',
   'booking.unfollow': 'Tu suis ✓',
+  'booking.closure.currentlyClosed': 'Temporairement fermé',
+  'booking.closure.upcomingClosure': 'Fermeture à venir',
   'booking.followers': '{n} abonnés',
   'booking.reviews.title': 'Avis',
   'booking.reviews.noReviews': 'Aucun avis encore',

@@ -2003,6 +2003,8 @@ export default {
   'booking.leaveReview': 'Ostavi recenziju',
   'booking.follow': 'Prati',
   'booking.unfollow': 'Pratiš ✓',
+  'booking.closure.currentlyClosed': 'Privremeno zatvoreno',
+  'booking.closure.upcomingClosure': 'Predstojeće odsustvo',
   'booking.followers': '{n} pratilaca',
   'booking.reviews.title': 'Recenzije',
   'booking.reviews.noReviews': 'Još nema recenzija',

@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { ArrowLeft, Clock, Users, MapPin, Phone, UserPlus, UserCheck, Star, ChevronRight, Share2 } from 'lucide-react';
+import { ArrowLeft, Clock, Users, MapPin, Phone, UserPlus, UserCheck, Star, ChevronRight, Share2, AlertTriangle } from 'lucide-react';
 import { SharePostModal } from '@/components/share-post-modal';
 
 type OpeningHourRow = {
@@ -90,6 +90,7 @@ export default function BusinessBookingProfilePage() {
   const [shareOpen, setShareOpen] = useState(false);
   const [openingHours, setOpeningHours] = useState<OpeningHourRow[]>([]);
   const [hoursOpen, setHoursOpen] = useState(false);
+  const [closures, setClosures] = useState<Array<{ reason: string; note: string | null; date_from: string; date_to: string }>>([]);
 
   useEffect(() => {
     if (!businessId) return;
@@ -158,8 +159,18 @@ export default function BusinessBookingProfilePage() {
       }
 
       setServices(displayedServices);
-      setLocations(locationId ? allLocs.filter(l => l.id === locationId) : allLocs);
+      const displayedLocs = locationId ? allLocs.filter(l => l.id === locationId) : allLocs;
+      setLocations(displayedLocs);
       setLoading(false);
+
+      // Load closures for primary location (non-blocking, accessible to anon)
+      const primaryLocId = (locationId ?? allLocs.find(l => l.is_primary)?.id ?? allLocs[0]?.id) as string | undefined;
+      if (primaryLocId) {
+        (supabase as any).rpc('public_get_business_closures', { p_location_id: primaryLocId })
+          .then(({ data }: { data: Array<{ reason: string; note: string | null; date_from: string; date_to: string }> | null }) => {
+            setClosures(data ?? []);
+          });
+      }
 
       // Load follow info + reviews in parallel (non-blocking)
       const [followRes, reviewsRes] = await Promise.all([
@@ -339,6 +350,39 @@ export default function BusinessBookingProfilePage() {
               onOpenChange={setShareOpen}
             />
           </div>
+          {/* Closure banner */}
+          {closures.length > 0 && (() => {
+            const today = new Date().toISOString().split('T')[0];
+            const active  = closures.filter(c => c.date_from <= today && c.date_to >= today);
+            const upcoming = closures.filter(c => c.date_from > today);
+            const show = active.length > 0 ? active : upcoming;
+            if (show.length === 0) return null;
+            const isActive = active.length > 0;
+            return (
+              <div className={`mx-4 mb-3 flex flex-col gap-1.5 px-3 py-2.5 rounded-xl border text-xs ${
+                isActive
+                  ? 'border-orange-300 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-700 text-orange-800 dark:text-orange-300'
+                  : 'border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700 text-amber-800 dark:text-amber-300'
+              }`}>
+                <div className="flex items-center gap-1.5 font-semibold">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                  {isActive ? t('booking.closure.currentlyClosed') : t('booking.closure.upcomingClosure')}
+                </div>
+                {show.map((c, i) => {
+                  const reasonKey = `setup.closures.reason.${c.reason}` as Parameters<typeof t>[0];
+                  const label = ['vacation','sick_leave','holiday','renovation','other'].includes(c.reason) ? t(reasonKey) : c.reason;
+                  const fmt = (d: string) => { const [y,m,dd] = d.split('-'); return `${dd}.${m}.${y}.`; };
+                  return (
+                    <span key={i}>
+                      {label} · {fmt(c.date_from)} – {fmt(c.date_to)}
+                      {c.note ? ` · ${c.note}` : ''}
+                    </span>
+                  );
+                })}
+              </div>
+            );
+          })()}
+
           {/* Working hours — shown when a specific location is selected */}
           {openingHours.length > 0 && (
             <div className="px-4 pb-3 border-t border-border pt-3">

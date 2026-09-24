@@ -1921,6 +1921,8 @@ export default {
   'booking.leaveReview': 'Dejar una reseña',
   'booking.follow': 'Seguir',
   'booking.unfollow': 'Siguiendo ✓',
+  'booking.closure.currentlyClosed': 'Temporalmente cerrado',
+  'booking.closure.upcomingClosure': 'Próximo cierre',
   'booking.followers': '{n} seguidores',
   'booking.reviews.title': 'Reseñas',
   'booking.reviews.noReviews': 'Aún no hay reseñas',

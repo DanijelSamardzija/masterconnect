@@ -2003,6 +2003,8 @@ export default {
   'booking.leaveReview': 'Leave a review',
   'booking.follow': 'Follow',
   'booking.unfollow': 'Following ✓',
+  'booking.closure.currentlyClosed': 'Temporarily closed',
+  'booking.closure.upcomingClosure': 'Upcoming closure',
   'booking.followers': '{n} followers',
   'booking.reviews.title': 'Reviews',
   'booking.reviews.noReviews': 'No reviews yet',
