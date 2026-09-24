@@ -217,6 +217,7 @@ export default function OwnerAddBookingPage() {
       p_guest_phone:     guestPhone.trim()  || null,
       p_guest_email:     guestEmail.trim()  || null,
       p_notes:           notes.trim()       || null,
+      p_location_id:     locationId         || null,
     });
     setSubmitting(false);
     if (error || data?.ok === false) {
