@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   );
 
   const [bizRes, svcRes] = await Promise.all([
-    supabase.from('booking_profiles').select('name').eq('id', businessId).eq('is_active', true).maybeSingle(),
+    supabase.from('booking_profiles').select('name, avatar_url').eq('id', businessId).eq('is_active', true).maybeSingle(),
     supabase.from('service_catalog')
       .select('name, description, price, price_type, currency, duration_minutes')
       .eq('id', serviceId)
@@ -37,6 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .join(' · ');
 
   const url = `https://gigzone.app/booking/${businessId}/${serviceId}`;
+  const imageUrl = (biz as any).avatar_url as string | null;
 
   return {
     title,
@@ -47,11 +48,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url,
       type: 'website',
       siteName: 'GigZone',
+      ...(imageUrl ? { images: [{ url: imageUrl, width: 400, height: 400 }] } : {}),
     },
     twitter: {
-      card: 'summary',
+      card: imageUrl ? 'summary_large_image' : 'summary',
       title,
       description,
+      ...(imageUrl ? { images: [imageUrl] } : {}),
     },
   };
 }
