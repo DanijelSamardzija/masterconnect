@@ -9,6 +9,7 @@ import { ProtectedRoute } from '@/components/protected-route';
 import { toast } from 'sonner';
 import { AlertTriangle, X, Check, Loader2, MapPin } from 'lucide-react';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
+import { TradeOwnerNav } from '@/components/trade/TradeOwnerNav';
 import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
 
 type BusinessClosure = {
@@ -52,6 +53,13 @@ export default function AbsencesPage() {
   const { activeProfileId, loading: profileCtxLoading } = useBookingProfile();
   const { t } = useLanguage();
   const router = useRouter();
+
+  const [profileType, setProfileType] = useState<string | null>(null);
+  useEffect(() => {
+    if (!activeProfileId) { setProfileType(null); return; }
+    (supabase as any).from('booking_profiles').select('profile_type').eq('id', activeProfileId).single()
+      .then(({ data }: { data: { profile_type: string } | null }) => setProfileType(data?.profile_type ?? ''));
+  }, [activeProfileId]);
 
   // Redirect to hub when context is ready but no active profile
   useEffect(() => {
@@ -229,7 +237,10 @@ export default function AbsencesPage() {
       <div className="min-h-screen bg-background">
         <div className="max-w-lg mx-auto px-4 py-6">
 
-          <BusinessBookingNav active="absences" />
+          {profileType === 'tradespeople' && activeProfileId
+            ? <TradeOwnerNav profileId={activeProfileId} active="staff" />
+            : profileType !== null ? <BusinessBookingNav active="absences" /> : null
+          }
 
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">

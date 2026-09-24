@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { ChevronLeft, ChevronRight, Copy, X, Info, Download, AlertTriangle, MapPin } from 'lucide-react';
 import { TimePicker24h } from '@/components/ui/time-picker-24h';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
+import { TradeOwnerNav } from '@/components/trade/TradeOwnerNav';
 import { useBookingProfile } from '@/lib/contexts/booking-profile-context';
 
 type ShiftRow = {
@@ -119,6 +120,13 @@ function OwnerScheduleContent() {
   const { profile } = useAuth();
   const router = useRouter();
   const { activeProfileId, loading: profileCtxLoading } = useBookingProfile();
+
+  const [profileType, setProfileType] = useState<string | null>(null);
+  useEffect(() => {
+    if (!activeProfileId) { setProfileType(null); return; }
+    (supabase as any).from('booking_profiles').select('profile_type').eq('id', activeProfileId).single()
+      .then(({ data }: { data: { profile_type: string } | null }) => setProfileType(data?.profile_type ?? ''));
+  }, [activeProfileId]);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
@@ -753,7 +761,10 @@ function OwnerScheduleContent() {
     <div className="min-h-screen bg-background">
       <div className="max-w-5xl mx-auto px-4 py-6">
 
-        <BusinessBookingNav active="schedule" />
+        {profileType === 'tradespeople' && activeProfileId
+          ? <TradeOwnerNav profileId={activeProfileId} active="staff" />
+          : profileType !== null ? <BusinessBookingNav active="schedule" /> : null
+        }
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">

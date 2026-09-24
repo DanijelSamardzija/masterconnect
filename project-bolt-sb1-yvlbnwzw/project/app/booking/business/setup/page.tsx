@@ -14,6 +14,7 @@ import { ChevronRight, ChevronLeft, Plus, Pencil, X, CheckCircle2, MapPin, Exter
 import { TimePicker24h } from '@/components/ui/time-picker-24h';
 import { SharePostModal } from '@/components/share-post-modal';
 import { BusinessBookingNav } from '@/components/booking/business-booking-nav';
+import { TradeOwnerNav } from '@/components/trade/TradeOwnerNav';
 import { RestaurantTablesTab } from '@/components/setup/RestaurantTablesTab';
 import { MenuTab } from '@/components/setup/MenuTab';
 import { DeliverySettingsTab } from '@/components/setup/DeliverySettingsTab';
@@ -1936,7 +1937,10 @@ export default function BusinessSetupPage() {
       <div className="min-h-screen bg-background">
         <div className="max-w-2xl mx-auto px-4 py-6">
 
-          <BusinessBookingNav active="setup" />
+          {bizCategory === 'tradespeople' && activeProfileId
+            ? <TradeOwnerNav profileId={activeProfileId} active="settings" />
+            : <BusinessBookingNav active="setup" />
+          }
 
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">

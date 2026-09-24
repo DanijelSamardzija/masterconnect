@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useLanguage } from '@/lib/contexts/language-context';
 import { useAuth } from '@/lib/contexts/auth-context';
@@ -257,9 +258,25 @@ export default function TradeStaffPage({
 
   return (
     <TradeDashboardLayout profileId={profileId} active="staff">
-      <h1 className="text-lg font-bold text-foreground mb-4">
+      <h1 className="text-lg font-bold text-foreground mb-3">
         {t('trade.dashboard.staff.title')}
       </h1>
+
+      {/* Sub-nav: quick links to schedule and absences for this trade's workers */}
+      <div className="flex gap-2 mb-4">
+        <Link
+          href="/booking/business/schedule"
+          className="text-xs px-3 py-1.5 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors"
+        >
+          {t('schedule.title')}
+        </Link>
+        <Link
+          href="/booking/business/absences"
+          className="text-xs px-3 py-1.5 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors"
+        >
+          {t('absences.title')}
+        </Link>
+      </div>
 
       {loading && (
         <div className="flex justify-center py-12">
